@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -10,7 +11,6 @@ import {
   CalendarDays,
   Trophy,
   Timer,
-  ArrowRight,
   Eye,
   CreditCard,
   XCircle,
@@ -32,10 +32,21 @@ type TabKey = "upcoming" | "completed" | "cancelled";
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
   const [toast, setToast] = useState<string | null>(null);
+  const [cancelledIds, setCancelledIds] = useState<string[]>([]);
 
-  const upcoming = enhancedBookings.filter((b) => b.status === "confirmed" || b.status === "pending");
-  const completed = enhancedBookings.filter((b) => b.status === "completed");
-  const cancelled = enhancedBookings.filter((b) => b.status === "cancelled");
+  const visibleBookings = enhancedBookings.map((booking) =>
+    cancelledIds.includes(booking.id)
+      ? {
+          ...booking,
+          status: "cancelled" as EnhancedBooking["status"],
+          payment: { ...booking.payment, status: "refunded" as EnhancedBooking["payment"]["status"] },
+        }
+      : booking
+  );
+
+  const upcoming = visibleBookings.filter((b) => b.status === "confirmed" || b.status === "pending");
+  const completed = visibleBookings.filter((b) => b.status === "completed");
+  const cancelled = visibleBookings.filter((b) => b.status === "cancelled");
 
   const tabData: Record<TabKey, EnhancedBooking[]> = { upcoming, completed, cancelled };
 
@@ -43,12 +54,27 @@ export default function BookingsPage() {
   const nextVenue = nextBooking ? mockVenues.find((v) => v.id === nextBooking.venueId) : null;
   const nextCourt = nextBooking ? mockCourts.find((c) => c.id === nextBooking.courtId) : null;
 
-  const totalBookings = enhancedBookings.length;
-  const hoursPlayed = enhancedBookings.filter((b) => b.status === "completed").reduce((sum, b) => sum + b.duration, 0);
+  const totalBookings = visibleBookings.length;
+  const hoursPlayed = visibleBookings.filter((b) => b.status === "completed").reduce((sum, b) => sum + b.duration, 0);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
+  }
+
+  async function handleShare(bookingId: string) {
+    const shareUrl = `${window.location.origin}/booking/${bookingId}/invite`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showToast("Invite link copied to clipboard.");
+    } catch {
+      showToast(`Share this invite link: ${shareUrl}`);
+    }
+  }
+
+  function handleCancel(bookingId: string) {
+    setCancelledIds((prev) => (prev.includes(bookingId) ? prev : [...prev, bookingId]));
+    showToast("Booking marked cancelled in this demo. Backend cancellation will sync this later.");
   }
 
   return (
@@ -116,8 +142,8 @@ export default function BookingsPage() {
                   Invite Friends
                 </Link>
                 <button
-                  onClick={() => showToast("Coming soon in backend integration.")}
-                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/20 hover:text-[#F7F7F7]"
+                  onClick={() => handleShare(nextBooking.id)}
+                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/20 hover:text-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
                 >
                   <Share2 className="h-3.5 w-3.5" />
                   Share
@@ -126,10 +152,12 @@ export default function BookingsPage() {
             </div>
 
             <div className="relative hidden overflow-hidden lg:block">
-              <img
+              <Image
                 src={IMG.venue1}
                 alt={nextVenue.name}
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                sizes="(min-width: 1024px) 33vw, 100vw"
+                className="object-cover"
               />
             </div>
           </div>
@@ -179,7 +207,7 @@ export default function BookingsPage() {
                 booking={booking}
                 index={i}
                 muted={activeTab !== "upcoming"}
-                onCancel={() => showToast("Coming soon in backend integration.")}
+                onCancel={() => handleCancel(booking.id)}
               />
             ))
           )}
@@ -253,8 +281,14 @@ function BookingRow({
         ? "border-white/[0.03] bg-white/[0.01]"
         : "border-white/[0.06] bg-[#0C1B26]"
     }`}>
-      <div className="hidden h-12 w-12 shrink-0 overflow-hidden rounded-lg sm:block">
-        <img src={images[index % images.length]} alt={venue?.name ?? ""} className="h-full w-full object-cover" />
+      <div className="relative hidden h-12 w-12 shrink-0 overflow-hidden rounded-lg sm:block">
+        <Image
+          src={images[index % images.length]}
+          alt={venue?.name ?? "Venue image"}
+          fill
+          sizes="48px"
+          className="object-cover"
+        />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -279,7 +313,8 @@ function BookingRow({
         <div className="flex gap-1.5">
           <Link
             href={`/bookings/${booking.id}`}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/70"
+            aria-label={`View details for ${venue?.name ?? "booking"}`}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/70 focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
             title="View Details"
           >
             <Eye className="h-3.5 w-3.5" />
@@ -288,21 +323,24 @@ function BookingRow({
             <>
               <Link
                 href={`/booking/${booking.id}/invite`}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E6FA50]/10 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20"
+                aria-label={`Invite friends to ${venue?.name ?? "booking"}`}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E6FA50]/10 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
                 title="Invite Friends"
               >
                 <Users className="h-3.5 w-3.5" />
               </Link>
               <Link
                 href={`/bookings/${booking.id}#payment`}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#50C8C8]/10 text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20"
+                aria-label={`View payment for ${venue?.name ?? "booking"}`}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#50C8C8]/10 text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
                 title="View Payment"
               >
                 <CreditCard className="h-3.5 w-3.5" />
               </Link>
               <button
                 onClick={onCancel}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20"
+                aria-label={`Cancel booking at ${venue?.name ?? "venue"}`}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20 focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
                 title="Cancel Booking"
               >
                 <XCircle className="h-3.5 w-3.5" />

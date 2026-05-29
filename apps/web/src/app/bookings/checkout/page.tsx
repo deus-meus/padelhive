@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   MapPin,
@@ -32,6 +33,7 @@ export default function CheckoutPage() {
   const [voucherCode, setVoucherCode] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
 
   const venue = mockVenues.find((v) => v.id === MOCK_CHECKOUT.venueId);
   const court = mockCourts.find((c) => c.id === MOCK_CHECKOUT.courtId);
@@ -57,9 +59,15 @@ export default function CheckoutPage() {
   function handlePay() {
     if (!paymentMethod) {
       showToast("Please select a payment method");
+      setPaymentStatus("error");
       return;
     }
-    showToast("Coming soon in backend integration.");
+
+    setPaymentStatus("processing");
+    window.setTimeout(() => {
+      setPaymentStatus("success");
+      showToast("Payment authorized in demo checkout.");
+    }, 800);
   }
 
   const paymentMethods = [
@@ -95,8 +103,14 @@ export default function CheckoutPage() {
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Booking Details</p>
               <div className="flex gap-4">
-                <div className="hidden sm:block h-20 w-28 shrink-0 overflow-hidden rounded-xl">
-                  <img src={padelImg(300)} alt={venue?.name ?? ""} className="h-full w-full object-cover" />
+                <div className="relative hidden h-20 w-28 shrink-0 overflow-hidden rounded-xl sm:block">
+                  <Image
+                    src={padelImg(300)}
+                    alt={venue?.name ?? "Venue image"}
+                    fill
+                    sizes="112px"
+                    className="object-cover"
+                  />
                 </div>
                 <div>
                   <h2 className="heading-3 text-lg text-[#F7F7F7]">{venue?.name}</h2>
@@ -188,11 +202,28 @@ export default function CheckoutPage() {
                 </div>
               )}
 
+              {paymentStatus === "error" && (
+                <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2">
+                  <p className="caption text-red-100/80">Select a payment method before paying.</p>
+                </div>
+              )}
+              {paymentStatus === "processing" && (
+                <div className="mb-4 rounded-lg border border-[#50C8C8]/20 bg-[#50C8C8]/10 px-3 py-2">
+                  <p className="caption text-[#50C8C8]">Processing demo payment...</p>
+                </div>
+              )}
+              {paymentStatus === "success" && (
+                <div className="mb-4 rounded-lg border border-[#E6FA50]/20 bg-[#E6FA50]/10 px-3 py-2">
+                  <p className="caption text-[#E6FA50]">Payment authorized. Booking is ready in this demo flow.</p>
+                </div>
+              )}
+
               <button
                 onClick={handlePay}
-                className="btn-lime w-full rounded-xl py-3 text-sm font-semibold"
+                disabled={paymentStatus === "processing" || paymentStatus === "success"}
+                className="btn-lime w-full rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Pay Rp {(total / 1000).toFixed(0)}K
+                {paymentStatus === "processing" ? "Processing..." : paymentStatus === "success" ? "Payment Authorized" : `Pay Rp ${(total / 1000).toFixed(0)}K`}
               </button>
 
               <p className="caption text-center text-[#F7F7F7]/20 mt-3">

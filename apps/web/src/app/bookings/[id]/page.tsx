@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -29,6 +30,7 @@ export default function BookingDetailPage() {
   const bookingId = params.id as string;
   const booking = enhancedBookings.find((b) => b.id === bookingId);
   const [toast, setToast] = useState<string | null>(null);
+  const [isCancelled, setIsCancelled] = useState(false);
 
   if (!booking) {
     return (
@@ -56,12 +58,13 @@ export default function BookingDetailPage() {
     navigator.clipboard.writeText(url).then(() => {
       showToast("Invite link copied to clipboard");
     }).catch(() => {
-      showToast("Coming soon in backend integration.");
+      showToast(`Share this invite link: ${url}`);
     });
   }
 
   function handleCancel() {
-    showToast("Coming soon in backend integration.");
+    setIsCancelled(true);
+    showToast("Booking marked cancelled in this demo. Backend cancellation will sync this later.");
   }
 
   return (
@@ -78,8 +81,8 @@ export default function BookingDetailPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <StatusBadge status={booking.status} />
-              <PaymentBadge status={booking.payment.status} />
+              <StatusBadge status={isCancelled ? "cancelled" : booking.status} />
+              <PaymentBadge status={isCancelled ? "refunded" : booking.payment.status} />
             </div>
             <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
               {venue?.name ?? "Unknown Venue"}
@@ -89,8 +92,14 @@ export default function BookingDetailPage() {
               {venue?.location} · {venue?.city}
             </p>
           </div>
-          <div className="hidden sm:block h-20 w-32 overflow-hidden rounded-xl">
-            <img src={padelImg(400)} alt={venue?.name ?? ""} className="h-full w-full object-cover" />
+          <div className="relative hidden h-20 w-32 overflow-hidden rounded-xl sm:block">
+            <Image
+              src={padelImg(400)}
+              alt={venue?.name ?? "Venue image"}
+              fill
+              sizes="128px"
+              className="object-cover"
+            />
           </div>
         </div>
       </section>
@@ -188,7 +197,7 @@ export default function BookingDetailPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="caption text-[#F7F7F7]/30">Status</span>
-                  <PaymentBadge status={booking.payment.status} />
+                  <PaymentBadge status={isCancelled ? "refunded" : booking.payment.status} />
                 </div>
                 {booking.payment.paidAt && (
                   <div className="flex items-center justify-between">
@@ -218,7 +227,7 @@ export default function BookingDetailPage() {
                   <CreditCard className="h-4 w-4 text-[#50C8C8]" />
                   View payment receipt
                 </Link>
-                {booking.status === "confirmed" && (
+                {booking.status === "confirmed" && !isCancelled && (
                   <button
                     onClick={handleCancel}
                     className="w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 text-sm text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
@@ -271,11 +280,15 @@ function ParticipantRow({ participant }: { participant: Participant }) {
 
   return (
     <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-3">
-      <img
-        src={participant.avatarUrl}
-        alt={participant.name}
-        className="h-8 w-8 rounded-full object-cover"
-      />
+      <div className="relative h-8 w-8 overflow-hidden rounded-full">
+        <Image
+          src={participant.avatarUrl}
+          alt={participant.name}
+          fill
+          sizes="32px"
+          className="object-cover"
+        />
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm text-[#F7F7F7]/70 truncate">{participant.name}</p>

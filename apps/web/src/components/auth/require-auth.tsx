@@ -5,6 +5,12 @@ import { LogIn } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import type { UserRole } from "@/types";
 
+function getRoleDestination(role: UserRole) {
+  if (role === "super_admin") return { href: "/admin", label: "Go to Admin" };
+  if (role === "venue_owner" || role === "venue_admin") return { href: "/dashboard", label: "Go to Dashboard" };
+  return { href: "/bookings", label: "Go to My Bookings" };
+}
+
 export function RequireAuth({
   children,
   allowedRoles,
@@ -38,18 +44,20 @@ export function RequireAuth({
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    const destination = getRoleDestination(user.role);
+
     return (
       <div className="min-h-screen flex items-center justify-center px-4 pt-28 pb-16">
         <div className="w-full max-w-sm text-center">
           <h2 className="heading-2 text-xl text-[#F7F7F7] mb-2">Access denied</h2>
           <p className="text-sm text-[#F7F7F7]/40 mb-6">
-            You don&apos;t have permission to view this page.
+            Your current role cannot view this page. Continue to your workspace instead.
           </p>
           <Link
-            href="/"
+            href={destination.href}
             className="btn-outline-white inline-flex h-11 items-center rounded-full px-8 text-[11px] font-semibold uppercase tracking-[0.08em]"
           >
-            Go Home
+            {destination.label}
           </Link>
         </div>
       </div>
