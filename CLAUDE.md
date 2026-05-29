@@ -1,375 +1,394 @@
-# Padelhive — Product Requirements Document
+# Padelhive - AI Development Guide
 
-## 1. Overview
+## Project Context
 
-Padelhive adalah marketplace booking lapangan padel berbasis web yang menghubungkan pemain padel dengan berbagai venue. Pengguna dapat mencari venue, melihat ketersediaan lapangan secara real-time, melakukan booking, membayar secara online, mengundang teman bermain, dan membagi biaya booking.
+Padelhive is a web-based padel court booking marketplace.
 
-Platform juga menyediakan dashboard untuk pemilik venue guna mengelola lapangan, jadwal, harga, dan reservasi. Super admin marketplace bertugas melakukan verifikasi venue, mengelola komisi, memantau transaksi, serta menangani dispute dan refund.
+The complete product specification lives in:
 
----
+PRD.md
 
-## 2. Goals
-
-### Business Goals
-- Menjadi marketplace booking padel utama di Indonesia.
-- Mengakuisisi venue padel di Bali, Jakarta, dan Surabaya.
-- Menghasilkan pendapatan melalui komisi transaksi.
-
-### Product Goals
-- Mempermudah proses booking lapangan dalam kurang dari 2 menit.
-- Menampilkan ketersediaan lapangan secara real-time.
-- Mengurangi double booking hingga mendekati 0%.
-
-### Measurable Outcomes
-- 1.000 booking berhasil dalam 3 bulan pertama.
-- Conversion rate booking > 15%.
-- Booking completion rate > 90%.
-- Venue retention > 80%.
-- Rating produk > 4.5/5.
+Always review PRD.md before implementing major features.
 
 ---
 
-## 3. Target Users
+# Current Phase
 
-### Player (Pemain Padel)
-- Menemukan venue dengan cepat.
-- Melihat slot tersedia secara real-time.
-- Booking dan bayar secara online.
-- Mengajak teman bermain.
-- Membagi biaya booking.
+Current focus:
 
-### Venue Owner
-- Mengelola venue dan lapangan.
-- Mengatur harga dan jadwal operasional.
-- Memantau booking dan pendapatan.
+Frontend MVP Completion
 
-### Venue Admin
-- Mengelola operasional harian venue.
-- Memproses booking.
-- Memantau jadwal court.
+Goals:
 
-### Marketplace Super Admin
-- Verifikasi venue.
-- Mengatur komisi marketplace.
-- Memantau transaksi.
-- Menangani refund dan dispute.
+* Complete booking journey
+* Complete owner dashboard
+* Complete admin dashboard
+* Complete authentication UI
+* Complete UX states
+* Complete responsive behavior
+
+Avoid:
+
+* Premature backend implementation
+* Nice-to-have features before MVP completion
 
 ---
 
-## 4. Tech Stack
+# Product Priorities
 
-### Frontend (Web)
-- Next.js 15
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Framer Motion
+Always implement in this order:
 
-### Backend
-- NestJS (Node.js)
-- REST API
-- WebSocket (Socket.IO)
+1. Player Booking Journey
+2. Venue Discovery
+3. Availability Calendar
+4. Booking Management
+5. Payment Flow
+6. Invite Friends
+7. Split Payment
+8. Venue Owner Dashboard
+9. Super Admin Dashboard
+10. Authentication
+11. Backend Integration
+12. Nice-to-Have Features
 
-### Database
-- PostgreSQL
-
-### ORM
-- Prisma
-
-### Authentication
-- Firebase Authentication
-- Google Login
-- OTP Login
-
-### Storage
-- AWS S3
-
-### Payments
-- Midtrans
-- Xendit
-
-### Infrastructure
-- AWS
-- Docker
-- GitHub Actions
-- CloudFront CDN
-
-### Analytics
-- Google Analytics
-- Firebase Analytics
-- Crashlytics (future mobile app)
+Do not prioritize Nice-to-Have features before MVP completion.
 
 ---
 
-## 5. Core Features
+# Design Principles
 
-### MVP (Must Have)
+Padelhive should feel:
 
-#### User Authentication
-- Google Login
-- OTP Login
-- Session management
+* Premium
+* Modern
+* Sports-tech
+* Fast
+* Mobile-first
 
-#### Venue Discovery
-- Browse venue tanpa login
-- Search venue
-- Filter kota
-- Detail venue
-- Foto venue dan fasilitas
+Reference products:
 
-#### Visual Availability Calendar
-- Kalender interaktif
-- Slot per jam
-- Real-time availability
-- Status court live
+* Airbnb
+* ClassPass
+* Strava
+* Linear
 
-#### Court Booking
-- Pilih venue
-- Pilih court
-- Pilih tanggal
-- Pilih jam
-- Konfirmasi booking
+Avoid:
 
-#### Online Payment
-- Midtrans/Xendit
-- VA
-- E-wallet
-- Kartu kredit/debit
-
-#### Booking Management
-- Riwayat booking
-- Detail booking
-- Cancel booking
-- Status booking
-
-#### Refund Management
-- Full refund sebelum H-1
-- Non-refundable setelah H-1
-
-#### Invite Friends
-- Share link
-- RSVP kehadiran
-- Daftar peserta
-
-#### Split Payment
-- Bagi biaya booking
-- Tracking pembayaran peserta
-
-#### Venue Owner Dashboard
-- Kelola venue
-- Kelola court
-- Kelola pricing
-- Kelola jam operasional
-- Monitoring booking
-- Monitoring pendapatan
-
-#### Dynamic Pricing
-- Peak pricing
-- Off-peak pricing
-- Weekday pricing
-- Weekend pricing
-
-#### Promo & Voucher
-- Voucher code
-- Diskon nominal
-- Diskon persentase
-
-#### Super Admin Dashboard
-- Approve venue
-- Reject venue
-- Monitoring transaksi
-- Monitoring booking
-- Pengaturan komisi
-- Refund & dispute handling
-
-### Nice to Have
-- Rental raket
-- Rental bola
-- Ratings & reviews
-- Push notifications
-- In-app chat
-- Tournament module
-- Loyalty program
-- AI venue recommendations
-- Social/community features
+* Generic admin templates
+* Excessive animations
+* Random color palettes
+* Inconsistent UI
 
 ---
 
-## 6. Out of Scope
+# UI Standards
 
-- Marketplace perlengkapan olahraga
-- Streaming pertandingan
-- Wearable integration
-- Multi-country launch
-- Native mobile apps (fase pertama)
+Maintain:
 
----
+* Consistent spacing
+* Consistent typography
+* Consistent border radius
+* Consistent button styles
+* Consistent card layouts
+* Consistent icon sizing
 
-## 7. User Flows
+Every page must include:
 
-### Booking Court
-1. Buka website.
-2. Browse venue.
-3. Pilih venue.
-4. Lihat kalender ketersediaan.
-5. Pilih court.
-6. Pilih tanggal dan jam.
-7. Login.
-8. Checkout.
-9. Bayar.
-10. Booking berhasil.
+* Loading states
+* Empty states
+* Error states
+* Success states
 
-### Invite Friends
-1. Booking berhasil.
-2. Generate invite link.
-3. Share link.
-4. Teman RSVP.
-5. Split payment jika diperlukan.
+Every interaction must:
 
-### Venue Management
-1. Owner login.
-2. Tambah venue.
-3. Tambah court.
-4. Atur pricing.
-5. Submit untuk approval.
-6. Venue aktif.
+* Navigate
+* Update state
+* Show feedback
+* Or clearly indicate "Coming Soon"
+
+Never leave dead buttons.
 
 ---
 
-## 8. Data Model
+# Frontend Standards
 
-### User
-- id
-- role
-- name
-- email
-- phone
+Use:
 
-### Venue
-- id
-- owner_id
-- name
-- location
-- description
+* Next.js
+* TypeScript
+* Tailwind CSS
+* shadcn/ui
+* Framer Motion
 
-### Court
-- id
-- venue_id
-- name
+Requirements:
 
-### Booking
-- id
-- user_id
-- court_id
-- booking_date
-- start_time
-- end_time
-- status
+* Reusable components
+* Shared UI primitives
+* Strong typing
+* Mobile responsiveness
+* Accessibility-friendly interactions
 
-### Payment
-- id
-- booking_id
-- amount
-- status
-- provider
+Avoid:
 
-### Invite
-- id
-- booking_id
-- user_id
-- attendance_status
-
-### Voucher
-- id
-- code
-- type
-- value
-
-### Refund
-- id
-- booking_id
-- amount
-- status
+* Duplicate components
+* Inline business logic
+* Unused code
+* Console warnings
+* Console errors
 
 ---
 
-## 9. UI/UX Notes
+# Shared Components
 
-### Design Direction
-- Modern sports-tech marketplace
-- Mobile-first responsive web
-- Premium dan energetic
+Prefer reusable components for:
 
-### Visual Style
-- Glassmorphism accents
-- Smooth micro-interactions
-- Framer Motion animations
-- Real-time visual indicators
+* EmptyState
+* ErrorState
+* LoadingState
+* SuccessState
+* ConfirmationModal
+* NotFoundState
+* Toast notifications
 
-### Key UX Goals
-- Booking maksimal 3–4 langkah
-- Fast-loading experience
-- Real-time updates tanpa refresh
-- Optimized untuk mobile browser
+Reuse existing components before creating new ones.
 
 ---
 
-## 10. Technical Considerations
+# UX Quality Checklist
 
-### Real-Time Availability
-- Socket.IO untuk update slot live
+Before marking work complete:
 
-### Concurrency Control
-- Temporary booking lock saat checkout
-- Auto-release jika pembayaran timeout
+Verify:
 
-### Security
-- JWT Authentication
-- RBAC (Role-Based Access Control)
-- Secure payment webhook verification
+* Consistent spacing
+* Consistent typography
+* Consistent card layouts
+* Consistent CTA placement
+* Responsive layouts
+* Mobile friendliness
+* No horizontal overflow
+* No clipping
+* No hydration mismatches
+* No broken routes
+* No dead buttons
 
-### Performance
-- Server-side rendering (SSR)
-- Incremental Static Regeneration (ISR)
-- CDN caching
+The application should feel like a complete MVP.
 
----
-
-## 11. Success Metrics
-
-### User Metrics
-- MAU > 10.000
-- D30 Retention > 30%
-- Booking completion > 90%
-
-### Business Metrics
-- GMV bulanan
-- Revenue komisi
-- Jumlah venue aktif
-
-### Operational Metrics
-- Uptime > 99.9%
-- Double booking = 0
-- Payment success rate > 95%
+Not a collection of screens.
 
 ---
 
-## 12. Open Questions
+# Booking Flow Rules
 
-- Besaran komisi marketplace.
-- Service fee pengguna.
-- SLA dispute resolution.
-- KYC venue owner.
-- Strategi akuisisi venue awal.
+The primary product flow is:
+
+Venue Discovery
+→ Venue Detail
+→ Availability Calendar
+→ Booking
+→ Invite Friends
+→ Split Payment
+→ Payment
+→ Success
+
+Protect and optimize this flow above all others.
+
+Any change should not break this journey.
 
 ---
 
-## 13. Assumptions
+# Dashboard Rules
 
-1. Nama produk diubah menjadi **Padelhive**.
-2. MVP dibangun sebagai **web application terlebih dahulu** untuk mempercepat time-to-market.
-3. Frontend menggunakan **Next.js + TypeScript** karena mendukung SEO, performa tinggi, SSR, dan skalabilitas marketplace.
-4. UI menggunakan **Tailwind CSS + shadcn/ui** sebagai standar modern SaaS marketplace.
-5. Backend menggunakan **NestJS + PostgreSQL + Prisma** sebagai stack yang scalable dan maintainable.
-6. Midtrans dan Xendit menjadi payment gateway utama untuk pasar Indonesia.
+Owner Dashboard priorities:
+
+* Revenue
+* Occupancy
+* Bookings
+* Pricing
+* Court management
+
+Admin Dashboard priorities:
+
+* Venue approval
+* Transactions
+* Refunds
+* Disputes
+* Commission management
+
+Avoid generic dashboard designs.
+
+---
+
+# Backend Rules
+
+When backend implementation begins:
+
+Stack:
+
+* NestJS
+* PostgreSQL
+* Prisma
+* REST API
+* Socket.IO
+
+Requirements:
+
+* RBAC
+* Booking locks
+* Refund workflow
+* Payment webhooks
+* Real-time availability
+
+Do not start backend implementation unless explicitly requested.
+
+---
+
+# Git Workflow
+
+Never commit directly to main.
+
+Branch naming:
+
+Features:
+
+feat/<description>
+
+Examples:
+
+feat/owner-dashboard
+feat/payment-flow
+feat/auth-ui
+
+Bug fixes:
+
+fix/<description>
+
+Examples:
+
+fix/mobile-overflow
+fix/navbar-transition
+fix/booking-summary
+
+---
+
+# GitHub Issue Workflow
+
+Before creating issues:
+
+1. Review PRD.md
+2. Search existing issues
+3. Avoid duplicates
+
+Issue categories:
+
+* frontend
+* backend
+* bug
+* enhancement
+* ux
+* technical-debt
+
+Issue format:
+
+## Problem
+
+Describe the problem.
+
+## Expected Behavior
+
+Describe the expected result.
+
+## Scope
+
+Affected pages/components.
+
+## Acceptance Criteria
+
+Checklist of requirements.
+
+---
+
+# Pull Request Workflow
+
+For completed work:
+
+1. Create feature branch
+2. Implement changes
+3. Run validation
+4. Commit
+5. Push
+6. Create Pull Request
+
+Never merge automatically.
+
+Wait for approval.
+
+PR must include:
+
+## Summary
+
+What changed.
+
+## Validation
+
+* npm run lint
+* npm run build
+
+## Screenshots
+
+If UI changes were made.
+
+---
+
+# Validation Requirements
+
+Always run:
+
+npm run lint
+npm run build
+
+Before reporting completion.
+
+Fix all issues before reporting success.
+
+---
+
+# Definition of Done
+
+A task is complete only when:
+
+* Requirements are implemented
+* UI is polished
+* Mobile is verified
+* Build passes
+* Lint passes
+* No broken routes
+* No dead buttons
+* No major UX issues remain
+
+Do not stop at reporting issues.
+
+Implement fixes and validate them.
+
+---
+
+# Agent Behavior
+
+Do not stop at analysis.
+
+Do not stop at reporting.
+
+Do not stop at planning.
+
+Implement changes when requested.
+
+Validate changes.
+
+Then provide:
+
+* Summary
+* Files changed
+* Validation results
+* Remaining limitations
+
+Focus on shipping working software.
