@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [method, setMethod] = useState<"phone" | "email">("phone");
   const [input, setInput] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -20,21 +21,36 @@ export default function LoginPage() {
   }
 
   async function handleGoogleLogin() {
-    await login("player");
-    router.push(ROLE_REDIRECTS.player);
+    if (isLoading) return;
+    setError(null);
+    try {
+      await login("player");
+      router.push(ROLE_REDIRECTS.player);
+    } catch {
+      setError("Could not sign in with Google. Please try again.");
+    }
   }
 
   function handleOTPRequest() {
+    setError(null);
     if (!input.trim()) {
-      showToast(method === "phone" ? "Please enter your phone number" : "Please enter your email");
+      const message = method === "phone" ? "Please enter your phone number" : "Please enter your email";
+      setError(message);
+      showToast(message);
       return;
     }
     router.push(`/auth/verify?method=${method}&contact=${encodeURIComponent(input)}`);
   }
 
   async function handleDemoLogin(role: UserRole) {
-    await login(role);
-    router.push(ROLE_REDIRECTS[role]);
+    if (isLoading) return;
+    setError(null);
+    try {
+      await login(role);
+      router.push(ROLE_REDIRECTS[role]);
+    } catch {
+      setError(`Could not sign in as ${role.replace("_", " ")}. Please try again.`);
+    }
   }
 
   return (
@@ -55,6 +71,12 @@ export default function LoginPage() {
         {/* Login Card */}
         <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8">
           <h1 className="heading-2 text-xl text-[#F7F7F7] text-center mb-6">Sign In</h1>
+
+          {error && (
+            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
+              <p className="text-sm text-red-100/80">{error}</p>
+            </div>
+          )}
 
           {/* Google Login */}
           <button
@@ -81,7 +103,8 @@ export default function LoginPage() {
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setMethod("phone")}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all ${
+              disabled={isLoading}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === "phone"
                   ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                   : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
@@ -91,7 +114,8 @@ export default function LoginPage() {
             </button>
             <button
               onClick={() => setMethod("email")}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all ${
+              disabled={isLoading}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === "email"
                   ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                   : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
@@ -114,14 +138,16 @@ export default function LoginPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleOTPRequest(); }}
-              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none"
+              disabled={isLoading}
+              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
 
           {/* Send OTP */}
           <button
             onClick={handleOTPRequest}
-            className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold"
+            disabled={isLoading}
+            className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
           >
             Send OTP Code <ChevronRight className="h-4 w-4" />
           </button>

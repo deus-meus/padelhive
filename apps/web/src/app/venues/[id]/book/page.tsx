@@ -62,6 +62,7 @@ export default function BookingFlowPage({
   const [selectedCourt, setSelectedCourt] = useState(courts[0]);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [dateScrollStart, setDateScrollStart] = useState(0);
+  const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
   const timeSlots = useMemo(() => {
     const dateSeed = selectedDate.getFullYear() * 10000 + (selectedDate.getMonth() + 1) * 100 + selectedDate.getDate();
@@ -88,9 +89,11 @@ export default function BookingFlowPage({
   }
 
   function toggleSlot(time: string) {
+    if (confirmState === "submitting") return;
     setSelectedSlots((prev) =>
       prev.includes(time) ? prev.filter((t) => t !== time) : [...prev, time]
     );
+    setConfirmState("idle");
   }
 
   const totalPrice = useMemo(() => {
@@ -111,16 +114,26 @@ export default function BookingFlowPage({
     : "--:--";
 
   function handleConfirm() {
-    const params = new URLSearchParams({
-      venue: venue.name,
-      court: selectedCourt.name,
-      date: selectedDate.toISOString().split("T")[0],
-      start: startTime,
-      end: endTime,
-      amount: totalPrice.toString(),
-      venueId: venue.id,
-    });
-    router.push(`/booking/new/invite?${params.toString()}`);
+    if (selectedSlots.length === 0 || confirmState === "submitting") return;
+
+    setConfirmState("submitting");
+
+    try {
+      const query = new URLSearchParams({
+        venue: venue.name,
+        court: selectedCourt.name,
+        date: selectedDate.toISOString().split("T")[0],
+        start: startTime,
+        end: endTime,
+        amount: totalPrice.toString(),
+        venueId: venue.id,
+      });
+
+      setConfirmState("success");
+      router.push(`/booking/new/invite?${query.toString()}`);
+    } catch {
+      setConfirmState("error");
+    }
   }
 
   return (
@@ -440,12 +453,34 @@ export default function BookingFlowPage({
                   </div>
                 </div>
 
+                {selectedSlots.length === 0 && (
+                  <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                    <p className="text-[11px] leading-relaxed text-[#F7F7F7]/35">
+                      Select at least one available time slot to continue.
+                    </p>
+                  </div>
+                )}
+                {confirmState === "error" && (
+                  <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                    <p className="text-[11px] leading-relaxed text-red-200/80">
+                      Could not prepare this booking. Please retry or choose another slot.
+                    </p>
+                  </div>
+                )}
+                {confirmState === "success" && (
+                  <div className="mt-5 rounded-xl border border-[#E6FA50]/20 bg-[#E6FA50]/10 p-3">
+                    <p className="text-[11px] leading-relaxed text-[#E6FA50]">
+                      Booking details ready. Taking you to invite friends.
+                    </p>
+                  </div>
+                )}
+
                 <button
                   onClick={handleConfirm}
-                  disabled={selectedSlots.length === 0}
-                  className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-30 disabled:cursor-not-allowed"
+                  disabled={selectedSlots.length === 0 || confirmState === "submitting"}
+                  className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-30"
                 >
-                  Continue to Invite & Pay
+                  {confirmState === "submitting" ? "Preparing Booking..." : "Continue to Invite & Pay"}
                 </button>
 
                 <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/[0.02] p-3">
