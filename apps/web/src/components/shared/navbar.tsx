@@ -1,0 +1,261 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Menu,
+  X,
+  CalendarDays,
+  LayoutDashboard,
+  Shield,
+  LogOut,
+  User,
+  LogIn,
+} from "lucide-react";
+import { useAuthStore } from "@/stores/auth-store";
+
+export function Navbar() {
+  const router = useRouter();
+  const { user, logout } = useAuthStore();
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function handleLogout() {
+    logout();
+    setAvatarOpen(false);
+    setMobileOpen(false);
+    router.push("/");
+  }
+
+  const showDashboard = user?.role === "venue_owner" || user?.role === "venue_admin";
+  const showAdmin = user?.role === "super_admin";
+
+  return (
+    <header
+      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ease-out ${
+        scrolled
+          ? "bg-[#06121A]/90 backdrop-blur-xl border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+          : "bg-transparent backdrop-blur-none border-transparent shadow-none"
+      }`}
+    >
+      <div className="container flex h-20 items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="font-heading text-xl font-semibold tracking-[-0.02em] text-[#F7F7F7]">
+            Padel<span className="text-[#E6FA50]">hive</span>
+          </span>
+        </Link>
+
+        <nav className="hidden items-center gap-8 md:flex">
+          <NavLink href="/venues">Venues</NavLink>
+          {user && <NavLink href="/bookings">My Bookings</NavLink>}
+          {showDashboard && <NavLink href="/dashboard">Dashboard</NavLink>}
+          {showAdmin && <NavLink href="/admin">Admin</NavLink>}
+        </nav>
+
+        <div className="flex items-center gap-4">
+          {user ? (
+            <div ref={avatarRef} className="relative">
+              <button
+                onClick={() => setAvatarOpen(!avatarOpen)}
+                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-transparent transition-all hover:border-[#E6FA50]/30"
+              >
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              </button>
+
+              {avatarOpen && (
+                <div className="absolute right-0 top-12 w-56 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-2 shadow-2xl">
+                  <div className="px-3 py-2 mb-1">
+                    <p className="text-sm font-medium text-[#F7F7F7]">{user.name}</p>
+                    <p className="caption text-[#F7F7F7]/30">{user.email}</p>
+                    <span className="mt-1 inline-block rounded-full bg-[#E6FA50]/10 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#E6FA50]">
+                      {user.role.replace("_", " ")}
+                    </span>
+                  </div>
+                  <div className="border-t border-white/[0.04] my-1" />
+                  <MenuLink href="/bookings" icon={CalendarDays} onClick={() => setAvatarOpen(false)}>
+                    My Bookings
+                  </MenuLink>
+                  {showDashboard && (
+                    <MenuLink href="/dashboard" icon={LayoutDashboard} onClick={() => setAvatarOpen(false)}>
+                      Dashboard
+                    </MenuLink>
+                  )}
+                  {showAdmin && (
+                    <MenuLink href="/admin" icon={Shield} onClick={() => setAvatarOpen(false)}>
+                      Admin Panel
+                    </MenuLink>
+                  )}
+                  <MenuLink href="/vouchers" icon={User} onClick={() => setAvatarOpen(false)}>
+                    Vouchers
+                  </MenuLink>
+                  <div className="border-t border-white/[0.04] my-1" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-400/70 transition-colors hover:bg-red-500/5 hover:text-red-400"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className="hidden items-center gap-2 text-sm font-medium text-[#F7F7F7]/60 transition-colors hover:text-[#F7F7F7] md:flex"
+              >
+                <LogIn className="h-4 w-4" /> Sign In
+              </Link>
+              <Link
+                href="/venues"
+                className="btn-lime hidden h-10 items-center rounded-full px-6 text-[11px] font-semibold uppercase tracking-[0.08em] md:inline-flex"
+              >
+                Book a Court
+              </Link>
+            </>
+          )}
+
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7] md:hidden"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <div className="glass-nav border-t border-white/[0.06] md:hidden">
+          <nav className="container flex flex-col gap-1 py-4">
+            <MobileNavLink href="/venues" onClick={() => setMobileOpen(false)}>
+              Venues
+            </MobileNavLink>
+            {user && (
+              <MobileNavLink href="/bookings" onClick={() => setMobileOpen(false)}>
+                My Bookings
+              </MobileNavLink>
+            )}
+            {showDashboard && (
+              <MobileNavLink href="/dashboard" onClick={() => setMobileOpen(false)}>
+                Dashboard
+              </MobileNavLink>
+            )}
+            {showAdmin && (
+              <MobileNavLink href="/admin" onClick={() => setMobileOpen(false)}>
+                Admin Panel
+              </MobileNavLink>
+            )}
+            {user ? (
+              <>
+                <div className="border-t border-white/[0.04] my-2" />
+                <div className="flex items-center gap-3 px-4 py-2">
+                  <img src={user.avatarUrl} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
+                  <div>
+                    <p className="text-sm font-medium text-[#F7F7F7]">{user.name}</p>
+                    <p className="caption text-[#F7F7F7]/30">{user.role.replace("_", " ")}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex h-12 items-center gap-3 rounded-xl px-4 text-sm text-red-400/70 transition-colors hover:bg-red-500/5 hover:text-red-400"
+                >
+                  <LogOut className="h-4 w-4" /> Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <MobileNavLink href="/auth/login" onClick={() => setMobileOpen(false)}>
+                  Sign In
+                </MobileNavLink>
+                <Link
+                  href="/venues"
+                  onClick={() => setMobileOpen(false)}
+                  className="btn-lime mt-3 flex h-12 items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]"
+                >
+                  Book a Court
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="label text-[#F7F7F7]/60 transition-colors duration-200 hover:text-[#F7F7F7]"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function MobileNavLink({
+  href,
+  children,
+  onClick,
+}: {
+  href: string;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex h-12 items-center rounded-xl px-4 label text-[#F7F7F7]/70 transition-colors hover:bg-white/5 hover:text-[#F7F7F7]"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function MenuLink({
+  href,
+  icon: Icon,
+  children,
+  onClick,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
+    >
+      <Icon className="h-4 w-4 text-[#50C8C8]" /> {children}
+    </Link>
+  );
+}

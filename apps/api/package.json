@@ -1,0 +1,6 @@
+{
+  "name": "@padelhive/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NestJS backend — to be initialized later"
+}

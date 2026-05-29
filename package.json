@@ -1,0 +1,12 @@
+{
+  "name": "padelhive",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @padelhive/web",
+    "build": "npm run build -w @padelhive/web",
+    "lint": "npm run lint -w @padelhive/web"
+  }
+}
