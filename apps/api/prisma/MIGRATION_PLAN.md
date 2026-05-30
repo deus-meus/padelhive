@@ -17,6 +17,21 @@
 - `DATABASE_URL` must point to a PostgreSQL instance.
 - Seed data uses upserts for deterministic Indonesian demo data.
 
+## Local Docker runtime
+
+1. Copy env file:
+   `cp apps/api/.env.example apps/api/.env`
+2. Start PostgreSQL:
+   `npm run db:up`
+3. Generate Prisma client:
+   `npm run prisma:generate`
+4. Apply migrations:
+   `npm run prisma:migrate`
+5. Seed data:
+   `npm run prisma:seed`
+6. Start API:
+   `npm run api:dev`
+
 ## Future migrations
 
 - Booking locks and availability holds
