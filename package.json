@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @padelhive/web",
-    "build": "npm run build -w @padelhive/web",
-    "lint": "npm run lint -w @padelhive/web"
+    "build": "npm run build -w @padelhive/web && npm run build -w @padelhive/api",
+    "lint": "npm run lint -w @padelhive/web && npm run lint -w @padelhive/api"
   }
 }
