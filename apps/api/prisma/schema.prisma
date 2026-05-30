@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PLAYER
+  VENUE_OWNER
+  VENUE_ADMIN
+  SUPER_ADMIN
+}
+
+enum VenueStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum CourtType {
+  INDOOR
+  OUTDOOR
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCESSED
+}
+
+enum InviteStatus {
+  INVITED
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum VoucherType {
+  NOMINAL
+  PERCENTAGE
+}
+
+model User {
+  id           String       @id @default(cuid())
+  firebaseUid  String       @unique
+  role         UserRole     @default(PLAYER)
+  name         String
+  email        String       @unique
+  phone        String?
+  avatarUrl    String?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  ownedVenues  Venue[]      @relation("VenueOwner")
+  venueAdmins  VenueAdmin[]
+  bookings     Booking[]    @relation("BookingHost")
+  invites      Invite[]     @relation("InviteUser")
+
+  @@index([role])
+  @@index([isActive])
+}
+
+model Venue {
+  id             String       @id @default(cuid())
+  ownerId        String
+  status         VenueStatus  @default(PENDING)
+  name           String
+  slug           String       @unique
+  location       String
+  city           String
+  description    String
+  imageUrl       String?
+  photos         String[]     @default([])
+  facilities     String[]     @default([])
+  openTime       String
+  closeTime      String
+  rating         Decimal      @default(0) @db.Decimal(3, 2)
+  reviewCount    Int          @default(0)
+  commissionRate Decimal      @default(10) @db.Decimal(5, 2)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  owner          User         @relation("VenueOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  admins         VenueAdmin[]
+  courts         Court[]
+  bookings       Booking[]
+
+  @@index([ownerId])
+  @@index([city])
+  @@index([status])
+  @@index([city, status])
+}
+
+model VenueAdmin {
+  id        String   @id @default(cuid())
+  venueId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, userId])
+  @@index([userId])
+}
+
+model Court {
+  id                String    @id @default(cuid())
+  venueId           String
+  name              String
+  type              CourtType
+  weekdayPeak       Int
+  weekdayOffPeak    Int
+  weekendPeak       Int
+  weekendOffPeak    Int
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  venue             Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  bookings          Booking[]
+
+  @@unique([venueId, name])
+  @@index([venueId])
+  @@index([isActive])
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  hostUserId      String
+  venueId         String
+  courtId         String
+  voucherId       String?
+  bookingDate     DateTime      @db.Date
+  startsAt        DateTime
+  endsAt          DateTime
+  durationMinutes Int
+  status          BookingStatus @default(PENDING)
+  courtAmount     Int
+  platformFee     Int
+  voucherDiscount Int           @default(0)
+  finalAmount     Int
+  cancelledAt     DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  host            User          @relation("BookingHost", fields: [hostUserId], references: [id], onDelete: Restrict)
+  venue           Venue         @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  court           Court         @relation(fields: [courtId], references: [id], onDelete: Restrict)
+  voucher         Voucher?      @relation(fields: [voucherId], references: [id], onDelete: SetNull)
+  payment         Payment?
+  invites         Invite[]
+  refunds         Refund[]
+
+  @@index([hostUserId])
+  @@index([venueId])
+  @@index([courtId])
+  @@index([status])
+  @@index([startsAt])
+  @@index([courtId, startsAt, endsAt])
+}
+
+model Payment {
+  id                  String        @id @default(cuid())
+  bookingId           String        @unique
+  amount              Int
+  status              PaymentStatus @default(PENDING)
+  provider            String
+  method              String
+  providerReference   String?
+  paidAt              DateTime?
+  failedAt            DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  booking             Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  refund              Refund?
+
+  @@index([status])
+  @@index([provider])
+  @@index([providerReference])
+}
+
+model Invite {
+  id        String       @id @default(cuid())
+  bookingId String
+  userId    String?
+  email     String
+  name      String
+  token     String       @unique
+  status    InviteStatus @default(INVITED)
+  isHost    Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  booking   Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user      User?        @relation("InviteUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([bookingId, email])
+  @@index([bookingId])
+  @@index([userId])
+  @@index([status])
+  @@index([email])
+}
+
+model Voucher {
+  id           String      @id @default(cuid())
+  code         String      @unique
+  type         VoucherType
+  value        Int
+  minPurchase  Int?
+  maxDiscount  Int?
+  usageLimit   Int
+  usedCount    Int         @default(0)
+  validFrom    DateTime
+  validUntil   DateTime
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  bookings     Booking[]
+
+  @@index([isActive])
+  @@index([validFrom, validUntil])
+}
+
+model Refund {
+  id          String       @id @default(cuid())
+  bookingId   String
+  paymentId   String?      @unique
+  amount      Int
+  reason      String
+  status      RefundStatus @default(PENDING)
+  adminNotes  String?
+  processedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  booking     Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payment     Payment?     @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([bookingId])
+  @@index([status])
+}
