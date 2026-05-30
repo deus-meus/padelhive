@@ -7,6 +7,17 @@
   "scripts": {
     "dev": "npm run dev -w @padelhive/web",
     "build": "npm run build -w @padelhive/web && npm run build -w @padelhive/api",
-    "lint": "npm run lint -w @padelhive/web && npm run lint -w @padelhive/api"
+    "lint": "npm run lint -w @padelhive/web && npm run lint -w @padelhive/api",
+    "api:dev": "npm run start:dev -w @padelhive/api",
+    "api:build": "npm run build -w @padelhive/api",
+    "api:lint": "npm run lint -w @padelhive/api",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "prisma:validate": "npm run prisma:validate -w @padelhive/api",
+    "prisma:generate": "npm run prisma:generate -w @padelhive/api",
+    "prisma:migrate": "npm run prisma:migrate:dev -w @padelhive/api",
+    "prisma:seed": "npm run prisma:seed -w @padelhive/api",
+    "backend:setup": "npm run prisma:generate && npm run prisma:migrate && npm run prisma:seed"
   }
 }
