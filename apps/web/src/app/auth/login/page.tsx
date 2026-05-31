@@ -1,15 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Phone, Mail, Loader2, ChevronRight } from "lucide-react";
+import { signInWithGoogle } from "@/lib/auth-client";
 import { useAuthStore, ROLE_REDIRECTS } from "@/stores/auth-store";
 import type { UserRole } from "@/types";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin text-[#E6FA50]" />
+    </div>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
-  const { login, isLoading } = useAuthStore();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
+  const { login, loginWithFirebasePlayer, isLoading } = useAuthStore();
   const [method, setMethod] = useState<"phone" | "email">("phone");
   const [input, setInput] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -24,8 +43,9 @@ export default function LoginPage() {
     if (isLoading) return;
     setError(null);
     try {
-      await login("player");
-      router.push(ROLE_REDIRECTS.player);
+      const firebaseUser = await signInWithGoogle();
+      loginWithFirebasePlayer(firebaseUser);
+      router.push(nextPath || ROLE_REDIRECTS.player);
     } catch {
       setError("Could not sign in with Google. Please try again.");
     }
