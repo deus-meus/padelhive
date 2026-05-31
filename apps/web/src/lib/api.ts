@@ -45,14 +45,74 @@ type ApiVoucher = {
   isActive: boolean;
 };
 
-async function apiFetch<T>(path: string): Promise<T> {
+type ApiBooking = {
+  id: string;
+  bookingDate: string;
+  startsAt: string;
+  endsAt: string;
+  durationMinutes: number;
+  status: string;
+  courtAmount: number;
+  platformFee: number;
+  voucherDiscount: number;
+  finalAmount: number;
+  venue: { id: string; name: string; city: string };
+  court: { id: string; name: string; type: string };
+  host: { id: string; name: string | null; email: string };
+};
+
+export type CreateBookingInput = {
+  venueId: string;
+  courtId: string;
+  bookingDate: string;
+  startsAt: string;
+  endsAt: string;
+};
+
+export type BookingSummary = ApiBooking;
+
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status?: number,
+    readonly statusText?: string
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
+type ApiFetchOptions = RequestInit & {
+  authToken?: string;
+};
+
+async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<T> {
+  const { authToken, headers, body, ...requestOptions } = options;
   const response = await fetch(`${API_URL}${path}`, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
+    ...requestOptions,
+    headers: {
+      Accept: "application/json",
+      ...(body ? { "Content-Type": "application/json" } :{}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } :{}),
+      ...headers,
+    },
+    body,
+    cache: requestOptions.cache ?? "no-store",
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    let message = `API request failed: ${response.status} ${response.statusText}`;
+    try {
+      const payload = (await response.json()) as { message?: string | string[] };
+      if (Array.isArray(payload.message)) {
+        message = payload.message.join(" ");
+      } else if (payload.message) {
+        message = payload.message;
+      }
+    } catch {
+      // Keep HTTP status message when response body is not JSON.
+    }
+    throw new ApiRequestError(message, response.status, response.statusText);
   }
 
   return response.json() as Promise<T>;
@@ -134,4 +194,15 @@ export async function getVenueCourts(venueId: string): Promise<Court[]> {
 export async function getVouchers(): Promise<Voucher[]> {
   const vouchers = await apiFetch<ApiVoucher[]>("/vouchers");
   return vouchers.map(mapVoucher);
+}
+
+export async function createBooking(
+  input: CreateBookingInput,
+  authToken: string
+): Promise<BookingSummary> {
+  return apiFetch<ApiBooking>("/bookings", {
+    method: "POST",
+    authToken,
+    body: JSON.stringify(input),
+  });
 }
