@@ -40,7 +40,7 @@ export function Navbar() {
   }, []);
 
   function handleLogout() {
-    logout();
+    void logout();
     setAvatarOpen(false);
     setMobileOpen(false);
     router.push("/");
