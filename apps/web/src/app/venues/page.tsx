@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MapPin, Star, Search, ArrowRight, Users, Calendar, Clock, CreditCard, Trophy } from "lucide-react";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { PlayerAvatarStack } from "@/components/ui/player-avatar-stack";
 import { padelImg } from "@/lib/images";
+import { getVenueCourts, getVenues } from "@/lib/api";
+import { Court, Venue } from "@/types";
 
 const CITIES = ["All", "Bali", "Jakarta", "Surabaya"];
 
@@ -22,6 +24,13 @@ const IMG = {
   venue3: padelImg(600),
 };
 
+function groupCourtsByVenue(courts: Court[]) {
+  return courts.reduce<Record<string, Court[]>>((acc, court) => {
+    acc[court.venueId] = [...(acc[court.venueId] ??[]), court];
+    return acc;
+  },{});
+}
+
 const OPEN_MATCHES = [
   { id: 1, venue: "Padel Bali Arena", venueId: "venue-1", date: "Tomorrow", time: "18:00", level: "Intermediate", spots: 2 },
   { id: 2, venue: "Jakarta Padel Club", venueId: "venue-2", date: "Sat, 31 May", time: "09:00", level: "Beginner", spots: 1 },
@@ -31,16 +40,67 @@ const OPEN_MATCHES = [
 export default function VenuesPage() {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("All");
+  const [venues, setVenues] = useState<Venue[]>(mockVenues);
+  const [courtsByVenue, setCourtsByVenue] = useState<Record<string, Court[]>>(() =>
+    groupCourtsByVenue(mockCourts),
+  );
+  const [isLoadingVenues, setIsLoadingVenues] = useState(true);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
-  const filteredVenues = mockVenues.filter((venue) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadVenues() {
+      setIsLoadingVenues(true);
+      setIsUsingFallback(false);
+      setApiError(null);
+
+      try {
+        const apiVenues = await getVenues();
+        const apiCourts = await Promise.all(
+          apiVenues.map(async (venue) => [venue.id, await getVenueCourts(venue.id)] as const),
+        );
+
+        if (cancelled) return;
+
+        setVenues(apiVenues.length > 0 ? apiVenues : mockVenues);
+        setCourtsByVenue(
+          apiCourts.reduce<Record<string, Court[]>>((acc, [venueId, courts]) => {
+            acc[venueId] = courts;
+            return acc;
+          },{}),
+        );
+        setIsUsingFallback(apiVenues.length === 0);
+      } catch {
+        if (cancelled) return;
+        setVenues(mockVenues);
+        setCourtsByVenue(groupCourtsByVenue(mockCourts));
+        setApiError("Could not reach the live venue API.");
+        setIsUsingFallback(true);
+      } finally {
+        if (!cancelled) setIsLoadingVenues(false);
+      }
+    }
+
+    loadVenues();
+
+    return () => {
+      cancelled = true;
+    };
+  },[]);
+
+  const filteredVenues = venues.filter((venue) => {
     const matchesSearch = venue.name.toLowerCase().includes(search.toLowerCase());
     const matchesCity = city === "All" || venue.city === city;
     return matchesSearch && matchesCity;
   });
 
-  const featured = mockVenues[0];
-  const featuredCourts = mockCourts.filter((c) => c.venueId === featured.id);
-  const featuredPrice = Math.min(...featuredCourts.map((c) => c.pricing.weekdayOffPeak));
+  const featured = venues[0] ?? mockVenues[0];
+  const featuredCourts = courtsByVenue[featured.id] ?? [];
+  const featuredPrice = featuredCourts.length
+    ? Math.min(...featuredCourts.map((c) => c.pricing.weekdayOffPeak))
+    : 0;
 
   return (
     <>
@@ -118,7 +178,7 @@ export default function VenuesPage() {
                 {/* Stats row */}
                 <div className="mt-7 flex items-center gap-5 border-t border-white/[0.06] pt-6">
                   <div>
-                    <p className="price text-xl text-[#50C8C8]">Rp {(featuredPrice / 1000).toFixed(0)}K</p>
+                    <p className="price text-xl text-[#50C8C8]">{featuredPrice > 0 ? `Rp ${(featuredPrice / 1000).toFixed(0)}K` : "Pricing soon"}</p>
                     <p className="caption mt-0.5 text-[#F7F7F7]/20">per hour</p>
                   </div>
                   <div className="h-9 w-px bg-white/[0.06]" />
@@ -262,6 +322,22 @@ export default function VenuesPage() {
             </div>
           </div>
 
+          {isLoadingVenues && (
+            <div className="mb-4 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-[#F7F7F7]/40">
+              Loading live venue data...
+            </div>
+          )}
+          {apiError && !isLoadingVenues && (
+            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
+              {apiError} Showing demo venue data.
+            </div>
+          )}
+          {isUsingFallback && !isLoadingVenues && !apiError && (
+            <div className="mb-4 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-sm text-[#E6FA50]/70">
+              Live API unavailable. Showing demo venue data.
+            </div>
+          )}
+
           {/* Search */}
           <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex flex-1 items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3">
@@ -290,8 +366,8 @@ export default function VenuesPage() {
           {/* 3-column grid */}
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filteredVenues.map((venue, i) => {
-              const courts = mockCourts.filter((c) => c.venueId === venue.id);
-              const price = Math.min(...courts.map((c) => c.pricing.weekdayOffPeak));
+              const courts = courtsByVenue[venue.id] ?? [];
+              const price = courts.length ? Math.min(...courts.map((c) => c.pricing.weekdayOffPeak)) : 0;
               const images = [IMG.venue1, IMG.venue2, IMG.venue3];
 
               return (
@@ -314,7 +390,7 @@ export default function VenuesPage() {
                         <MapPin className="h-3 w-3" />{venue.city}
                       </p>
                       <div className="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-3">
-                        <span className="price text-sm text-[#50C8C8]">Rp {(price / 1000).toFixed(0)}K/hr</span>
+                        <span className="price text-sm text-[#50C8C8]">{price > 0 ? `Rp ${(price / 1000).toFixed(0)}K/hr` : "Pricing soon"}</span>
                         <span className="caption text-[#F7F7F7]/20">{courts.length} courts</span>
                       </div>
                     </div>

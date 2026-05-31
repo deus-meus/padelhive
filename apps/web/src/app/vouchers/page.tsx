@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Ticket,
   Percent,
@@ -12,14 +12,49 @@ import {
 } from "lucide-react";
 import { mockVouchers } from "@/mock/vouchers";
 import { Voucher } from "@/types";
+import { getVouchers } from "@/lib/api";
 
 export default function VouchersPage() {
   const [filter, setFilter] = useState<"active" | "expired">("active");
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [vouchers, setVouchers] = useState<Voucher[]>(mockVouchers);
+  const [isLoadingVouchers, setIsLoadingVouchers] = useState(true);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
-  const active = mockVouchers.filter((v) => v.isActive);
-  const expired = mockVouchers.filter((v) => !v.isActive);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadVouchers() {
+      setIsLoadingVouchers(true);
+      setIsUsingFallback(false);
+      setApiError(null);
+
+      try {
+        const apiVouchers = await getVouchers();
+        if (cancelled) return;
+        setVouchers(apiVouchers.length > 0 ? apiVouchers : mockVouchers);
+        setIsUsingFallback(apiVouchers.length === 0);
+      } catch {
+        if (cancelled) return;
+        setVouchers(mockVouchers);
+        setApiError("Could not reach the live voucher API.");
+        setIsUsingFallback(true);
+      } finally {
+        if (!cancelled) setIsLoadingVouchers(false);
+      }
+    }
+
+    loadVouchers();
+
+    return () => {
+      cancelled = true;
+    };
+  },[]);
+
+  const active = vouchers.filter((v) => v.isActive);
+  const expired = vouchers.filter((v) => !v.isActive);
   const filtered = filter === "active" ? active : expired;
 
   function showToast(msg: string) {
@@ -49,6 +84,11 @@ export default function VouchersPage() {
         <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
           Use voucher codes to get discounts on your bookings.
         </p>
+        {(isLoadingVouchers || isUsingFallback || apiError) && (
+          <div className={`mt-5 rounded-xl border px-4 py-3 text-sm ${apiError && !isLoadingVouchers ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
+            {isLoadingVouchers ? "Loading live voucher data..." : apiError ? `${apiError} Showing demo voucher data.` : "Live API unavailable. Showing demo voucher data."}
+          </div>
+        )}
       </section>
 
       {/* Tabs */}
