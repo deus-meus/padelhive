@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   CreditCard,
@@ -15,6 +15,8 @@ import {
   Shield,
   UserPlus,
 } from "lucide-react";
+import { ApiRequestError, createPaymentIntent, type PaymentSummary } from "@/lib/api";
+import { getIdToken } from "@/lib/auth-client";
 
 interface SplitPlayer {
   id: string;
@@ -102,11 +104,14 @@ export default function PaymentPage({
 }: {
   params: { id: string };
 }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [splitEnabled, setSplitEnabled] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [payment, setPayment] = useState<PaymentSummary | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const venue = searchParams.get("venue") ?? "Padel Bali Arena";
   const court = searchParams.get("court") ?? "Court A";
@@ -144,13 +149,46 @@ export default function PaymentPage({
     }
   })();
 
-  function handlePay() {
-    if (!selectedMethod) return;
+  async function handlePay() {
+    if (!selectedMethod || processing) return;
+
     setProcessing(true);
-    setTimeout(() => {
+    setPaymentError(null);
+
+    const authToken = await getIdToken();
+    if (!authToken) {
       setProcessing(false);
+      setPaymentError("Sign in before creating a payment intent.");
+      router.push(`/auth/login?next=${encodeURIComponent(`/booking/${params.id}/payment`)}`);
+      return;
+    }
+
+    try {
+      const paymentIntent = await createPaymentIntent(
+        { bookingId: params.id, method: selectedMethod as "va" | "ewallet" | "card" },
+        authToken
+      );
+      setPayment(paymentIntent);
       setSuccess(true);
-    }, 1500);
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        if (error.status === 401 || error.status === 403) {
+          setPaymentError("Sign in before creating a payment intent.");
+        } else if (error.status === 404) {
+          setPaymentError("Booking or payment was not found.");
+        } else if (error.status === 400) {
+          setPaymentError("This booking cannot be paid with the selected method.");
+        } else if (error.status && error.status >= 500) {
+          setPaymentError("Payment service is unavailable. Please try again later.");
+        } else {
+          setPaymentError("Could not create payment intent. Please try again.");
+        }
+      } else {
+        setPaymentError("Payment service is unavailable. Please try again later.");
+      }
+    } finally {
+      setProcessing(false);
+    }
   }
 
   if (success) {
@@ -161,10 +199,10 @@ export default function PaymentPage({
             <CheckCircle2 className="h-10 w-10 text-[#E6FA50]" />
           </div>
           <h1 className="heading-1 mt-8 text-2xl text-[#F7F7F7] md:text-3xl">
-            Booking Confirmed!
+            Payment Intent Created
           </h1>
           <p className="mt-3 text-sm text-[#F7F7F7]/40">
-            Your court has been reserved. See you on the court!
+            Your payment intent is ready. No real payment has been processed yet.
           </p>
 
           <div className="mt-8 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5 text-left">
@@ -186,10 +224,14 @@ export default function PaymentPage({
                 <span className="text-[#F7F7F7]/80">{start} – {end}</span>
               </div>
               <div className="flex items-center justify-between border-t border-white/[0.06] pt-3 text-sm">
-                <span className="font-medium text-[#F7F7F7]/60">Total paid</span>
+                <span className="font-medium text-[#F7F7F7]/60">Payment amount</span>
                 <span className="price text-lg text-[#E6FA50]">
-                  Rp {yourShare.toLocaleString("id-ID")}
+                  Rp {(payment?.amount ?? yourShare).toLocaleString("id-ID")}
                 </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[#F7F7F7]/40">Payment status</span>
+                <span className="text-[#F7F7F7]/80">{payment?.status ?? "PENDING"}</span>
               </div>
             </div>
           </div>
@@ -480,17 +522,23 @@ export default function PaymentPage({
                   </div>
                 </div>
 
+                {paymentError && (
+                  <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                    <p className="text-[11px] leading-relaxed text-red-200/80">{paymentError}</p>
+                  </div>
+                )}
+
                 <button
                   onClick={handlePay}
                   disabled={!selectedMethod || processing}
                   className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  {processing ? "Processing..." : "Confirm Payment"}
+                  {processing ? "Processing..." : "Create Payment Intent"}
                 </button>
 
                 <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#F7F7F7]/25">
                   <Shield className="h-3 w-3" />
-                  <span>Secured by Midtrans / Xendit</span>
+                  <span>Internal payment intent only — provider integration coming soon</span>
                 </div>
 
                 <div className="mt-3 rounded-lg bg-white/[0.02] p-3">
