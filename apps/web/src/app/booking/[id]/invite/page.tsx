@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Copy,
@@ -13,54 +13,32 @@ import {
   CheckCircle2,
   Share2,
   Users,
+  AlertCircle,
+  XCircle,
 } from "lucide-react";
-
-interface InvitedFriend {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  status: "invited" | "confirmed" | "pending";
-}
-
-const MOCK_FRIENDS: InvitedFriend[] = [
-  {
-    id: "f1",
-    name: "Andi Saputra",
-    email: "andi@email.com",
-    avatar: "https://i.pravatar.cc/150?u=andi",
-    status: "confirmed",
-  },
-  {
-    id: "f2",
-    name: "Budi Rahmat",
-    email: "budi@email.com",
-    avatar: "https://i.pravatar.cc/150?u=budi",
-    status: "pending",
-  },
-  {
-    id: "f3",
-    name: "Clara Wijaya",
-    email: "clara@email.com",
-    avatar: "https://i.pravatar.cc/150?u=clara",
-    status: "invited",
-  },
-];
+import { ApiRequestError, createBookingInvite, getBookingInvites, type InviteSummary } from "@/lib/api";
+import { getIdToken } from "@/lib/auth-client";
 
 const STATUS_CONFIG = {
-  confirmed: {
-    label: "Confirmed",
+  ACCEPTED: {
+    label: "Accepted",
     icon: CheckCircle2,
     color: "text-green-400",
     bg: "bg-green-400/10",
   },
-  pending: {
+  DECLINED: {
+    label: "Declined",
+    icon: XCircle,
+    color: "text-red-400",
+    bg: "bg-red-400/10",
+  },
+  PENDING: {
     label: "Pending",
     icon: Clock,
     color: "text-yellow-400",
     bg: "bg-yellow-400/10",
   },
-  invited: {
+  INVITED: {
     label: "Invited",
     icon: Mail,
     color: "text-[#50C8C8]",
@@ -68,17 +46,25 @@ const STATUS_CONFIG = {
   },
 };
 
+function getInviteStatusConfig(status: InviteSummary["status"]) {
+  return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.PENDING;
+}
+
 export default function InviteFriendsPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [friends, setFriends] = useState<InvitedFriend[]>(MOCK_FRIENDS);
-  const [copied, setCopied] = useState(false);
+  const [invites, setInvites] = useState<InviteSummary[]>([]);
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const inviteLink = `https://padelhive.com/join/${params.id}`;
   const venue = searchParams.get("venue") ?? "Padel Bali Arena";
   const date = searchParams.get("date") ?? "2026-05-29";
   const court = searchParams.get("court") ?? "Court A";
@@ -86,6 +72,9 @@ export default function InviteFriendsPage({
   const end = searchParams.get("end") ?? "11:00";
   const amount = searchParams.get("amount") ?? "300000";
   const venueId = searchParams.get("venueId") ?? "venue-1";
+
+  const firstInviteLink = invites[0] ? buildInviteLink(invites[0].token) : "Add a friend to generate an invite link";
+  const acceptedCount = invites.filter((invite) => invite.status === "ACCEPTED").length;
 
   const formattedDate = (() => {
     try {
@@ -99,26 +88,96 @@ export default function InviteFriendsPage({
     }
   })();
 
-  function handleCopy() {
-    navigator.clipboard.writeText(inviteLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  function buildInviteLink(token: string) {
+    if (typeof window === "undefined") return `/invites/${token}`;
+    return `${window.location.origin}/invites/${token}`;
   }
 
-  function handleAddFriend() {
-    if (!emailInput.trim()) return;
-    const newFriend: InvitedFriend = {
-      id: `f${Date.now()}`,
-      name: emailInput.split("@")[0],
-      email: emailInput,
-      avatar: `https://i.pravatar.cc/150?u=${emailInput}`,
-      status: "invited",
-    };
-    setFriends([...friends, newFriend]);
-    setEmailInput("");
+  const loadInvites = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    const authToken = await getIdToken();
+    if (!authToken) {
+      setIsLoading(false);
+      setErrorMessage("Sign in before managing booking invites.");
+      router.push(`/auth/login?next=${encodeURIComponent(`/booking/${params.id}/invite`)}`);
+      return;
+    }
+
+    try {
+      const inviteList = await getBookingInvites(params.id, authToken);
+      setInvites(inviteList);
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        if (error.status === 401 || error.status === 403) {
+          setErrorMessage("Sign in with the booking owner account to manage invites.");
+        } else if (error.status === 404) {
+          setErrorMessage("Booking was not found or does not belong to this account.");
+        } else {
+          setErrorMessage("Could not load invites. Please try again.");
+        }
+      } else {
+        setErrorMessage("Could not load invites. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [params.id, router]);
+
+  useEffect(() => {
+    void loadInvites();
+  }, [loadInvites]);
+
+  async function handleCopy(token?: string) {
+    if (!token) return;
+    await navigator.clipboard.writeText(buildInviteLink(token));
+    setCopiedToken(token);
+    setTimeout(() => setCopiedToken(null), 2000);
   }
 
-  const confirmedCount = friends.filter((f) => f.status === "confirmed").length;
+  async function handleAddFriend() {
+    const email = emailInput.trim();
+    if (!email || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const authToken = await getIdToken();
+    if (!authToken) {
+      setIsSubmitting(false);
+      setErrorMessage("Sign in before inviting friends.");
+      router.push(`/auth/login?next=${encodeURIComponent(`/booking/${params.id}/invite`)}`);
+      return;
+    }
+
+    try {
+      const invite = await createBookingInvite(params.id, { email }, authToken);
+      setInvites((current) => {
+        const withoutDuplicate = current.filter((item) => item.id !== invite.id);
+        return [...withoutDuplicate, invite];
+      });
+      setEmailInput("");
+      setSuccessMessage(`Invite ready for ${invite.email}.`);
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        if (error.status === 400) {
+          setErrorMessage(error.message || "Enter a valid email for an invitable booking.");
+        } else if (error.status === 401 || error.status === 403) {
+          setErrorMessage("Sign in with the booking owner account to invite friends.");
+        } else if (error.status === 404) {
+          setErrorMessage("Booking was not found or does not belong to this account.");
+        } else {
+          setErrorMessage("Could not create invite. Please try again.");
+        }
+      } else {
+        setErrorMessage("Could not create invite. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="min-h-screen pt-20">
@@ -161,21 +220,22 @@ export default function InviteFriendsPage({
             <Share2 className="mr-2 inline h-3.5 w-3.5" />
             Share Invite Link
           </h2>
-          <div className="mt-3 flex items-center gap-3">
-            <div className="flex flex-1 items-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
               <span className="flex-1 truncate text-sm text-[#F7F7F7]/50">
-                {inviteLink}
+                {firstInviteLink}
               </span>
             </div>
             <button
-              onClick={handleCopy}
-              className={`flex h-[46px] items-center gap-2 rounded-xl border px-5 transition-all ${
-                copied
+              onClick={() => handleCopy(invites[0]?.token)}
+              disabled={!invites[0]}
+              className={`flex h-[46px] items-center justify-center gap-2 rounded-xl border px-5 transition-all disabled:cursor-not-allowed disabled:opacity-30 ${
+                copiedToken === invites[0]?.token
                   ? "border-green-400/30 bg-green-400/10 text-green-400"
                   : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-white/[0.12] hover:text-[#F7F7F7]"
               }`}
             >
-              {copied ? (
+              {copiedToken === invites[0]?.token ? (
                 <>
                   <Check className="h-4 w-4" />
                   <span className="text-sm">Copied</span>
@@ -188,6 +248,9 @@ export default function InviteFriendsPage({
               )}
             </button>
           </div>
+          <p className="mt-2 text-[11px] text-[#F7F7F7]/25">
+            Invite links are generated after adding a friend. Each friend gets a unique RSVP token.
+          </p>
         </div>
 
         {/* Add by email */}
@@ -202,17 +265,35 @@ export default function InviteFriendsPage({
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddFriend()}
+              disabled={isSubmitting}
               placeholder="friend@email.com"
-              className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none focus:ring-1 focus:ring-[#E6FA50]/20"
+              className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none focus:ring-1 focus:ring-[#E6FA50]/20 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <button
               onClick={handleAddFriend}
-              disabled={!emailInput.trim()}
+              disabled={!emailInput.trim() || isSubmitting}
               className="btn-lime flex h-[46px] items-center gap-2 rounded-xl px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              Invite
+              {isSubmitting ? "Inviting..." : "Invite"}
             </button>
           </div>
+
+          {successMessage && (
+            <div className="mt-3 rounded-xl border border-green-400/20 bg-green-400/10 p-3">
+              <p className="text-[11px] leading-relaxed text-green-200/80">{successMessage}</p>
+            </div>
+          )}
+          {errorMessage && !isLoading && (
+            <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
+              <div className="flex-1">
+                <p className="text-[11px] leading-relaxed text-red-200/80">{errorMessage}</p>
+                <button onClick={loadInvites} className="mt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-100/80 hover:text-red-100">
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Friends List */}
@@ -220,48 +301,68 @@ export default function InviteFriendsPage({
           <div className="flex items-center justify-between">
             <h2 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
               <Users className="mr-2 inline h-3.5 w-3.5" />
-              Invited Players ({friends.length})
+              Invited Players ({invites.length})
             </h2>
             <span className="text-xs text-green-400/70">
-              {confirmedCount} confirmed
+              {acceptedCount} accepted
             </span>
           </div>
 
           <div className="mt-4 space-y-3">
-            {friends.map((friend) => {
-              const config = STATUS_CONFIG[friend.status];
-              const StatusIcon = config.icon;
-              return (
-                <div
-                  key={friend.id}
-                  className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={friend.avatar}
-                      alt={friend.name}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-[#F7F7F7]/80">
-                        {friend.name}
-                      </p>
-                      <p className="text-[11px] text-[#F7F7F7]/30">
-                        {friend.email}
-                      </p>
+            {isLoading ? (
+              <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
+                <p className="text-sm text-[#F7F7F7]/50">Loading invites...</p>
+              </div>
+            ) : invites.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] p-6 text-center">
+                <Mail className="mx-auto h-8 w-8 text-[#50C8C8]/60" />
+                <h3 className="mt-3 text-sm font-medium text-[#F7F7F7]/70">No invites yet</h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-[#F7F7F7]/30">
+                  Add a friend by email to generate RSVP link for this booking.
+                </p>
+              </div>
+            ) : (
+              invites.map((invite) => {
+                const config = getInviteStatusConfig(invite.status);
+                const StatusIcon = config.icon;
+                const isCopied = copiedToken === invite.token;
+                return (
+                  <div
+                    key={invite.id}
+                    className="flex flex-col gap-4 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#50C8C8]/10 text-sm font-semibold uppercase text-[#50C8C8]">
+                        {invite.name.slice(0, 1)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-[#F7F7F7]/80">
+                          {invite.name}
+                        </p>
+                        <p className="truncate text-[11px] text-[#F7F7F7]/30">
+                          {invite.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 sm:justify-end">
+                      <div className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}>
+                        <StatusIcon className={`h-3.5 w-3.5 ${config.color}`} />
+                        <span className={`text-[11px] font-medium ${config.color}`}>
+                          {config.label}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleCopy(invite.token)}
+                        className="flex h-9 items-center gap-2 rounded-full border border-white/[0.06] px-3 text-[11px] font-medium text-[#F7F7F7]/50 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/80"
+                      >
+                        {isCopied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                        {isCopied ? "Copied" : "Copy Link"}
+                      </button>
                     </div>
                   </div>
-                  <div
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}
-                  >
-                    <StatusIcon className={`h-3.5 w-3.5 ${config.color}`} />
-                    <span className={`text-[11px] font-medium ${config.color}`}>
-                      {config.label}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -276,8 +377,7 @@ export default function InviteFriendsPage({
         </div>
 
         <p className="mt-4 text-center text-[11px] text-[#F7F7F7]/25">
-          Friends can also join and pay their share after you complete the
-          booking.
+          Friends can RSVP from their invite link. Split payment backend is coming later.
         </p>
       </div>
     </div>
