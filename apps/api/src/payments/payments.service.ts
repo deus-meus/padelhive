@@ -126,7 +126,18 @@ export class PaymentsService {
   }
 
   private stripHostUserId(payment: SelectedPayment): PaymentResponseDto {
-    const { hostUserId: _hostUserId, ...booking } = payment.booking;
-    return { ...payment, booking };
+    return {
+      ...payment,
+      booking: {
+        id: payment.booking.id,
+        bookingDate: payment.booking.bookingDate,
+        startsAt: payment.booking.startsAt,
+        endsAt: payment.booking.endsAt,
+        durationMinutes: payment.booking.durationMinutes,
+        status: payment.booking.status,
+        venue: payment.booking.venue,
+        court: payment.booking.court,
+      },
+    };
   }
 }
