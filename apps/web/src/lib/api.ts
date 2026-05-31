@@ -102,6 +102,29 @@ export type CreatePaymentIntentInput = {
 
 export type PaymentSummary = ApiPayment;
 
+type ApiInvite = {
+  id: string;
+  bookingId: string;
+  userId: string | null;
+  email: string;
+  name: string;
+  token: string;
+  status: "PENDING" | "ACCEPTED" | "DECLINED" | "INVITED" | string;
+  isHost: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type InviteSummary = ApiInvite;
+
+export type CreateInviteInput = {
+  email: string;
+};
+
+export type RsvpInviteInput = {
+  status: "ACCEPTED" | "DECLINED";
+};
+
 export class ApiRequestError extends Error {
   constructor(
     message: string,
@@ -251,4 +274,27 @@ export async function createPaymentIntent(
 
 export async function getPayment(id: string, authToken: string): Promise<PaymentSummary> {
   return apiFetch<ApiPayment>(`/payments/${id}`, { authToken });
+}
+
+export async function getBookingInvites(bookingId: string, authToken: string): Promise<InviteSummary[]> {
+  return apiFetch<ApiInvite[]>(`/bookings/${bookingId}/invites`, { authToken });
+}
+
+export async function createBookingInvite(
+  bookingId: string,
+  input: CreateInviteInput,
+  authToken: string
+): Promise<InviteSummary> {
+  return apiFetch<ApiInvite>(`/bookings/${bookingId}/invites`, {
+    method: "POST",
+    authToken,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function rsvpInvite(token: string, input: RsvpInviteInput): Promise<InviteSummary> {
+  return apiFetch<ApiInvite>(`/invites/${token}/rsvp`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
 }
