@@ -16,10 +16,10 @@ import {
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { ApiRequestError, createBooking, getVenue, getVenueCourts } from "@/lib/api";
+import { getIdToken } from "@/lib/auth-client";
 import { Court, Venue } from "@/types";
 
 const DAYS_AHEAD = 14;
-const AUTH_TOKEN_STORAGE_KEY = "padelhive.authToken";
 
 type BookingSubmitError =
   | "invalid-selection"
@@ -27,13 +27,6 @@ type BookingSubmitError =
   | "auth-required"
   | "backend-unavailable"
   | "generic";
-
-function getStoredAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-
-  // TODO: Replace this temporary storage read with real Firebase frontend auth integration.
-  return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
-}
 
 function generateDates() {
   const dates = [];
@@ -209,10 +202,11 @@ export default function BookingFlowPage({
       return;
     }
 
-    const authToken = getStoredAuthToken();
+    const authToken = await getIdToken();
     if (!authToken) {
       setConfirmState("error");
       setSubmitError("auth-required");
+      router.push(`/auth/login?next=${encodeURIComponent(`/venues/${venue.id}/book`)}`);
       return;
     }
 
