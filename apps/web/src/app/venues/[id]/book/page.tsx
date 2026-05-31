@@ -15,10 +15,25 @@ import {
 } from "lucide-react";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
-import { getVenue, getVenueCourts } from "@/lib/api";
+import { ApiRequestError, createBooking, getVenue, getVenueCourts } from "@/lib/api";
 import { Court, Venue } from "@/types";
 
 const DAYS_AHEAD = 14;
+const AUTH_TOKEN_STORAGE_KEY = "padelhive.authToken";
+
+type BookingSubmitError =
+  | "invalid-selection"
+  | "overlap"
+  | "auth-required"
+  | "backend-unavailable"
+  | "generic";
+
+function getStoredAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+
+  // TODO: Replace this temporary storage read with real Firebase frontend auth integration.
+  return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+}
 
 function generateDates() {
   const dates = [];
@@ -47,6 +62,20 @@ function generateTimeSlots(open: string, close: string, seed: number) {
 
 function isWeekend(date: Date) {
   return date.getDay() === 0 || date.getDay() === 6;
+}
+
+function formatBookingDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+function areConsecutiveSlots(slots: string[]): boolean {
+  if (slots.length === 0) return false;
+
+  const hours = slots
+    .map((slot) => parseInt(slot.split(":")[0], 10))
+    .sort((a, b) => a - b);
+
+  return hours.every((hour, index) => index === 0 || hour === hours[index - 1] + 1);
 }
 
 export default function BookingFlowPage({
@@ -108,6 +137,7 @@ export default function BookingFlowPage({
   }, [courts, selectedCourt.id]);
   const [dateScrollStart, setDateScrollStart] = useState(0);
   const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [submitError, setSubmitError] = useState<BookingSubmitError | null>(null);
 
   const timeSlots = useMemo(() => {
     const dateSeed = selectedDate.getFullYear() * 10000 + (selectedDate.getMonth() + 1) * 100 + selectedDate.getDate();
@@ -139,6 +169,7 @@ export default function BookingFlowPage({
       prev.includes(time) ? prev.filter((t) => t !== time) : [...prev, time]
     );
     setConfirmState("idle");
+    setSubmitError(null);
   }
 
   const totalPrice = useMemo(() => {
@@ -158,28 +189,103 @@ export default function BookingFlowPage({
     ? `${(parseInt(sortedSlots[sortedSlots.length - 1].split(":")[0]) + 1).toString().padStart(2, "0")}:00`
     : "--:--";
 
-  function handleConfirm() {
-    if (selectedSlots.length === 0 || confirmState === "submitting") return;
+  async function handleConfirm() {
+    if (confirmState === "submitting") return;
+
+    const selectedUnavailableSlot = selectedSlots.some((time) => {
+      const slot = timeSlots.find((candidate) => candidate.time === time);
+      return !slot || slot.isBooked;
+    });
+
+    if (
+      !venue.id ||
+      !selectedCourt?.id ||
+      selectedSlots.length === 0 ||
+      selectedUnavailableSlot ||
+      !areConsecutiveSlots(selectedSlots)
+    ) {
+      setConfirmState("error");
+      setSubmitError("invalid-selection");
+      return;
+    }
+
+    const authToken = getStoredAuthToken();
+    if (!authToken) {
+      setConfirmState("error");
+      setSubmitError("auth-required");
+      return;
+    }
 
     setConfirmState("submitting");
+    setSubmitError(null);
 
     try {
+      const booking = await createBooking(
+        {
+          venueId: venue.id,
+          courtId: selectedCourt.id,
+          bookingDate: formatBookingDate(selectedDate),
+          startsAt: startTime,
+          endsAt: endTime,
+        },
+        authToken
+      );
+
       const query = new URLSearchParams({
-        venue: venue.name,
-        court: selectedCourt.name,
-        date: selectedDate.toISOString().split("T")[0],
+        venue: booking.venue.name,
+        court: booking.court.name,
+        date: formatBookingDate(selectedDate),
         start: startTime,
         end: endTime,
-        amount: totalPrice.toString(),
-        venueId: venue.id,
+        amount: booking.courtAmount.toString(),
+        venueId: booking.venue.id,
       });
 
       setConfirmState("success");
-      router.push(`/booking/new/invite?${query.toString()}`);
-    } catch {
+      router.push(`/booking/${booking.id}/invite?${query.toString()}`);
+    } catch (error) {
       setConfirmState("error");
+
+      if (error instanceof ApiRequestError) {
+        if (error.status === 409) {
+          setSubmitError("overlap");
+          return;
+        }
+
+        if (error.status === 401 || error.status === 403) {
+          setSubmitError("auth-required");
+          return;
+        }
+
+        if (error.status && error.status >= 500) {
+          setSubmitError("backend-unavailable");
+          return;
+        }
+
+        setSubmitError("generic");
+        return;
+      }
+
+      setSubmitError("backend-unavailable");
     }
   }
+
+  const submitErrorMessage = (() => {
+    switch (submitError) {
+      case "invalid-selection":
+        return "Select one available consecutive time range before continuing.";
+      case "overlap":
+        return "This court is no longer available for the selected time. Choose another slot.";
+      case "auth-required":
+        return "Sign in before creating a booking.";
+      case "backend-unavailable":
+        return "Booking service is unavailable. Please try again when the backend is running.";
+      case "generic":
+        return "Could not create this booking. Please review your selection and retry.";
+      default:
+        return null;
+    }
+  })();
 
   return (
     <div className="min-h-screen pt-20">
@@ -229,6 +335,8 @@ export default function BookingFlowPage({
                     onClick={() => {
                       setSelectedCourt(court);
                       setSelectedSlots([]);
+                      setSubmitError(null);
+                      setConfirmState("idle");
                     }}
                     className={`rounded-xl border px-5 py-3 transition-all ${
                       selectedCourt.id === court.id
@@ -277,6 +385,8 @@ export default function BookingFlowPage({
                           onClick={() => {
                             setSelectedDate(date);
                             setSelectedSlots([]);
+                            setSubmitError(null);
+                            setConfirmState("idle");
                           }}
                           className={`${hiddenOnMobile} flex-col items-center rounded-xl border py-3 transition-all ${
                             isSelected
@@ -515,17 +625,17 @@ export default function BookingFlowPage({
                     </p>
                   </div>
                 )}
-                {confirmState === "error" && (
+                {submitErrorMessage && (
                   <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
                     <p className="text-[11px] leading-relaxed text-red-200/80">
-                      Could not prepare this booking. Please retry or choose another slot.
+                      {submitErrorMessage}
                     </p>
                   </div>
                 )}
                 {confirmState === "success" && (
                   <div className="mt-5 rounded-xl border border-[#E6FA50]/20 bg-[#E6FA50]/10 p-3">
                     <p className="text-[11px] leading-relaxed text-[#E6FA50]">
-                      Booking details ready. Taking you to invite friends.
+                      Booking created. Taking you to invite friends.
                     </p>
                   </div>
                 )}
@@ -535,7 +645,7 @@ export default function BookingFlowPage({
                   disabled={courts.length === 0 || selectedSlots.length === 0 || confirmState === "submitting"}
                   className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-30"
                 >
-                  {confirmState === "submitting" ? "Preparing Booking..." : "Continue to Invite & Pay"}
+                  {confirmState === "submitting" ? "Creating Booking..." : "Continue to Invite & Pay"}
                 </button>
 
                 <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/[0.02] p-3">
