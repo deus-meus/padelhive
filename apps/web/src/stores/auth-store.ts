@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { signOut as signOutFirebase } from "@/lib/auth-client";
 import type { User, UserRole } from "@/types";
 
 export type MockUser = User & { avatarUrl: string };
@@ -53,7 +54,8 @@ interface AuthState {
   user: MockUser | null;
   isLoading: boolean;
   login: (role: UserRole) => Promise<void>;
-  logout: () => void;
+  loginWithFirebasePlayer: (firebaseUser: { uid: string; displayName: string | null; email: string | null; photoURL: string | null }) => void;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -64,7 +66,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     await new Promise((resolve) => setTimeout(resolve, 1000));
     set({ user: MOCK_USERS[role], isLoading: false });
   },
-  logout: () => {
-    set({ user: null });
+  loginWithFirebasePlayer: (firebaseUser) => {
+    set({
+      user: {
+        ...MOCK_USERS.player,
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName ?? MOCK_USERS.player.name,
+        email: firebaseUser.email ?? MOCK_USERS.player.email,
+        avatarUrl: firebaseUser.photoURL ?? MOCK_USERS.player.avatarUrl,
+      },
+      isLoading: false,
+    });
+  },
+  logout: async () => {
+    set({ isLoading: true });
+    await signOutFirebase();
+    set({ user: null, isLoading: false });
   },
 }));
