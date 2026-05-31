@@ -71,6 +71,37 @@ export type CreateBookingInput = {
 
 export type BookingSummary = ApiBooking;
 
+type ApiPayment = {
+  id: string;
+  bookingId: string;
+  amount: number;
+  status: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | string;
+  provider: string;
+  method: string;
+  providerReference: string | null;
+  paidAt: string | null;
+  failedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  booking: {
+    id: string;
+    bookingDate: string;
+    startsAt: string;
+    endsAt: string;
+    durationMinutes: number;
+    status: string;
+    venue: { id: string; name: string; city: string };
+    court: { id: string; name: string; type: string };
+  };
+};
+
+export type CreatePaymentIntentInput = {
+  bookingId: string;
+  method: "va" | "ewallet" | "card";
+};
+
+export type PaymentSummary = ApiPayment;
+
 export class ApiRequestError extends Error {
   constructor(
     message: string,
@@ -205,4 +236,19 @@ export async function createBooking(
     authToken,
     body: JSON.stringify(input),
   });
+}
+
+export async function createPaymentIntent(
+  input: CreatePaymentIntentInput,
+  authToken: string
+): Promise<PaymentSummary> {
+  return apiFetch<ApiPayment>("/payments/intents", {
+    method: "POST",
+    authToken,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function getPayment(id: string, authToken: string): Promise<PaymentSummary> {
+  return apiFetch<ApiPayment>(`/payments/${id}`, { authToken });
 }
