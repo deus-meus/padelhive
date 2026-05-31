@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
+import { getVenue, getVenueCourts } from "@/lib/api";
+import { Court, Venue } from "@/types";
 
 const DAYS_AHEAD = 14;
 
@@ -53,14 +55,57 @@ export default function BookingFlowPage({
   params: { id: string };
 }) {
   const router = useRouter();
-  const venue = mockVenues.find((v) => v.id === params.id) ?? mockVenues[0];
-  const courts = mockCourts.filter((c) => c.venueId === venue.id);
+  const fallbackVenue = mockVenues.find((v) => v.id === params.id) ?? mockVenues[0];
+  const [venue, setVenue] = useState<Venue>(fallbackVenue);
+  const [courts, setCourts] = useState<Court[]>(mockCourts.filter((c) => c.venueId === fallbackVenue.id));
+  const [isLoadingApiData, setIsLoadingApiData] = useState(true);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBookingDisplayData() {
+      setIsLoadingApiData(true);
+      setIsUsingFallback(false);
+      setApiError(null);
+
+      try {
+        const [apiVenue, apiCourts] = await Promise.all([getVenue(params.id), getVenueCourts(params.id)]);
+        if (cancelled) return;
+        setVenue(apiVenue);
+        setCourts(apiCourts.length > 0 ? apiCourts : mockCourts.filter((c) => c.venueId === fallbackVenue.id));
+        setIsUsingFallback(apiCourts.length === 0);
+      } catch {
+        if (cancelled) return;
+        setVenue(fallbackVenue);
+        setCourts(mockCourts.filter((c) => c.venueId === fallbackVenue.id));
+        setApiError("Could not reach the live court API.");
+        setIsUsingFallback(true);
+      } finally {
+        if (!cancelled) setIsLoadingApiData(false);
+      }
+    }
+
+    loadBookingDisplayData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fallbackVenue, params.id]);
 
   const dates = useMemo(() => generateDates(), []);
 
   const [selectedDate, setSelectedDate] = useState<Date>(dates[0]);
   const [selectedCourt, setSelectedCourt] = useState(courts[0]);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!courts.some((court) => court.id === selectedCourt.id) && courts[0]) {
+      setSelectedCourt(courts[0]);
+      setSelectedSlots([]);
+    }
+  }, [courts, selectedCourt.id]);
   const [dateScrollStart, setDateScrollStart] = useState(0);
   const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
@@ -139,6 +184,16 @@ export default function BookingFlowPage({
   return (
     <div className="min-h-screen pt-20">
       <div className="container max-w-4xl py-8">
+        {(isLoadingApiData || isUsingFallback || apiError) && (
+          <div className={`mb-5 rounded-xl border px-4 py-3 text-sm ${apiError && !isLoadingApiData ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
+            {isLoadingApiData ? "Loading live court data..." : apiError ? `${apiError} Showing demo court data.` : "Live API unavailable. Showing demo court data."}
+          </div>
+        )}
+        {courts.length === 0 && (
+          <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
+            No courts are available for this venue yet.
+          </div>
+        )}
         {/* Back */}
         <Link
           href={`/venues/${venue.id}`}
@@ -477,7 +532,7 @@ export default function BookingFlowPage({
 
                 <button
                   onClick={handleConfirm}
-                  disabled={selectedSlots.length === 0 || confirmState === "submitting"}
+                  disabled={courts.length === 0 || selectedSlots.length === 0 || confirmState === "submitting"}
                   className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   {confirmState === "submitting" ? "Preparing Booking..." : "Continue to Invite & Pay"}

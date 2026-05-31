@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import {
   Star,
   MapPin,
@@ -17,6 +20,8 @@ import {
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
+import { getVenue, getVenueCourts } from "@/lib/api";
+import { Court, Venue } from "@/types";
 
 const IMG = {
   gallery: [
@@ -63,13 +68,70 @@ export default function VenueDetailPage({
 }: {
   params: { id: string };
 }) {
-  const venue = mockVenues.find((v) => v.id === params.id) ?? mockVenues[0];
-  const courts = mockCourts.filter((c) => c.venueId === venue.id);
-  const minPrice = Math.min(...courts.map((c) => c.pricing.weekdayOffPeak));
-  const maxPrice = Math.max(...courts.map((c) => c.pricing.weekendPeak));
+  const fallbackVenue = mockVenues.find((v) => v.id === params.id);
+  const [venue, setVenue] = useState<Venue | null>(fallbackVenue ?? null);
+  const [courts, setCourts] = useState<Court[]>(fallbackVenue ? mockCourts.filter((c) => c.venueId === fallbackVenue.id) :[]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadVenue() {
+      setIsLoading(true);
+      setIsUsingFallback(false);
+      setApiError(null);
+
+      try {
+        const [apiVenue, apiCourts] = await Promise.all([getVenue(params.id), getVenueCourts(params.id)]);
+        if (cancelled) return;
+        setVenue(apiVenue);
+        setCourts(apiCourts);
+      } catch {
+        if (cancelled) return;
+        setVenue(fallbackVenue ?? null);
+        setCourts(fallbackVenue ? mockCourts.filter((c) => c.venueId === fallbackVenue.id) :[]);
+        setApiError("Could not reach the live venue API.");
+        setIsUsingFallback(Boolean(fallbackVenue));
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    loadVenue();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fallbackVenue, params.id]);
+
+  const minPrice = useMemo(() => (courts.length ? Math.min(...courts.map((c) => c.pricing.weekdayOffPeak)) : 0), [courts]);
+  const maxPrice = useMemo(() => (courts.length ? Math.max(...courts.map((c) => c.pricing.weekendPeak)) : 0), [courts]);
+
+  if (!venue) {
+    return (
+      <div className="min-h-screen pt-28">
+        <div className="container py-16 text-center">
+          <h1 className="heading-1 text-3xl text-[#F7F7F7]">Venue not found</h1>
+          <p className="mt-3 text-sm text-[#F7F7F7]/40">This venue is unavailable.</p>
+          <Link href="/venues" className="btn-lime mt-6 inline-flex rounded-full px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em]">
+            Back to venues
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-20">
+      {(isLoading || isUsingFallback || apiError) && (
+        <section className="container pt-6">
+          <div className={`rounded-xl border px-4 py-3 text-sm ${apiError && !isLoading ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
+            {isLoading ? "Loading live venue data..." : apiError ? `${apiError} Showing demo venue data.` : "Live API unavailable. Showing demo venue data."}
+          </div>
+        </section>
+      )}
       {/* ─── IMAGE GALLERY ─── */}
       <section className="container pt-8 pb-10">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:grid-rows-2">
@@ -419,7 +481,7 @@ export default function VenueDetailPage({
                 <div className="flex items-baseline justify-between">
                   <div>
                     <p className="price text-2xl text-[#F7F7F7]">
-                      Rp {(minPrice / 1000).toFixed(0)}K
+                      {minPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K` : "Pricing soon"}
                     </p>
                     <p className="caption mt-0.5 text-[#F7F7F7]/25">
                       per hour, starting from
@@ -459,7 +521,7 @@ export default function VenueDetailPage({
                 <div className="mt-6 flex items-center justify-between border-t border-white/[0.06] pt-4">
                   <p className="caption text-[#F7F7F7]/40">Total</p>
                   <p className="price text-xl text-[#F7F7F7]">
-                    Rp {(minPrice / 1000).toFixed(0)}K
+                    {minPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K` : "Pricing soon"}
                   </p>
                 </div>
 
@@ -490,8 +552,7 @@ export default function VenueDetailPage({
                       Price range
                     </span>
                     <span className="label text-[#F7F7F7]/60">
-                      Rp {(minPrice / 1000).toFixed(0)}K –{" "}
-                      {(maxPrice / 1000).toFixed(0)}K
+                      {minPrice > 0 && maxPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K – ${(maxPrice / 1000).toFixed(0)}K` : "Pricing soon"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
