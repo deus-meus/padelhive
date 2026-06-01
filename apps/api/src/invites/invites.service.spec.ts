@@ -19,6 +19,20 @@ const invite = {
   updatedAt: new Date("2026-06-01T00:00:00.000Z"),
 };
 
+const inviteDetails = {
+  ...invite,
+  booking: {
+    id: "booking-1",
+    bookingDate: new Date("2026-06-10T00:00:00.000Z"),
+    startsAt: new Date("2026-06-10T09:00:00.000Z"),
+    endsAt: new Date("2026-06-10T11:00:00.000Z"),
+    status: BookingStatus.CONFIRMED,
+    venue: { id: "venue-1", name: "Padel Bali", city: "Bali" },
+    court: { id: "court-1", name: "Court A", type: "OUTDOOR" },
+    host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
+  },
+};
+
 function createPrisma(overrides: Record<string, unknown> = {}) {
   return {
     booking: {
@@ -114,6 +128,41 @@ describe("InvitesService", () => {
       select: expect.any(Object),
       orderBy: { createdAt: "asc" },
     });
+  });
+
+  it("returns public invite details by token", async () => {
+    const prisma = createPrisma({
+      invite: {
+        findUnique: jest.fn().mockResolvedValue(inviteDetails),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    });
+    const service = new InvitesService(prisma as never);
+
+    await expect(service.getInviteByToken("invite-token-1")).resolves.toEqual(inviteDetails);
+    expect(prisma.invite.findUnique).toHaveBeenCalledWith({
+      where: { token: "invite-token-1" },
+      select: expect.objectContaining({
+        id: true,
+        booking: expect.any(Object),
+      }),
+    });
+  });
+
+  it("throws not found for missing public invite token", async () => {
+    const prisma = createPrisma({
+      invite: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    });
+    const service = new InvitesService(prisma as never);
+
+    await expect(service.getInviteByToken("missing-token")).rejects.toThrow(NotFoundException);
   });
 
   it("updates RSVP by public token when status is accepted or declined", async () => {

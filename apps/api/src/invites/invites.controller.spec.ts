@@ -23,8 +23,25 @@ describe("InvitesController", () => {
     expect(rsvpGuards).not.toContain(FirebaseAuthGuard);
   });
 
+  it("exposes public invite details without FirebaseAuthGuard", async () => {
+    const getGuards = Reflect.getMetadata("__guards__", InvitesController.prototype.getByToken) ??[];
+    expect(getGuards).not.toContain(FirebaseAuthGuard);
+
+    const service = {
+      getInviteByToken: jest.fn().mockResolvedValue({ id: "invite-1" }),
+      createInviteForBooking: jest.fn(),
+      listInvitesForBooking: jest.fn(),
+      rsvpByToken: jest.fn(),
+    } as unknown as InvitesService;
+    const controller = new InvitesController(service);
+
+    await expect(controller.getByToken("invite-token-1")).resolves.toEqual({ id: "invite-1" });
+    expect(service.getInviteByToken).toHaveBeenCalledWith("invite-token-1");
+  });
+
   it("creates invite using current user id and booking id", async () => {
     const service = {
+      getInviteByToken: jest.fn(),
       createInviteForBooking: jest.fn().mockResolvedValue({ id: "invite-1" }),
       listInvitesForBooking: jest.fn(),
       rsvpByToken: jest.fn(),
@@ -38,6 +55,7 @@ describe("InvitesController", () => {
 
   it("lists invites using current user id and booking id", async () => {
     const service = {
+      getInviteByToken: jest.fn(),
       createInviteForBooking: jest.fn(),
       listInvitesForBooking: jest.fn().mockResolvedValue([{ id: "invite-1" }]),
       rsvpByToken: jest.fn(),
@@ -50,6 +68,7 @@ describe("InvitesController", () => {
 
   it("updates RSVP by token without requiring current user", async () => {
     const service = {
+      getInviteByToken: jest.fn(),
       createInviteForBooking: jest.fn(),
       listInvitesForBooking: jest.fn(),
       rsvpByToken: jest.fn().mockResolvedValue({ id: "invite-1", status: "ACCEPTED" }),

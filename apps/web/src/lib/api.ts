@@ -115,7 +115,21 @@ type ApiInvite = {
   updatedAt: string;
 };
 
+type ApiInviteDetails = ApiInvite & {
+  booking: {
+    id: string;
+    bookingDate: string;
+    startsAt: string;
+    endsAt: string;
+    status: string;
+    venue: { id: string; name: string; city: string };
+    court: { id: string; name: string; type: string };
+    host: { id: string; name: string | null; email: string };
+  };
+};
+
 export type InviteSummary = ApiInvite;
+export type InviteDetails = ApiInviteDetails;
 
 export type CreateInviteInput = {
   email: string;
@@ -274,6 +288,10 @@ export async function createPaymentIntent(
 
 export async function getPayment(id: string, authToken: string): Promise<PaymentSummary> {
   return apiFetch<ApiPayment>(`/payments/${id}`, { authToken });
+}
+
+export async function getInvite(token: string): Promise<InviteDetails> {
+  return apiFetch<ApiInviteDetails>(`/invites/${token}`);
 }
 
 export async function getBookingInvites(bookingId: string, authToken: string): Promise<InviteSummary[]> {
