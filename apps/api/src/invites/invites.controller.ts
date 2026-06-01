@@ -43,6 +43,14 @@ export class InvitesController {
     return this.invitesService.listInvitesForBooking(user.id, bookingId);
   }
 
+  @Get("invites/:token")
+  @ApiOperation({ summary: "Get public invite details by token" })
+  @ApiOkResponse({ type: InviteResponseDto })
+  @ApiNotFoundResponse({ description: "Invite not found" })
+  getByToken(@Param("token") token: string) {
+    return this.invitesService.getInviteByToken(token);
+  }
+
   @Patch("invites/:token/rsvp")
   @ApiOperation({ summary: "RSVP to an invite by public token" })
   @ApiOkResponse({ type: InviteResponseDto })

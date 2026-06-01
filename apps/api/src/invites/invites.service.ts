@@ -19,6 +19,22 @@ const inviteSelect = {
   updatedAt: true,
 };
 
+const inviteDetailsSelect = {
+  ...inviteSelect,
+  booking: {
+    select: {
+      id: true,
+      bookingDate: true,
+      startsAt: true,
+      endsAt: true,
+      status: true,
+      venue: { select: { id: true, name: true, city: true } },
+      court: { select: { id: true, name: true, type: true } },
+      host: { select: { id: true, name: true, email: true } },
+    },
+  },
+};
+
 @Injectable()
 export class InvitesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -52,6 +68,15 @@ export class InvitesService {
       select: inviteSelect,
       orderBy: { createdAt: "asc" },
     });
+  }
+
+  async getInviteByToken(token: string): Promise<InviteResponseDto> {
+    const invite = await this.prisma.invite.findUnique({
+      where: { token },
+      select: inviteDetailsSelect,
+    });
+    if (!invite) throw new NotFoundException("Invite not found");
+    return invite;
   }
 
   async rsvpByToken(token: string, body: RsvpInviteDto): Promise<InviteResponseDto> {
