@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { BookingStatus, CourtType, PaymentStatus } from "@prisma/client";
 import { PaymentsService } from "./payments.service";
 
@@ -35,11 +35,16 @@ const paymentResponse = {
 
 function createPrisma(overrides: Record<string, unknown> = {}) {
   return {
-    booking: { findFirst: jest.fn().mockResolvedValue(booking) },
+    booking: { findFirst: jest.fn().mockResolvedValue(booking), update: jest.fn().mockResolvedValue({}) },
     payment: {
       findFirst: jest.fn().mockResolvedValue(null),
       create: jest.fn().mockResolvedValue(paymentResponse),
+      update: jest.fn().mockResolvedValue(paymentResponse),
     },
+    $transaction: jest.fn(async (callback) => callback({
+      booking: { update: jest.fn().mockResolvedValue({}) },
+      payment: { update: jest.fn().mockResolvedValue({ ...paymentResponse, status: PaymentStatus.PAID, paidAt: new Date("2099-06-01T01:00:00.000Z"), booking: { ...paymentResponse.booking, status: BookingStatus.CONFIRMED } }) },
+    })),
     ...overrides,
   };
 }
@@ -103,5 +108,92 @@ describe("Payment foundation", () => {
       where: { id: "payment-1", booking: { hostUserId: "user-1" } },
       select: expect.any(Object),
     });
+  });
+
+  it("lets the owner mark a pending demo payment as paid and confirms the booking", async () => {
+    const txPaymentUpdate = jest.fn().mockResolvedValue({
+      ...paymentResponse,
+      status: PaymentStatus.PAID,
+      paidAt: new Date("2099-06-01T01:00:00.000Z"),
+      booking: { ...paymentResponse.booking, status: BookingStatus.CONFIRMED },
+    });
+    const txBookingUpdate = jest.fn().mockResolvedValue({});
+    const prisma = createPrisma({
+      payment: { findFirst: jest.fn().mockResolvedValue(paymentResponse), create: jest.fn(), update: jest.fn() },
+      $transaction: jest.fn(async (callback) => callback({
+        payment: { update: txPaymentUpdate },
+        booking: { update: txBookingUpdate },
+      })),
+    });
+    const service = new PaymentsService(prisma as never);
+
+    const result = await service.markPaidForUser("payment-1", "user-1");
+
+    expect(prisma.payment.findFirst).toHaveBeenCalledWith({
+      where: { id: "payment-1" },
+      select: expect.any(Object),
+    });
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(txPaymentUpdate).toHaveBeenCalledWith({
+      where: { id: "payment-1" },
+      data: { status: PaymentStatus.PAID, paidAt: expect.any(Date) },
+      select: expect.any(Object),
+    });
+    expect(txBookingUpdate).toHaveBeenCalledWith({
+      where: { id: "booking-1" },
+      data: { status: BookingStatus.CONFIRMED },
+    });
+    expect(result.status).toBe(PaymentStatus.PAID);
+    expect(result.booking.status).toBe(BookingStatus.CONFIRMED);
+  });
+
+  it("rejects demo mark-paid when payment is missing", async () => {
+    const service = new PaymentsService(createPrisma({
+      payment: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn(), update: jest.fn() },
+    }) as never);
+
+    await expect(service.markPaidForUser("missing-payment", "user-1")).rejects.toThrow(NotFoundException);
+  });
+
+  it("rejects demo mark-paid when current user does not own the booking", async () => {
+    const service = new PaymentsService(createPrisma({
+      payment: {
+        findFirst: jest.fn().mockResolvedValue({
+          ...paymentResponse,
+          booking: { ...paymentResponse.booking, hostUserId: "user-2" },
+        }),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    }) as never);
+
+    await expect(service.markPaidForUser("payment-1", "user-1")).rejects.toThrow(ForbiddenException);
+  });
+
+  it("rejects demo mark-paid when payment is not pending", async () => {
+    const service = new PaymentsService(createPrisma({
+      payment: {
+        findFirst: jest.fn().mockResolvedValue({ ...paymentResponse, status: PaymentStatus.PAID }),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    }) as never);
+
+    await expect(service.markPaidForUser("payment-1", "user-1")).rejects.toThrow(BadRequestException);
+  });
+
+  it("rejects demo mark-paid when booking is not pending payment", async () => {
+    const service = new PaymentsService(createPrisma({
+      payment: {
+        findFirst: jest.fn().mockResolvedValue({
+          ...paymentResponse,
+          booking: { ...paymentResponse.booking, status: BookingStatus.CONFIRMED },
+        }),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    }) as never);
+
+    await expect(service.markPaidForUser("payment-1", "user-1")).rejects.toThrow(BadRequestException);
   });
 });

@@ -15,7 +15,7 @@ import {
   Shield,
   UserPlus,
 } from "lucide-react";
-import { ApiRequestError, createPaymentIntent, type PaymentSummary } from "@/lib/api";
+import { ApiRequestError, createPaymentIntent, markPaymentPaid, type PaymentSummary } from "@/lib/api";
 import { getIdToken } from "@/lib/auth-client";
 
 interface SplitPlayer {
@@ -112,6 +112,8 @@ export default function PaymentPage({
   const [success, setSuccess] = useState(false);
   const [payment, setPayment] = useState<PaymentSummary | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [markingPaid, setMarkingPaid] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
 
   const venue = searchParams.get("venue") ?? "Padel Bali Arena";
   const court = searchParams.get("court") ?? "Court A";
@@ -191,6 +193,51 @@ export default function PaymentPage({
     }
   }
 
+  async function handleMarkPaid() {
+    if (!payment || markingPaid) return;
+
+    setMarkingPaid(true);
+    setPaymentError(null);
+    setConfirmationMessage(null);
+
+    const authToken = await getIdToken();
+    if (!authToken) {
+      setMarkingPaid(false);
+      setPaymentError("Sign in before marking this demo payment as paid.");
+      router.push(`/auth/login?next=${encodeURIComponent(`/booking/${params.id}/payment`)}`);
+      return;
+    }
+
+    try {
+      const paidPayment = await markPaymentPaid(payment.id, authToken);
+      setPayment(paidPayment);
+      setConfirmationMessage("Payment marked as paid. Booking confirmed.");
+      window.setTimeout(() => {
+        router.push(
+          `/booking/${params.id}/success?venue=${encodeURIComponent(paidPayment.booking.venue.name)}&court=${encodeURIComponent(paidPayment.booking.court.name)}&date=${encodeURIComponent(paidPayment.booking.bookingDate)}&start=${encodeURIComponent(paidPayment.booking.startsAt)}&end=${encodeURIComponent(paidPayment.booking.endsAt)}&amount=${paidPayment.amount}`
+        );
+      }, 900);
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        if (error.status === 401 || error.status === 403) {
+          setPaymentError("This demo payment belongs to another account or your session expired.");
+        } else if (error.status === 404) {
+          setPaymentError("Payment was not found.");
+        } else if (error.status === 400) {
+          setPaymentError(error.message || "This payment cannot be marked paid in demo mode.");
+        } else if (error.status && error.status >= 500) {
+          setPaymentError("Payment service is unavailable. Please try again later.");
+        } else {
+          setPaymentError("Could not mark demo payment as paid. Please try again.");
+        }
+      } else {
+        setPaymentError("Payment service is unavailable. Please try again later.");
+      }
+    } finally {
+      setMarkingPaid(false);
+    }
+  }
+
   if (success) {
     return (
       <div className="min-h-screen pt-20">
@@ -202,7 +249,7 @@ export default function PaymentPage({
             Payment Intent Created
           </h1>
           <p className="mt-3 text-sm text-[#F7F7F7]/40">
-            Your payment intent is ready. No real payment has been processed yet.
+            Your internal payment intent is ready. Use the demo action below to confirm this booking without processing real money.
           </p>
 
           <div className="mt-8 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5 text-left">
@@ -237,12 +284,26 @@ export default function PaymentPage({
           </div>
 
           <div className="mt-8 flex flex-col gap-3">
-            <Link
-              href={`/booking/${params.id}/invite?venue=${encodeURIComponent(venue)}&court=${encodeURIComponent(court)}&date=${date}&start=${start}&end=${end}&amount=${amount}&venueId=${venueId}`}
-              className="btn-lime flex h-12 items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]"
+            {confirmationMessage && (
+              <div className="rounded-xl border border-[#E6FA50]/20 bg-[#E6FA50]/10 p-3">
+                <p className="text-sm font-medium text-[#E6FA50]">{confirmationMessage}</p>
+                <p className="mt-1 text-[11px] text-[#F7F7F7]/40">
+                  Redirecting to booking success...
+                </p>
+              </div>
+            )}
+            {paymentError && (
+              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                <p className="text-[11px] leading-relaxed text-red-200/80">{paymentError}</p>
+              </div>
+            )}
+            <button
+              onClick={handleMarkPaid}
+              disabled={!payment || markingPaid || payment?.status === "PAID"}
+              className="btn-lime flex h-12 items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-30"
             >
-              Invite Friends
-            </Link>
+              {markingPaid ? "Marking Paid..." : "Mark as Paid (Demo)"}
+            </button>
             <Link
               href="/profile/bookings"
               className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70"

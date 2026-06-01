@@ -290,6 +290,13 @@ export async function getPayment(id: string, authToken: string): Promise<Payment
   return apiFetch<ApiPayment>(`/payments/${id}`, { authToken });
 }
 
+export async function markPaymentPaid(paymentId: string, authToken: string): Promise<PaymentSummary> {
+  return apiFetch<ApiPayment>(`/payments/${paymentId}/mark-paid`, {
+    method: "PATCH",
+    authToken,
+  });
+}
+
 export async function getInvite(token: string): Promise<InviteDetails> {
   return apiFetch<ApiInviteDetails>(`/invites/${token}`);
 }
