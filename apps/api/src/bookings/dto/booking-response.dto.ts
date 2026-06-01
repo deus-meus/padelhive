@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { BookingStatus, CourtType } from "@prisma/client";
 
 export class BookingVenueSummaryDto {
@@ -27,8 +27,8 @@ export class BookingHostSummaryDto {
   @ApiProperty()
   id!: string;
 
-  @ApiProperty()
-  name!: string;
+  @ApiProperty({ nullable: true })
+  name!: string | null;
 
   @ApiProperty()
   email!: string;
@@ -64,6 +64,15 @@ export class BookingResponseDto {
 
   @ApiProperty()
   finalAmount!: number;
+
+  @ApiPropertyOptional({ example: true })
+  isRefundEligible?: boolean;
+
+  @ApiPropertyOptional({ example: 630000 })
+  refundAmount?: number;
+
+  @ApiPropertyOptional({ example: "Full refund eligible: cancelled at least 24 hours before booking start." })
+  refundPolicyReason?: string;
 
   @ApiProperty({ type: BookingVenueSummaryDto })
   venue!: BookingVenueSummaryDto;

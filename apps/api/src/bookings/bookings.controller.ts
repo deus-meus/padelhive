@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -44,5 +44,17 @@ export class BookingsController {
   @ApiNotFoundResponse({ description: "Booking not found" })
   findOne(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<BookingResponseDto> {
     return this.bookingsService.findBookingForUser(id, user.id);
+  }
+
+  @Patch(":id/cancel")
+  @UseGuards(FirebaseAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Cancel current user's booking and calculate refund eligibility" })
+  @ApiOkResponse({ type: BookingResponseDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiBadRequestResponse({ description: "Booking cannot be cancelled" })
+  @ApiNotFoundResponse({ description: "Booking not found" })
+  cancel(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<BookingResponseDto> {
+    return this.bookingsService.cancelBookingForUser(id, user.id);
   }
 }

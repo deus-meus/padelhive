@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   MapPin,
@@ -19,6 +20,8 @@ import { enhancedBookings, type EnhancedBooking } from "@/mock/enhanced-bookings
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { PlayerAvatarStack } from "@/components/ui/player-avatar-stack";
+import { ApiRequestError, cancelBooking } from "@/lib/api";
+import { getIdToken } from "@/lib/auth-client";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -33,6 +36,9 @@ export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
   const [toast, setToast] = useState<string | null>(null);
   const [cancelledIds, setCancelledIds] = useState<string[]>([]);
+  const router = useRouter();
+  const [bookingToCancel, setBookingToCancel] = useState<EnhancedBooking | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const visibleBookings = enhancedBookings.map((booking) =>
     cancelledIds.includes(booking.id)
@@ -62,6 +68,28 @@ export default function BookingsPage() {
     setTimeout(() => setToast(null), 2500);
   }
 
+  function getBookingStart(booking: EnhancedBooking): Date {
+    return new Date(`${booking.bookingDate}T${booking.startTime}:00.000Z`);
+  }
+
+  function getRefundNote(booking: EnhancedBooking): string {
+    const isEligible = getBookingStart(booking).getTime() - Date.now() >= 24 * 60 * 60 * 1000;
+    if (isEligible && booking.payment.status === "paid") {
+      return "Full refund eligible. A pending refund request will be created after cancellation.";
+    }
+    if (isEligible) {
+      return "Full refund eligible, but no paid payment exists for this booking.";
+    }
+    return "Non-refundable: less than 24 hours before booking start.";
+  }
+
+  function getSuccessMessage(result: { isRefundEligible?: boolean; refundAmount?: number; refundPolicyReason?: string }): string {
+    if (result.isRefundEligible && result.refundAmount && result.refundAmount > 0) {
+      return `Booking cancelled. Pending refund: Rp ${result.refundAmount.toLocaleString("id-ID")}.`;
+    }
+    return `Booking cancelled. ${result.refundPolicyReason ?? "No refund record needed."}`;
+  }
+
   async function handleShare(bookingId: string) {
     const shareUrl = `${window.location.origin}/booking/${bookingId}/invite`;
     try {
@@ -72,9 +100,41 @@ export default function BookingsPage() {
     }
   }
 
-  function handleCancel(bookingId: string) {
-    setCancelledIds((prev) => (prev.includes(bookingId) ? prev : [...prev, bookingId]));
-    showToast("Booking marked cancelled in this demo. Backend cancellation will sync this later.");
+  function handleCancel(booking: EnhancedBooking) {
+    setBookingToCancel(booking);
+  }
+
+  async function confirmCancel() {
+    if (!bookingToCancel || isCancelling) return;
+
+    setIsCancelling(true);
+    const authToken = await getIdToken();
+    if (!authToken) {
+      setIsCancelling(false);
+      router.push(`/auth/login?next=${encodeURIComponent("/bookings")}`);
+      return;
+    }
+
+    try {
+      const result = await cancelBooking(bookingToCancel.id, authToken);
+      setCancelledIds((prev) => (prev.includes(bookingToCancel.id) ? prev : [...prev, bookingToCancel.id]));
+      setBookingToCancel(null);
+      showToast(getSuccessMessage(result));
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        if (error.status === 404) {
+          showToast("Booking was not found for this account.");
+        } else if (error.status === 400) {
+          showToast(error.message || "This booking cannot be cancelled.");
+        } else {
+          showToast("Could not cancel booking. Please try again.");
+        }
+      } else {
+        showToast("Could not cancel booking. Please try again.");
+      }
+    } finally {
+      setIsCancelling(false);
+    }
   }
 
   return (
@@ -207,12 +267,44 @@ export default function BookingsPage() {
                 booking={booking}
                 index={i}
                 muted={activeTab !== "upcoming"}
-                onCancel={() => handleCancel(booking.id)}
+                onCancel={() => handleCancel(booking)}
               />
             ))
           )}
         </div>
       </section>
+
+      {bookingToCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
+            <p className="section-label">Cancel Booking</p>
+            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Cancel this booking?</h2>
+            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/45">
+              This will cancel your booking and release the court time.
+            </p>
+            <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
+              <p className="text-sm font-medium text-[#F7F7F7]/70">Refund eligibility</p>
+              <p className="mt-1 text-xs leading-5 text-[#F7F7F7]/40">{getRefundNote(bookingToCancel)}</p>
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                onClick={() => setBookingToCancel(null)}
+                disabled={isCancelling}
+                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70 disabled:opacity-40"
+              >
+                Keep Booking
+              </button>
+              <button
+                onClick={confirmCancel}
+                disabled={isCancelling}
+                className="rounded-full bg-red-500/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
+              >
+                {isCancelling ? "Cancelling..." : "Cancel Booking"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (

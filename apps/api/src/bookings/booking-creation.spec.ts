@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
-import { BookingStatus, CourtType, UserRole, VenueStatus } from "@prisma/client";
+import { BookingStatus, CourtType, PaymentStatus, RefundStatus, UserRole, VenueStatus } from "@prisma/client";
 import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
 import { RequestUser } from "../auth/types/request-user.type";
 import { BookingsController } from "./bookings.controller";
@@ -26,6 +26,28 @@ const activeCourt = {
   weekendOffPeak: 250000,
 };
 
+const cancellableBooking = {
+  id: "booking-1",
+  bookingDate: new Date("2099-06-01T00:00:00.000Z"),
+  startsAt: new Date("2099-06-01T09:00:00.000Z"),
+  endsAt: new Date("2099-06-01T11:00:00.000Z"),
+  durationMinutes: 120,
+  status: BookingStatus.CONFIRMED,
+  courtAmount: 600000,
+  platformFee: 30000,
+  voucherDiscount: 0,
+  finalAmount: 630000,
+  cancelledAt: null,
+  venue: { id: "venue-1", name: "Padel Bali", city: "Bali" },
+  court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
+  host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
+  payment: {
+    id: "payment-1",
+    amount: 630000,
+    status: PaymentStatus.PAID,
+  },
+};
+
 function createPrisma(overrides: Record<string, unknown> = {}) {
   return {
     venue: { findFirst: jest.fn().mockResolvedValue(approvedVenue) },
@@ -47,7 +69,13 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
         court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
         host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
       }),
+      update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }),
     },
+    refund: { create: jest.fn().mockResolvedValue({ id: "refund-1" }) },
+    $transaction: jest.fn(async (callback) => callback({
+      booking: { update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }) },
+      refund: { create: jest.fn().mockResolvedValue({ id: "refund-1" }) },
+    })),
     ...overrides,
   };
 }
@@ -65,6 +93,19 @@ describe("Booking creation API", () => {
 
     await expect(controller.create(body, requestUser)).resolves.toEqual({ id: "booking-1" });
     expect(service.createBookingForUser).toHaveBeenCalledWith("user-1", body);
+  });
+
+  it("protects PATCH /bookings/:id/cancel with FirebaseAuthGuard", () => {
+    const guards = Reflect.getMetadata("__guards__", BookingsController.prototype.cancel) ??[];
+    expect(guards).toContain(FirebaseAuthGuard);
+  });
+
+  it("uses current user when cancelling in controller", async () => {
+    const service = { cancelBookingForUser: jest.fn().mockResolvedValue({ id: "booking-1", status: BookingStatus.CANCELLED }) } as unknown as BookingsService;
+    const controller = new BookingsController(service);
+
+    await expect(controller.cancel("booking-1", requestUser)).resolves.toEqual({ id: "booking-1", status: BookingStatus.CANCELLED });
+    expect(service.cancelBookingForUser).toHaveBeenCalledWith("booking-1", "user-1");
   });
 
   it("creates a pending-payment booking with server-side pricing", async () => {
@@ -172,5 +213,112 @@ describe("Booking creation API", () => {
       select: { id: true },
     });
     expect(prisma.booking.create).not.toHaveBeenCalled();
+  });
+
+  it("lets the owner cancel and creates pending refund for paid eligible bookings", async () => {
+    const txBookingUpdate = jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED, cancelledAt: new Date("2099-05-31T09:00:00.000Z") });
+    const txRefundCreate = jest.fn().mockResolvedValue({ id: "refund-1" });
+    const prisma = createPrisma({
+      booking: {
+        findFirst: jest.fn().mockResolvedValue(cancellableBooking),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+      $transaction: jest.fn(async (callback) => callback({
+        booking: { update: txBookingUpdate },
+        refund: { create: txRefundCreate },
+      })),
+    });
+    const service = new BookingsService(prisma as never);
+    const now = new Date("2099-05-31T09:00:00.000Z");
+
+    const result = await service.cancelBookingForUser("booking-1", "user-1", now);
+
+    expect(prisma.booking.findFirst).toHaveBeenCalledWith({
+      where: { id: "booking-1", hostUserId: "user-1" },
+      select: expect.any(Object),
+    });
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(txBookingUpdate).toHaveBeenCalledWith({
+      where: { id: "booking-1" },
+      data: { status: BookingStatus.CANCELLED, cancelledAt: now },
+      select: expect.any(Object),
+    });
+    expect(txRefundCreate).toHaveBeenCalledWith({
+      data: {
+        bookingId: "booking-1",
+        paymentId: "payment-1",
+        amount: 630000,
+        reason: "Full refund eligible: cancelled at least 24 hours before booking start.",
+        status: RefundStatus.PENDING,
+      },
+    });
+    expect(result.status).toBe(BookingStatus.CANCELLED);
+    expect(result.isRefundEligible).toBe(true);
+    expect(result.refundAmount).toBe(630000);
+  });
+
+  it("rejects cancel for missing or non-owned bookings", async () => {
+    const service = new BookingsService(createPrisma({
+      booking: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn(), update: jest.fn() },
+    }) as never);
+
+    await expect(service.cancelBookingForUser("booking-1", "user-2", new Date("2099-05-31T09:00:00.000Z"))).rejects.toThrow(NotFoundException);
+  });
+
+  it("rejects completed bookings", async () => {
+    const service = new BookingsService(createPrisma({
+      booking: { findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.COMPLETED }), create: jest.fn(), update: jest.fn() },
+    }) as never);
+
+    await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T09:00:00.000Z"))).rejects.toThrow(BadRequestException);
+  });
+
+  it("rejects already cancelled bookings", async () => {
+    const service = new BookingsService(createPrisma({
+      booking: { findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }), create: jest.fn(), update: jest.fn() },
+    }) as never);
+
+    await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T09:00:00.000Z"))).rejects.toThrow(BadRequestException);
+  });
+
+  it("does not create refund when cancellation is less than 24 hours before start", async () => {
+    const txRefundCreate = jest.fn();
+    const prisma = createPrisma({
+      booking: { findFirst: jest.fn().mockResolvedValue(cancellableBooking), create: jest.fn(), update: jest.fn() },
+      $transaction: jest.fn(async (callback) => callback({
+        booking: { update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }) },
+        refund: { create: txRefundCreate },
+      })),
+    });
+    const service = new BookingsService(prisma as never);
+
+    const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T09:00:01.000Z"));
+
+    expect(result.isRefundEligible).toBe(false);
+    expect(result.refundAmount).toBe(0);
+    expect(txRefundCreate).not.toHaveBeenCalled();
+  });
+
+  it("does not create refund when eligible booking has no paid payment", async () => {
+    const txRefundCreate = jest.fn();
+    const prisma = createPrisma({
+      booking: {
+        findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, payment: { ...cancellableBooking.payment, status: PaymentStatus.PENDING } }),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+      $transaction: jest.fn(async (callback) => callback({
+        booking: { update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }) },
+        refund: { create: txRefundCreate },
+      })),
+    });
+    const service = new BookingsService(prisma as never);
+
+    const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T09:00:00.000Z"));
+
+    expect(result.isRefundEligible).toBe(true);
+    expect(result.refundAmount).toBe(0);
+    expect(txRefundCreate).not.toHaveBeenCalled();
   });
 });

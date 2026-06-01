@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { BookingStatus, CourtType, VenueStatus } from "@prisma/client";
+import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
@@ -7,6 +7,10 @@ import { CreateBookingDto } from "./dto/create-booking.dto";
 const PLATFORM_FEE_RATE = 0.05;
 const TIME_PATTERN = /^([01]\d|2[0-3]):00$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const REFUND_WINDOW_MS = 24 * 60 * 60 * 1000;
+const REFUND_ELIGIBLE_REASON = "Full refund eligible: cancelled at least 24 hours before booking start.";
+const REFUND_ELIGIBLE_UNPAID_REASON = "Full refund eligible, but no paid payment exists for this booking.";
+const REFUND_INELIGIBLE_REASON = "Non-refundable: cancellations less than 24 hours before booking start are not eligible.";
 
 const bookingSelect = {
   id: true,
@@ -22,6 +26,42 @@ const bookingSelect = {
   venue: { select: { id: true, name: true, city: true } },
   court: { select: { id: true, name: true, type: true } },
   host: { select: { id: true, name: true, email: true } },
+};
+
+const cancellableBookingSelect = {
+  ...bookingSelect,
+  cancelledAt: true,
+  payment: {
+    select: {
+      id: true,
+      amount: true,
+      status: true,
+    },
+  },
+};
+
+type CancellableBooking = {
+  id: string;
+  bookingDate: Date;
+  startsAt: Date;
+  endsAt: Date;
+  durationMinutes: number;
+  status: BookingStatus;
+  courtAmount: number;
+  platformFee: number;
+  voucherDiscount: number;
+  finalAmount: number;
+  cancelledAt: Date | null;
+  venue: { id: string; name: string; city: string };
+  court: { id: string; name: string; type: CourtType };
+  host: { id: string; name: string | null; email: string };
+  payment: { id: string; amount: number; status: PaymentStatus } | null;
+};
+
+type RefundDecision = {
+  isRefundEligible: boolean;
+  refundAmount: number;
+  refundPolicyReason: string;
 };
 
 type SelectedCourt = {
@@ -115,6 +155,101 @@ export class BookingsService {
     }
 
     return booking;
+  }
+
+  async cancelBookingForUser(id: string, hostUserId: string, now = new Date()): Promise<BookingResponseDto> {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id, hostUserId },
+      select: cancellableBookingSelect,
+    });
+
+    if (!booking) {
+      throw new NotFoundException("Booking not found");
+    }
+
+    if (booking.status === BookingStatus.COMPLETED) {
+      throw new BadRequestException("Completed bookings cannot be cancelled");
+    }
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new BadRequestException("Booking is already cancelled");
+    }
+
+    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PENDING_PAYMENT) {
+      throw new BadRequestException("Booking cannot be cancelled");
+    }
+
+    const refundDecision = this.calculateRefundDecision(booking, now);
+
+    const cancelledBooking = await this.prisma.$transaction(async (tx) => {
+      const updatedBooking = await tx.booking.update({
+        where: { id: booking.id },
+        data: { status: BookingStatus.CANCELLED, cancelledAt: now },
+        select: cancellableBookingSelect,
+      });
+
+      if (booking.payment?.status === PaymentStatus.PAID && refundDecision.isRefundEligible) {
+        await tx.refund.create({
+          data: {
+            bookingId: booking.id,
+            paymentId: booking.payment.id,
+            amount: booking.payment.amount,
+            reason: REFUND_ELIGIBLE_REASON,
+            status: RefundStatus.PENDING,
+          },
+        });
+      }
+
+      return updatedBooking;
+    });
+
+    return this.withRefundDecision(cancelledBooking, refundDecision);
+  }
+
+  private calculateRefundDecision(booking: CancellableBooking, now: Date): RefundDecision {
+    const isRefundEligible = booking.startsAt.getTime() - now.getTime() >= REFUND_WINDOW_MS;
+    const hasPaidPayment = booking.payment?.status === PaymentStatus.PAID;
+
+    if (isRefundEligible && hasPaidPayment) {
+      return {
+        isRefundEligible: true,
+        refundAmount: booking.payment?.amount ?? 0,
+        refundPolicyReason: REFUND_ELIGIBLE_REASON,
+      };
+    }
+
+    if (isRefundEligible) {
+      return {
+        isRefundEligible: true,
+        refundAmount: 0,
+        refundPolicyReason: REFUND_ELIGIBLE_UNPAID_REASON,
+      };
+    }
+
+    return {
+      isRefundEligible: false,
+      refundAmount: 0,
+      refundPolicyReason: REFUND_INELIGIBLE_REASON,
+    };
+  }
+
+  private withRefundDecision(booking: CancellableBooking, refundDecision: RefundDecision): BookingResponseDto {
+    return {
+      id: booking.id,
+      bookingDate: booking.bookingDate,
+      startsAt: booking.startsAt,
+      endsAt: booking.endsAt,
+      durationMinutes: booking.durationMinutes,
+      status: booking.status,
+      courtAmount: booking.courtAmount,
+      platformFee: booking.platformFee,
+      voucherDiscount: booking.voucherDiscount,
+      finalAmount: booking.finalAmount,
+      venue: booking.venue,
+      court: booking.court,
+      host: booking.host,
+      ...refundDecision,
+    };
   }
 
   private parseBookingTime(bookingDateValue: string, startsAtValue: string, endsAtValue: string): ParsedBookingTime {
