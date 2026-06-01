@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   MapPin,
@@ -21,6 +21,8 @@ import {
   Copy,
 } from "lucide-react";
 import { enhancedBookings, type Participant } from "@/mock/enhanced-bookings";
+import { ApiRequestError, cancelBooking } from "@/lib/api";
+import { getIdToken } from "@/lib/auth-client";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
@@ -28,9 +30,13 @@ import { padelImg } from "@/lib/images";
 export default function BookingDetailPage() {
   const params = useParams();
   const bookingId = params.id as string;
+  const router = useRouter();
   const booking = enhancedBookings.find((b) => b.id === bookingId);
   const [toast, setToast] = useState<string | null>(null);
   const [isCancelled, setIsCancelled] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [refundMessage, setRefundMessage] = useState<string | null>(null);
 
   if (!booking) {
     return (
@@ -45,8 +51,9 @@ export default function BookingDetailPage() {
     );
   }
 
-  const venue = mockVenues.find((v) => v.id === booking.venueId);
-  const court = mockCourts.find((c) => c.id === booking.courtId);
+  const currentBooking = booking;
+  const venue = mockVenues.find((v) => v.id === currentBooking.venueId);
+  const court = mockCourts.find((c) => c.id === currentBooking.courtId);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -62,9 +69,65 @@ export default function BookingDetailPage() {
     });
   }
 
+  function getBookingStart(): Date {
+    return new Date(`${currentBooking.bookingDate}T${currentBooking.startTime}:00.000Z`);
+  }
+
+  function getRefundNote(): string {
+    const isEligible = getBookingStart().getTime() - Date.now() >= 24 * 60 * 60 * 1000;
+    if (isEligible && currentBooking.payment.status === "paid") {
+      return "Full refund eligible. A pending refund request will be created after cancellation.";
+    }
+    if (isEligible) {
+      return "Full refund eligible, but no paid payment exists for this booking.";
+    }
+    return "Non-refundable: less than 24 hours before booking start.";
+  }
+
+  function getSuccessMessage(result: { isRefundEligible?: boolean; refundAmount?: number; refundPolicyReason?: string }): string {
+    if (result.isRefundEligible && result.refundAmount && result.refundAmount > 0) {
+      return `Booking cancelled. Pending refund: Rp ${result.refundAmount.toLocaleString("id-ID")}.`;
+    }
+    return `Booking cancelled. ${result.refundPolicyReason ?? "No refund record needed."}`;
+  }
+
   function handleCancel() {
-    setIsCancelled(true);
-    showToast("Booking marked cancelled in this demo. Backend cancellation will sync this later.");
+    setShowCancelModal(true);
+  }
+
+  async function confirmCancel() {
+    if (isCancelling) return;
+
+    setIsCancelling(true);
+    const authToken = await getIdToken();
+    if (!authToken) {
+      setIsCancelling(false);
+      router.push(`/auth/login?next=${encodeURIComponent(`/bookings/${bookingId}`)}`);
+      return;
+    }
+
+    try {
+      const result = await cancelBooking(bookingId, authToken);
+      setIsCancelled(true);
+      setShowCancelModal(false);
+      const message = getSuccessMessage(result);
+      setRefundMessage(message);
+      showToast(message);
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        if (error.status === 404) {
+          showToast("Booking was not found for this account.");
+        } else if (error.status === 400) {
+          showToast(error.message || "This booking cannot be cancelled.");
+        } else {
+          showToast("Could not cancel booking. Please try again.");
+        }
+      } else {
+        showToast("Could not cancel booking. Please try again.");
+      }
+    } finally {
+      setIsCancelling(false);
+    }
   }
 
   return (
@@ -81,8 +144,8 @@ export default function BookingDetailPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <StatusBadge status={isCancelled ? "cancelled" : booking.status} />
-              <PaymentBadge status={isCancelled ? "refunded" : booking.payment.status} />
+              <StatusBadge status={isCancelled ? "cancelled" : currentBooking.status} />
+              <PaymentBadge status={isCancelled ? "refunded" : currentBooking.payment.status} />
             </div>
             <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
               {venue?.name ?? "Unknown Venue"}
@@ -112,12 +175,12 @@ export default function BookingDetailPage() {
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Booking Information</p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <InfoCard icon={Ticket} label="Booking ID" value={booking.id.toUpperCase()} />
+                <InfoCard icon={Ticket} label="Booking ID" value={currentBooking.id.toUpperCase()} />
                 <InfoCard icon={MapPin} label="Court" value={`${court?.name ?? "—"} · ${court?.type ?? ""}`} />
-                <InfoCard icon={CalendarDays} label="Date" value={booking.bookingDate} />
-                <InfoCard icon={Clock} label="Time" value={`${booking.startTime} – ${booking.endTime}`} />
-                <InfoCard icon={Timer} label="Duration" value={`${booking.duration} min`} />
-                <InfoCard icon={CalendarDays} label="Booked On" value={new Date(booking.createdAt).toLocaleDateString()} />
+                <InfoCard icon={CalendarDays} label="Date" value={currentBooking.bookingDate} />
+                <InfoCard icon={Clock} label="Time" value={`${currentBooking.startTime} – ${currentBooking.endTime}`} />
+                <InfoCard icon={Timer} label="Duration" value={`${currentBooking.duration} min`} />
+                <InfoCard icon={CalendarDays} label="Booked On" value={new Date(currentBooking.createdAt).toLocaleDateString()} />
               </div>
             </div>
 
@@ -126,15 +189,15 @@ export default function BookingDetailPage() {
               <div className="flex items-center justify-between mb-4">
                 <p className="section-label">Participants</p>
                 <span className="caption text-[#F7F7F7]/25">
-                  {booking.participants.filter((p) => p.rsvp === "accepted").length}/{booking.participants.length} confirmed
+                  {currentBooking.participants.filter((p) => p.rsvp === "accepted").length}/{currentBooking.participants.length} confirmed
                 </span>
               </div>
               <div className="space-y-2">
-                {booking.participants.map((participant) => (
+                {currentBooking.participants.map((participant) => (
                   <ParticipantRow key={participant.id} participant={participant} />
                 ))}
               </div>
-              {booking.status === "confirmed" && (
+              {currentBooking.status === "confirmed" && (
                 <button
                   onClick={handleShareInvite}
                   className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-white/[0.06] py-2.5 text-xs font-medium text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/70"
@@ -172,37 +235,42 @@ export default function BookingDetailPage() {
             <div id="payment" className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Payment</p>
               <div className="space-y-3 mb-4">
-                <PaymentRow label="Court fee" value={`Rp ${(booking.totalAmount / 1000).toFixed(0)}K`} />
-                {booking.voucherDiscount > 0 && (
+                <PaymentRow label="Court fee" value={`Rp ${(currentBooking.totalAmount / 1000).toFixed(0)}K`} />
+                {currentBooking.voucherDiscount > 0 && (
                   <PaymentRow
-                    label={`Voucher (${booking.voucherCode})`}
-                    value={`-Rp ${(booking.voucherDiscount / 1000).toFixed(0)}K`}
+                    label={`Voucher (${currentBooking.voucherCode})`}
+                    value={`-Rp ${(currentBooking.voucherDiscount / 1000).toFixed(0)}K`}
                     highlight
                   />
                 )}
-                <PaymentRow label="Platform fee" value={`Rp ${(booking.platformFee / 1000).toFixed(0)}K`} />
+                <PaymentRow label="Platform fee" value={`Rp ${(currentBooking.platformFee / 1000).toFixed(0)}K`} />
                 <div className="border-t border-white/[0.04] pt-3">
-                  <PaymentRow label="Total" value={`Rp ${(booking.finalAmount / 1000).toFixed(0)}K`} bold />
+                  <PaymentRow label="Total" value={`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`} bold />
                 </div>
               </div>
 
               <div className="space-y-2 rounded-xl bg-white/[0.02] p-3">
                 <div className="flex items-center justify-between">
                   <span className="caption text-[#F7F7F7]/30">Method</span>
-                  <span className="text-xs font-medium text-[#F7F7F7]/60">{booking.payment.method}</span>
+                  <span className="text-xs font-medium text-[#F7F7F7]/60">{currentBooking.payment.method}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="caption text-[#F7F7F7]/30">Provider</span>
-                  <span className="text-xs font-medium text-[#F7F7F7]/60 uppercase">{booking.payment.provider}</span>
+                  <span className="text-xs font-medium text-[#F7F7F7]/60 uppercase">{currentBooking.payment.provider}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="caption text-[#F7F7F7]/30">Status</span>
-                  <PaymentBadge status={isCancelled ? "refunded" : booking.payment.status} />
+                  <PaymentBadge status={isCancelled ? "refunded" : currentBooking.payment.status} />
                 </div>
-                {booking.payment.paidAt && (
+                {currentBooking.payment.paidAt && (
                   <div className="flex items-center justify-between">
                     <span className="caption text-[#F7F7F7]/30">Paid at</span>
-                    <span className="caption text-[#F7F7F7]/40">{new Date(booking.payment.paidAt).toLocaleString()}</span>
+                    <span className="caption text-[#F7F7F7]/40">{new Date(currentBooking.payment.paidAt).toLocaleString()}</span>
+                  </div>
+                )}
+                {refundMessage && (
+                  <div className="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-3">
+                    <p className="text-xs leading-5 text-[#E6FA50]">{refundMessage}</p>
                   </div>
                 )}
               </div>
@@ -221,13 +289,13 @@ export default function BookingDetailPage() {
                   <Copy className="ml-auto h-3.5 w-3.5 text-[#F7F7F7]/20" />
                 </button>
                 <Link
-                  href={`/booking/${booking.id}/payment`}
+                  href={`/booking/${currentBooking.id}/payment`}
                   className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
                 >
                   <CreditCard className="h-4 w-4 text-[#50C8C8]" />
                   View payment receipt
                 </Link>
-                {booking.status === "confirmed" && !isCancelled && (
+                {currentBooking.status === "confirmed" && !isCancelled && (
                   <button
                     onClick={handleCancel}
                     className="w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 text-sm text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
@@ -241,6 +309,38 @@ export default function BookingDetailPage() {
           </div>
         </div>
       </section>
+
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
+            <p className="section-label">Cancel Booking</p>
+            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Cancel this booking?</h2>
+            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/45">
+              This will cancel your booking and release the court time.
+            </p>
+            <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
+              <p className="text-sm font-medium text-[#F7F7F7]/70">Refund eligibility</p>
+              <p className="mt-1 text-xs leading-5 text-[#F7F7F7]/40">{getRefundNote()}</p>
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                disabled={isCancelling}
+                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70 disabled:opacity-40"
+              >
+                Keep Booking
+              </button>
+              <button
+                onClick={confirmCancel}
+                disabled={isCancelling}
+                className="rounded-full bg-red-500/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
+              >
+                {isCancelling ? "Cancelling..." : "Cancel Booking"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (

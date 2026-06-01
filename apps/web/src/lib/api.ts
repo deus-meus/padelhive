@@ -56,6 +56,9 @@ type ApiBooking = {
   platformFee: number;
   voucherDiscount: number;
   finalAmount: number;
+  isRefundEligible?: boolean;
+  refundAmount?: number;
+  refundPolicyReason?: string;
   venue: { id: string; name: string; city: string };
   court: { id: string; name: string; type: string };
   host: { id: string; name: string | null; email: string };
@@ -272,6 +275,13 @@ export async function createBooking(
     method: "POST",
     authToken,
     body: JSON.stringify(input),
+  });
+}
+
+export async function cancelBooking(bookingId: string, authToken: string): Promise<BookingSummary> {
+  return apiFetch<ApiBooking>(`/bookings/${bookingId}/cancel`, {
+    method: "PATCH",
+    authToken,
   });
 }
 
