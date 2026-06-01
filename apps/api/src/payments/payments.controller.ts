@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -42,5 +43,21 @@ export class PaymentsController {
   @ApiNotFoundResponse({ description: "Payment not found" })
   findOne(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<PaymentResponseDto> {
     return this.paymentsService.findPaymentForUser(id, user.id);
+  }
+
+  @Patch(":id/mark-paid")
+  @UseGuards(FirebaseAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Mark an internal demo payment as paid",
+    description: "Demo-only endpoint. Confirms the related booking without calling a real payment provider.",
+  })
+  @ApiOkResponse({ type: PaymentResponseDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiForbiddenResponse({ description: "Payment does not belong to current user" })
+  @ApiBadRequestResponse({ description: "Payment or booking is not in a demo-payable state" })
+  @ApiNotFoundResponse({ description: "Payment not found" })
+  markPaid(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<PaymentResponseDto> {
+    return this.paymentsService.markPaidForUser(id, user.id);
   }
 }

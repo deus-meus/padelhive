@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { BookingStatus, CourtType, PaymentStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreatePaymentIntentDto } from "./dto/create-payment-intent.dto";
@@ -117,6 +117,44 @@ export class PaymentsService {
     }
 
     return this.stripHostUserId(payment);
+  }
+
+  async markPaidForUser(id: string, userId: string): Promise<PaymentResponseDto> {
+    const payment = await this.prisma.payment.findFirst({
+      where: { id },
+      select: paymentSelect,
+    });
+
+    if (!payment) {
+      throw new NotFoundException("Payment not found");
+    }
+
+    if (payment.booking.hostUserId !== userId) {
+      throw new ForbiddenException("Payment does not belong to current user");
+    }
+
+    if (payment.status !== PaymentStatus.PENDING) {
+      throw new BadRequestException("Only pending demo payments can be marked as paid");
+    }
+
+    if (payment.booking.status !== BookingStatus.PENDING_PAYMENT) {
+      throw new BadRequestException("Only pending-payment bookings can be confirmed");
+    }
+
+    const paidPayment = await this.prisma.$transaction(async (tx) => {
+      await tx.booking.update({
+        where: { id: payment.bookingId },
+        data: { status: BookingStatus.CONFIRMED },
+      });
+
+      return tx.payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentStatus.PAID, paidAt: new Date() },
+        select: paymentSelect,
+      });
+    });
+
+    return this.stripHostUserId(paidPayment);
   }
 
   private assertSupportedMethod(method: string): void {
