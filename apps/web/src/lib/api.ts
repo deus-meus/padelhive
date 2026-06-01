@@ -1,7 +1,7 @@
 import { padelImg } from "@/lib/images";
 import { Court, Venue, Voucher } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
 type ApiVenue = {
   id: string;
