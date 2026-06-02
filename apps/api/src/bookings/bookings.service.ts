@@ -4,6 +4,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 
+type BookingFilter = "upcoming" | "past" | "cancelled";
+
 const PLATFORM_FEE_RATE = 0.05;
 const TIME_PATTERN = /^([01]\d|2[0-3]):00$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -325,5 +327,44 @@ export class BookingsService {
     }
 
     return isPeak ? court.weekdayPeak : court.weekdayOffPeak;
+  }
+
+  async findBookingsForUser(hostUserId: string, filter: BookingFilter) {
+    const now = new Date();
+    const todayStart = new Date(now.toISOString().split("T")[0] + "T00:00:00.000Z");
+
+    const where: { hostUserId: string; status?: { in: BookingStatus[] } | BookingStatus; bookingDate?: { gte: Date } | { lt: Date }; OR?: { status: BookingStatus }[] } = { hostUserId };
+
+    switch (filter) {
+      case "upcoming":
+        where.status = { in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED] };
+        where.bookingDate = { gte: todayStart };
+        break;
+      case "past":
+        where.status = BookingStatus.COMPLETED;
+        break;
+      case "cancelled":
+        where.status = BookingStatus.CANCELLED;
+        break;
+    }
+
+    return this.prisma.booking.findMany({
+      where,
+      orderBy: { bookingDate: "desc" },
+      select: {
+        id: true,
+        bookingDate: true,
+        startsAt: true,
+        endsAt: true,
+        durationMinutes: true,
+        status: true,
+        courtAmount: true,
+        platformFee: true,
+        voucherDiscount: true,
+        finalAmount: true,
+        venue: { select: { id: true, name: true, city: true } },
+        court: { select: { id: true, name: true, type: true } },
+      },
+    });
   }
 }

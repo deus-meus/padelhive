@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MapPin,
   Clock,
@@ -16,11 +16,7 @@ import {
   CreditCard,
   XCircle,
 } from "lucide-react";
-import { enhancedBookings, type EnhancedBooking } from "@/mock/enhanced-bookings";
-import { mockVenues } from "@/mock/venues";
-import { mockCourts } from "@/mock/courts";
-import { PlayerAvatarStack } from "@/components/ui/player-avatar-stack";
-import { ApiRequestError, cancelBooking } from "@/lib/api";
+import { ApiRequestError, cancelBooking, getUserBookings, ApiBooking } from "@/lib/api";
 import { getIdToken } from "@/lib/auth-client";
 import { padelImg } from "@/lib/images";
 
@@ -30,52 +26,90 @@ const IMG = {
   venue3: padelImg(600),
 };
 
-type TabKey = "upcoming" | "completed" | "cancelled";
+type TabKey = "upcoming" | "past" | "cancelled";
 
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
   const [toast, setToast] = useState<string | null>(null);
   const [cancelledIds, setCancelledIds] = useState<string[]>([]);
   const router = useRouter();
-  const [bookingToCancel, setBookingToCancel] = useState<EnhancedBooking | null>(null);
+  const [bookingToCancel, setBookingToCancel] = useState<ApiBooking | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [bookings, setBookings] = useState<ApiBooking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const visibleBookings = enhancedBookings.map((booking) =>
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchBookings() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const authToken = await getIdToken();
+        if (!authToken) {
+          if (!cancelled) router.push(`/auth/login?next=${encodeURIComponent("/bookings")}`);
+          return;
+        }
+
+        const data = await getUserBookings(activeTab, authToken);
+        if (!cancelled) setBookings(data);
+      } catch (err) {
+        if (!cancelled) {
+          if (err instanceof ApiRequestError) {
+            setError(err.message || "Failed to load bookings");
+          } else {
+            setError("Failed to load bookings");
+          }
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    fetchBookings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, router]);
+
+  const visibleBookings = bookings.map((booking) =>
     cancelledIds.includes(booking.id)
       ? {
           ...booking,
-          status: "cancelled" as EnhancedBooking["status"],
-          payment: { ...booking.payment, status: "refunded" as EnhancedBooking["payment"]["status"] },
+          status: "CANCELLED",
         }
       : booking
   );
 
-  const upcoming = visibleBookings.filter((b) => b.status === "confirmed" || b.status === "pending");
-  const completed = visibleBookings.filter((b) => b.status === "completed");
-  const cancelled = visibleBookings.filter((b) => b.status === "cancelled");
+  const upcoming = visibleBookings.filter((b) => b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT");
+  const past = visibleBookings.filter((b) => b.status === "COMPLETED");
+  const cancelled = visibleBookings.filter((b) => b.status === "CANCELLED");
 
-  const tabData: Record<TabKey, EnhancedBooking[]> = { upcoming, completed, cancelled };
+  const tabData: Record<TabKey, ApiBooking[]> = { upcoming, past, cancelled };
 
   const nextBooking = upcoming[0];
-  const nextVenue = nextBooking ? mockVenues.find((v) => v.id === nextBooking.venueId) : null;
-  const nextCourt = nextBooking ? mockCourts.find((c) => c.id === nextBooking.courtId) : null;
+  const nextVenue = nextBooking?.venue;
+  const nextCourt = nextBooking?.court;
 
   const totalBookings = visibleBookings.length;
-  const hoursPlayed = visibleBookings.filter((b) => b.status === "completed").reduce((sum, b) => sum + b.duration, 0);
+  const hoursPlayed = visibleBookings.filter((b) => b.status === "COMPLETED").reduce((sum, b) => sum + b.durationMinutes, 0);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   }
 
-  function getBookingStart(booking: EnhancedBooking): Date {
-    return new Date(`${booking.bookingDate}T${booking.startTime}:00.000Z`);
+  function getBookingStart(booking: ApiBooking): Date {
+    return new Date(`${booking.bookingDate}T${booking.startsAt}:00.000Z`);
   }
 
-  function getRefundNote(booking: EnhancedBooking): string {
+  function getRefundNote(booking: ApiBooking): string {
     const isEligible = getBookingStart(booking).getTime() - Date.now() >= 24 * 60 * 60 * 1000;
-    if (isEligible && booking.payment.status === "paid") {
-      return "Full refund eligible. A pending refund request will be created after cancellation.";
+    if (isEligible && booking.isRefundEligible) {
+      return booking.refundPolicyReason ?? "Full refund eligible. A pending refund request will be created after cancellation.";
     }
     if (isEligible) {
       return "Full refund eligible, but no paid payment exists for this booking.";
@@ -100,7 +134,7 @@ export default function BookingsPage() {
     }
   }
 
-  function handleCancel(booking: EnhancedBooking) {
+  function handleCancel(booking: ApiBooking) {
     setBookingToCancel(booking);
   }
 
@@ -137,6 +171,48 @@ export default function BookingsPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pt-28">
+        <section className="container pb-8">
+          <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+            My <span className="text-[#E6FA50]">Bookings</span>
+          </h1>
+          <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
+            Manage your upcoming matches and booking history.
+          </p>
+        </section>
+        <div className="container py-16 text-center">
+          <p className="text-sm text-[#F7F7F7]/30">Loading your bookings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen pt-28">
+        <section className="container pb-8">
+          <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+            My <span className="text-[#E6FA50]">Bookings</span>
+          </h1>
+          <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
+            Manage your upcoming matches and booking history.
+          </p>
+        </section>
+        <div className="container py-16 text-center">
+          <p className="text-sm text-red-400/80">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-full bg-red-500/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-300 transition-colors hover:bg-red-500/25"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-28">
       {/* Header */}
@@ -168,22 +244,14 @@ export default function BookingsPage() {
 
               <p className="mt-2 flex items-center gap-2 text-sm text-[#F7F7F7]/40">
                 <MapPin className="h-3.5 w-3.5" />
-                {nextVenue.location} · {nextVenue.city}
+                {nextVenue.city}
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <DetailChip icon={CalendarDays} label="Date" value={nextBooking.bookingDate} />
-                <DetailChip icon={Clock} label="Time" value={`${nextBooking.startTime} – ${nextBooking.endTime}`} />
+                <DetailChip icon={Clock} label="Time" value={`${nextBooking.startsAt} – ${nextBooking.endsAt}`} />
                 <DetailChip icon={MapPin} label="Court" value={`${nextCourt.name} · ${nextCourt.type}`} />
                 <DetailChip icon={Timer} label="Price" value={`Rp ${(nextBooking.finalAmount / 1000).toFixed(0)}K`} />
-              </div>
-
-              <div className="mt-5">
-                <PlayerAvatarStack
-                  players={nextBooking.participants.map((p) => ({ id: p.id, name: p.name, avatarUrl: p.avatarUrl }))}
-                  totalSpots={4}
-                  size={32}
-                />
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -193,13 +261,6 @@ export default function BookingsPage() {
                 >
                   <Eye className="h-3.5 w-3.5" />
                   View Details
-                </Link>
-                <Link
-                  href={`/booking/${nextBooking.id}/invite`}
-                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/20 hover:text-[#F7F7F7]"
-                >
-                  <Users className="h-3.5 w-3.5" />
-                  Invite Friends
                 </Link>
                 <button
                   onClick={() => handleShare(nextBooking.id)}
@@ -237,7 +298,7 @@ export default function BookingsPage() {
       {/* Tabs */}
       <section className="container pb-section-sm">
         <div className="flex gap-1 border-b border-white/[0.06] mb-8">
-          {(["upcoming", "completed", "cancelled"] as TabKey[]).map((tab) => (
+          {(["upcoming", "past", "cancelled"] as TabKey[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -358,13 +419,13 @@ function BookingRow({
   muted = false,
   onCancel,
 }: {
-  booking: EnhancedBooking;
+  booking: ApiBooking;
   index: number;
   muted?: boolean;
   onCancel: () => void;
 }) {
-  const court = mockCourts.find((c) => c.id === booking.courtId);
-  const venue = mockVenues.find((v) => v.id === booking.venueId);
+  const court = booking.court;
+  const venue = booking.venue;
   const images = [IMG.venue1, IMG.venue2, IMG.venue3];
 
   return (
@@ -389,12 +450,11 @@ function BookingRow({
             {venue?.name ?? "Unknown Venue"}
           </h3>
           <StatusPill status={booking.status} />
-          <PaymentPill status={booking.payment.status} />
         </div>
         <p className={`mt-1 flex flex-wrap items-center gap-3 caption ${muted ? "text-[#F7F7F7]/20" : "text-[#F7F7F7]/35"}`}>
           <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{court?.name}</span>
           <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{booking.bookingDate}</span>
-          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{booking.startTime}–{booking.endTime}</span>
+          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{booking.startsAt}–{booking.endsAt}</span>
         </p>
       </div>
 
@@ -411,7 +471,7 @@ function BookingRow({
           >
             <Eye className="h-3.5 w-3.5" />
           </Link>
-          {booking.status === "confirmed" && (
+          {booking.status === "CONFIRMED" && (
             <>
               <Link
                 href={`/booking/${booking.id}/invite`}
@@ -447,27 +507,14 @@ function BookingRow({
 
 function StatusPill({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    confirmed: "bg-[#E6FA50]/10 text-[#E6FA50]",
-    pending: "bg-[#50C8C8]/10 text-[#50C8C8]",
-    completed: "bg-white/[0.04] text-[#F7F7F7]/30",
-    cancelled: "bg-red-500/10 text-red-400/70",
+    CONFIRMED: "bg-[#E6FA50]/10 text-[#E6FA50]",
+    PENDING_PAYMENT: "bg-[#50C8C8]/10 text-[#50C8C8]",
+    COMPLETED: "bg-white/[0.04] text-[#F7F7F7]/30",
+    CANCELLED: "bg-red-500/10 text-red-400/70",
+    EXPIRED: "bg-white/[0.04] text-[#F7F7F7]/30",
   };
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/30"}`}>
-      {status}
-    </span>
-  );
-}
-
-function PaymentPill({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    paid: "bg-[#E6FA50]/5 text-[#E6FA50]/60",
-    pending: "bg-amber-500/5 text-amber-400/60",
-    failed: "bg-red-500/5 text-red-400/60",
-    refunded: "bg-[#50C8C8]/5 text-[#50C8C8]/60",
-  };
-  return (
-    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? ""}`}>
       {status}
     </span>
   );
