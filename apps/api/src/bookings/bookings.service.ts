@@ -341,7 +341,7 @@ export class BookingsService {
         where.bookingDate = { gte: todayStart };
         break;
       case "past":
-        where.OR = [{ status: BookingStatus.COMPLETED }, { status: BookingStatus.CANCELLED }];
+        where.status = BookingStatus.COMPLETED;
         break;
       case "cancelled":
         where.status = BookingStatus.CANCELLED;

@@ -471,7 +471,7 @@ function BookingRow({
           >
             <Eye className="h-3.5 w-3.5" />
           </Link>
-          {booking.status === "confirmed" && (
+          {booking.status === "CONFIRMED" && (
             <>
               <Link
                 href={`/booking/${booking.id}/invite`}
@@ -507,27 +507,14 @@ function BookingRow({
 
 function StatusPill({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    confirmed: "bg-[#E6FA50]/10 text-[#E6FA50]",
-    pending: "bg-[#50C8C8]/10 text-[#50C8C8]",
-    completed: "bg-white/[0.04] text-[#F7F7F7]/30",
-    cancelled: "bg-red-500/10 text-red-400/70",
+    CONFIRMED: "bg-[#E6FA50]/10 text-[#E6FA50]",
+    PENDING_PAYMENT: "bg-[#50C8C8]/10 text-[#50C8C8]",
+    COMPLETED: "bg-white/[0.04] text-[#F7F7F7]/30",
+    CANCELLED: "bg-red-500/10 text-red-400/70",
+    EXPIRED: "bg-white/[0.04] text-[#F7F7F7]/30",
   };
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/30"}`}>
-      {status}
-    </span>
-  );
-}
-
-function PaymentPill({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    paid: "bg-[#E6FA50]/5 text-[#E6FA50]/60",
-    pending: "bg-amber-500/5 text-amber-400/60",
-    failed: "bg-red-500/5 text-red-400/60",
-    refunded: "bg-[#50C8C8]/5 text-[#50C8C8]/60",
-  };
-  return (
-    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? ""}`}>
       {status}
     </span>
   );
