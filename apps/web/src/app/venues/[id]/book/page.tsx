@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
-import { ApiRequestError, createBooking, getVenue, getVenueCourts } from "@/lib/api";
+import { ApiRequestError, createBooking, getVenue, getVenueCourts, getVenueAvailability, ApiAvailabilitySlot } from "@/lib/api";
 import { getIdToken } from "@/lib/auth-client";
 import { Court, Venue } from "@/types";
 
@@ -39,16 +39,18 @@ function generateDates() {
   return dates;
 }
 
-function generateTimeSlots(open: string, close: string, seed: number) {
+function generateTimeSlots(open: string, close: string, seed: number): ApiAvailabilitySlot[] {
   const slots = [];
   const startHour = parseInt(open.split(":")[0]);
   const endHour = parseInt(close.split(":")[0]);
   for (let h = startHour; h < endHour; h++) {
-    const time = `${h.toString().padStart(2, "0")}:00`;
+    const startsAt = `${h.toString().padStart(2, "0")}:00`;
+    const endsAt = `${(h + 1).toString().padStart(2, "0")}:00`;
     const isPeak = (h >= 9 && h <= 11) || (h >= 16 && h <= 21);
     const hash = ((h + 1) * 2654435761 + seed) >>> 0;
-    const isBooked = (hash % 100) < 35;
-    slots.push({ time, isPeak, isBooked });
+    const available = (hash % 100) >= 35;
+    const price = isPeak ? 120000 : 80000;
+    slots.push({ startsAt, endsAt, available, price, isPeak });
   }
   return slots;
 }
@@ -131,30 +133,39 @@ export default function BookingFlowPage({
   const [dateScrollStart, setDateScrollStart] = useState(0);
   const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState<BookingSubmitError | null>(null);
+  const [timeSlots, setTimeSlots] = useState<ApiAvailabilitySlot[]>([]);
 
-  const timeSlots = useMemo(() => {
-    const dateSeed = selectedDate.getFullYear() * 10000 + (selectedDate.getMonth() + 1) * 100 + selectedDate.getDate();
-    const courtSeed = selectedCourt.id.charCodeAt(selectedCourt.id.length - 1);
-    return generateTimeSlots(
-      venue.operatingHours.open,
-      venue.operatingHours.close,
-      dateSeed + courtSeed
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venue.id, selectedDate.toDateString(), selectedCourt.id]);
+  useEffect(() => {
+    let cancelled = false;
 
-  const weekend = isWeekend(selectedDate);
+    async function loadAvailability() {
+      try {
+        const dateStr = formatBookingDate(selectedDate);
+        const response = await getVenueAvailability(venue.id, dateStr, selectedCourt.id);
+        if (cancelled) return;
 
-  function getSlotPrice(isPeak: boolean) {
-    if (weekend) {
-      return isPeak
-        ? selectedCourt.pricing.weekendPeak
-        : selectedCourt.pricing.weekendOffPeak;
+        const court = response.courts.find((c) => c.id === selectedCourt.id);
+        setTimeSlots(court?.slots ?? []);
+      } catch {
+        if (cancelled) return;
+        const dateSeed = selectedDate.getFullYear() * 10000 + (selectedDate.getMonth() + 1) * 100 + selectedDate.getDate();
+        const courtSeed = selectedCourt.id.charCodeAt(selectedCourt.id.length - 1);
+        setTimeSlots(
+          generateTimeSlots(
+            venue.operatingHours.open,
+            venue.operatingHours.close,
+            dateSeed + courtSeed
+          )
+        );
+      }
     }
-    return isPeak
-      ? selectedCourt.pricing.weekdayPeak
-      : selectedCourt.pricing.weekdayOffPeak;
-  }
+
+    loadAvailability();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [venue.id, selectedDate.toDateString(), selectedCourt.id, venue.operatingHours.open, venue.operatingHours.close]);
 
   function toggleSlot(time: string) {
     if (confirmState === "submitting") return;
@@ -167,27 +178,27 @@ export default function BookingFlowPage({
 
   const totalPrice = useMemo(() => {
     return selectedSlots.reduce((sum, time) => {
-      const slot = timeSlots.find((s) => s.time === time);
+      const slot = timeSlots.find((s) => s.startsAt === time);
       if (!slot) return sum;
-      return sum + getSlotPrice(slot.isPeak);
+      return sum + slot.price;
     }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSlots, selectedCourt, selectedDate]);
+  }, [selectedSlots, timeSlots]);
 
   const duration = selectedSlots.length;
 
   const sortedSlots = [...selectedSlots].sort();
   const startTime = sortedSlots[0] ?? "--:--";
   const endTime = sortedSlots.length
-    ? `${(parseInt(sortedSlots[sortedSlots.length - 1].split(":")[0]) + 1).toString().padStart(2, "0")}:00`
+    ? `${sortedSlots[sortedSlots.length - 1].split(":")[0]}:00`
     : "--:--";
 
   async function handleConfirm() {
     if (confirmState === "submitting") return;
 
     const selectedUnavailableSlot = selectedSlots.some((time) => {
-      const slot = timeSlots.find((candidate) => candidate.time === time);
-      return !slot || slot.isBooked;
+      const slot = timeSlots.find((candidate) => candidate.startsAt === time);
+      return !slot || !slot.available;
     });
 
     if (
@@ -469,15 +480,14 @@ export default function BookingFlowPage({
               </p>
               <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
                 {timeSlots.map((slot) => {
-                  const isSelected = selectedSlots.includes(slot.time);
-                  const price = getSlotPrice(slot.isPeak);
+                  const isSelected = selectedSlots.includes(slot.startsAt);
                   return (
                     <button
-                      key={slot.time}
-                      disabled={slot.isBooked}
-                      onClick={() => toggleSlot(slot.time)}
+                      key={slot.startsAt}
+                      disabled={!slot.available}
+                      onClick={() => toggleSlot(slot.startsAt)}
                       className={`relative rounded-xl border py-3 text-center transition-all ${
-                        slot.isBooked
+                        !slot.available
                           ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/10 cursor-not-allowed"
                           : isSelected
                             ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]"
@@ -486,19 +496,19 @@ export default function BookingFlowPage({
                               : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/50 hover:border-white/[0.15]"
                       }`}
                     >
-                      <span className="text-xs font-medium">{slot.time}</span>
+                      <span className="text-xs font-medium">{slot.startsAt}</span>
                       <span
                         className={`mt-0.5 block text-[9px] ${
                           isSelected
                             ? "text-[#E6FA50]/70"
-                            : slot.isBooked
+                            : !slot.available
                               ? "text-[#F7F7F7]/10"
                               : "text-[#F7F7F7]/25"
                         }`}
                       >
-                        {slot.isBooked
+                        {!slot.available
                           ? "Booked"
-                          : `${(price / 1000).toFixed(0)}K`}
+                          : `${(slot.price / 1000).toFixed(0)}K`}
                       </span>
                     </button>
                   );
