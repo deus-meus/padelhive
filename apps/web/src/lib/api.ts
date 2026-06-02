@@ -45,7 +45,7 @@ type ApiVoucher = {
   isActive: boolean;
 };
 
-type ApiBooking = {
+export type ApiBooking = {
   id: string;
   bookingDate: string;
   startsAt: string;
@@ -61,7 +61,7 @@ type ApiBooking = {
   refundPolicyReason?: string;
   venue: { id: string; name: string; city: string };
   court: { id: string; name: string; type: string };
-  host: { id: string; name: string | null; email: string };
+  host?: { id: string; name: string | null; email: string };
 };
 
 export type CreateBookingInput = {
@@ -304,6 +304,15 @@ export async function cancelBooking(bookingId: string, authToken: string): Promi
     method: "PATCH",
     authToken,
   });
+}
+
+export type BookingFilter = "upcoming" | "past" | "cancelled";
+
+export async function getUserBookings(
+  filter: BookingFilter,
+  authToken: string
+): Promise<ApiBooking[]> {
+  return apiFetch<ApiBooking[]>(`/bookings/me?filter=${filter}`, { authToken });
 }
 
 export async function getVenueAvailability(

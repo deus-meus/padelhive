@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -7,6 +7,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
@@ -16,6 +17,7 @@ import { RequestUser } from "../auth/types/request-user.type";
 import { BookingsService } from "./bookings.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
+import { BookingListItemDto } from "./dto/list-bookings.dto";
 
 @ApiTags("bookings")
 @Controller("bookings")
@@ -56,5 +58,19 @@ export class BookingsController {
   @ApiNotFoundResponse({ description: "Booking not found" })
   cancel(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<BookingResponseDto> {
     return this.bookingsService.cancelBookingForUser(id, user.id);
+  }
+
+  @Get("me")
+  @UseGuards(FirebaseAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "List current user's bookings" })
+  @ApiQuery({ name: "filter", enum: ["upcoming", "past", "cancelled"], required: false })
+  @ApiOkResponse({ type: BookingListItemDto, isArray: true })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  async findUserBookings(
+    @Query("filter") filter: "upcoming" | "past" | "cancelled" = "upcoming",
+    @CurrentUser() user: RequestUser
+  ) {
+    return this.bookingsService.findBookingsForUser(user.id, filter);
   }
 }
