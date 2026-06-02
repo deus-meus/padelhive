@@ -74,6 +74,27 @@ export type CreateBookingInput = {
 
 export type BookingSummary = ApiBooking;
 
+export type ApiAvailabilitySlot = {
+  startsAt: string;
+  endsAt: string;
+  available: boolean;
+  price: number;
+  isPeak: boolean;
+};
+
+export type ApiAvailabilityCourt = {
+  id: string;
+  name: string;
+  type: "INDOOR" | "OUTDOOR";
+  slots: ApiAvailabilitySlot[];
+};
+
+export type ApiAvailabilityResponse = {
+  date: string;
+  timezone: string;
+  courts: ApiAvailabilityCourt[];
+};
+
 type ApiPayment = {
   id: string;
   bookingId: string;
@@ -283,6 +304,17 @@ export async function cancelBooking(bookingId: string, authToken: string): Promi
     method: "PATCH",
     authToken,
   });
+}
+
+export async function getVenueAvailability(
+  venueId: string,
+  date: string,
+  courtId?: string
+): Promise<ApiAvailabilityResponse> {
+  const query = new URLSearchParams();
+  query.set("date", date);
+  if (courtId) query.set("courtId", courtId);
+  return apiFetch<ApiAvailabilityResponse>(`/venues/${venueId}/availability?${query.toString()}`);
 }
 
 export async function createPaymentIntent(

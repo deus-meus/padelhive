@@ -8,6 +8,7 @@ import { CourtsController } from "./courts/courts.controller";
 import { CourtsService } from "./courts/courts.service";
 import { VenuesController } from "./venues/venues.controller";
 import { VenuesService } from "./venues/venues.service";
+import { AvailabilityService } from "./venues/availability.service";
 import { VouchersController } from "./vouchers/vouchers.controller";
 import { VouchersService } from "./vouchers/vouchers.service";
 
@@ -79,7 +80,8 @@ describe("Read-only venues API", () => {
       findApprovedVenues: jest.fn().mockResolvedValue([]),
       findApprovedVenueById: jest.fn().mockResolvedValue({ id: "venue-1" }),
     } as unknown as VenuesService;
-    const controller = new VenuesController(service);
+    const availabilityService = { getVenueAvailability: jest.fn() } as unknown as AvailabilityService;
+    const controller = new VenuesController(service, availabilityService);
 
     await expect(controller.findAll()).resolves.toEqual([]);
     await expect(controller.findOne("venue-1")).resolves.toEqual({ id: "venue-1" });
