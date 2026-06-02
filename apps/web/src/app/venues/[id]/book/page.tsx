@@ -134,13 +134,13 @@ export default function BookingFlowPage({
   const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState<BookingSubmitError | null>(null);
   const [timeSlots, setTimeSlots] = useState<ApiAvailabilitySlot[]>([]);
+  const dateStr = useMemo(() => formatBookingDate(selectedDate), [selectedDate]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadAvailability() {
       try {
-        const dateStr = formatBookingDate(selectedDate);
         const response = await getVenueAvailability(venue.id, dateStr, selectedCourt.id);
         if (cancelled) return;
 
@@ -165,7 +165,7 @@ export default function BookingFlowPage({
     return () => {
       cancelled = true;
     };
-  }, [venue.id, selectedDate.toDateString(), selectedCourt.id, venue.operatingHours.open, venue.operatingHours.close]);
+  }, [venue.id, dateStr, selectedCourt.id, venue.operatingHours.open, venue.operatingHours.close, selectedDate]);
 
   function toggleSlot(time: string) {
     if (confirmState === "submitting") return;
@@ -182,16 +182,23 @@ export default function BookingFlowPage({
       if (!slot) return sum;
       return sum + slot.price;
     }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSlots, timeSlots]);
 
   const duration = selectedSlots.length;
 
   const sortedSlots = [...selectedSlots].sort();
   const startTime = sortedSlots[0] ?? "--:--";
-  const endTime = sortedSlots.length
+  const [endTime, setEndTime] = useState(sortedSlots.length
     ? `${sortedSlots[sortedSlots.length - 1].split(":")[0]}:00`
-    : "--:--";
+    : "--:--");
+
+  useEffect(() => {
+    if (selectedSlots.length > 0) {
+      const lastSlot = sortedSlots[sortedSlots.length - 1];
+      const nextHour = parseInt(lastSlot.split(":")[0], 10) + 1;
+      setEndTime(`${nextHour.toString().padStart(2, "0")}:00`);
+    }
+  }, [selectedSlots, sortedSlots]);
 
   async function handleConfirm() {
     if (confirmState === "submitting") return;
