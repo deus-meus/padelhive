@@ -77,6 +77,7 @@ model User {
   venueAdmins  VenueAdmin[]
   bookings     Booking[]    @relation("BookingHost")
   invites      Invite[]     @relation("InviteUser")
+  refundEvents RefundEvent[]
 
   @@index([role])
   @@index([isActive])
@@ -261,9 +262,27 @@ model Refund {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  booking     Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  payment     Payment?     @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  booking     Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payment     Payment?      @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  events      RefundEvent[]
 
   @@index([bookingId])
   @@index([status])
+}
+
+model RefundEvent {
+  id          String        @id @default(cuid())
+  refundId    String
+  fromStatus  RefundStatus?
+  toStatus    RefundStatus
+  actorUserId String
+  notes       String?
+  createdAt   DateTime      @default(now())
+
+  refund      Refund        @relation(fields: [refundId], references: [id], onDelete: Cascade)
+  actor       User          @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([refundId])
+  @@index([actorUserId])
+  @@index([createdAt])
 }
