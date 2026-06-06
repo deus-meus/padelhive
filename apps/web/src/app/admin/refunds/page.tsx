@@ -12,7 +12,7 @@ import {
   ShieldX,
 } from "lucide-react";
 import { queryKeys } from "@/lib/queries";
-import { getRefunds, approveRefund, rejectRefund, RefundStatus, ApiRefund } from "@/lib/api";
+import { getRefunds, approveRefund, rejectRefund, processRefund, RefundStatus, ApiRefund } from "@/lib/api";
 
 export default function RefundsPage() {
   const queryClient = useQueryClient();
@@ -30,7 +30,20 @@ export default function RefundsPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.refunds.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.refunds.history(data.id) });
-      showToast("Refund approved — payment will be processed");
+      showToast("Refund approved — now Process it to issue the payout");
+    },
+  });
+
+  const processMutation = useMutation({
+    mutationFn: (id: string) => processRefund(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.history(data.id) });
+      showToast("Refund processed — payout issued to customer");
+    },
+    onError: () => {
+      showToast("Failed to process refund — gateway error, please retry");
     },
   });
 
@@ -55,6 +68,10 @@ export default function RefundsPage() {
 
   function handleReject(id: string) {
     rejectMutation.mutate(id);
+  }
+
+  function handleProcess(id: string) {
+    processMutation.mutate(id);
   }
 
   return (
@@ -168,6 +185,17 @@ export default function RefundsPage() {
                       className="flex h-8 items-center gap-1.5 rounded-lg bg-red-500/10 px-3 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
                     >
                       <XCircle className="h-3.5 w-3.5" /> Reject
+                    </button>
+                  </div>
+                )}
+                {refund.status === "APPROVED" && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleProcess(refund.id)}
+                      disabled={processMutation.isPending}
+                      className="flex h-8 items-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-xs font-medium text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" /> Process refund
                     </button>
                   </div>
                 )}
