@@ -22,10 +22,11 @@ export class RefundsController {
     return this.refundsService.findMyRefunds(user.id);
   }
 
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.VENUE_OWNER, UserRole.VENUE_ADMIN)
   @Get()
-  findAllRefunds(@Query("status") status?: RefundStatus) {
-    return this.refundsService.findAllRefunds(status);
+  findAllRefunds(@CurrentUser() user: RequestUser, @Query("status") status?: RefundStatus) {
+    const isSuperAdmin = user.role === UserRole.SUPER_ADMIN;
+    return this.refundsService.findAllRefunds(user.id, isSuperAdmin, status);
   }
 
   @Get(":id")
@@ -40,21 +41,24 @@ export class RefundsController {
     return this.refundsService.findRefundHistory(id, user.id, isSuperAdmin);
   }
 
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.VENUE_OWNER, UserRole.VENUE_ADMIN)
   @Patch(":id/approve")
   approveRefund(@Param("id") id: string, @CurrentUser() user: RequestUser, @Body() dto: ApproveRefundDto) {
-    return this.refundsService.approveRefund(id, user.id, dto.adminNotes);
+    const isSuperAdmin = user.role === UserRole.SUPER_ADMIN;
+    return this.refundsService.approveRefund(id, user.id, isSuperAdmin, dto.adminNotes);
   }
 
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.VENUE_OWNER, UserRole.VENUE_ADMIN)
   @Patch(":id/reject")
   rejectRefund(@Param("id") id: string, @CurrentUser() user: RequestUser, @Body() dto: RejectRefundDto) {
-    return this.refundsService.rejectRefund(id, user.id, dto.adminNotes);
+    const isSuperAdmin = user.role === UserRole.SUPER_ADMIN;
+    return this.refundsService.rejectRefund(id, user.id, isSuperAdmin, dto.adminNotes);
   }
 
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.VENUE_OWNER, UserRole.VENUE_ADMIN)
   @Patch(":id/process")
   processRefund(@Param("id") id: string, @CurrentUser() user: RequestUser) {
-    return this.refundsService.processRefund(id, user.id);
+    const isSuperAdmin = user.role === UserRole.SUPER_ADMIN;
+    return this.refundsService.processRefund(id, user.id, isSuperAdmin);
   }
 }

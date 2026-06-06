@@ -56,8 +56,11 @@ describe("RefundsController", () => {
 
   it("findAllRefunds calls service", async () => {
     mockRefundsService.findAllRefunds.mockResolvedValue([]);
-    await expect(controller.findAllRefunds(RefundStatus.PENDING)).resolves.toEqual([]);
-    expect(service.findAllRefunds).toHaveBeenCalledWith(RefundStatus.PENDING);
+    await expect(controller.findAllRefunds({ id: "admin-1", role: UserRole.VENUE_OWNER } as RequestUser, RefundStatus.PENDING)).resolves.toEqual([]);
+    expect(service.findAllRefunds).toHaveBeenCalledWith("admin-1", false, RefundStatus.PENDING);
+
+    await expect(controller.findAllRefunds({ id: "admin-2", role: UserRole.SUPER_ADMIN } as RequestUser)).resolves.toEqual([]);
+    expect(service.findAllRefunds).toHaveBeenCalledWith("admin-2", true, undefined);
   });
 
   it("findRefundById calls service with isSuperAdmin correctly", async () => {
@@ -77,19 +80,19 @@ describe("RefundsController", () => {
 
   it("approveRefund calls service", async () => {
     mockRefundsService.approveRefund.mockResolvedValue({ id: "1" });
-    await expect(controller.approveRefund("1", { id: "admin-1" } as RequestUser, { adminNotes: "ok" })).resolves.toEqual({ id: "1" });
-    expect(service.approveRefund).toHaveBeenCalledWith("1", "admin-1", "ok");
+    await expect(controller.approveRefund("1", { id: "admin-1", role: UserRole.VENUE_OWNER } as RequestUser, { adminNotes: "ok" })).resolves.toEqual({ id: "1" });
+    expect(service.approveRefund).toHaveBeenCalledWith("1", "admin-1", false, "ok");
   });
 
   it("rejectRefund calls service", async () => {
     mockRefundsService.rejectRefund.mockResolvedValue({ id: "1" });
-    await expect(controller.rejectRefund("1", { id: "admin-1" } as RequestUser, { adminNotes: "no" })).resolves.toEqual({ id: "1" });
-    expect(service.rejectRefund).toHaveBeenCalledWith("1", "admin-1", "no");
+    await expect(controller.rejectRefund("1", { id: "admin-1", role: UserRole.VENUE_OWNER } as RequestUser, { adminNotes: "no" })).resolves.toEqual({ id: "1" });
+    expect(service.rejectRefund).toHaveBeenCalledWith("1", "admin-1", false, "no");
   });
 
   it("processRefund calls service", async () => {
     mockRefundsService.processRefund.mockResolvedValue({ id: "1" });
-    await expect(controller.processRefund("1", { id: "admin-1" } as RequestUser)).resolves.toEqual({ id: "1" });
-    expect(service.processRefund).toHaveBeenCalledWith("1", "admin-1");
+    await expect(controller.processRefund("1", { id: "admin-1", role: UserRole.VENUE_OWNER } as RequestUser)).resolves.toEqual({ id: "1" });
+    expect(service.processRefund).toHaveBeenCalledWith("1", "admin-1", false);
   });
 });
