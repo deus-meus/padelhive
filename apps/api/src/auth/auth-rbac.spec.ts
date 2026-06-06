@@ -44,7 +44,8 @@ function createExecutionContext(authorization?: string, user?: RequestUser) {
 
 describe("FirebaseAuthGuard", () => {
   it("rejects missing bearer token", async () => {
-    const guard = new FirebaseAuthGuard({} as FirebaseAuthService,{} as UsersService);
+    const reflector = { getAllAndOverride: jest.fn().mockReturnValue(false) } as unknown as Reflector;
+    const guard = new FirebaseAuthGuard({} as FirebaseAuthService,{} as UsersService, reflector);
 
     await expect(guard.canActivate(createExecutionContext())).rejects.toThrow(UnauthorizedException);
   });
@@ -56,7 +57,8 @@ describe("FirebaseAuthGuard", () => {
     const usersService = {
       findOrCreateFromFirebaseToken: jest.fn(),
     } as unknown as UsersService;
-    const guard = new FirebaseAuthGuard(firebaseAuthService, usersService);
+    const reflector = { getAllAndOverride: jest.fn().mockReturnValue(false) } as unknown as Reflector;
+    const guard = new FirebaseAuthGuard(firebaseAuthService, usersService, reflector);
 
     await expect(guard.canActivate(createExecutionContext("Bearer invalid-token"))).rejects.toThrow(UnauthorizedException);
     expect(usersService.findOrCreateFromFirebaseToken).not.toHaveBeenCalled();
@@ -69,12 +71,23 @@ describe("FirebaseAuthGuard", () => {
     const usersService = {
       findOrCreateFromFirebaseToken: jest.fn().mockResolvedValue(playerUser),
     } as unknown as UsersService;
-    const guard = new FirebaseAuthGuard(firebaseAuthService, usersService);
+    const reflector = { getAllAndOverride: jest.fn().mockReturnValue(false) } as unknown as Reflector;
+    const guard = new FirebaseAuthGuard(firebaseAuthService, usersService, reflector);
     const context = createExecutionContext("Bearer valid-token");
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
     const request = (context as { switchToHttp: () => { getRequest: () => { user?: RequestUser } } }).switchToHttp().getRequest();
     expect(request.user).toEqual(playerUser);
+  });
+
+  it("bypasses auth completely when route is @Public()", async () => {
+    const firebaseAuthService = { verifyIdToken: jest.fn() } as unknown as FirebaseAuthService;
+    const usersService = { findOrCreateFromFirebaseToken: jest.fn() } as unknown as UsersService;
+    const reflector = { getAllAndOverride: jest.fn().mockReturnValue(true) } as unknown as Reflector;
+    const guard = new FirebaseAuthGuard(firebaseAuthService, usersService, reflector);
+    
+    await expect(guard.canActivate(createExecutionContext())).resolves.toBe(true);
+    expect(firebaseAuthService.verifyIdToken).not.toHaveBeenCalled();
   });
 });
 

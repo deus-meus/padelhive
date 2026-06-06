@@ -1,6 +1,5 @@
 import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
 import { BookingStatus, CourtType, PaymentStatus, RefundStatus, UserRole, VenueStatus } from "@prisma/client";
-import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
 import { RequestUser } from "../auth/types/request-user.type";
 import { BookingsController } from "./bookings.controller";
 import { BookingsService } from "./bookings.service";
@@ -81,11 +80,6 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
 }
 
 describe("Booking creation API", () => {
-  it("protects POST /bookings with FirebaseAuthGuard", () => {
-    const guards = Reflect.getMetadata("__guards__", BookingsController.prototype.create) ??[];
-    expect(guards).toContain(FirebaseAuthGuard);
-  });
-
   it("uses current user as booking host in controller", async () => {
     const service = { createBookingForUser: jest.fn().mockResolvedValue({ id: "booking-1" }) } as unknown as BookingsService;
     const controller = new BookingsController(service);
@@ -93,11 +87,6 @@ describe("Booking creation API", () => {
 
     await expect(controller.create(body, requestUser)).resolves.toEqual({ id: "booking-1" });
     expect(service.createBookingForUser).toHaveBeenCalledWith("user-1", body);
-  });
-
-  it("protects PATCH /bookings/:id/cancel with FirebaseAuthGuard", () => {
-    const guards = Reflect.getMetadata("__guards__", BookingsController.prototype.cancel) ??[];
-    expect(guards).toContain(FirebaseAuthGuard);
   });
 
   it("uses current user when cancelling in controller", async () => {

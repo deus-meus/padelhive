@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -11,7 +11,6 @@ import {
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
 import { RequestUser } from "../auth/types/request-user.type";
 import { CreatePaymentIntentDto } from "./dto/create-payment-intent.dto";
 import { PaymentResponseDto } from "./dto/payment-response.dto";
@@ -23,7 +22,6 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post("intents")
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Create or reuse an internal pending payment intent" })
   @ApiCreatedResponse({ type: PaymentResponseDto })
@@ -35,7 +33,6 @@ export class PaymentsController {
   }
 
   @Get(":id")
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get current user's payment details" })
   @ApiOkResponse({ type: PaymentResponseDto })
@@ -46,7 +43,6 @@ export class PaymentsController {
   }
 
   @Patch(":id/mark-paid")
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: "Mark an internal demo payment as paid",

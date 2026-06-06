@@ -1,6 +1,5 @@
 import { NotFoundException } from "@nestjs/common";
 import { BookingStatus, CourtType, UserRole, VenueStatus, VoucherType } from "@prisma/client";
-import { FirebaseAuthGuard } from "./auth/guards/firebase-auth.guard";
 import { RequestUser } from "./auth/types/request-user.type";
 import { BookingsController } from "./bookings/bookings.controller";
 import { BookingsService } from "./bookings/bookings.service";
@@ -187,11 +186,6 @@ describe("Read-only bookings API", () => {
     const service = new BookingsService(prisma as never);
 
     await expect(service.findBookingForUser("booking-2", "user-1")).rejects.toThrow(NotFoundException);
-  });
-
-  it("protects booking controller with FirebaseAuthGuard", () => {
-    const guards = Reflect.getMetadata("__guards__", BookingsController.prototype.findOne) ??[];
-    expect(guards).toContain(FirebaseAuthGuard);
   });
 
   it("returns current user's booking from controller", async () => {

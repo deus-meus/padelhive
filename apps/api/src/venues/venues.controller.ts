@@ -4,9 +4,11 @@ import { VenueResponseDto } from "./dto/venue-response.dto";
 import { VenueAvailabilityResponseDto } from "./dto/venue-availability-response.dto";
 import { VenuesService } from "./venues.service";
 import { AvailabilityService } from "./availability.service";
+import { Public } from "../auth/decorators/public.decorator";
 
 @ApiTags("venues")
 @Controller("venues")
+@Public()
 export class VenuesController {
   constructor(
     private readonly venuesService: VenuesService,

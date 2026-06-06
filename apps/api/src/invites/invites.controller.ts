@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -10,7 +10,7 @@ import {
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
+import { Public } from "../auth/decorators/public.decorator";
 import { RequestUser } from "../auth/types/request-user.type";
 import { CreateInviteDto } from "./dto/create-invite.dto";
 import { InviteResponseDto } from "./dto/invite-response.dto";
@@ -23,7 +23,6 @@ export class InvitesController {
   constructor(private readonly invitesService: InvitesService) {}
 
   @Post("bookings/:bookingId/invites")
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Create or reuse an invite for a booking" })
   @ApiCreatedResponse({ type: InviteResponseDto })
@@ -35,7 +34,6 @@ export class InvitesController {
   }
 
   @Get("bookings/:bookingId/invites")
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "List invites for current user's booking" })
   @ApiOkResponse({ type: InviteResponseDto, isArray: true })
@@ -44,6 +42,7 @@ export class InvitesController {
   }
 
   @Get("invites/:token")
+  @Public()
   @ApiOperation({ summary: "Get public invite details by token" })
   @ApiOkResponse({ type: InviteResponseDto })
   @ApiNotFoundResponse({ description: "Invite not found" })
@@ -52,6 +51,7 @@ export class InvitesController {
   }
 
   @Patch("invites/:token/rsvp")
+  @Public()
   @ApiOperation({ summary: "RSVP to an invite by public token" })
   @ApiOkResponse({ type: InviteResponseDto })
   @ApiBadRequestResponse({ description: "Invalid RSVP status" })
