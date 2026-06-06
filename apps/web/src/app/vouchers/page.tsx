@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
 import {
   Ticket,
   Percent,
@@ -18,40 +20,14 @@ export default function VouchersPage() {
   const [filter, setFilter] = useState<"active" | "expired">("active");
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [vouchers, setVouchers] = useState<Voucher[]>(mockVouchers);
-  const [isLoadingVouchers, setIsLoadingVouchers] = useState(true);
-  const [isUsingFallback, setIsUsingFallback] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const { data, isLoading: isLoadingVouchers, isError } = useQuery({
+    queryKey: queryKeys.vouchers.all(),
+    queryFn: getVouchers,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadVouchers() {
-      setIsLoadingVouchers(true);
-      setIsUsingFallback(false);
-      setApiError(null);
-
-      try {
-        const apiVouchers = await getVouchers();
-        if (cancelled) return;
-        setVouchers(apiVouchers.length > 0 ? apiVouchers : mockVouchers);
-        setIsUsingFallback(apiVouchers.length === 0);
-      } catch {
-        if (cancelled) return;
-        setVouchers(mockVouchers);
-        setApiError("Could not reach the live voucher API.");
-        setIsUsingFallback(true);
-      } finally {
-        if (!cancelled) setIsLoadingVouchers(false);
-      }
-    }
-
-    loadVouchers();
-
-    return () => {
-      cancelled = true;
-    };
-  },[]);
+  const vouchers = data && data.length > 0 ? data : mockVouchers;
+  const isUsingFallback = isError || (data && data.length === 0);
+  const apiError = isError ? "Could not reach the live voucher API." : null;
 
   const active = vouchers.filter((v) => v.isActive);
   const expired = vouchers.filter((v) => !v.isActive);

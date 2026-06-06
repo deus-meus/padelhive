@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueries } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
 import { MapPin, Star, Search, ArrowRight, Users, Calendar, Clock, CreditCard, Trophy } from "lucide-react";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
@@ -40,55 +42,31 @@ const OPEN_MATCHES = [
 export default function VenuesPage() {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("All");
-  const [venues, setVenues] = useState<Venue[]>(mockVenues);
-  const [courtsByVenue, setCourtsByVenue] = useState<Record<string, Court[]>>(() =>
-    groupCourtsByVenue(mockCourts),
-  );
-  const [isLoadingVenues, setIsLoadingVenues] = useState(true);
-  const [isUsingFallback, setIsUsingFallback] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const { data: apiVenues, isLoading: isLoadingVenues, isError: isVenuesError } = useQuery({
+    queryKey: queryKeys.venues.all(),
+    queryFn: getVenues,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
+  const venues = apiVenues && apiVenues.length > 0 ? apiVenues : mockVenues;
+  const hasLiveVenues = !!(apiVenues && apiVenues.length > 0);
 
-    async function loadVenues() {
-      setIsLoadingVenues(true);
-      setIsUsingFallback(false);
-      setApiError(null);
+  const courtQueries = useQueries({
+    queries: venues.map((venue) => ({
+      queryKey: queryKeys.venues.courts(venue.id),
+      queryFn: () => getVenueCourts(venue.id),
+      enabled: hasLiveVenues,
+    })),
+  });
 
-      try {
-        const apiVenues = await getVenues();
-        const apiCourts = await Promise.all(
-          apiVenues.map(async (venue) => [venue.id, await getVenueCourts(venue.id)] as const),
-        );
+  const courtsByVenue = hasLiveVenues
+    ? courtQueries.reduce<Record<string, Court[]>>((acc, query, index) => {
+        acc[venues[index].id] = query.data ?? [];
+        return acc;
+      }, {})
+    : groupCourtsByVenue(mockCourts);
 
-        if (cancelled) return;
-
-        setVenues(apiVenues.length > 0 ? apiVenues : mockVenues);
-        setCourtsByVenue(
-          apiCourts.reduce<Record<string, Court[]>>((acc, [venueId, courts]) => {
-            acc[venueId] = courts;
-            return acc;
-          },{}),
-        );
-        setIsUsingFallback(apiVenues.length === 0);
-      } catch {
-        if (cancelled) return;
-        setVenues(mockVenues);
-        setCourtsByVenue(groupCourtsByVenue(mockCourts));
-        setApiError("Could not reach the live venue API.");
-        setIsUsingFallback(true);
-      } finally {
-        if (!cancelled) setIsLoadingVenues(false);
-      }
-    }
-
-    loadVenues();
-
-    return () => {
-      cancelled = true;
-    };
-  },[]);
+  const isUsingFallback = isVenuesError || (apiVenues && apiVenues.length === 0);
+  const apiError = isVenuesError ? "Could not reach the live venue API." : null;
 
   const filteredVenues = venues.filter((venue) => {
     const matchesSearch = venue.name.toLowerCase().includes(search.toLowerCase());

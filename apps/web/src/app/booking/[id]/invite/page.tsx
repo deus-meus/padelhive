@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -56,13 +58,25 @@ export default function InviteFriendsPage({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [invites, setInvites] = useState<InviteSummary[]>([]);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const { data: invites = [], isLoading, isError, error: queryError, refetch } = useQuery({
+    queryKey: queryKeys.bookings.invites(params.id),
+    queryFn: () => getBookingInvites(params.id),
+  });
+
+  const errorMessage = isError
+    ? queryError instanceof ApiRequestError
+      ? queryError.status === 401 || queryError.status === 403
+        ? "Sign in with the booking owner account to manage invites."
+        : queryError.status === 404
+          ? "Booking was not found or does not belong to this account."
+          : "Could not load invites. Please try again."
+      : "Could not load invites. Please try again."
+    : null;
 
   const venue = searchParams.get("venue") ?? "Padel Bali Arena";
   const date = searchParams.get("date") ?? "2026-05-29";
@@ -92,33 +106,7 @@ export default function InviteFriendsPage({
     return `${window.location.origin}/invites/${token}`;
   }
 
-  const loadInvites = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
 
-    try {
-      const inviteList = await getBookingInvites(params.id);
-      setInvites(inviteList);
-    } catch (error) {
-      if (error instanceof ApiRequestError) {
-        if (error.status === 401 || error.status === 403) {
-          setErrorMessage("Sign in with the booking owner account to manage invites.");
-        } else if (error.status === 404) {
-          setErrorMessage("Booking was not found or does not belong to this account.");
-        } else {
-          setErrorMessage("Could not load invites. Please try again.");
-        }
-      } else {
-        setErrorMessage("Could not load invites. Please try again.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [params.id, router]);
-
-  useEffect(() => {
-    void loadInvites();
-  }, [loadInvites]);
 
   async function handleCopy(token?: string) {
     if (!token) return;
@@ -127,39 +115,48 @@ export default function InviteFriendsPage({
     setTimeout(() => setCopiedToken(null), 2000);
   }
 
-  async function handleAddFriend() {
-    const email = emailInput.trim();
-    if (!email || isSubmitting) return;
+  const queryClient = useQueryClient();
 
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
-    try {
-      const invite = await createBookingInvite(params.id, { email });
-      setInvites((current) => {
-        const withoutDuplicate = current.filter((item) => item.id !== invite.id);
-        return [...withoutDuplicate, invite];
-      });
+  const inviteMutation = useMutation({
+    mutationFn: (email: string) => createBookingInvite(params.id, { email }),
+    onSuccess: (invite) => {
+      queryClient.setQueryData(
+        queryKeys.bookings.invites(params.id),
+        (old: InviteSummary[] | undefined) => {
+          if (!old) return [invite];
+          const withoutDuplicate = old.filter((item) => item.id !== invite.id);
+          return [...withoutDuplicate, invite];
+        }
+      );
       setEmailInput("");
       setSuccessMessage(`Invite ready for ${invite.email}.`);
-    } catch (error) {
+      setSubmitError(null);
+    },
+    onError: (error) => {
       if (error instanceof ApiRequestError) {
         if (error.status === 400) {
-          setErrorMessage(error.message || "Enter a valid email for an invitable booking.");
+          setSubmitError(error.message || "Enter a valid email for an invitable booking.");
         } else if (error.status === 401 || error.status === 403) {
-          setErrorMessage("Sign in with the booking owner account to invite friends.");
+          setSubmitError("Sign in with the booking owner account to invite friends.");
         } else if (error.status === 404) {
-          setErrorMessage("Booking was not found or does not belong to this account.");
+          setSubmitError("Booking was not found or does not belong to this account.");
         } else {
-          setErrorMessage("Could not create invite. Please try again.");
+          setSubmitError("Could not create invite. Please try again.");
         }
       } else {
-        setErrorMessage("Could not create invite. Please try again.");
+        setSubmitError("Could not create invite. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
     }
+  });
+
+  async function handleAddFriend() {
+    const email = emailInput.trim();
+    if (!email || inviteMutation.isPending) return;
+
+    setSuccessMessage(null);
+    setSubmitError(null);
+
+    inviteMutation.mutate(email);
   }
 
   return (
@@ -248,16 +245,16 @@ export default function InviteFriendsPage({
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddFriend()}
-              disabled={isSubmitting}
+              disabled={inviteMutation.isPending}
               placeholder="friend@email.com"
               className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none focus:ring-1 focus:ring-[#E6FA50]/20 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <button
               onClick={handleAddFriend}
-              disabled={!emailInput.trim() || isSubmitting}
+              disabled={!emailInput.trim() || inviteMutation.isPending}
               className="btn-lime flex h-[46px] items-center gap-2 rounded-xl px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Inviting..." : "Invite"}
+              {inviteMutation.isPending ? "Inviting..." : "Invite"}
             </button>
           </div>
 
@@ -266,12 +263,20 @@ export default function InviteFriendsPage({
               <p className="text-[11px] leading-relaxed text-green-200/80">{successMessage}</p>
             </div>
           )}
+          {submitError && (
+            <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
+              <div className="flex-1">
+                <p className="text-[11px] leading-relaxed text-red-200/80">{submitError}</p>
+              </div>
+            </div>
+          )}
           {errorMessage && !isLoading && (
             <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
               <div className="flex-1">
                 <p className="text-[11px] leading-relaxed text-red-200/80">{errorMessage}</p>
-                <button onClick={loadInvites} className="mt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-100/80 hover:text-red-100">
+                <button onClick={() => refetch()} className="mt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-100/80 hover:text-red-100">
                   Retry
                 </button>
               </div>
