@@ -60,6 +60,7 @@ export type ApiBooking = {
   isRefundEligible?: boolean;
   refundAmount?: number;
   refundPolicyReason?: string;
+  payment?: { id: string; amount: number; status: string } | null;
   venue: { id: string; name: string; city: string };
   court: { id: string; name: string; type: string };
   host?: { id: string; name: string | null; email: string };

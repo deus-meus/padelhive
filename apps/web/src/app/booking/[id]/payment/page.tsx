@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import Script from "next/script";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CreditCard,
@@ -123,7 +123,6 @@ export default function PaymentPage({
   params: { id: string };
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [splitEnabled, setSplitEnabled] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -180,6 +179,12 @@ export default function PaymentPage({
   async function handlePay() {
     if (!selectedMethod || processing || !booking) return;
 
+    if (typeof window === "undefined" || !window.snap) {
+      setPaymentError("Payment module is still loading. Please try again in a moment.");
+      setProcessing(false);
+      return;
+    }
+
     setProcessing(true);
     setPaymentError(null);
 
@@ -235,12 +240,26 @@ export default function PaymentPage({
     setPaymentError(null);
 
     try {
-      // Demo marking is generally unsafe without an existing payment, 
-      // but if the backend accepts it, let's keep it.
-      // Usually we need the payment ID. Since we removed success state, we can't do this easily.
-      // We will remove this demo function if we want to rely on webhook, or implement a dummy intent creation first.
-      const paymentIntent = await createPaymentIntent({ bookingId: params.id, method: "va" });
-      const paidPayment = await markPaymentPaid(paymentIntent.id);
+      let paymentId = booking?.payment?.id;
+      if (!paymentId) {
+        try {
+          const paymentIntent = await createPaymentIntent({ bookingId: params.id, method: "va" });
+          paymentId = paymentIntent.id;
+        } catch (err: any) {
+          if (err instanceof ApiRequestError && err.status === 409) {
+            const freshBooking = await getBookingById(params.id);
+            if (freshBooking.payment?.id) {
+              paymentId = freshBooking.payment.id;
+            } else {
+              throw new Error("Could not resolve existing payment.");
+            }
+          } else {
+            throw err;
+          }
+        }
+      }
+
+      const paidPayment = await markPaymentPaid(paymentId);
       router.push(`/booking/${params.id}/success?paymentId=${paidPayment.id}`);
     } catch (error) {
       if (error instanceof ApiRequestError) {
@@ -257,7 +276,7 @@ export default function PaymentPage({
 
   return (
     <div className="min-h-screen pt-20">
-      <Script src={snapScriptUrl} data-client-key={clientKey} strategy="lazyOnload" />
+      <Script src={snapScriptUrl} data-client-key={clientKey} strategy="afterInteractive" />
       <div className="container max-w-4xl py-8">
         {/* Back */}
         <Link
@@ -539,11 +558,17 @@ export default function PaymentPage({
 
                 <button
                   onClick={handlePay}
-                  disabled={!selectedMethod || processing || !booking}
+                  disabled={!selectedMethod || processing || !booking || !clientKey}
                   className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {processing ? "Processing..." : "Pay with Midtrans"}
                 </button>
+
+                {!clientKey && (
+                  <div className="mt-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                    <p className="text-[11px] leading-relaxed text-red-200/80">Missing Midtrans Client Key configuration.</p>
+                  </div>
+                )}
 
                 {isDemoMode && (
                   <button

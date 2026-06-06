@@ -59,11 +59,27 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
   const date = booking?.bookingDate;
   const start = booking?.startsAt;
   const end = booking?.endsAt;
-  const amount = payment?.amount ?? booking?.courtAmount ?? 0;
+  const amount = payment?.amount ?? booking?.payment?.amount ?? booking?.courtAmount ?? 0;
 
-  const paymentStatus = payment?.status ?? "PENDING";
-  const isPaid = paymentStatus === "PAID";
-  const isFailed = paymentStatus === "FAILED";
+  const resolvedPaymentStatus = payment?.status ?? booking?.payment?.status;
+  
+  let isPaid = false;
+  let isFailed = false;
+  let displayStatus = "PENDING";
+
+  if (resolvedPaymentStatus) {
+    isPaid = resolvedPaymentStatus === "PAID";
+    isFailed = resolvedPaymentStatus === "FAILED";
+    displayStatus = resolvedPaymentStatus;
+  } else if (booking) {
+    if (booking.status === "CONFIRMED") {
+      isPaid = true;
+      displayStatus = "PAID";
+    } else if (booking.status === "CANCELLED" || booking.status === "EXPIRED") {
+      isFailed = true;
+      displayStatus = "FAILED";
+    }
+  }
 
   if (isBookingLoading) {
     return (
@@ -132,7 +148,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
                 <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{params.id}</p>
               </div>
               <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${isPaid ? "bg-[#E6FA50]/10 text-[#E6FA50]" : isFailed ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"}`}>
-                {paymentStatus}
+                {displayStatus}
               </span>
             </div>
 
