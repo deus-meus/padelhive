@@ -17,8 +17,9 @@ import {
   Eye,
   CreditCard,
   XCircle,
+  RotateCcw,
 } from "lucide-react";
-import { ApiRequestError, cancelBooking, getUserBookings, ApiBooking } from "@/lib/api";
+import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking } from "@/lib/api";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -27,7 +28,8 @@ const IMG = {
   venue3: padelImg(600),
 };
 
-type TabKey = "upcoming" | "past" | "cancelled";
+const TABS = ["upcoming", "past", "cancelled", "refunds"] as const;
+type TabKey = typeof TABS[number];
 
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
@@ -36,9 +38,17 @@ export default function BookingsPage() {
   const router = useRouter();
   const [bookingToCancel, setBookingToCancel] = useState<ApiBooking | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [bookingToRefund, setBookingToRefund] = useState<ApiBooking | null>(null);
+  const [refundReason, setRefundReason] = useState("");
+
   const { data: bookings = [], isLoading, isError, error: queryError } = useQuery({
-    queryKey: queryKeys.bookings.user(activeTab),
-    queryFn: () => getUserBookings(activeTab),
+    queryKey: queryKeys.bookings.user(activeTab === "refunds" ? "cancelled" : activeTab),
+    queryFn: () => activeTab === "refunds" ? getUserBookings("cancelled") : getUserBookings(activeTab),
+  });
+
+  const { data: myRefunds = [] } = useQuery({
+    queryKey: queryKeys.refunds.me,
+    queryFn: getMyRefunds,
   });
 
   const error = isError
@@ -60,7 +70,7 @@ export default function BookingsPage() {
   const past = visibleBookings.filter((b) => b.status === "COMPLETED");
   const cancelled = visibleBookings.filter((b) => b.status === "CANCELLED");
 
-  const tabData: Record<TabKey, ApiBooking[]> = { upcoming, past, cancelled };
+  const tabData: Record<"upcoming" | "past" | "cancelled", ApiBooking[]> = { upcoming, past, cancelled };
 
   const nextBooking = upcoming[0];
   const nextVenue = nextBooking?.venue;
@@ -142,6 +152,29 @@ export default function BookingsPage() {
     if (!bookingToCancel || isCancelling) return;
     setIsCancelling(true);
     cancelMutation.mutate(bookingToCancel.id);
+  }
+
+  const refundMutation = useMutation({
+    mutationFn: (reason: string) => createRefund({ bookingId: bookingToRefund!.id, reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.me });
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.user(activeTab === "refunds" ? "cancelled" : activeTab) });
+      setBookingToRefund(null);
+      setRefundReason("");
+      showToast("Refund request submitted successfully.");
+    },
+    onError: (error) => {
+      if (error instanceof ApiRequestError) {
+        showToast(error.message || "Failed to submit refund request.");
+      } else {
+        showToast("Failed to submit refund request.");
+      }
+    },
+  });
+
+  function confirmRefund() {
+    if (!bookingToRefund || refundMutation.isPending || !refundReason.trim()) return;
+    refundMutation.mutate(refundReason.trim());
   }
 
   if (isLoading) {
@@ -270,40 +303,76 @@ export default function BookingsPage() {
 
       {/* Tabs */}
       <section className="container pb-section-sm">
-        <div className="flex gap-1 border-b border-white/[0.06] mb-8">
-          {(["upcoming", "past", "cancelled"] as TabKey[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`relative px-5 py-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors ${
-                activeTab === tab
-                  ? "text-[#E6FA50]"
-                  : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
-              }`}
-            >
-              {tab} ({tabData[tab].length})
-              {activeTab === tab && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E6FA50]" />
-              )}
-            </button>
-          ))}
+        <div className="flex gap-1 border-b border-white/[0.06] mb-8 overflow-x-auto">
+          {TABS.map((tab) => {
+            const count = tab === "refunds" ? myRefunds.length : tabData[tab as "upcoming" | "past" | "cancelled"].length;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative px-5 py-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors whitespace-nowrap ${
+                  activeTab === tab
+                    ? "text-[#E6FA50]"
+                    : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
+                }`}
+              >
+                {tab} ({count})
+                {activeTab === tab && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E6FA50]" />
+                )}
+              </button>
+            );
+          })}
         </div>
 
         <div className="space-y-3">
-          {tabData[activeTab].length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="text-sm text-[#F7F7F7]/30">No {activeTab} bookings.</p>
-            </div>
+          {activeTab === "refunds" ? (
+            myRefunds.length === 0 ? (
+              <div className="py-16 text-center">
+                <p className="text-sm text-[#F7F7F7]/30">No refund requests.</p>
+              </div>
+            ) : (
+              myRefunds.map((refund) => (
+                <div key={refund.id} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-[#F7F7F7]">{refund.booking?.venue?.name || refund.bookingId}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${
+                          refund.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
+                          refund.status === 'APPROVED' ? 'bg-[#E6FA50]/10 text-[#E6FA50]' :
+                          refund.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
+                          'bg-[#50C8C8]/10 text-[#50C8C8]'
+                        }`}>
+                          {refund.status}
+                        </span>
+                      </div>
+                      <p className="caption text-[#F7F7F7]/40 mt-2 italic">&ldquo;{refund.reason}&rdquo;</p>
+                      <p className="caption text-[#F7F7F7]/25 mt-2">Requested: {new Date(refund.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <p className="price text-base text-[#F7F7F7]">Rp {(Number(refund.amount) / 1000).toFixed(0)}K</p>
+                  </div>
+                </div>
+              ))
+            )
           ) : (
-            tabData[activeTab].map((booking, i) => (
-              <BookingRow
-                key={booking.id}
-                booking={booking}
-                index={i}
-                muted={activeTab !== "upcoming"}
-                onCancel={() => handleCancel(booking)}
-              />
-            ))
+            tabData[activeTab].length === 0 ? (
+              <div className="py-16 text-center">
+                <p className="text-sm text-[#F7F7F7]/30">No {activeTab} bookings.</p>
+              </div>
+            ) : (
+              tabData[activeTab].map((booking, i) => (
+                <BookingRow
+                  key={booking.id}
+                  booking={booking}
+                  index={i}
+                  muted={activeTab !== "upcoming"}
+                  onCancel={() => handleCancel(booking)}
+                  onRequestRefund={() => setBookingToRefund(booking)}
+                  myRefunds={myRefunds}
+                />
+              ))
+            )
           )}
         </div>
       </section>
@@ -334,6 +403,44 @@ export default function BookingsPage() {
                 className="rounded-full bg-red-500/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
               >
                 {isCancelling ? "Cancelling..." : "Cancel Booking"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bookingToRefund && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
+            <p className="section-label">Request Refund</p>
+            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Why are you requesting a refund?</h2>
+            <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#50C8C8]/5 p-4">
+              <p className="text-sm font-medium text-[#50C8C8]">Eligible Amount: Rp {(bookingToRefund.refundAmount! / 1000).toFixed(0)}K</p>
+              <p className="mt-1 text-xs leading-5 text-[#50C8C8]/70">{bookingToRefund.refundPolicyReason}</p>
+            </div>
+            <div className="mt-4">
+              <textarea
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                placeholder="Please describe why you are requesting a refund..."
+                className="w-full h-24 resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/30 focus:border-[#E6FA50]/30 focus:outline-none"
+                disabled={refundMutation.isPending}
+              />
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                onClick={() => { setBookingToRefund(null); setRefundReason(""); }}
+                disabled={refundMutation.isPending}
+                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70 disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRefund}
+                disabled={refundMutation.isPending || !refundReason.trim()}
+                className="btn-lime rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-40"
+              >
+                {refundMutation.isPending ? "Submitting..." : "Submit Request"}
               </button>
             </div>
           </div>
@@ -391,15 +498,20 @@ function BookingRow({
   index,
   muted = false,
   onCancel,
+  onRequestRefund,
+  myRefunds = [],
 }: {
   booking: ApiBooking;
   index: number;
   muted?: boolean;
   onCancel: () => void;
+  onRequestRefund: () => void;
+  myRefunds?: any[];
 }) {
   const court = booking.court;
   const venue = booking.venue;
   const images = [IMG.venue1, IMG.venue2, IMG.venue3];
+  const existingRefund = myRefunds.find(r => r.bookingId === booking.id);
 
   return (
     <div className={`flex flex-col gap-4 rounded-xl border p-4 transition-all duration-200 sm:flex-row sm:items-center ${
@@ -471,6 +583,26 @@ function BookingRow({
                 <XCircle className="h-3.5 w-3.5" />
               </button>
             </>
+          )}
+          {booking.isRefundEligible && !existingRefund && (
+            <button
+              onClick={onRequestRefund}
+              aria-label={`Request refund for booking at ${venue?.name ?? "venue"}`}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 transition-colors hover:bg-amber-500/20 focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
+              title="Request Refund"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {existingRefund && (
+            <span className={`flex h-8 items-center justify-center rounded-lg px-2 text-[10px] font-medium uppercase tracking-[0.1em] ${
+                existingRefund.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
+                existingRefund.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
+                existingRefund.status === 'PROCESSED' ? 'bg-blue-500/10 text-blue-400' :
+                'bg-[#E6FA50]/10 text-[#E6FA50]'
+              }`} title={`Refund ${existingRefund.status}`}>
+              {existingRefund.status}
+            </span>
           )}
         </div>
       </div>
