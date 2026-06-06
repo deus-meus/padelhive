@@ -3,6 +3,7 @@ import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus } fr
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
+import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc } from "../common/pricing.util";
 
 type BookingFilter = "upcoming" | "past" | "cancelled";
 
@@ -268,8 +269,8 @@ export class BookingsService {
       throw new BadRequestException("bookingDate must be a valid calendar date");
     }
 
-    const startsAt = new Date(`${bookingDateValue}T${startsAtValue}:00.000Z`);
-    const endsAt = new Date(`${bookingDateValue}T${endsAtValue}:00.000Z`);
+    const startsAt = wibToUtc(bookingDateValue, startsAtValue);
+    const endsAt = wibToUtc(bookingDateValue, endsAtValue);
 
     if (endsAt <= startsAt) {
       throw new BadRequestException("endsAt must be after startsAt");
@@ -309,29 +310,20 @@ export class BookingsService {
     let amount = 0;
 
     for (let slot = 0; slot < slotCount; slot += 1) {
-      const slotStart = new Date(startsAt);
-      slotStart.setUTCHours(startsAt.getUTCHours() + slot);
-      amount += this.getHourlyRate(court, slotStart);
+      const slotStart = new Date(startsAt.getTime() + slot * 60 * 60 * 1000);
+      const wibDateStr = utcToWibDateStr(slotStart);
+      const isWeekend = isWeekendWib(wibDateStr);
+      const wibHour = wibHourFromUtc(slotStart);
+
+      amount += getSlotPrice(court, wibHour, isWeekend);
     }
 
     return amount;
   }
 
-  private getHourlyRate(court: SelectedCourt, slotStart: Date): number {
-    const isWeekend = slotStart.getUTCDay() === 0 || slotStart.getUTCDay() === 6;
-    const hour = slotStart.getUTCHours();
-    const isPeak = (hour >= 9 && hour <= 10) || (hour >= 16 && hour <= 20);
-
-    if (isWeekend) {
-      return isPeak ? court.weekendPeak : court.weekendOffPeak;
-    }
-
-    return isPeak ? court.weekdayPeak : court.weekdayOffPeak;
-  }
-
   async findBookingsForUser(hostUserId: string, filter: BookingFilter) {
-    const now = new Date();
-    const todayStart = new Date(now.toISOString().split("T")[0] + "T00:00:00.000Z");
+    const wibTodayStr = utcToWibDateStr(new Date());
+    const todayStart = new Date(`${wibTodayStr}T00:00:00.000Z`);
 
     const where: { hostUserId: string; status?: { in: BookingStatus[] } | BookingStatus; bookingDate?: { gte: Date } | { lt: Date }; OR?: { status: BookingStatus }[] } = { hostUserId };
 
@@ -367,4 +359,5 @@ export class BookingsService {
       },
     });
   }
+
 }

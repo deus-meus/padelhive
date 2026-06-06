@@ -6,6 +6,7 @@ import {
   VenueAvailabilityResponseDto,
   VenueAvailabilitySlotDto,
 } from "./dto/venue-availability-response.dto";
+import { getSlotPrice, isPeakHour, isWeekendWib, wibToUtc } from "../common/pricing.util";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_OPEN_HOUR = 6;
@@ -69,8 +70,8 @@ export class AvailabilityService {
     }
 
     const bookingDate = new Date(`${dateStr}T00:00:00.000Z`);
-    const dayStart = new Date(`${dateStr}T${String(startHour).padStart(2, "0")}:00:00.000Z`);
-    const dayEnd = new Date(`${dateStr}T${String(endHour).padStart(2, "0")}:00:00.000Z`);
+    const dayStart = wibToUtc(dateStr, `${String(startHour).padStart(2, "0")}:00`);
+    const dayEnd = wibToUtc(dateStr, `${String(endHour).padStart(2, "0")}:00`);
 
     const courtIds = courts.map((c) => c.id);
 
@@ -90,7 +91,7 @@ export class AvailabilityService {
       },
     });
 
-    const isWeekend = this.isWeekend(dateStr);
+    const isWeekend = isWeekendWib(dateStr);
 
     const courtDtos: VenueAvailabilityCourtDto[] = courts.map((court) => {
       const courtBookings = bookings.filter((b) => b.courtId === court.id);
@@ -123,37 +124,7 @@ export class AvailabilityService {
     return Number.isNaN(hour) ? fallback : hour;
   }
 
-  private isWeekend(dateStr: string): boolean {
-    const date = new Date(`${dateStr}T00:00:00.000Z`);
-    const day = date.getUTCDay();
-    return day === 0 || day === 6;
-  }
 
-  private isPeakHour(hour: number, isWeekend: boolean): boolean {
-    if (isWeekend) {
-      return (hour >= 8 && hour < 12) || (hour >= 16 && hour < 21);
-    }
-    return hour >= 17 && hour < 21;
-  }
-
-  private getSlotPrice(
-    court: {
-      weekdayPeak: number;
-      weekdayOffPeak: number;
-      weekendPeak: number;
-      weekendOffPeak: number;
-    },
-    hour: number,
-    isWeekend: boolean
-  ): number {
-    const peak = this.isPeakHour(hour, isWeekend);
-
-    if (isWeekend) {
-      return peak ? court.weekendPeak : court.weekendOffPeak;
-    }
-
-    return peak ? court.weekdayPeak : court.weekdayOffPeak;
-  }
 
   private generateSlots(
     court: {
@@ -175,11 +146,11 @@ export class AvailabilityService {
       const startsAt = `${String(hour).padStart(2, "0")}:00`;
       const endsAt = `${String(hour + 1).padStart(2, "0")}:00`;
 
-      const slotStart = new Date(`${dateStr}T${startsAt}:00.000Z`);
-      const slotEnd = new Date(`${dateStr}T${endsAt}:00.000Z`);
+      const slotStart = wibToUtc(dateStr, startsAt);
+      const slotEnd = wibToUtc(dateStr, endsAt);
 
-      const isPeak = this.isPeakHour(hour, isWeekend);
-      const price = this.getSlotPrice(court, hour, isWeekend);
+      const isPeak = isPeakHour(hour, isWeekend);
+      const price = getSlotPrice(court, hour, isWeekend);
 
       const available = !bookings.some(
         (b) => b.startsAt < slotEnd && b.endsAt > slotStart

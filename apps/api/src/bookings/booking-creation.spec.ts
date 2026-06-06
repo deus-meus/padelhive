@@ -29,21 +29,21 @@ const activeCourt = {
 const cancellableBooking = {
   id: "booking-1",
   bookingDate: new Date("2099-06-01T00:00:00.000Z"),
-  startsAt: new Date("2099-06-01T09:00:00.000Z"),
-  endsAt: new Date("2099-06-01T11:00:00.000Z"),
+  startsAt: new Date("2099-06-01T02:00:00.000Z"),
+  endsAt: new Date("2099-06-01T04:00:00.000Z"),
   durationMinutes: 120,
   status: BookingStatus.CONFIRMED,
-  courtAmount: 600000,
-  platformFee: 30000,
+  courtAmount: 400000,
+  platformFee: 20000,
   voucherDiscount: 0,
-  finalAmount: 630000,
+  finalAmount: 420000,
   cancelledAt: null,
   venue: { id: "venue-1", name: "Padel Bali", city: "Bali" },
   court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
   host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
   payment: {
     id: "payment-1",
-    amount: 630000,
+    amount: 420000,
     status: PaymentStatus.PAID,
   },
 };
@@ -57,14 +57,14 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
       create: jest.fn().mockResolvedValue({
         id: "booking-1",
         bookingDate: new Date("2099-06-01T00:00:00.000Z"),
-        startsAt: new Date("2099-06-01T09:00:00.000Z"),
-        endsAt: new Date("2099-06-01T11:00:00.000Z"),
+        startsAt: new Date("2099-06-01T02:00:00.000Z"),
+        endsAt: new Date("2099-06-01T04:00:00.000Z"),
         durationMinutes: 120,
         status: BookingStatus.PENDING_PAYMENT,
-        courtAmount: 600000,
-        platformFee: 30000,
+        courtAmount: 400000,
+        platformFee: 20000,
         voucherDiscount: 0,
-        finalAmount: 630000,
+        finalAmount: 420000,
         venue: { id: "venue-1", name: "Padel Bali", city: "Bali" },
         court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
         host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
@@ -136,10 +136,10 @@ describe("Booking creation API", () => {
         courtId: "court-1",
         status: BookingStatus.PENDING_PAYMENT,
         durationMinutes: 120,
-        courtAmount: 600000,
-        platformFee: 30000,
+        courtAmount: 400000,
+        platformFee: 20000,
         voucherDiscount: 0,
-        finalAmount: 630000,
+        finalAmount: 420000,
       }),
       select: expect.any(Object),
     });
@@ -207,8 +207,8 @@ describe("Booking creation API", () => {
       where: {
         courtId: "court-1",
         status: { in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED] },
-        startsAt: { lt: new Date("2099-06-01T10:00:00.000Z") },
-        endsAt: { gt: new Date("2099-06-01T09:00:00.000Z") },
+        startsAt: { lt: new Date("2099-06-01T03:00:00.000Z") },
+        endsAt: { gt: new Date("2099-06-01T02:00:00.000Z") },
       },
       select: { id: true },
     });
@@ -216,7 +216,7 @@ describe("Booking creation API", () => {
   });
 
   it("lets the owner cancel and creates pending refund for paid eligible bookings", async () => {
-    const txBookingUpdate = jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED, cancelledAt: new Date("2099-05-31T09:00:00.000Z") });
+    const txBookingUpdate = jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED, cancelledAt: new Date("2099-05-31T02:00:00.000Z") });
     const txRefundCreate = jest.fn().mockResolvedValue({ id: "refund-1" });
     const prisma = createPrisma({
       booking: {
@@ -230,7 +230,7 @@ describe("Booking creation API", () => {
       })),
     });
     const service = new BookingsService(prisma as never);
-    const now = new Date("2099-05-31T09:00:00.000Z");
+    const now = new Date("2099-05-31T02:00:00.000Z");
 
     const result = await service.cancelBookingForUser("booking-1", "user-1", now);
 
@@ -248,14 +248,14 @@ describe("Booking creation API", () => {
       data: {
         bookingId: "booking-1",
         paymentId: "payment-1",
-        amount: 630000,
+        amount: 420000,
         reason: "Full refund eligible: cancelled at least 24 hours before booking start.",
         status: RefundStatus.PENDING,
       },
     });
     expect(result.status).toBe(BookingStatus.CANCELLED);
     expect(result.isRefundEligible).toBe(true);
-    expect(result.refundAmount).toBe(630000);
+    expect(result.refundAmount).toBe(420000);
   });
 
   it("rejects cancel for missing or non-owned bookings", async () => {
@@ -263,7 +263,7 @@ describe("Booking creation API", () => {
       booking: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn(), update: jest.fn() },
     }) as never);
 
-    await expect(service.cancelBookingForUser("booking-1", "user-2", new Date("2099-05-31T09:00:00.000Z"))).rejects.toThrow(NotFoundException);
+    await expect(service.cancelBookingForUser("booking-1", "user-2", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(NotFoundException);
   });
 
   it("rejects completed bookings", async () => {
@@ -271,7 +271,7 @@ describe("Booking creation API", () => {
       booking: { findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.COMPLETED }), create: jest.fn(), update: jest.fn() },
     }) as never);
 
-    await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T09:00:00.000Z"))).rejects.toThrow(BadRequestException);
+    await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(BadRequestException);
   });
 
   it("rejects already cancelled bookings", async () => {
@@ -279,7 +279,7 @@ describe("Booking creation API", () => {
       booking: { findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }), create: jest.fn(), update: jest.fn() },
     }) as never);
 
-    await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T09:00:00.000Z"))).rejects.toThrow(BadRequestException);
+    await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(BadRequestException);
   });
 
   it("does not create refund when cancellation is less than 24 hours before start", async () => {
@@ -293,7 +293,7 @@ describe("Booking creation API", () => {
     });
     const service = new BookingsService(prisma as never);
 
-    const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T09:00:01.000Z"));
+    const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:01.000Z"));
 
     expect(result.isRefundEligible).toBe(false);
     expect(result.refundAmount).toBe(0);
@@ -315,10 +315,35 @@ describe("Booking creation API", () => {
     });
     const service = new BookingsService(prisma as never);
 
-    const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T09:00:00.000Z"));
+    const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"));
 
     expect(result.isRefundEligible).toBe(true);
     expect(result.refundAmount).toBe(0);
     expect(txRefundCreate).not.toHaveBeenCalled();
+  });
+
+  it("prices correctly near weekend boundary and does not shift bookingDate off WIB day", async () => {
+    const prisma = createPrisma();
+    const service = new BookingsService(prisma as never);
+
+    await service.createBookingForUser("user-1", {
+      venueId: "venue-1",
+      courtId: "court-1",
+      bookingDate: "2099-06-06",
+      startsAt: "06:00",
+      endsAt: "08:00",
+      amount: 1,
+    } as never);
+
+    expect(prisma.booking.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        bookingDate: new Date("2099-06-06T00:00:00.000Z"),
+        startsAt: new Date("2099-06-05T23:00:00.000Z"),
+        endsAt: new Date("2099-06-06T01:00:00.000Z"),
+        courtAmount: 500000,
+        finalAmount: 525000,
+      }),
+      select: expect.any(Object),
+    });
   });
 });
