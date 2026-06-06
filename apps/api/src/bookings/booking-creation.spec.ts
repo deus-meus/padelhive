@@ -129,6 +129,7 @@ describe("Booking creation API", () => {
         platformFee: 20000,
         voucherDiscount: 0,
         finalAmount: 420000,
+        expiresAt: expect.any(Date),
       }),
       select: expect.any(Object),
     });

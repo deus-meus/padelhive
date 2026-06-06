@@ -4,16 +4,19 @@ import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc } from "../common/pricing.util";
+import { 
+  PENDING_PAYMENT_TTL_MS, 
+  REFUND_WINDOW_MS, 
+  REFUND_ELIGIBLE_REASON, 
+  REFUND_ELIGIBLE_UNPAID_REASON, 
+  REFUND_INELIGIBLE_REASON 
+} from "../common/constants";
 
 type BookingFilter = "upcoming" | "past" | "cancelled";
 
 const PLATFORM_FEE_RATE = 0.05;
 const TIME_PATTERN = /^([01]\d|2[0-3]):00$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const REFUND_WINDOW_MS = 24 * 60 * 60 * 1000;
-const REFUND_ELIGIBLE_REASON = "Full refund eligible: cancelled at least 24 hours before booking start.";
-const REFUND_ELIGIBLE_UNPAID_REASON = "Full refund eligible, but no paid payment exists for this booking.";
-const REFUND_INELIGIBLE_REASON = "Non-refundable: cancellations less than 24 hours before booking start are not eligible.";
 
 const bookingSelect = {
   id: true,
@@ -139,6 +142,7 @@ export class BookingsService {
           endsAt: parsedTime.endsAt,
           durationMinutes: parsedTime.durationMinutes,
           status: BookingStatus.PENDING_PAYMENT,
+          expiresAt: new Date(Date.now() + PENDING_PAYMENT_TTL_MS),
           courtAmount,
           platformFee,
           voucherDiscount,
