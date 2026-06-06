@@ -189,7 +189,7 @@ export class PaymentsService {
     const paidPayment = await this.prisma.$transaction(async (tx) => {
       await tx.booking.update({
         where: { id: payment.bookingId },
-        data: { status: BookingStatus.CONFIRMED },
+        data: { status: BookingStatus.CONFIRMED, expiresAt: null },
       });
 
       return tx.payment.update({
@@ -272,7 +272,7 @@ export class PaymentsService {
       if (targetBookingStatus === BookingStatus.CONFIRMED && payment.booking.status === BookingStatus.PENDING_PAYMENT) {
         await tx.booking.update({
           where: { id: payment.bookingId },
-          data: { status: targetBookingStatus },
+          data: { status: targetBookingStatus, expiresAt: null },
         });
       }
     });

@@ -10,9 +10,11 @@ import { RefundsModule } from "./refunds/refunds.module";
 import { UsersModule } from "./users/users.module";
 import { VenuesModule } from "./venues/venues.module";
 import { VouchersModule } from "./vouchers/vouchers.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UsersModule,

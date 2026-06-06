@@ -147,7 +147,7 @@ describe("Payment foundation", () => {
     });
     expect(txBookingUpdate).toHaveBeenCalledWith({
       where: { id: "booking-1" },
-      data: { status: BookingStatus.CONFIRMED },
+      data: { status: BookingStatus.CONFIRMED, expiresAt: null },
     });
     expect(result.status).toBe(PaymentStatus.PAID);
     expect(result.booking.status).toBe(BookingStatus.CONFIRMED);

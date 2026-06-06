@@ -182,7 +182,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
     });
     expect(txBookingUpdateMock!).toHaveBeenCalledWith({
       where: { id: "booking-1" },
-      data: { status: BookingStatus.CONFIRMED },
+      data: { status: BookingStatus.CONFIRMED, expiresAt: null },
     });
   });
 

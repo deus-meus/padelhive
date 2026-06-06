@@ -165,6 +165,7 @@ model Booking {
   finalAmount     Int
   cancelledAt     DateTime?
   completedAt     DateTime?
+  expiresAt       DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
