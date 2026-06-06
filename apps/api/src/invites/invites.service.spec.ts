@@ -40,6 +40,7 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
     },
     invite: {
       findUnique: jest.fn().mockResolvedValue(null),
+      findUniqueOrThrow: jest.fn().mockResolvedValue(invite),
       findMany: jest.fn().mockResolvedValue([invite]),
       create: jest.fn().mockResolvedValue(invite),
       update: jest.fn().mockResolvedValue({ ...invite, status: InviteStatus.ACCEPTED }),
@@ -168,7 +169,12 @@ describe("InvitesService", () => {
   it("updates RSVP by public token when status is accepted or declined", async () => {
     const prisma = createPrisma({
       invite: {
-        findUnique: jest.fn().mockResolvedValue({ id: "invite-1" }),
+        findUnique: jest.fn().mockResolvedValue({ 
+          id: "invite-1", 
+          status: InviteStatus.PENDING, 
+          isHost: false, 
+          booking: { status: BookingStatus.CONFIRMED, startsAt: new Date(Date.now() + 86400000) } 
+        }),
         findMany: jest.fn(),
         create: jest.fn(),
         update: jest.fn().mockResolvedValue({ ...invite, status: InviteStatus.DECLINED }),
@@ -182,6 +188,85 @@ describe("InvitesService", () => {
       data: { status: "DECLINED" },
       select: expect.any(Object),
     });
+  });
+
+  it("safely no-ops and returns the invite if re-submitting the exact same status", async () => {
+    const prisma = createPrisma({
+      invite: {
+        findUnique: jest.fn().mockResolvedValue({ 
+          id: "invite-1", 
+          status: InviteStatus.ACCEPTED, 
+          isHost: false, 
+          booking: { status: BookingStatus.CONFIRMED, startsAt: new Date(Date.now() + 86400000) } 
+        }),
+        findUniqueOrThrow: jest.fn().mockResolvedValue({ ...invite, status: InviteStatus.ACCEPTED }),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    });
+    const service = new InvitesService(prisma as never);
+
+    await expect(service.rsvpByToken("invite-token-1", { status: "ACCEPTED" })).resolves.toEqual({ ...invite, status: InviteStatus.ACCEPTED });
+    expect((prisma.invite as unknown as { findUniqueOrThrow: jest.Mock }).findUniqueOrThrow).toHaveBeenCalledWith({
+      where: { token: "invite-token-1" },
+      select: expect.any(Object),
+    });
+    expect(prisma.invite.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects RSVP with 400 if booking is CANCELLED (or EXPIRED/COMPLETED)", async () => {
+    const prisma = createPrisma({
+      invite: {
+        findUnique: jest.fn().mockResolvedValue({ 
+          id: "invite-1", 
+          status: InviteStatus.ACCEPTED, // Same status, testing that guard wins over idempotency
+          isHost: false, 
+          booking: { status: BookingStatus.CANCELLED, startsAt: new Date(Date.now() + 86400000) } 
+        }),
+        update: jest.fn(),
+      },
+    });
+    const service = new InvitesService(prisma as never);
+
+    await expect(service.rsvpByToken("invite-token-1", { status: "ACCEPTED" })).rejects.toThrow(BadRequestException);
+    expect(prisma.invite.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects RSVP with 400 if booking has already started", async () => {
+    const prisma = createPrisma({
+      invite: {
+        findUnique: jest.fn().mockResolvedValue({ 
+          id: "invite-1", 
+          status: InviteStatus.PENDING, 
+          isHost: false, 
+          booking: { status: BookingStatus.CONFIRMED, startsAt: new Date(Date.now() - 86400000) } 
+        }),
+        update: jest.fn(),
+      },
+    });
+    const service = new InvitesService(prisma as never);
+
+    await expect(service.rsvpByToken("invite-token-1", { status: "ACCEPTED" })).rejects.toThrow(BadRequestException);
+    expect(prisma.invite.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects RSVP with 400 if the invite is for the host (isHost === true)", async () => {
+    const prisma = createPrisma({
+      invite: {
+        findUnique: jest.fn().mockResolvedValue({ 
+          id: "invite-1", 
+          status: InviteStatus.PENDING, 
+          isHost: true, 
+          booking: { status: BookingStatus.CONFIRMED, startsAt: new Date(Date.now() + 86400000) } 
+        }),
+        update: jest.fn(),
+      },
+    });
+    const service = new InvitesService(prisma as never);
+
+    await expect(service.rsvpByToken("invite-token-1", { status: "ACCEPTED" })).rejects.toThrow(BadRequestException);
+    expect(prisma.invite.update).not.toHaveBeenCalled();
   });
 
   it("rejects invalid RSVP status and missing token", async () => {

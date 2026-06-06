@@ -84,8 +84,40 @@ export class InvitesService {
       throw new BadRequestException("Invalid RSVP status");
     }
 
-    const invite = await this.prisma.invite.findUnique({ where: { token }, select: { id: true } });
+    const invite = await this.prisma.invite.findUnique({ 
+      where: { token }, 
+      select: { 
+        id: true,
+        status: true,
+        isHost: true,
+        booking: {
+          select: {
+            status: true,
+            startsAt: true,
+          }
+        }
+      } 
+    });
     if (!invite) throw new NotFoundException("Invite not found");
+
+    if (invite.isHost) {
+      throw new BadRequestException("Host cannot RSVP");
+    }
+
+    if (invite.booking.status !== BookingStatus.PENDING_PAYMENT && invite.booking.status !== BookingStatus.CONFIRMED) {
+      throw new BadRequestException("Booking cannot accept RSVPs");
+    }
+
+    if (invite.booking.startsAt <= new Date()) {
+      throw new BadRequestException("RSVP window has closed");
+    }
+
+    if (invite.status === body.status) {
+      return this.prisma.invite.findUniqueOrThrow({
+        where: { token },
+        select: inviteSelect,
+      });
+    }
 
     return this.prisma.invite.update({
       where: { token },
