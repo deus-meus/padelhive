@@ -14,8 +14,10 @@ import {
   Eye,
   MoreVertical,
 } from "lucide-react";
-import { mockVenues } from "@/mock/venues";
-import { mockCourts } from "@/mock/courts";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
+import { getVenues, getVenueCourts } from "@/lib/api";
+import { Venue } from "@/types";
 
 type ApprovalStatus = "approved" | "pending" | "rejected" | "draft";
 
@@ -35,6 +37,11 @@ const STATUS_CONFIG: Record<ApprovalStatus, { label: string; icon: typeof CheckC
 export default function VenueManagementPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  const { data: venues = [], isLoading } = useQuery({
+    queryKey: queryKeys.venues.all(),
+    queryFn: getVenues,
+  });
 
   function showToast(msg: string) {
     setToast(msg);
@@ -65,91 +72,19 @@ export default function VenueManagementPage() {
 
         {/* Venue List */}
         <div className="mt-8 space-y-4">
-          {mockVenues.map((venue) => {
-            const courts = mockCourts.filter((c) => c.venueId === venue.id);
-            const status = VENUE_STATUS[venue.id] ?? "pending";
-            const config = STATUS_CONFIG[status];
-            const StatusIcon = config.icon;
-
-            return (
-              <div
-                key={venue.id}
-                className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all hover:border-white/[0.1]"
-              >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <h3 className="heading-2 text-lg text-[#F7F7F7] truncate">
-                        {venue.name}
-                      </h3>
-                      {venue.isVerified && (
-                        <span className="shrink-0 rounded-full bg-[#E6FA50] px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#06121A]">
-                          Verified
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 flex items-center gap-1.5 text-sm text-[#F7F7F7]/35">
-                      <MapPin className="h-3.5 w-3.5" />
-                      {venue.location} · {venue.city}
-                    </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-4">
-                      <span className="flex items-center gap-1.5 text-xs text-[#F7F7F7]/30">
-                        <Star className="h-3 w-3 fill-[#E6FA50] text-[#E6FA50]" />
-                        {venue.rating} ({venue.reviewCount})
-                      </span>
-                      <span className="text-xs text-[#F7F7F7]/30">
-                        {courts.length} courts
-                      </span>
-                      <span className="text-xs text-[#F7F7F7]/30">
-                        {venue.operatingHours.open} – {venue.operatingHours.close}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}>
-                      <StatusIcon className={`h-3.5 w-3.5 ${config.color}`} />
-                      <span className={`text-[11px] font-medium ${config.color}`}>
-                        {config.label}
-                      </span>
-                    </div>
-                    <Link
-                      href={`/venues/${venue.id}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
-                      title="View venue"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                    </Link>
-                    <button
-                      onClick={() => showToast("Edit venue coming soon in backend integration.")}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
-                      title="Edit venue"
-                    >
-                      <Edit3 className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => showToast("More options coming soon in backend integration.")}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
-                    >
-                      <MoreVertical className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Facilities */}
-                <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.04] pt-4">
-                  {venue.facilities.map((f) => (
-                    <span
-                      key={f}
-                      className="rounded-full bg-white/[0.03] px-3 py-1 text-[10px] font-medium text-[#F7F7F7]/30"
-                    >
-                      {f}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {isLoading && (
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
+              <p className="caption text-[#F7F7F7]/30">Loading venues...</p>
+            </div>
+          )}
+          {!isLoading && venues.length === 0 && (
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
+              <p className="caption text-[#F7F7F7]/30">No venues found</p>
+            </div>
+          )}
+          {!isLoading && venues.map((venue) => (
+            <VenueCard key={venue.id} venue={venue} showToast={showToast} />
+          ))}
         </div>
 
         {/* Add Venue Modal */}
@@ -228,6 +163,95 @@ export default function VenueManagementPage() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function VenueCard({ venue, showToast }: { venue: Venue; showToast: (msg: string) => void }) {
+  const { data: courts = [] } = useQuery({
+    queryKey: queryKeys.venues.courts(venue.id),
+    queryFn: () => getVenueCourts(venue.id),
+  });
+
+  const status = VENUE_STATUS[venue.id] ?? "pending";
+  const config = STATUS_CONFIG[status];
+  const StatusIcon = config.icon;
+
+  return (
+    <div
+      className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all hover:border-white/[0.1]"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3">
+            <h3 className="heading-2 text-lg text-[#F7F7F7] truncate">
+              {venue.name}
+            </h3>
+            {venue.isVerified && (
+              <span className="shrink-0 rounded-full bg-[#E6FA50] px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#06121A]">
+                Verified
+              </span>
+            )}
+          </div>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-[#F7F7F7]/35">
+            <MapPin className="h-3.5 w-3.5" />
+            {venue.location} · {venue.city}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-4">
+            <span className="flex items-center gap-1.5 text-xs text-[#F7F7F7]/30">
+              <Star className="h-3 w-3 fill-[#E6FA50] text-[#E6FA50]" />
+              {venue.rating} ({venue.reviewCount})
+            </span>
+            <span className="text-xs text-[#F7F7F7]/30">
+              {courts.length} courts
+            </span>
+            <span className="text-xs text-[#F7F7F7]/30">
+              {venue.operatingHours.open} – {venue.operatingHours.close}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}>
+            <StatusIcon className={`h-3.5 w-3.5 ${config.color}`} />
+            <span className={`text-[11px] font-medium ${config.color}`}>
+              {config.label}
+            </span>
+          </div>
+          <Link
+            href={`/venues/${venue.id}`}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+            title="View venue"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </Link>
+          <button
+            onClick={() => showToast("Edit venue coming soon in backend integration.")}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+            title="Edit venue"
+          >
+            <Edit3 className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => showToast("More options coming soon in backend integration.")}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+          >
+            <MoreVertical className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Facilities */}
+      <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.04] pt-4">
+        {venue.facilities.map((f) => (
+          <span
+            key={f}
+            className="rounded-full bg-white/[0.03] px-3 py-1 text-[10px] font-medium text-[#F7F7F7]/30"
+          >
+            {f}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
