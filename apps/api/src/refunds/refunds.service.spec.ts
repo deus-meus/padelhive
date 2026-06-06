@@ -133,11 +133,11 @@ describe("RefundsService", () => {
   });
 
   describe("admin transitions", () => {
-    it("should approve a PENDING refund", async () => {
-      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", status: RefundStatus.PENDING, adminNotes: null });
+    it("should approve a PENDING refund for venue owner", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", status: RefundStatus.PENDING, adminNotes: null, booking: { venue: { ownerId: "admin-1", admins: [] } } });
       mockPrismaService.refund.update.mockResolvedValue({ id: "1", status: RefundStatus.APPROVED });
 
-      await expect(service.approveRefund("1", "admin-1", "ok")).resolves.toEqual({ id: "1", status: RefundStatus.APPROVED });
+      await expect(service.approveRefund("1", "admin-1", false, "ok")).resolves.toEqual({ id: "1", status: RefundStatus.APPROVED });
       expect(mockPrismaService.refund.update).toHaveBeenCalledWith({
         where: { id: "1" },
         data: expect.objectContaining({
@@ -155,36 +155,53 @@ describe("RefundsService", () => {
       });
     });
 
+    it("should approve if venue admin is in venue.admins array", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ 
+        id: "1", status: RefundStatus.PENDING, adminNotes: null,
+        booking: { venue: { ownerId: "other-owner", admins: [{ userId: "admin-1" }] } }
+      });
+      mockPrismaService.refund.update.mockResolvedValue({ id: "1", status: RefundStatus.APPROVED });
+      await expect(service.approveRefund("1", "admin-1", false, "ok")).resolves.toEqual({ id: "1", status: RefundStatus.APPROVED });
+    });
+
+    it("should throw 404 if venue admin approves another venue's refund", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ 
+        id: "1", status: RefundStatus.PENDING, adminNotes: null,
+        booking: { venue: { ownerId: "other-owner", admins: [] } }
+      });
+      await expect(service.approveRefund("1", "admin-1", false, "ok")).rejects.toThrow(NotFoundException);
+    });
+
     it("should throw 400 if approving a non-PENDING refund", async () => {
-      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", status: RefundStatus.APPROVED });
-      await expect(service.approveRefund("1", "admin-1", "ok")).rejects.toThrow(BadRequestException);
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", status: RefundStatus.APPROVED, booking: { venue: { ownerId: "admin-1", admins: [] } } });
+      await expect(service.approveRefund("1", "admin-1", false, "ok")).rejects.toThrow(BadRequestException);
     });
 
     it("should reject a PENDING refund", async () => {
-      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", status: RefundStatus.PENDING });
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", status: RefundStatus.PENDING, booking: { venue: { ownerId: "admin-1", admins: [] } } });
       mockPrismaService.refund.update.mockResolvedValue({ id: "1", status: RefundStatus.REJECTED });
 
-      await expect(service.rejectRefund("1", "admin-1", "no")).resolves.toEqual({ id: "1", status: RefundStatus.REJECTED });
+      await expect(service.rejectRefund("1", "admin-1", false, "no")).resolves.toEqual({ id: "1", status: RefundStatus.REJECTED });
     });
 
     it("should throw 400 if rejecting with no notes", async () => {
-      await expect(service.rejectRefund("1", "admin-1", "")).rejects.toThrow(BadRequestException);
+      await expect(service.rejectRefund("1", "admin-1", false, "")).rejects.toThrow(BadRequestException);
     });
 
     it("should throw 400 if rejecting a non-PENDING refund", async () => {
-      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", status: RefundStatus.APPROVED });
-      await expect(service.rejectRefund("1", "admin-1", "no")).rejects.toThrow(BadRequestException);
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", status: RefundStatus.APPROVED, booking: { venue: { ownerId: "admin-1", admins: [] } } });
+      await expect(service.rejectRefund("1", "admin-1", false, "no")).rejects.toThrow(BadRequestException);
     });
 
     it("processRefund should call gateway for midtrans provider and update booking/payment", async () => {
       mockPrismaService.refund.findUnique.mockResolvedValue({ 
-        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED, venue: { ownerId: "admin-1", admins: [] } }
       });
       mockPrismaService.refund.updateMany.mockResolvedValue({ count: 1 });
       mockPrismaService.refund.findUniqueOrThrow.mockResolvedValue({ id: "1", status: RefundStatus.PROCESSED });
       mockPaymentGateway.refundPayment.mockResolvedValue(undefined);
 
-      await expect(service.processRefund("1", "admin-1")).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
+      await expect(service.processRefund("1", "admin-1", false)).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
 
       expect(mockPaymentGateway.refundPayment).toHaveBeenCalledWith("p-1", 100, "1");
       expect(mockPrismaService.refund.updateMany).toHaveBeenCalledWith({
@@ -211,23 +228,23 @@ describe("RefundsService", () => {
 
     it("processRefund should skip gateway for internal provider", async () => {
       mockPrismaService.refund.findUnique.mockResolvedValue({ 
-        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "internal" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "internal" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED, venue: { ownerId: "admin-1", admins: [] } }
       });
       mockPrismaService.refund.updateMany.mockResolvedValue({ count: 1 });
       mockPrismaService.refund.findUniqueOrThrow.mockResolvedValue({ id: "1", status: RefundStatus.PROCESSED });
 
-      await expect(service.processRefund("1", "admin-1")).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
+      await expect(service.processRefund("1", "admin-1", false)).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
 
       expect(mockPaymentGateway.refundPayment).not.toHaveBeenCalled();
     });
 
     it("processRefund should reject if gateway throws and not call transaction", async () => {
       mockPrismaService.refund.findUnique.mockResolvedValue({ 
-        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED, venue: { ownerId: "admin-1", admins: [] } }
       });
       mockPaymentGateway.refundPayment.mockRejectedValue(new Error("Gateway Error"));
 
-      await expect(service.processRefund("1", "admin-1")).rejects.toThrow("Gateway Error");
+      await expect(service.processRefund("1", "admin-1", false)).rejects.toThrow("Gateway Error");
 
       expect(mockPaymentGateway.refundPayment).toHaveBeenCalledWith("p-1", 100, "1");
       expect(mockPrismaService.$transaction).not.toHaveBeenCalled();
@@ -235,21 +252,31 @@ describe("RefundsService", () => {
 
     it("processRefund should throw 400 and not call gateway if refund is not APPROVED", async () => {
       mockPrismaService.refund.findUnique.mockResolvedValue({ 
-        id: "1", amount: 100, status: RefundStatus.PROCESSED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+        id: "1", amount: 100, status: RefundStatus.PROCESSED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED, venue: { ownerId: "admin-1", admins: [] } }
       });
 
-      await expect(service.processRefund("1", "admin-1")).rejects.toThrow(BadRequestException);
+      await expect(service.processRefund("1", "admin-1", false)).rejects.toThrow(BadRequestException);
       expect(mockPaymentGateway.refundPayment).not.toHaveBeenCalled();
     });
 
-    it("process on a COMPLETED booking marks Payment REFUNDED but leaves booking COMPLETED", async () => {
+    it("processRefund should process an APPROVED refund and update booking/payment", async () => {
       mockPrismaService.refund.findUnique.mockResolvedValue({ 
-        id: "1", status: RefundStatus.APPROVED, paymentId: "p-1", bookingId: "b-1", booking: { status: BookingStatus.COMPLETED }
+        id: "1", status: RefundStatus.APPROVED, paymentId: "p-1", bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED, venue: { ownerId: "admin-1", admins: [] } }
       });
       mockPrismaService.refund.updateMany.mockResolvedValue({ count: 1 });
       mockPrismaService.refund.findUniqueOrThrow.mockResolvedValue({ id: "1", status: RefundStatus.PROCESSED });
 
-      await expect(service.processRefund("1", "admin-1")).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
+      await expect(service.processRefund("1", "admin-1", false)).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
+    });
+
+    it("process on a COMPLETED booking marks Payment REFUNDED but leaves booking COMPLETED", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ 
+        id: "1", status: RefundStatus.APPROVED, paymentId: "p-1", bookingId: "b-1", booking: { status: BookingStatus.COMPLETED, venue: { ownerId: "admin-1", admins: [] } }
+      });
+      mockPrismaService.refund.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.refund.findUniqueOrThrow.mockResolvedValue({ id: "1", status: RefundStatus.PROCESSED });
+
+      await expect(service.processRefund("1", "admin-1", false)).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
 
       expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
         where: { id: "p-1" },
@@ -260,12 +287,12 @@ describe("RefundsService", () => {
 
     it("process on an already CANCELLED booking marks Payment REFUNDED but leaves booking CANCELLED", async () => {
       mockPrismaService.refund.findUnique.mockResolvedValue({ 
-        id: "1", status: RefundStatus.APPROVED, paymentId: "p-1", bookingId: "b-1", booking: { status: BookingStatus.CANCELLED }
+        id: "1", status: RefundStatus.APPROVED, paymentId: "p-1", bookingId: "b-1", booking: { status: BookingStatus.CANCELLED, venue: { ownerId: "admin-1", admins: [] } }
       });
       mockPrismaService.refund.updateMany.mockResolvedValue({ count: 1 });
       mockPrismaService.refund.findUniqueOrThrow.mockResolvedValue({ id: "1", status: RefundStatus.PROCESSED });
 
-      await expect(service.processRefund("1", "admin-1")).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
+      await expect(service.processRefund("1", "admin-1", false)).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
 
       expect(mockPrismaService.payment.update).toHaveBeenCalledWith({
         where: { id: "p-1" },
@@ -276,28 +303,60 @@ describe("RefundsService", () => {
 
     it("processRefund should throw 400 on double-process race condition", async () => {
       mockPrismaService.refund.findUnique.mockResolvedValue({ 
-        id: "1", status: RefundStatus.APPROVED, paymentId: "p-1", bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+        id: "1", status: RefundStatus.APPROVED, paymentId: "p-1", bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED, venue: { ownerId: "admin-1", admins: [] } }
       });
       mockPrismaService.refund.updateMany.mockResolvedValue({ count: 0 }); // Double process!
 
-      await expect(service.processRefund("1", "admin-1")).rejects.toThrow(BadRequestException);
+      await expect(service.processRefund("1", "admin-1", false)).rejects.toThrow(BadRequestException);
     });
   });
 
   describe("ownership checks", () => {
     it("findRefundById should return refund for super admin", async () => {
-      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", booking: { hostUserId: "user-1" } });
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", booking: { hostUserId: "user-1", venue: { ownerId: "other", admins: [] } } });
       await expect(service.findRefundById("1", "admin-1", true)).resolves.toEqual(expect.objectContaining({ id: "1" }));
     });
 
     it("findRefundById should return refund for host user", async () => {
-      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", booking: { hostUserId: "user-1" } });
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", booking: { hostUserId: "user-1", venue: { ownerId: "other", admins: [] } } });
       await expect(service.findRefundById("1", "user-1", false)).resolves.toEqual(expect.objectContaining({ id: "1" }));
     });
 
-    it("findRefundById should throw 404 for non-host user", async () => {
-      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", booking: { hostUserId: "user-1" } });
+    it("findRefundById should return refund for venue owner", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", booking: { hostUserId: "user-1", venue: { ownerId: "admin-1", admins: [] } } });
+      await expect(service.findRefundById("1", "admin-1", false)).resolves.toEqual(expect.objectContaining({ id: "1" }));
+    });
+
+    it("findRefundById should return refund for venue admin", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", booking: { hostUserId: "user-1", venue: { ownerId: "other", admins: [{ userId: "admin-2" }] } } });
+      await expect(service.findRefundById("1", "admin-2", false)).resolves.toEqual(expect.objectContaining({ id: "1" }));
+    });
+
+    it("findRefundById should throw 404 for non-host and non-venue admin user", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ id: "1", booking: { hostUserId: "user-1", venue: { ownerId: "other", admins: [] } } });
       await expect(service.findRefundById("1", "user-2", false)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe("findAllRefunds", () => {
+    it("should return all refunds for super admin", async () => {
+      mockPrismaService.refund.findMany.mockResolvedValue([{ id: "1" }]);
+      await expect(service.findAllRefunds("admin-1", true)).resolves.toEqual([{ id: "1" }]);
+      expect(mockPrismaService.refund.findMany).toHaveBeenCalledWith({
+        where: {},
+        orderBy: { createdAt: "desc" },
+      });
+    });
+
+    it("should filter by venue for venue owner/admin", async () => {
+      mockPrismaService.refund.findMany.mockResolvedValue([{ id: "1" }]);
+      await expect(service.findAllRefunds("admin-1", false)).resolves.toEqual([{ id: "1" }]);
+      expect(mockPrismaService.refund.findMany).toHaveBeenCalledWith({
+        where: {
+          booking: { venue: { OR: [ { ownerId: "admin-1" }, { admins: { some: { userId: "admin-1" } } } ] } }
+        },
+        orderBy: { createdAt: "desc" },
+      });
     });
   });
 });

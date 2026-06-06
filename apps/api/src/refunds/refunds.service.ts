@@ -71,7 +71,11 @@ export class RefundsService {
   async findRefundById(id: string, userId: string, isSuperAdmin: boolean) {
     const refund = await this.prisma.refund.findUnique({
       where: { id },
-      include: { booking: true },
+      include: { 
+        booking: {
+          include: { venue: { include: { admins: { where: { userId } } } } }
+        } 
+      },
     });
 
     if (!refund) {
@@ -79,15 +83,23 @@ export class RefundsService {
     }
 
     if (!isSuperAdmin && refund.booking.hostUserId !== userId) {
-      throw new NotFoundException("Refund not found");
+      const venue = refund.booking.venue;
+      if (venue.ownerId !== userId && venue.admins.length === 0) {
+        throw new NotFoundException("Refund not found");
+      }
     }
 
     return refund;
   }
 
-  async findAllRefunds(status?: RefundStatus) {
+  async findAllRefunds(userId: string, isSuperAdmin: boolean, status?: RefundStatus) {
     return this.prisma.refund.findMany({
-      where: status ? { status } : undefined,
+      where: {
+        ...(status ? { status } : {}),
+        ...(isSuperAdmin ? {} : {
+          booking: { venue: { OR: [ { ownerId: userId }, { admins: { some: { userId } } } ] } }
+        })
+      },
       orderBy: { createdAt: "desc" },
     });
   }
@@ -100,9 +112,23 @@ export class RefundsService {
     });
   }
 
-  async approveRefund(id: string, adminUserId: string, adminNotes?: string) {
-    const refund = await this.prisma.refund.findUnique({ where: { id } });
+  async approveRefund(id: string, adminUserId: string, isSuperAdmin: boolean, adminNotes?: string) {
+    const refund = await this.prisma.refund.findUnique({ 
+      where: { id },
+      include: {
+        booking: {
+          include: { venue: { include: { admins: { where: { userId: adminUserId } } } } }
+        }
+      }
+    });
     if (!refund) throw new NotFoundException("Refund not found");
+
+    if (!isSuperAdmin) {
+      const venue = refund.booking.venue;
+      if (venue.ownerId !== adminUserId && venue.admins.length === 0) {
+        throw new NotFoundException("Refund not found");
+      }
+    }
     
     if (refund.status !== RefundStatus.PENDING) {
       throw new BadRequestException(`Cannot approve refund in status ${refund.status}`);
@@ -125,13 +151,27 @@ export class RefundsService {
     });
   }
 
-  async rejectRefund(id: string, adminUserId: string, adminNotes: string) {
+  async rejectRefund(id: string, adminUserId: string, isSuperAdmin: boolean, adminNotes: string) {
     if (!adminNotes || adminNotes.trim() === "") {
       throw new BadRequestException("adminNotes is required to reject a refund");
     }
 
-    const refund = await this.prisma.refund.findUnique({ where: { id } });
+    const refund = await this.prisma.refund.findUnique({ 
+      where: { id },
+      include: {
+        booking: {
+          include: { venue: { include: { admins: { where: { userId: adminUserId } } } } }
+        }
+      }
+    });
     if (!refund) throw new NotFoundException("Refund not found");
+
+    if (!isSuperAdmin) {
+      const venue = refund.booking.venue;
+      if (venue.ownerId !== adminUserId && venue.admins.length === 0) {
+        throw new NotFoundException("Refund not found");
+      }
+    }
 
     if (refund.status !== RefundStatus.PENDING) {
       throw new BadRequestException(`Cannot reject refund in status ${refund.status}`);
@@ -154,12 +194,22 @@ export class RefundsService {
     });
   }
 
-  async processRefund(id: string, adminUserId: string) {
+  async processRefund(id: string, adminUserId: string, isSuperAdmin: boolean) {
     const refund = await this.prisma.refund.findUnique({ 
       where: { id },
-      include: { booking: true, payment: true } 
+      include: { 
+        booking: { include: { venue: { include: { admins: { where: { userId: adminUserId } } } } } }, 
+        payment: true 
+      } 
     });
     if (!refund) throw new NotFoundException("Refund not found");
+
+    if (!isSuperAdmin) {
+      const venue = refund.booking.venue;
+      if (venue.ownerId !== adminUserId && venue.admins.length === 0) {
+        throw new NotFoundException("Refund not found");
+      }
+    }
 
     if (refund.status !== RefundStatus.APPROVED) {
       throw new BadRequestException(`Cannot process refund in status ${refund.status}`);
