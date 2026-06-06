@@ -117,23 +117,28 @@ export class PaymentsService {
     let providerReference = null;
 
     if (body.provider === "midtrans") {
-      const result = await this.paymentGateway.createTransaction({
-        orderId: payment.id,
-        amount: booking.finalAmount,
-        method: body.method,
-      });
-      redirectUrl = result.redirectUrl || null;
-      token = result.token || null;
-      providerReference = result.providerReference;
+      try {
+        const result = await this.paymentGateway.createTransaction({
+          orderId: payment.id,
+          amount: booking.finalAmount,
+          method: body.method,
+        });
+        redirectUrl = result.redirectUrl || null;
+        token = result.token || null;
+        providerReference = result.providerReference;
 
-      await this.prisma.payment.update({
-        where: { id: payment.id },
-        data: {
-          providerReference,
-          providerRedirectUrl: redirectUrl,
-          providerToken: token,
-        },
-      });
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            providerReference,
+            providerRedirectUrl: redirectUrl,
+            providerToken: token,
+          },
+        });
+      } catch (error) {
+        await this.prisma.payment.delete({ where: { id: payment.id } });
+        throw error;
+      }
     }
 
     const finalPayment = await this.prisma.payment.findUniqueOrThrow({

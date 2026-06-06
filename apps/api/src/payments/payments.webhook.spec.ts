@@ -25,6 +25,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
         findFirst: jest.fn().mockResolvedValue(payment),
         create: jest.fn(),
         update: jest.fn(),
+        delete: jest.fn(),
         findUniqueOrThrow: jest.fn(),
       },
       booking: {
@@ -71,6 +72,23 @@ describe("Midtrans Webhook and Gateway integration", () => {
       where: { id: "payment-1" },
       data: { providerReference: "payment-1", providerRedirectUrl: "http://redirect", providerToken: null },
     });
+  });
+
+  it("createIntent with midtrans gateway throwing does not leave a reusable orphaned PENDING payment", async () => {
+    const prisma = createPrismaMock();
+    prisma.booking.findFirst.mockResolvedValue({ id: "booking-1", finalAmount: 100000, status: BookingStatus.PENDING_PAYMENT });
+    prisma.payment.create.mockResolvedValue({ id: "payment-1" });
+    
+    const gateway = {
+      createTransaction: jest.fn().mockRejectedValue(new Error("Gateway down")),
+    };
+
+    const service = new PaymentsService(prisma as never, gateway as never);
+    await expect(service.createIntentForUser("user-1", { bookingId: "booking-1", provider: "midtrans", method: "va" })).rejects.toThrow("Gateway down");
+
+    expect(prisma.payment.create).toHaveBeenCalled();
+    expect(gateway.createTransaction).toHaveBeenCalled();
+    expect(prisma.payment.delete).toHaveBeenCalledWith({ where: { id: "payment-1" } });
   });
 
   it("rejects invalid signature length", async () => {
