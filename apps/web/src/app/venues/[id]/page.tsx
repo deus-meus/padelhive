@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
 import {
   Star,
   MapPin,
@@ -69,42 +71,23 @@ export default function VenueDetailPage({
   params: { id: string };
 }) {
   const fallbackVenue = mockVenues.find((v) => v.id === params.id);
-  const [venue, setVenue] = useState<Venue | null>(fallbackVenue ?? null);
-  const [courts, setCourts] = useState<Court[]>(fallbackVenue ? mockCourts.filter((c) => c.venueId === fallbackVenue.id) :[]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUsingFallback, setIsUsingFallback] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const { data: apiVenue, isLoading: isLoadingVenue, isError: isVenueError } = useQuery({
+    queryKey: queryKeys.venues.detail(params.id),
+    queryFn: () => getVenue(params.id),
+  });
 
-  useEffect(() => {
-    let cancelled = false;
+  const { data: apiCourts, isLoading: isLoadingCourts, isError: isCourtsError } = useQuery({
+    queryKey: queryKeys.venues.courts(params.id),
+    queryFn: () => getVenueCourts(params.id),
+  });
 
-    async function loadVenue() {
-      setIsLoading(true);
-      setIsUsingFallback(false);
-      setApiError(null);
+  const venue = apiVenue ?? fallbackVenue ?? null;
+  const fallbackCourts = useMemo(() => fallbackVenue ? mockCourts.filter((c) => c.venueId === fallbackVenue.id) : [], [fallbackVenue]);
+  const courts = apiCourts && apiCourts.length > 0 ? apiCourts : fallbackCourts;
 
-      try {
-        const [apiVenue, apiCourts] = await Promise.all([getVenue(params.id), getVenueCourts(params.id)]);
-        if (cancelled) return;
-        setVenue(apiVenue);
-        setCourts(apiCourts);
-      } catch {
-        if (cancelled) return;
-        setVenue(fallbackVenue ?? null);
-        setCourts(fallbackVenue ? mockCourts.filter((c) => c.venueId === fallbackVenue.id) :[]);
-        setApiError("Could not reach the live venue API.");
-        setIsUsingFallback(Boolean(fallbackVenue));
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    loadVenue();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fallbackVenue, params.id]);
+  const isLoading = isLoadingVenue || isLoadingCourts;
+  const isUsingFallback = isVenueError || (!apiVenue && Boolean(fallbackVenue));
+  const apiError = isVenueError || isCourtsError ? "Could not reach the live venue API." : null;
 
   const minPrice = useMemo(() => (courts.length ? Math.min(...courts.map((c) => c.pricing.weekdayOffPeak)) : 0), [courts]);
   const maxPrice = useMemo(() => (courts.length ? Math.max(...courts.map((c) => c.pricing.weekendPeak)) : 0), [courts]);

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -79,43 +81,22 @@ export default function BookingFlowPage({
 }) {
   const router = useRouter();
   const fallbackVenue = mockVenues.find((v) => v.id === params.id) ?? mockVenues[0];
-  const [venue, setVenue] = useState<Venue>(fallbackVenue);
-  const [courts, setCourts] = useState<Court[]>(mockCourts.filter((c) => c.venueId === fallbackVenue.id));
-  const [isLoadingApiData, setIsLoadingApiData] = useState(true);
-  const [isUsingFallback, setIsUsingFallback] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const { data: apiVenue, isLoading: isLoadingVenue, isError: isVenueError } = useQuery({
+    queryKey: queryKeys.venues.detail(params.id),
+    queryFn: () => getVenue(params.id),
+  });
 
-  useEffect(() => {
-    let cancelled = false;
+  const { data: apiCourts, isLoading: isLoadingCourts, isError: isCourtsError } = useQuery({
+    queryKey: queryKeys.venues.courts(params.id),
+    queryFn: () => getVenueCourts(params.id),
+  });
 
-    async function loadBookingDisplayData() {
-      setIsLoadingApiData(true);
-      setIsUsingFallback(false);
-      setApiError(null);
+  const venue = apiVenue ?? fallbackVenue;
+  const courts = apiCourts && apiCourts.length > 0 ? apiCourts : mockCourts.filter((c) => c.venueId === fallbackVenue.id);
 
-      try {
-        const [apiVenue, apiCourts] = await Promise.all([getVenue(params.id), getVenueCourts(params.id)]);
-        if (cancelled) return;
-        setVenue(apiVenue);
-        setCourts(apiCourts.length > 0 ? apiCourts : mockCourts.filter((c) => c.venueId === fallbackVenue.id));
-        setIsUsingFallback(apiCourts.length === 0);
-      } catch {
-        if (cancelled) return;
-        setVenue(fallbackVenue);
-        setCourts(mockCourts.filter((c) => c.venueId === fallbackVenue.id));
-        setApiError("Could not reach the live court API.");
-        setIsUsingFallback(true);
-      } finally {
-        if (!cancelled) setIsLoadingApiData(false);
-      }
-    }
-
-    loadBookingDisplayData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fallbackVenue, params.id]);
+  const isLoadingApiData = isLoadingVenue || isLoadingCourts;
+  const isUsingFallback = isVenueError || (!apiVenue && Boolean(fallbackVenue)) || (apiCourts && apiCourts.length === 0);
+  const apiError = isVenueError || isCourtsError ? "Could not reach the live court API." : null;
 
   const dates = useMemo(() => generateDates(), []);
 
@@ -132,39 +113,28 @@ export default function BookingFlowPage({
   const [dateScrollStart, setDateScrollStart] = useState(0);
   const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState<BookingSubmitError | null>(null);
-  const [timeSlots, setTimeSlots] = useState<ApiAvailabilitySlot[]>([]);
+  
   const dateStr = useMemo(() => formatBookingDate(selectedDate), [selectedDate]);
+  
+  const { data: availabilityResponse, isError: isAvailabilityError } = useQuery({
+    queryKey: queryKeys.venues.availability(venue.id, dateStr, selectedCourt.id),
+    queryFn: () => getVenueAvailability(venue.id, dateStr, selectedCourt.id),
+    enabled: !!(venue.id && selectedCourt?.id && dateStr),
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadAvailability() {
-      try {
-        const response = await getVenueAvailability(venue.id, dateStr, selectedCourt.id);
-        if (cancelled) return;
-
-        const court = response.courts.find((c) => c.id === selectedCourt.id);
-        setTimeSlots(court?.slots ?? []);
-      } catch {
-        if (cancelled) return;
-        const dateSeed = selectedDate.getFullYear() * 10000 + (selectedDate.getMonth() + 1) * 100 + selectedDate.getDate();
-        const courtSeed = selectedCourt.id.charCodeAt(selectedCourt.id.length - 1);
-        setTimeSlots(
-          generateTimeSlots(
-            venue.operatingHours.open,
-            venue.operatingHours.close,
-            dateSeed + courtSeed
-          )
-        );
-      }
+  const timeSlots = useMemo(() => {
+    if (availabilityResponse && !isAvailabilityError) {
+      const court = availabilityResponse.courts.find((c) => c.id === selectedCourt.id);
+      if (court) return court.slots;
     }
-
-    loadAvailability();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [venue.id, dateStr, selectedCourt.id, venue.operatingHours.open, venue.operatingHours.close, selectedDate]);
+    const dateSeed = selectedDate.getFullYear() * 10000 + (selectedDate.getMonth() + 1) * 100 + selectedDate.getDate();
+    const courtSeed = selectedCourt.id.charCodeAt(selectedCourt.id.length - 1);
+    return generateTimeSlots(
+      venue.operatingHours.open,
+      venue.operatingHours.close,
+      dateSeed + courtSeed
+    );
+  }, [availabilityResponse, isAvailabilityError, selectedCourt.id, selectedDate, venue.operatingHours]);
 
   function toggleSlot(time: string) {
     if (confirmState === "submitting") return;
@@ -199,39 +169,13 @@ export default function BookingFlowPage({
     }
   }, [selectedSlots, sortedSlots]);
 
-  async function handleConfirm() {
-    if (confirmState === "submitting") return;
+  const queryClient = useQueryClient();
 
-    const selectedUnavailableSlot = selectedSlots.some((time) => {
-      const slot = timeSlots.find((candidate) => candidate.startsAt === time);
-      return !slot || !slot.available;
-    });
-
-    if (
-      !venue.id ||
-      !selectedCourt?.id ||
-      selectedSlots.length === 0 ||
-      selectedUnavailableSlot ||
-      !areConsecutiveSlots(selectedSlots)
-    ) {
-      setConfirmState("error");
-      setSubmitError("invalid-selection");
-      return;
-    }
-
-    setConfirmState("submitting");
-    setSubmitError(null);
-
-    try {
-      const booking = await createBooking(
-        {
-          venueId: venue.id,
-          courtId: selectedCourt.id,
-          bookingDate: formatBookingDate(selectedDate),
-          startsAt: startTime,
-          endsAt: endTime,
-        }
-      );
+  const bookingMutation = useMutation({
+    mutationFn: (data: Parameters<typeof createBooking>[0]) => createBooking(data),
+    onSuccess: (booking) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue.id, formatBookingDate(selectedDate), selectedCourt.id) });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
 
       const query = new URLSearchParams({
         venue: booking.venue.name,
@@ -245,7 +189,8 @@ export default function BookingFlowPage({
 
       setConfirmState("success");
       router.push(`/booking/${booking.id}/invite?${query.toString()}`);
-    } catch (error) {
+    },
+    onError: (error) => {
       setConfirmState("error");
 
       if (error instanceof ApiRequestError) {
@@ -270,6 +215,38 @@ export default function BookingFlowPage({
 
       setSubmitError("backend-unavailable");
     }
+  });
+
+  async function handleConfirm() {
+    if (confirmState === "submitting") return;
+
+    const selectedUnavailableSlot = selectedSlots.some((time) => {
+      const slot = timeSlots.find((candidate) => candidate.startsAt === time);
+      return !slot || !slot.available;
+    });
+
+    if (
+      !venue.id ||
+      !selectedCourt?.id ||
+      selectedSlots.length === 0 ||
+      selectedUnavailableSlot ||
+      !areConsecutiveSlots(selectedSlots)
+    ) {
+      setConfirmState("error");
+      setSubmitError("invalid-selection");
+      return;
+    }
+
+    setConfirmState("submitting");
+    setSubmitError(null);
+
+    bookingMutation.mutate({
+      venueId: venue.id,
+      courtId: selectedCourt.id,
+      bookingDate: formatBookingDate(selectedDate),
+      startsAt: startTime,
+      endsAt: endTime,
+    });
   }
 
   const submitErrorMessage = (() => {

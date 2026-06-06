@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -52,55 +54,47 @@ function formatTimeRange(startsAt: string, endsAt: string) {
 }
 
 export default function InviteRsvpPage({ params }: { params: { token: string } }) {
-  const [invite, setInvite] = useState<InviteDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState<RsvpStatus | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submittedStatus, setSubmittedStatus] = useState<RsvpStatus | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const loadInvite = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
+  const { data: invite, isLoading, isError, error: queryError, refetch } = useQuery({
+    queryKey: queryKeys.invites.detail(params.token),
+    queryFn: () => getInvite(params.token),
+  });
 
-    try {
-      const details = await getInvite(params.token);
-      setInvite(details);
-    } catch (error) {
+  const errorMessage = isError
+    ? queryError instanceof ApiRequestError && queryError.status === 404
+      ? "This invite link is invalid or no longer available."
+      : "Could not load this invite. Please try again."
+    : null;
+
+  const queryClient = useQueryClient();
+
+  const rsvpMutation = useMutation({
+    mutationFn: (status: RsvpStatus) => rsvpInvite(params.token, { status }),
+    onMutate: () => {
+      setSubmitError(null);
+    },
+    onSuccess: (updatedInvite, status) => {
+      queryClient.setQueryData(queryKeys.invites.detail(params.token), (current: InviteDetails | undefined) => 
+        current ? { ...current, ...updatedInvite } : current
+      );
+      setSubmittedStatus(status);
+    },
+    onError: (error) => {
       if (error instanceof ApiRequestError && error.status === 404) {
-        setErrorMessage("This invite link is invalid or no longer available.");
+        setSubmitError("This invite link is invalid or no longer available.");
+      } else if (error instanceof ApiRequestError && error.status === 400) {
+        setSubmitError("Choose Accept or Decline to RSVP.");
       } else {
-        setErrorMessage("Could not load this invite. Please try again.");
+        setSubmitError("Could not save your RSVP. Please try again.");
       }
-    } finally {
-      setIsLoading(false);
     }
-  }, [params.token]);
-
-  useEffect(() => {
-    void loadInvite();
-  }, [loadInvite]);
+  });
 
   async function handleRsvp(status: RsvpStatus) {
-    if (isSubmitting) return;
-
-    setIsSubmitting(status);
-    setErrorMessage(null);
-
-    try {
-      const updatedInvite = await rsvpInvite(params.token, { status });
-      setInvite((current) => current ? { ...current, ...updatedInvite } : current);
-      setSubmittedStatus(status);
-    } catch (error) {
-      if (error instanceof ApiRequestError && error.status === 404) {
-        setErrorMessage("This invite link is invalid or no longer available.");
-      } else if (error instanceof ApiRequestError && error.status === 400) {
-        setErrorMessage("Choose Accept or Decline to RSVP.");
-      } else {
-        setErrorMessage("Could not save your RSVP. Please try again.");
-      }
-    } finally {
-      setIsSubmitting(null);
-    }
+    if (rsvpMutation.isPending) return;
+    rsvpMutation.mutate(status);
   }
 
   if (isLoading) {
@@ -127,7 +121,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
               {errorMessage ?? "This invite link is invalid or no longer available."}
             </p>
             <button
-              onClick={loadInvite}
+              onClick={() => refetch()}
               className="mt-6 rounded-full border border-white/[0.08] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/70 hover:border-white/[0.15] hover:text-[#F7F7F7]"
             >
               Try Again
@@ -220,25 +214,25 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button
                 onClick={() => handleRsvp("ACCEPTED")}
-                disabled={Boolean(isSubmitting)}
+                disabled={rsvpMutation.isPending}
                 className="btn-lime flex h-12 items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {isSubmitting === "ACCEPTED" ? "Saving..." : "Accept Invite"}
+                {rsvpMutation.isPending && rsvpMutation.variables === "ACCEPTED" ? "Saving..." : "Accept Invite"}
               </button>
               <button
                 onClick={() => handleRsvp("DECLINED")}
-                disabled={Boolean(isSubmitting)}
+                disabled={rsvpMutation.isPending}
                 className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-red-300/30 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {isSubmitting === "DECLINED" ? "Saving..." : "Decline"}
+                {rsvpMutation.isPending && rsvpMutation.variables === "DECLINED" ? "Saving..." : "Decline"}
               </button>
             </div>
           )}
 
-          {errorMessage && invite && (
+          {submitError && invite && (
             <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
-              <p className="text-[11px] leading-relaxed text-red-200/80">{errorMessage}</p>
+              <p className="text-[11px] leading-relaxed text-red-200/80">{submitError}</p>
             </div>
           )}
         </div>

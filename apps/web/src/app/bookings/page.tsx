@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
 import {
   MapPin,
   Clock,
@@ -34,39 +36,16 @@ export default function BookingsPage() {
   const router = useRouter();
   const [bookingToCancel, setBookingToCancel] = useState<ApiBooking | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [bookings, setBookings] = useState<ApiBooking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: bookings = [], isLoading, isError, error: queryError } = useQuery({
+    queryKey: queryKeys.bookings.user(activeTab),
+    queryFn: () => getUserBookings(activeTab),
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchBookings() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const data = await getUserBookings(activeTab);
-        if (!cancelled) setBookings(data);
-      } catch (err) {
-        if (!cancelled) {
-          if (err instanceof ApiRequestError) {
-            setError(err.message || "Failed to load bookings");
-          } else {
-            setError("Failed to load bookings");
-          }
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    fetchBookings();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, router]);
+  const error = isError
+    ? queryError instanceof ApiRequestError
+      ? queryError.message || "Failed to load bookings"
+      : "Failed to load bookings"
+    : null;
 
   const visibleBookings = bookings.map((booking) =>
     cancelledIds.includes(booking.id)
@@ -131,17 +110,17 @@ export default function BookingsPage() {
     setBookingToCancel(booking);
   }
 
-  async function confirmCancel() {
-    if (!bookingToCancel || isCancelling) return;
+  const queryClient = useQueryClient();
 
-    setIsCancelling(true);
-
-    try {
-      const result = await cancelBooking(bookingToCancel.id);
-      setCancelledIds((prev) => (prev.includes(bookingToCancel.id) ? prev : [...prev, bookingToCancel.id]));
+  const cancelMutation = useMutation({
+    mutationFn: cancelBooking,
+    onSuccess: (result, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.user(activeTab) });
+      setCancelledIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
       setBookingToCancel(null);
       showToast(getSuccessMessage(result));
-    } catch (error) {
+    },
+    onError: (error) => {
       if (error instanceof ApiRequestError) {
         if (error.status === 404) {
           showToast("Booking was not found for this account.");
@@ -153,9 +132,16 @@ export default function BookingsPage() {
       } else {
         showToast("Could not cancel booking. Please try again.");
       }
-    } finally {
+    },
+    onSettled: () => {
       setIsCancelling(false);
     }
+  });
+
+  async function confirmCancel() {
+    if (!bookingToCancel || isCancelling) return;
+    setIsCancelling(true);
+    cancelMutation.mutate(bookingToCancel.id);
   }
 
   if (isLoading) {
