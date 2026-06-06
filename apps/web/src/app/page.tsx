@@ -1,5 +1,11 @@
 import Link from "next/link";
+import { Metadata } from "next";
 import { Star, MapPin, ArrowRight, Users, Calendar, Search, Clock as ClockIcon } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "PadelHive - Play. Compete. Connect.",
+  description: "Indonesia's premier padel community. Book courts, join matches, meet players.",
+};
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { PlayerAvatarStack } from "@/components/ui/player-avatar-stack";
