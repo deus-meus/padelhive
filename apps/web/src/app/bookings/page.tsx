@@ -17,7 +17,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { ApiRequestError, cancelBooking, getUserBookings, ApiBooking } from "@/lib/api";
-import { getIdToken } from "@/lib/auth-client";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -47,13 +46,7 @@ export default function BookingsPage() {
       setError(null);
 
       try {
-        const authToken = await getIdToken();
-        if (!authToken) {
-          if (!cancelled) router.push(`/auth/login?next=${encodeURIComponent("/bookings")}`);
-          return;
-        }
-
-        const data = await getUserBookings(activeTab, authToken);
+        const data = await getUserBookings(activeTab);
         if (!cancelled) setBookings(data);
       } catch (err) {
         if (!cancelled) {
@@ -142,15 +135,9 @@ export default function BookingsPage() {
     if (!bookingToCancel || isCancelling) return;
 
     setIsCancelling(true);
-    const authToken = await getIdToken();
-    if (!authToken) {
-      setIsCancelling(false);
-      router.push(`/auth/login?next=${encodeURIComponent("/bookings")}`);
-      return;
-    }
 
     try {
-      const result = await cancelBooking(bookingToCancel.id, authToken);
+      const result = await cancelBooking(bookingToCancel.id);
       setCancelledIds((prev) => (prev.includes(bookingToCancel.id) ? prev : [...prev, bookingToCancel.id]));
       setBookingToCancel(null);
       showToast(getSuccessMessage(result));

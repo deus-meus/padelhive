@@ -16,7 +16,6 @@ import {
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { ApiRequestError, createBooking, getVenue, getVenueCourts, getVenueAvailability, ApiAvailabilitySlot } from "@/lib/api";
-import { getIdToken } from "@/lib/auth-client";
 import { Court, Venue } from "@/types";
 
 const DAYS_AHEAD = 14;
@@ -220,14 +219,6 @@ export default function BookingFlowPage({
       return;
     }
 
-    const authToken = await getIdToken();
-    if (!authToken) {
-      setConfirmState("error");
-      setSubmitError("auth-required");
-      router.push(`/auth/login?next=${encodeURIComponent(`/venues/${venue.id}/book`)}`);
-      return;
-    }
-
     setConfirmState("submitting");
     setSubmitError(null);
 
@@ -239,8 +230,7 @@ export default function BookingFlowPage({
           bookingDate: formatBookingDate(selectedDate),
           startsAt: startTime,
           endsAt: endTime,
-        },
-        authToken
+        }
       );
 
       const query = new URLSearchParams({

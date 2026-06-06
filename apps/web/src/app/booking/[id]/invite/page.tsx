@@ -17,7 +17,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { ApiRequestError, createBookingInvite, getBookingInvites, type InviteSummary } from "@/lib/api";
-import { getIdToken } from "@/lib/auth-client";
 
 const STATUS_CONFIG = {
   ACCEPTED: {
@@ -97,16 +96,8 @@ export default function InviteFriendsPage({
     setIsLoading(true);
     setErrorMessage(null);
 
-    const authToken = await getIdToken();
-    if (!authToken) {
-      setIsLoading(false);
-      setErrorMessage("Sign in before managing booking invites.");
-      router.push(`/auth/login?next=${encodeURIComponent(`/booking/${params.id}/invite`)}`);
-      return;
-    }
-
     try {
-      const inviteList = await getBookingInvites(params.id, authToken);
+      const inviteList = await getBookingInvites(params.id);
       setInvites(inviteList);
     } catch (error) {
       if (error instanceof ApiRequestError) {
@@ -144,16 +135,8 @@ export default function InviteFriendsPage({
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const authToken = await getIdToken();
-    if (!authToken) {
-      setIsSubmitting(false);
-      setErrorMessage("Sign in before inviting friends.");
-      router.push(`/auth/login?next=${encodeURIComponent(`/booking/${params.id}/invite`)}`);
-      return;
-    }
-
     try {
-      const invite = await createBookingInvite(params.id, { email }, authToken);
+      const invite = await createBookingInvite(params.id, { email });
       setInvites((current) => {
         const withoutDuplicate = current.filter((item) => item.id !== invite.id);
         return [...withoutDuplicate, invite];

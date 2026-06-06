@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import { enhancedBookings, type Participant } from "@/mock/enhanced-bookings";
 import { ApiRequestError, cancelBooking } from "@/lib/api";
-import { getIdToken } from "@/lib/auth-client";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
@@ -99,15 +98,9 @@ export default function BookingDetailPage() {
     if (isCancelling) return;
 
     setIsCancelling(true);
-    const authToken = await getIdToken();
-    if (!authToken) {
-      setIsCancelling(false);
-      router.push(`/auth/login?next=${encodeURIComponent(`/bookings/${bookingId}`)}`);
-      return;
-    }
 
     try {
-      const result = await cancelBooking(bookingId, authToken);
+      const result = await cancelBooking(bookingId);
       setIsCancelled(true);
       setShowCancelModal(false);
       const message = getSuccessMessage(result);
