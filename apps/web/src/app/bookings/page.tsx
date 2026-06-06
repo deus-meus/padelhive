@@ -19,7 +19,7 @@ import {
   XCircle,
   RotateCcw,
 } from "lucide-react";
-import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking } from "@/lib/api";
+import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking, ApiRefund } from "@/lib/api";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -84,19 +84,11 @@ export default function BookingsPage() {
     setTimeout(() => setToast(null), 2500);
   }
 
-  function getBookingStart(booking: ApiBooking): Date {
-    return new Date(`${booking.bookingDate}T${booking.startsAt}:00.000Z`);
-  }
-
   function getRefundNote(booking: ApiBooking): string {
-    const isEligible = getBookingStart(booking).getTime() - Date.now() >= 24 * 60 * 60 * 1000;
-    if (isEligible && booking.isRefundEligible) {
+    if (booking.isRefundEligible) {
       return booking.refundPolicyReason ?? "Full refund eligible. A pending refund request will be created after cancellation.";
     }
-    if (isEligible) {
-      return "Full refund eligible, but no paid payment exists for this booking.";
-    }
-    return "Non-refundable: less than 24 hours before booking start.";
+    return booking.refundPolicyReason ?? "This booking is not eligible for a refund.";
   }
 
   function getSuccessMessage(result: { isRefundEligible?: boolean; refundAmount?: number; refundPolicyReason?: string }): string {
@@ -415,7 +407,7 @@ export default function BookingsPage() {
             <p className="section-label">Request Refund</p>
             <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Why are you requesting a refund?</h2>
             <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#50C8C8]/5 p-4">
-              <p className="text-sm font-medium text-[#50C8C8]">Eligible Amount: Rp {(bookingToRefund.refundAmount! / 1000).toFixed(0)}K</p>
+              <p className="text-sm font-medium text-[#50C8C8]">Eligible Amount: Rp {(Number(bookingToRefund.refundAmount ?? 0) / 1000).toFixed(0)}K</p>
               <p className="mt-1 text-xs leading-5 text-[#50C8C8]/70">{bookingToRefund.refundPolicyReason}</p>
             </div>
             <div className="mt-4">
@@ -506,7 +498,7 @@ function BookingRow({
   muted?: boolean;
   onCancel: () => void;
   onRequestRefund: () => void;
-  myRefunds?: any[];
+  myRefunds?: ApiRefund[];
 }) {
   const court = booking.court;
   const venue = booking.venue;
