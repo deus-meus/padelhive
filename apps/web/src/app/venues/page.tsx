@@ -15,7 +15,7 @@ export default async function VenuesPage() {
 
   await queryClient.prefetchQuery({
     queryKey: queryKeys.venues.all(),
-    queryFn: getVenues,
+    queryFn: () => getVenues({ revalidate: 60 }),
   });
 
   return (

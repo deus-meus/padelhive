@@ -9,7 +9,7 @@ type Params = { id: string };
 
 export async function generateMetadata({ params }: { params: Params }) {
   try {
-    const venue = await getVenue(params.id);
+    const venue = await getVenue(params.id, { revalidate: 60 });
     return {
       title: `${venue.name} | PadelHive`,
       description: venue.description,
@@ -27,11 +27,11 @@ export default async function VenueDetailPage({ params }: { params: Params }) {
   await Promise.all([
     queryClient.prefetchQuery({
       queryKey: queryKeys.venues.detail(params.id),
-      queryFn: () => getVenue(params.id),
+      queryFn: () => getVenue(params.id, { revalidate: 60 }),
     }),
     queryClient.prefetchQuery({
       queryKey: queryKeys.venues.courts(params.id),
-      queryFn: () => getVenueCourts(params.id),
+      queryFn: () => getVenueCourts(params.id, { revalidate: 60 }),
     }),
   ]);
 
