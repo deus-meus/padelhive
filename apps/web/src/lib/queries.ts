@@ -19,5 +19,12 @@ export const queryKeys = {
   },
   vouchers: {
     all: () => ["vouchers"] as const,
-  }
+  },
+  refunds: {
+    all: ["refunds"] as const,
+    list: (status?: string) => ["refunds", "list", { status }] as const,
+    detail: (id: string) => ["refunds", "detail", id] as const,
+    history: (id: string) => ["refunds", "detail", id, "history"] as const,
+    me: ["refunds", "me"] as const,
+  },
 };

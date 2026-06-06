@@ -167,6 +167,47 @@ export type RsvpInviteInput = {
   status: "ACCEPTED" | "DECLINED";
 };
 
+export type RefundStatus = "PENDING" | "APPROVED" | "REJECTED" | "PROCESSED";
+
+export type ApiRefundEvent = {
+  id: string;
+  fromStatus: RefundStatus | null;
+  toStatus: RefundStatus;
+  actorUserId: string;
+  notes: string | null;
+  createdAt: string;
+  actor: { id: string; name: string | null; email: string };
+};
+
+export type ApiRefund = {
+  id: string;
+  bookingId: string;
+  paymentId: string | null;
+  amount: number;
+  reason: string;
+  status: RefundStatus;
+  adminNotes: string | null;
+  processedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  booking?: {
+    id: string;
+    bookingDate: string;
+    venue: { id: string; name: string };
+    court: { id: string; name: string };
+    host?: { id: string; name: string | null; email: string };
+  };
+};
+
+export type CreateRefundInput = {
+  bookingId: string;
+  reason: string;
+};
+
+export type ProcessRefundInput = {
+  adminNotes?: string;
+};
+
 export class ApiRequestError extends Error {
   constructor(
     message: string,
@@ -239,8 +280,8 @@ function mapVenue(venue: ApiVenue): Venue {
         : [padelImg(1200, 85), padelImg(600), padelImg(600)],
     facilities: venue.facilities,
     operatingHours: { open: venue.openTime, close: venue.closeTime },
-    rating: venue.rating,
-    reviewCount: venue.reviewCount,
+    rating: Number(venue.rating),
+    reviewCount: Number(venue.reviewCount),
     isVerified: venue.status === "APPROVED",
     createdAt: new Date().toISOString(),
   };
@@ -253,10 +294,10 @@ function mapCourt(court: ApiCourt, venueId: string): Court {
     name: court.name,
     type: court.type.toLowerCase() as Court["type"],
     pricing: {
-      weekdayPeak: court.weekdayPeak,
-      weekdayOffPeak: court.weekdayOffPeak,
-      weekendPeak: court.weekendPeak,
-      weekendOffPeak: court.weekendOffPeak,
+      weekdayPeak: Number(court.weekdayPeak),
+      weekdayOffPeak: Number(court.weekdayOffPeak),
+      weekendPeak: Number(court.weekendPeak),
+      weekendOffPeak: Number(court.weekendOffPeak),
     },
     isActive: court.isActive,
   };
@@ -378,4 +419,37 @@ export async function rsvpInvite(token: string, input: RsvpInviteInput): Promise
     method: "PATCH",
     body: JSON.stringify(input),
   });
+}
+
+export async function createRefund(input: CreateRefundInput): Promise<ApiRefund> {
+  return apiFetch<ApiRefund>("/refunds", { method: "POST", body: JSON.stringify(input) });
+}
+
+export async function getMyRefunds(): Promise<ApiRefund[]> {
+  return apiFetch<ApiRefund[]>("/refunds/me");
+}
+
+export async function getRefunds(status?: RefundStatus): Promise<ApiRefund[]> {
+  const query = status ? `?status=${status}` : "";
+  return apiFetch<ApiRefund[]>(`/refunds${query}`);
+}
+
+export async function getRefundById(id: string): Promise<ApiRefund> {
+  return apiFetch<ApiRefund>(`/refunds/${id}`);
+}
+
+export async function getRefundHistory(id: string): Promise<ApiRefundEvent[]> {
+  return apiFetch<ApiRefundEvent[]>(`/refunds/${id}/history`);
+}
+
+export async function approveRefund(id: string, adminNotes?: string): Promise<ApiRefund> {
+  return apiFetch<ApiRefund>(`/refunds/${id}/approve`, { method: "PATCH", body: JSON.stringify({ adminNotes }) });
+}
+
+export async function rejectRefund(id: string, adminNotes?: string): Promise<ApiRefund> {
+  return apiFetch<ApiRefund>(`/refunds/${id}/reject`, { method: "PATCH", body: JSON.stringify({ adminNotes }) });
+}
+
+export async function processRefund(id: string): Promise<ApiRefund> {
+  return apiFetch<ApiRefund>(`/refunds/${id}/process`, { method: "PATCH" });
 }

@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { Clock, Save, CheckCircle2 } from "lucide-react";
-import { mockVenues } from "@/mock/venues";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
+import { getVenues } from "@/lib/api";
+import { Venue } from "@/types";
 
 const DAYS = [
   "Monday",
@@ -21,7 +24,7 @@ interface DaySchedule {
   isOpen: boolean;
 }
 
-function getDefaultSchedule(venue: typeof mockVenues[0]): DaySchedule[] {
+function getDefaultSchedule(venue: Venue): DaySchedule[] {
   return DAYS.map((day) => ({
     day,
     open: venue.operatingHours.open,
@@ -31,23 +34,33 @@ function getDefaultSchedule(venue: typeof mockVenues[0]): DaySchedule[] {
 }
 
 export default function OperatingHoursPage() {
-  const [selectedVenue, setSelectedVenue] = useState(mockVenues[0].id);
-  const venue = mockVenues.find((v) => v.id === selectedVenue)!;
-  const [schedule, setSchedule] = useState<DaySchedule[]>(
-    getDefaultSchedule(venue)
-  );
+  const { data: venues = [], isLoading } = useQuery({
+    queryKey: queryKeys.venues.all(),
+    queryFn: getVenues,
+  });
+
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
+  const activeVenueId = selectedVenueId || (venues.length > 0 ? venues[0].id : null);
+  const venue = venues.find((v) => v.id === activeVenueId);
+
+  const [schedule, setSchedule] = useState<DaySchedule[] | null>(null);
   const [saved, setSaved] = useState(false);
 
   function handleVenueChange(id: string) {
-    setSelectedVenue(id);
-    const v = mockVenues.find((v) => v.id === id)!;
-    setSchedule(getDefaultSchedule(v));
+    setSelectedVenueId(id);
+    const v = venues.find((v) => v.id === id);
+    if (v) setSchedule(getDefaultSchedule(v));
     setSaved(false);
+  }
+
+  // Initialize schedule once venue is loaded
+  if (venue && !schedule) {
+    setSchedule(getDefaultSchedule(venue));
   }
 
   function updateDay(index: number, field: keyof DaySchedule, value: string | boolean) {
     setSchedule((prev) =>
-      prev.map((d, i) => (i === index ? { ...d, [field]: value } : d))
+      prev ? prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)) : null
     );
     setSaved(false);
   }
@@ -94,12 +107,13 @@ export default function OperatingHoursPage() {
 
         {/* Venue selector */}
         <div className="mt-6 flex gap-2">
-          {mockVenues.map((v) => (
+          {isLoading && <span className="text-sm text-[#F7F7F7]/40">Loading venues...</span>}
+          {venues.map((v) => (
             <button
               key={v.id}
               onClick={() => handleVenueChange(v.id)}
               className={`rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
-                selectedVenue === v.id
+                activeVenueId === v.id
                   ? "bg-[#E6FA50] text-[#06121A]"
                   : "bg-white/[0.03] text-[#F7F7F7]/35 hover:bg-white/[0.06] hover:text-[#F7F7F7]/70"
               }`}
@@ -110,12 +124,14 @@ export default function OperatingHoursPage() {
         </div>
 
         {/* Current hours summary */}
-        <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3">
-          <Clock className="h-4 w-4 text-[#50C8C8]" />
-          <span className="text-sm text-[#F7F7F7]/50">
-            Default: {venue.operatingHours.open} – {venue.operatingHours.close}
-          </span>
-        </div>
+        {venue && (
+          <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3">
+            <Clock className="h-4 w-4 text-[#50C8C8]" />
+            <span className="text-sm text-[#F7F7F7]/50">
+              Default: {venue.operatingHours.open} – {venue.operatingHours.close}
+            </span>
+          </div>
+        )}
 
         {/* Schedule table */}
         <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] overflow-hidden">
@@ -128,7 +144,7 @@ export default function OperatingHoursPage() {
           </div>
 
           {/* Day rows */}
-          {schedule.map((day, i) => (
+          {schedule?.map((day, i) => (
             <div
               key={day.day}
               className={`grid grid-cols-[1fr_80px_80px_60px] items-center gap-4 border-b border-white/[0.03] px-6 py-4 last:border-0 sm:grid-cols-[1fr_120px_120px_80px] ${

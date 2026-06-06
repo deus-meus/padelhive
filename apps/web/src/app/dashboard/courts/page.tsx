@@ -9,21 +9,33 @@ import {
   Zap,
   Sun,
 } from "lucide-react";
-import { mockCourts } from "@/mock/courts";
-import { mockVenues } from "@/mock/venues";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
+import { getVenues, getVenueCourts } from "@/lib/api";
 
 export default function CourtsPage() {
   const [editingCourt, setEditingCourt] = useState<string | null>(null);
-  const [selectedVenue, setSelectedVenue] = useState(mockVenues[0].id);
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  const { data: venues = [], isLoading: isVenuesLoading } = useQuery({
+    queryKey: queryKeys.venues.all(),
+    queryFn: getVenues,
+  });
+
+  const activeVenueId = selectedVenueId || (venues.length > 0 ? venues[0].id : null);
+  const venue = venues.find((v) => v.id === activeVenueId);
+
+  const { data: courts = [], isLoading: isCourtsLoading } = useQuery({
+    queryKey: activeVenueId ? queryKeys.venues.courts(activeVenueId) : [],
+    queryFn: () => activeVenueId ? getVenueCourts(activeVenueId) : Promise.resolve([]),
+    enabled: !!activeVenueId,
+  });
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   }
-
-  const courts = mockCourts.filter((c) => c.venueId === selectedVenue);
-  const venue = mockVenues.find((v) => v.id === selectedVenue);
 
   return (
     <div className="py-8">
@@ -49,12 +61,13 @@ export default function CourtsPage() {
 
         {/* Venue selector */}
         <div className="mt-6 flex gap-2">
-          {mockVenues.map((v) => (
+          {isVenuesLoading && <span className="text-sm text-[#F7F7F7]/40">Loading venues...</span>}
+          {venues.map((v) => (
             <button
               key={v.id}
-              onClick={() => setSelectedVenue(v.id)}
+              onClick={() => setSelectedVenueId(v.id)}
               className={`rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
-                selectedVenue === v.id
+                activeVenueId === v.id
                   ? "bg-[#E6FA50] text-[#06121A]"
                   : "bg-white/[0.03] text-[#F7F7F7]/35 hover:bg-white/[0.06] hover:text-[#F7F7F7]/70"
               }`}
@@ -149,7 +162,13 @@ export default function CourtsPage() {
           })}
         </div>
 
-        {courts.length === 0 && (
+        {isCourtsLoading && (
+          <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
+            <p className="text-sm text-[#F7F7F7]/30">Loading courts...</p>
+          </div>
+        )}
+
+        {!isCourtsLoading && courts.length === 0 && activeVenueId && (
           <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
             <p className="text-sm text-[#F7F7F7]/30">No courts for this venue yet.</p>
             <button
