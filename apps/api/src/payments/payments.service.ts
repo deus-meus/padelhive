@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { BookingStatus, CourtType, PaymentStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreatePaymentIntentDto } from "./dto/create-payment-intent.dto";
@@ -67,6 +67,8 @@ type SelectedPayment = {
 
 @Injectable()
 export class PaymentsService {
+  private readonly logger = new Logger(PaymentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     @Inject(PAYMENT_GATEWAY_TOKEN)
@@ -249,6 +251,12 @@ export class PaymentsService {
 
     if (!targetPaymentStatus) {
       return;
+    }
+
+    if (targetPaymentStatus === PaymentStatus.PAID && payment.booking.status !== BookingStatus.PENDING_PAYMENT) {
+      this.logger.warn(
+        `Settled payment landed on a non-payable booking and may need manual review/refund. Order ID: ${payment.id}, Booking ID: ${payment.bookingId}, Current Booking Status: ${payment.booking.status}`
+      );
     }
 
     await this.prisma.$transaction(async (tx) => {
