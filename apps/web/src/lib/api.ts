@@ -60,6 +60,7 @@ export type ApiBooking = {
   isRefundEligible?: boolean;
   refundAmount?: number;
   refundPolicyReason?: string;
+  payment?: { id: string; amount: number; status: string } | null;
   venue: { id: string; name: string; city: string };
   court: { id: string; name: string; type: string };
   host?: { id: string; name: string | null; email: string };
@@ -104,6 +105,8 @@ type ApiPayment = {
   provider: string;
   method: string;
   providerReference: string | null;
+  providerToken: string | null;
+  providerRedirectUrl: string | null;
   paidAt: string | null;
   failedAt: string | null;
   createdAt: string;
@@ -316,6 +319,10 @@ export async function getUserBookings(
   filter: BookingFilter
 ): Promise<ApiBooking[]> {
   return apiFetch<ApiBooking[]>(`/bookings/me?filter=${filter}`);
+}
+
+export async function getBookingById(id: string): Promise<BookingSummary> {
+  return apiFetch<ApiBooking>(`/bookings/${id}`);
 }
 
 export async function getVenueAvailability(

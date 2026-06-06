@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
+import Script from "next/script";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CreditCard,
@@ -15,7 +18,23 @@ import {
   Shield,
   UserPlus,
 } from "lucide-react";
-import { ApiRequestError, createPaymentIntent, markPaymentPaid, type PaymentSummary } from "@/lib/api";
+import { ApiRequestError, createPaymentIntent, markPaymentPaid, getBookingById } from "@/lib/api";
+
+declare global {
+  interface Window {
+    snap: {
+      pay: (
+        token: string,
+        options?: {
+          onSuccess?: (result: any) => void;
+          onPending?: (result: any) => void;
+          onError?: (result: any) => void;
+          onClose?: () => void;
+        }
+      ) => void;
+    };
+  }
+}
 
 interface SplitPlayer {
   id: string;
@@ -104,26 +123,33 @@ export default function PaymentPage({
   params: { id: string };
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [splitEnabled, setSplitEnabled] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [payment, setPayment] = useState<PaymentSummary | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [markingPaid, setMarkingPaid] = useState(false);
-  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
 
-  const venue = searchParams.get("venue") ?? "Padel Bali Arena";
-  const court = searchParams.get("court") ?? "Court A";
-  const date = searchParams.get("date") ?? "2026-05-29";
-  const start = searchParams.get("start") ?? "10:00";
-  const end = searchParams.get("end") ?? "11:00";
-  const amount = parseInt(searchParams.get("amount") ?? "300000");
-  const venueId = searchParams.get("venueId") ?? "venue-1";
+  const isDemoMode = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION !== "true";
+  const snapScriptUrl = isDemoMode
+    ? "https://app.sandbox.midtrans.com/snap/snap.js"
+    : "https://app.midtrans.com/snap/snap.js";
+  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
 
-  const platformFee = Math.round(amount * 0.05);
-  const totalAmount = amount + platformFee;
+  const { data: booking, isLoading: isBookingLoading, isError: isBookingError } = useQuery({
+    queryKey: queryKeys.bookings.detail(params.id),
+    queryFn: () => getBookingById(params.id),
+  });
+
+  const venue = booking?.venue.name ?? "—";
+  const court = booking?.court.name ?? "—";
+  const date = booking?.bookingDate ?? "—";
+  const start = booking?.startsAt ?? "—";
+  const end = booking?.endsAt ?? "—";
+  const amount = booking?.courtAmount ?? 0;
+  const venueId = booking?.venue.id ?? "";
+
+  const platformFee = booking?.platformFee ?? 0;
+  const totalAmount = booking?.finalAmount ?? 0;
 
   const playerCount = SPLIT_PLAYERS.length;
   const perPlayer = Math.ceil(totalAmount / playerCount);
@@ -151,7 +177,13 @@ export default function PaymentPage({
   })();
 
   async function handlePay() {
-    if (!selectedMethod || processing) return;
+    if (!selectedMethod || processing || !booking) return;
+
+    if (typeof window === "undefined" || !window.snap) {
+      setPaymentError("Payment module is still loading. Please try again in a moment.");
+      setProcessing(false);
+      return;
+    }
 
     setProcessing(true);
     setPaymentError(null);
@@ -160,8 +192,27 @@ export default function PaymentPage({
       const paymentIntent = await createPaymentIntent(
         { bookingId: params.id, method: selectedMethod as "va" | "ewallet" | "card" }
       );
-      setPayment(paymentIntent);
-      setSuccess(true);
+      
+      if (paymentIntent.providerToken) {
+        window.snap.pay(paymentIntent.providerToken, {
+          onSuccess: () => {
+            router.push(`/booking/${params.id}/success?paymentId=${paymentIntent.id}`);
+          },
+          onPending: () => {
+            router.push(`/booking/${params.id}/success?paymentId=${paymentIntent.id}`);
+          },
+          onError: () => {
+            setPaymentError("Payment failed or was declined. Please try again.");
+            setProcessing(false);
+          },
+          onClose: () => {
+            setProcessing(false);
+          }
+        });
+      } else {
+        setPaymentError("Missing payment token. Please try again.");
+        setProcessing(false);
+      }
     } catch (error) {
       if (error instanceof ApiRequestError) {
         if (error.status === 401 || error.status === 403) {
@@ -178,128 +229,54 @@ export default function PaymentPage({
       } else {
         setPaymentError("Payment service is unavailable. Please try again later.");
       }
-    } finally {
       setProcessing(false);
     }
   }
 
   async function handleMarkPaid() {
-    if (!payment || markingPaid) return;
+    if (markingPaid) return;
 
     setMarkingPaid(true);
     setPaymentError(null);
-    setConfirmationMessage(null);
 
     try {
-      const paidPayment = await markPaymentPaid(payment.id);
-      setPayment(paidPayment);
-      setConfirmationMessage("Payment marked as paid. Booking confirmed.");
-      window.setTimeout(() => {
-        router.push(
-          `/booking/${params.id}/success?venue=${encodeURIComponent(paidPayment.booking.venue.name)}&court=${encodeURIComponent(paidPayment.booking.court.name)}&date=${encodeURIComponent(paidPayment.booking.bookingDate)}&start=${encodeURIComponent(paidPayment.booking.startsAt)}&end=${encodeURIComponent(paidPayment.booking.endsAt)}&amount=${paidPayment.amount}`
-        );
-      }, 900);
+      let paymentId = booking?.payment?.id;
+      if (!paymentId) {
+        try {
+          const paymentIntent = await createPaymentIntent({ bookingId: params.id, method: "va" });
+          paymentId = paymentIntent.id;
+        } catch (err: any) {
+          if (err instanceof ApiRequestError && err.status === 409) {
+            const freshBooking = await getBookingById(params.id);
+            if (freshBooking.payment?.id) {
+              paymentId = freshBooking.payment.id;
+            } else {
+              throw new Error("Could not resolve existing payment.");
+            }
+          } else {
+            throw err;
+          }
+        }
+      }
+
+      const paidPayment = await markPaymentPaid(paymentId);
+      router.push(`/booking/${params.id}/success?paymentId=${paidPayment.id}`);
     } catch (error) {
       if (error instanceof ApiRequestError) {
-        if (error.status === 401 || error.status === 403) {
-          setPaymentError("This demo payment belongs to another account or your session expired.");
-        } else if (error.status === 404) {
-          setPaymentError("Payment was not found.");
-        } else if (error.status === 400) {
-          setPaymentError(error.message || "This payment cannot be marked paid in demo mode.");
-        } else if (error.status && error.status >= 500) {
-          setPaymentError("Payment service is unavailable. Please try again later.");
-        } else {
-          setPaymentError("Could not mark demo payment as paid. Please try again.");
-        }
+        setPaymentError(error.message || "Could not mark demo payment as paid.");
       } else {
-        setPaymentError("Payment service is unavailable. Please try again later.");
+        setPaymentError("Payment service is unavailable.");
       }
     } finally {
       setMarkingPaid(false);
     }
   }
 
-  if (success) {
-    return (
-      <div className="min-h-screen pt-20">
-        <div className="container max-w-lg py-16 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#E6FA50]/10">
-            <CheckCircle2 className="h-10 w-10 text-[#E6FA50]" />
-          </div>
-          <h1 className="heading-1 mt-8 text-2xl text-[#F7F7F7] md:text-3xl">
-            Payment Intent Created
-          </h1>
-          <p className="mt-3 text-sm text-[#F7F7F7]/40">
-            Your internal payment intent is ready. Use the demo action below to confirm this booking without processing real money.
-          </p>
 
-          <div className="mt-8 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5 text-left">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[#F7F7F7]/40">Venue</span>
-                <span className="text-[#F7F7F7]/80">{venue}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[#F7F7F7]/40">Court</span>
-                <span className="text-[#F7F7F7]/80">{court}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[#F7F7F7]/40">Date</span>
-                <span className="text-[#F7F7F7]/80">{formattedDate}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[#F7F7F7]/40">Time</span>
-                <span className="text-[#F7F7F7]/80">{start} – {end}</span>
-              </div>
-              <div className="flex items-center justify-between border-t border-white/[0.06] pt-3 text-sm">
-                <span className="font-medium text-[#F7F7F7]/60">Payment amount</span>
-                <span className="price text-lg text-[#E6FA50]">
-                  Rp {(payment?.amount ?? yourShare).toLocaleString("id-ID")}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[#F7F7F7]/40">Payment status</span>
-                <span className="text-[#F7F7F7]/80">{payment?.status ?? "PENDING"}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-3">
-            {confirmationMessage && (
-              <div className="rounded-xl border border-[#E6FA50]/20 bg-[#E6FA50]/10 p-3">
-                <p className="text-sm font-medium text-[#E6FA50]">{confirmationMessage}</p>
-                <p className="mt-1 text-[11px] text-[#F7F7F7]/40">
-                  Redirecting to booking success...
-                </p>
-              </div>
-            )}
-            {paymentError && (
-              <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3">
-                <p className="text-[11px] leading-relaxed text-red-200/80">{paymentError}</p>
-              </div>
-            )}
-            <button
-              onClick={handleMarkPaid}
-              disabled={!payment || markingPaid || payment?.status === "PAID"}
-              className="btn-lime flex h-12 items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              {markingPaid ? "Marking Paid..." : "Mark as Paid (Demo)"}
-            </button>
-            <Link
-              href="/profile/bookings"
-              className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70"
-            >
-              View My Bookings
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen pt-20">
+      <Script src={snapScriptUrl} data-client-key={clientKey} strategy="afterInteractive" />
       <div className="container max-w-4xl py-8">
         {/* Back */}
         <Link
@@ -329,24 +306,32 @@ export default function PaymentPage({
                 Booking Details
               </h3>
               <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#F7F7F7]/40">Venue</span>
-                  <span className="text-[#F7F7F7]/80">{venue}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#F7F7F7]/40">Court</span>
-                  <span className="text-[#F7F7F7]/80">{court}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#F7F7F7]/40">Date</span>
-                  <span className="text-[#F7F7F7]/80">{formattedDate}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#F7F7F7]/40">Time</span>
-                  <span className="text-[#F7F7F7]/80">
-                    {start} – {end}
-                  </span>
-                </div>
+                {isBookingLoading ? (
+                  <div className="text-sm text-[#F7F7F7]/40">Loading booking details...</div>
+                ) : isBookingError ? (
+                  <div className="text-sm text-red-400">Error loading booking details.</div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-[#F7F7F7]/40">Venue</span>
+                      <span className="text-[#F7F7F7]/80">{venue}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-[#F7F7F7]/40">Court</span>
+                      <span className="text-[#F7F7F7]/80">{court}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-[#F7F7F7]/40">Date</span>
+                      <span className="text-[#F7F7F7]/80">{formattedDate}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-[#F7F7F7]/40">Time</span>
+                      <span className="text-[#F7F7F7]/80">
+                        {start} – {end}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -573,15 +558,31 @@ export default function PaymentPage({
 
                 <button
                   onClick={handlePay}
-                  disabled={!selectedMethod || processing}
+                  disabled={!selectedMethod || processing || !booking || !clientKey}
                   className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  {processing ? "Processing..." : "Create Payment Intent"}
+                  {processing ? "Processing..." : "Pay with Midtrans"}
                 </button>
+
+                {!clientKey && (
+                  <div className="mt-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                    <p className="text-[11px] leading-relaxed text-red-200/80">Missing Midtrans Client Key configuration.</p>
+                  </div>
+                )}
+
+                {isDemoMode && (
+                  <button
+                    onClick={handleMarkPaid}
+                    disabled={markingPaid || processing || !booking}
+                    className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    {markingPaid ? "Marking Paid..." : "Mark as Paid (Demo)"}
+                  </button>
+                )}
 
                 <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#F7F7F7]/25">
                   <Shield className="h-3 w-3" />
-                  <span>Internal payment intent only — provider integration coming soon</span>
+                  <span>Secure payment provided by Midtrans</span>
                 </div>
 
                 <div className="mt-3 rounded-lg bg-white/[0.02] p-3">
