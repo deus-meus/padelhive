@@ -40,6 +40,7 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
       findFirst: jest.fn().mockResolvedValue(null),
       create: jest.fn().mockResolvedValue(paymentResponse),
       update: jest.fn().mockResolvedValue(paymentResponse),
+      findUniqueOrThrow: jest.fn().mockResolvedValue(paymentResponse),
     },
     $transaction: jest.fn(async (callback) => callback({
       booking: { update: jest.fn().mockResolvedValue({}) },
@@ -52,9 +53,10 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
 describe("Payment foundation", () => {
   it("creates a pending internal payment using booking finalAmount", async () => {
     const prisma = createPrisma();
-    const service = new PaymentsService(prisma as never);
+    const mockGateway = { createTransaction: jest.fn() } as never;
+    const service = new PaymentsService(prisma as never, mockGateway);
 
-    const result = await service.createIntentForUser("user-1", { bookingId: "booking-1", method: "va" });
+    const result = await service.createIntentForUser("user-1", { bookingId: "booking-1", provider: "internal", method: "va" });
 
     expect(prisma.booking.findFirst).toHaveBeenCalledWith({
       where: { id: "booking-1", hostUserId: "user-1" },
@@ -68,7 +70,6 @@ describe("Payment foundation", () => {
         provider: "internal",
         method: "va",
       },
-      select: expect.any(Object),
     });
     expect(result.amount).toBe(630000);
     expect(result.status).toBe(PaymentStatus.PENDING);
@@ -78,30 +79,34 @@ describe("Payment foundation", () => {
     const prisma = createPrisma({
       payment: { findFirst: jest.fn().mockResolvedValue(paymentResponse), create: jest.fn() },
     });
-    const service = new PaymentsService(prisma as never);
+    const mockGateway = { createTransaction: jest.fn() } as never;
+    const service = new PaymentsService(prisma as never, mockGateway);
 
-    const result = await service.createIntentForUser("user-1", { bookingId: "booking-1", method: "card" });
+    const result = await service.createIntentForUser("user-1", { bookingId: "booking-1", provider: "internal", method: "card" });
 
     expect(result.id).toBe("payment-1");
     expect(prisma.payment.create).not.toHaveBeenCalled();
   });
 
   it("rejects bookings not owned by the current user", async () => {
-    const service = new PaymentsService(createPrisma({ booking: { findFirst: jest.fn().mockResolvedValue(null) } }) as never);
+    const mockGateway = { createTransaction: jest.fn() } as never;
+    const service = new PaymentsService(createPrisma({ booking: { findFirst: jest.fn().mockResolvedValue(null) } }) as never, mockGateway);
 
-    await expect(service.createIntentForUser("user-2", { bookingId: "booking-1", method: "va" })).rejects.toThrow(NotFoundException);
+    await expect(service.createIntentForUser("user-2", { bookingId: "booking-1", provider: "internal", method: "va" })).rejects.toThrow(NotFoundException);
   });
 
   it("rejects unsupported methods and unpayable bookings", async () => {
-    await expect(new PaymentsService(createPrisma() as never).createIntentForUser("user-1", { bookingId: "booking-1", method: "cash" as never })).rejects.toThrow(BadRequestException);
+    const mockGateway = { createTransaction: jest.fn() } as never;
+    await expect(new PaymentsService(createPrisma() as never, mockGateway).createIntentForUser("user-1", { bookingId: "booking-1", provider: "internal", method: "cash" as never })).rejects.toThrow(BadRequestException);
 
-    const service = new PaymentsService(createPrisma({ booking: { findFirst: jest.fn().mockResolvedValue({ ...booking, status: BookingStatus.CANCELLED }) } }) as never);
-    await expect(service.createIntentForUser("user-1", { bookingId: "booking-1", method: "va" })).rejects.toThrow(BadRequestException);
+    const service = new PaymentsService(createPrisma({ booking: { findFirst: jest.fn().mockResolvedValue({ ...booking, status: BookingStatus.CANCELLED }) } }) as never, mockGateway);
+    await expect(service.createIntentForUser("user-1", { bookingId: "booking-1", provider: "internal", method: "va" })).rejects.toThrow(BadRequestException);
   });
 
   it("gets only payments owned by the current user", async () => {
     const prisma = createPrisma({ payment: { findFirst: jest.fn().mockResolvedValue(paymentResponse), create: jest.fn() } });
-    const service = new PaymentsService(prisma as never);
+    const mockGateway = { createTransaction: jest.fn() } as never;
+    const service = new PaymentsService(prisma as never, mockGateway);
 
     await expect(service.findPaymentForUser("payment-1", "user-1")).resolves.toMatchObject({ id: "payment-1" });
     expect(prisma.payment.findFirst).toHaveBeenCalledWith({
@@ -125,7 +130,8 @@ describe("Payment foundation", () => {
         booking: { update: txBookingUpdate },
       })),
     });
-    const service = new PaymentsService(prisma as never);
+    const mockGateway = { createTransaction: jest.fn() } as never;
+    const service = new PaymentsService(prisma as never, mockGateway);
 
     const result = await service.markPaidForUser("payment-1", "user-1");
 
@@ -148,9 +154,10 @@ describe("Payment foundation", () => {
   });
 
   it("rejects demo mark-paid when payment is missing", async () => {
+    const mockGateway = { createTransaction: jest.fn() } as never;
     const service = new PaymentsService(createPrisma({
       payment: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn(), update: jest.fn() },
-    }) as never);
+    }) as never, mockGateway);
 
     await expect(service.markPaidForUser("missing-payment", "user-1")).rejects.toThrow(NotFoundException);
   });
@@ -165,7 +172,7 @@ describe("Payment foundation", () => {
         create: jest.fn(),
         update: jest.fn(),
       },
-    }) as never);
+    }) as never, { createTransaction: jest.fn() } as never);
 
     await expect(service.markPaidForUser("payment-1", "user-1")).rejects.toThrow(ForbiddenException);
   });
@@ -177,7 +184,7 @@ describe("Payment foundation", () => {
         create: jest.fn(),
         update: jest.fn(),
       },
-    }) as never);
+    }) as never, { createTransaction: jest.fn() } as never);
 
     await expect(service.markPaidForUser("payment-1", "user-1")).rejects.toThrow(BadRequestException);
   });
@@ -192,7 +199,7 @@ describe("Payment foundation", () => {
         create: jest.fn(),
         update: jest.fn(),
       },
-    }) as never);
+    }) as never, { createTransaction: jest.fn() } as never);
 
     await expect(service.markPaidForUser("payment-1", "user-1")).rejects.toThrow(BadRequestException);
   });
