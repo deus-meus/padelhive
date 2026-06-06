@@ -231,6 +231,7 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<
     // Ignore transient failures to allow public endpoints to continue
   }
 
+  const isRevalidate = typeof requestOptions.next?.revalidate === "number";
   const response = await fetch(`${API_URL}${path}`, {
     ...requestOptions,
     headers: {
@@ -240,7 +241,7 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<
       ...headers,
     },
     body,
-    cache: requestOptions.cache ?? "no-store",
+    ...(!isRevalidate && { cache: requestOptions.cache ?? "no-store" }),
   });
 
   if (!response.ok) {
@@ -319,18 +320,21 @@ function mapVoucher(voucher: ApiVoucher): Voucher {
   };
 }
 
-export async function getVenues(): Promise<Venue[]> {
-  const venues = await apiFetch<ApiVenue[]>("/venues");
+export async function getVenues(opts?: { revalidate?: number; [key: string]: any }): Promise<Venue[]> {
+  const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
+  const venues = await apiFetch<ApiVenue[]>("/venues", options);
   return venues.map(mapVenue);
 }
 
-export async function getVenue(id: string): Promise<Venue> {
-  const venue = await apiFetch<ApiVenue>(`/venues/${id}`);
+export async function getVenue(id: string, opts?: { revalidate?: number }): Promise<Venue> {
+  const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
+  const venue = await apiFetch<ApiVenue>(`/venues/${id}`, options);
   return mapVenue(venue);
 }
 
-export async function getVenueCourts(venueId: string): Promise<Court[]> {
-  const courts = await apiFetch<ApiCourt[]>(`/venues/${venueId}/courts`);
+export async function getVenueCourts(venueId: string, opts?: { revalidate?: number }): Promise<Court[]> {
+  const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
+  const courts = await apiFetch<ApiCourt[]>(`/venues/${venueId}/courts`, options);
   return courts.map((court) => mapCourt(court, venueId));
 }
 
