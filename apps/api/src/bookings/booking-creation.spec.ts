@@ -346,4 +346,45 @@ describe("Booking creation API", () => {
       select: expect.any(Object),
     });
   });
+
+  it("translates database exclusion constraint violation to 409 ConflictException", async () => {
+    const prisma = createPrisma({
+      booking: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockRejectedValue({
+          code: "P2010",
+          message: "Raw query failed. SQLSTATE 23P01 booking_no_overlap",
+        }),
+      },
+    });
+    const service = new BookingsService(prisma as never);
+
+    await expect(service.createBookingForUser("user-1", {
+      venueId: "venue-1",
+      courtId: "court-1",
+      bookingDate: "2099-06-01",
+      startsAt: "09:00",
+      endsAt: "11:00",
+      amount: 1,
+    } as never)).rejects.toThrow(ConflictException);
+  });
+
+  it("propagates unrelated database errors normally", async () => {
+    const prisma = createPrisma({
+      booking: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockRejectedValue(new Error("Database connection lost")),
+      },
+    });
+    const service = new BookingsService(prisma as never);
+
+    await expect(service.createBookingForUser("user-1", {
+      venueId: "venue-1",
+      courtId: "court-1",
+      bookingDate: "2099-06-01",
+      startsAt: "09:00",
+      endsAt: "11:00",
+      amount: 1,
+    } as never)).rejects.toThrow("Database connection lost");
+  });
 });

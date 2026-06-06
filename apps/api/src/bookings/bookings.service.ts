@@ -128,23 +128,42 @@ export class BookingsService {
     const voucherDiscount = 0;
     const finalAmount = courtAmount + platformFee - voucherDiscount;
 
-    return this.prisma.booking.create({
-      data: {
-        hostUserId,
-        venueId: body.venueId,
-        courtId: body.courtId,
-        bookingDate: parsedTime.bookingDate,
-        startsAt: parsedTime.startsAt,
-        endsAt: parsedTime.endsAt,
-        durationMinutes: parsedTime.durationMinutes,
-        status: BookingStatus.PENDING_PAYMENT,
-        courtAmount,
-        platformFee,
-        voucherDiscount,
-        finalAmount,
-      },
-      select: bookingSelect,
-    });
+    try {
+      return await this.prisma.booking.create({
+        data: {
+          hostUserId,
+          venueId: body.venueId,
+          courtId: body.courtId,
+          bookingDate: parsedTime.bookingDate,
+          startsAt: parsedTime.startsAt,
+          endsAt: parsedTime.endsAt,
+          durationMinutes: parsedTime.durationMinutes,
+          status: BookingStatus.PENDING_PAYMENT,
+          courtAmount,
+          platformFee,
+          voucherDiscount,
+          finalAmount,
+        },
+        select: bookingSelect,
+      });
+    } catch (error) {
+      const e = error as { message?: string; meta?: { message?: string; target?: unknown } };
+      const msg = e?.message || "";
+      const metaMsg = e?.meta?.message || "";
+      const target = e?.meta?.target || [];
+
+      if (
+        msg.includes("booking_no_overlap") ||
+        msg.includes("23P01") ||
+        metaMsg.includes("booking_no_overlap") ||
+        metaMsg.includes("23P01") ||
+        (Array.isArray(target) && target.includes("booking_no_overlap")) ||
+        (typeof target === "string" && target.includes("booking_no_overlap"))
+      ) {
+        throw new ConflictException("This court is already booked for the selected time.");
+      }
+      throw error;
+    }
   }
 
   async findBookingForUser(id: string, hostUserId: string): Promise<BookingResponseDto> {
