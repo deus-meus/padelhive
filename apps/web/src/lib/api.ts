@@ -1,5 +1,6 @@
 import { padelImg } from "@/lib/images";
 import { Court, Venue, Voucher } from "@/types";
+import { getIdToken } from "@/lib/auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
@@ -174,18 +175,24 @@ export class ApiRequestError extends Error {
   }
 }
 
-type ApiFetchOptions = RequestInit & {
-  authToken?: string;
-};
+type ApiFetchOptions = RequestInit;
 
 async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<T> {
-  const { authToken, headers, body, ...requestOptions } = options;
+  const { headers, body, ...requestOptions } = options;
+  
+  let token: string | null = null;
+  try {
+    token = await getIdToken();
+  } catch {
+    // Ignore transient failures to allow public endpoints to continue
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
     ...requestOptions,
     headers: {
       Accept: "application/json",
       ...(body ? { "Content-Type": "application/json" } :{}),
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } :{}),
+      ...(token ? { Authorization: `Bearer ${token}` } :{}),
       ...headers,
     },
     body,
@@ -289,30 +296,26 @@ export async function getVouchers(): Promise<Voucher[]> {
 }
 
 export async function createBooking(
-  input: CreateBookingInput,
-  authToken: string
+  input: CreateBookingInput
 ): Promise<BookingSummary> {
   return apiFetch<ApiBooking>("/bookings", {
     method: "POST",
-    authToken,
     body: JSON.stringify(input),
   });
 }
 
-export async function cancelBooking(bookingId: string, authToken: string): Promise<BookingSummary> {
+export async function cancelBooking(bookingId: string): Promise<BookingSummary> {
   return apiFetch<ApiBooking>(`/bookings/${bookingId}/cancel`, {
     method: "PATCH",
-    authToken,
   });
 }
 
 export type BookingFilter = "upcoming" | "past" | "cancelled";
 
 export async function getUserBookings(
-  filter: BookingFilter,
-  authToken: string
+  filter: BookingFilter
 ): Promise<ApiBooking[]> {
-  return apiFetch<ApiBooking[]>(`/bookings/me?filter=${filter}`, { authToken });
+  return apiFetch<ApiBooking[]>(`/bookings/me?filter=${filter}`);
 }
 
 export async function getVenueAvailability(
@@ -327,24 +330,21 @@ export async function getVenueAvailability(
 }
 
 export async function createPaymentIntent(
-  input: CreatePaymentIntentInput,
-  authToken: string
+  input: CreatePaymentIntentInput
 ): Promise<PaymentSummary> {
   return apiFetch<ApiPayment>("/payments/intents", {
     method: "POST",
-    authToken,
     body: JSON.stringify(input),
   });
 }
 
-export async function getPayment(id: string, authToken: string): Promise<PaymentSummary> {
-  return apiFetch<ApiPayment>(`/payments/${id}`, { authToken });
+export async function getPayment(id: string): Promise<PaymentSummary> {
+  return apiFetch<ApiPayment>(`/payments/${id}`);
 }
 
-export async function markPaymentPaid(paymentId: string, authToken: string): Promise<PaymentSummary> {
+export async function markPaymentPaid(paymentId: string): Promise<PaymentSummary> {
   return apiFetch<ApiPayment>(`/payments/${paymentId}/mark-paid`, {
     method: "PATCH",
-    authToken,
   });
 }
 
@@ -352,18 +352,16 @@ export async function getInvite(token: string): Promise<InviteDetails> {
   return apiFetch<ApiInviteDetails>(`/invites/${token}`);
 }
 
-export async function getBookingInvites(bookingId: string, authToken: string): Promise<InviteSummary[]> {
-  return apiFetch<ApiInvite[]>(`/bookings/${bookingId}/invites`, { authToken });
+export async function getBookingInvites(bookingId: string): Promise<InviteSummary[]> {
+  return apiFetch<ApiInvite[]>(`/bookings/${bookingId}/invites`);
 }
 
 export async function createBookingInvite(
   bookingId: string,
-  input: CreateInviteInput,
-  authToken: string
+  input: CreateInviteInput
 ): Promise<InviteSummary> {
   return apiFetch<ApiInvite>(`/bookings/${bookingId}/invites`, {
     method: "POST",
-    authToken,
     body: JSON.stringify(input),
   });
 }

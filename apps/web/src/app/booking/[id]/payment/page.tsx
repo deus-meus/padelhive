@@ -16,7 +16,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import { ApiRequestError, createPaymentIntent, markPaymentPaid, type PaymentSummary } from "@/lib/api";
-import { getIdToken } from "@/lib/auth-client";
 
 interface SplitPlayer {
   id: string;
@@ -157,18 +156,9 @@ export default function PaymentPage({
     setProcessing(true);
     setPaymentError(null);
 
-    const authToken = await getIdToken();
-    if (!authToken) {
-      setProcessing(false);
-      setPaymentError("Sign in before creating a payment intent.");
-      router.push(`/auth/login?next=${encodeURIComponent(`/booking/${params.id}/payment`)}`);
-      return;
-    }
-
     try {
       const paymentIntent = await createPaymentIntent(
-        { bookingId: params.id, method: selectedMethod as "va" | "ewallet" | "card" },
-        authToken
+        { bookingId: params.id, method: selectedMethod as "va" | "ewallet" | "card" }
       );
       setPayment(paymentIntent);
       setSuccess(true);
@@ -200,16 +190,8 @@ export default function PaymentPage({
     setPaymentError(null);
     setConfirmationMessage(null);
 
-    const authToken = await getIdToken();
-    if (!authToken) {
-      setMarkingPaid(false);
-      setPaymentError("Sign in before marking this demo payment as paid.");
-      router.push(`/auth/login?next=${encodeURIComponent(`/booking/${params.id}/payment`)}`);
-      return;
-    }
-
     try {
-      const paidPayment = await markPaymentPaid(payment.id, authToken);
+      const paidPayment = await markPaymentPaid(payment.id);
       setPayment(paidPayment);
       setConfirmationMessage("Payment marked as paid. Booking confirmed.");
       window.setTimeout(() => {
