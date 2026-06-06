@@ -15,8 +15,6 @@ import {
   Users,
   Info,
 } from "lucide-react";
-import { mockVenues } from "@/mock/venues";
-import { mockCourts } from "@/mock/courts";
 import { ApiRequestError, createBooking, getVenue, getVenueCourts, getVenueAvailability, ApiAvailabilitySlot } from "@/lib/api";
 import { Court, Venue } from "@/types";
 
@@ -40,21 +38,6 @@ function generateDates() {
   return dates;
 }
 
-function generateTimeSlots(open: string, close: string, seed: number): ApiAvailabilitySlot[] {
-  const slots = [];
-  const startHour = parseInt(open.split(":")[0]);
-  const endHour = parseInt(close.split(":")[0]);
-  for (let h = startHour; h < endHour; h++) {
-    const startsAt = `${h.toString().padStart(2, "0")}:00`;
-    const endsAt = `${(h + 1).toString().padStart(2, "0")}:00`;
-    const isPeak = (h >= 9 && h <= 11) || (h >= 16 && h <= 21);
-    const hash = ((h + 1) * 2654435761 + seed) >>> 0;
-    const available = (hash % 100) >= 35;
-    const price = isPeak ? 120000 : 80000;
-    slots.push({ startsAt, endsAt, available, price, isPeak });
-  }
-  return slots;
-}
 
 function isWeekend(date: Date) {
   return date.getDay() === 0 || date.getDay() === 6;
@@ -80,8 +63,7 @@ export default function BookingFlowPage({
   params: { id: string };
 }) {
   const router = useRouter();
-  const fallbackVenue = mockVenues.find((v) => v.id === params.id) ?? mockVenues[0];
-  const { data: apiVenue, isLoading: isLoadingVenue, isError: isVenueError } = useQuery({
+  const { data: venue, isLoading: isLoadingVenue, isError: isVenueError } = useQuery({
     queryKey: queryKeys.venues.detail(params.id),
     queryFn: () => getVenue(params.id),
   });
@@ -91,25 +73,23 @@ export default function BookingFlowPage({
     queryFn: () => getVenueCourts(params.id),
   });
 
-  const venue = apiVenue ?? fallbackVenue;
-  const courts = apiCourts && apiCourts.length > 0 ? apiCourts : mockCourts.filter((c) => c.venueId === fallbackVenue.id);
+  const courts = apiCourts && apiCourts.length > 0 ? apiCourts : [];
 
   const isLoadingApiData = isLoadingVenue || isLoadingCourts;
-  const isUsingFallback = isVenueError || (!apiVenue && Boolean(fallbackVenue)) || (apiCourts && apiCourts.length === 0);
   const apiError = isVenueError || isCourtsError ? "Could not reach the live court API." : null;
 
   const dates = useMemo(() => generateDates(), []);
 
   const [selectedDate, setSelectedDate] = useState<Date>(dates[0]);
-  const [selectedCourt, setSelectedCourt] = useState(courts[0]);
+  const [selectedCourt, setSelectedCourt] = useState<Court | null>(courts[0] ?? null);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!courts.some((court) => court.id === selectedCourt.id) && courts[0]) {
+    if (courts.length > 0 && (!selectedCourt || !courts.some((c) => c.id === selectedCourt.id))) {
       setSelectedCourt(courts[0]);
       setSelectedSlots([]);
     }
-  }, [courts, selectedCourt.id]);
+  }, [courts, selectedCourt]);
   const [dateScrollStart, setDateScrollStart] = useState(0);
   const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState<BookingSubmitError | null>(null);
@@ -117,24 +97,18 @@ export default function BookingFlowPage({
   const dateStr = useMemo(() => formatBookingDate(selectedDate), [selectedDate]);
   
   const { data: availabilityResponse, isError: isAvailabilityError } = useQuery({
-    queryKey: queryKeys.venues.availability(venue.id, dateStr, selectedCourt.id),
-    queryFn: () => getVenueAvailability(venue.id, dateStr, selectedCourt.id),
-    enabled: !!(venue.id && selectedCourt?.id && dateStr),
+    queryKey: queryKeys.venues.availability(venue?.id ?? "", dateStr, selectedCourt?.id ?? ""),
+    queryFn: () => getVenueAvailability(venue!.id, dateStr, selectedCourt!.id),
+    enabled: !!(venue?.id && selectedCourt?.id && dateStr),
   });
 
   const timeSlots = useMemo(() => {
-    if (availabilityResponse && !isAvailabilityError) {
+    if (availabilityResponse && !isAvailabilityError && selectedCourt) {
       const court = availabilityResponse.courts.find((c) => c.id === selectedCourt.id);
       if (court) return court.slots;
     }
-    const dateSeed = selectedDate.getFullYear() * 10000 + (selectedDate.getMonth() + 1) * 100 + selectedDate.getDate();
-    const courtSeed = selectedCourt.id.charCodeAt(selectedCourt.id.length - 1);
-    return generateTimeSlots(
-      venue.operatingHours.open,
-      venue.operatingHours.close,
-      dateSeed + courtSeed
-    );
-  }, [availabilityResponse, isAvailabilityError, selectedCourt.id, selectedDate, venue.operatingHours]);
+    return [];
+  }, [availabilityResponse, isAvailabilityError, selectedCourt]);
 
   function toggleSlot(time: string) {
     if (confirmState === "submitting") return;
@@ -174,7 +148,7 @@ export default function BookingFlowPage({
   const bookingMutation = useMutation({
     mutationFn: (data: Parameters<typeof createBooking>[0]) => createBooking(data),
     onSuccess: (booking) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue.id, formatBookingDate(selectedDate), selectedCourt.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue!.id, formatBookingDate(selectedDate), selectedCourt!.id) });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
 
       const query = new URLSearchParams({
@@ -226,7 +200,7 @@ export default function BookingFlowPage({
     });
 
     if (
-      !venue.id ||
+      !venue?.id ||
       !selectedCourt?.id ||
       selectedSlots.length === 0 ||
       selectedUnavailableSlot ||
@@ -269,9 +243,9 @@ export default function BookingFlowPage({
   return (
     <div className="min-h-screen pt-20">
       <div className="container max-w-4xl py-8">
-        {(isLoadingApiData || isUsingFallback || apiError) && (
+        {(isLoadingApiData || apiError) && (
           <div className={`mb-5 rounded-xl border px-4 py-3 text-sm ${apiError && !isLoadingApiData ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
-            {isLoadingApiData ? "Loading live court data..." : apiError ? `${apiError} Showing demo court data.` : "Live API unavailable. Showing demo court data."}
+            {isLoadingApiData ? "Loading live court data..." : apiError ? `${apiError}` : "Live API unavailable."}
           </div>
         )}
         {courts.length === 0 && (
@@ -281,7 +255,7 @@ export default function BookingFlowPage({
         )}
         {/* Back */}
         <Link
-          href={`/venues/${venue.id}`}
+          href={venue ? `/venues/${venue.id}` : "/venues"}
           className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -293,10 +267,12 @@ export default function BookingFlowPage({
           <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
             Book a Court
           </h1>
-          <p className="mt-2 flex items-center gap-2 text-sm text-[#F7F7F7]/40">
-            <MapPin className="h-3.5 w-3.5" />
-            {venue.name} · {venue.city}
-          </p>
+          {venue && (
+            <p className="mt-2 flex items-center gap-2 text-sm text-[#F7F7F7]/40">
+              <MapPin className="h-3.5 w-3.5" />
+              {venue.name} · {venue.city}
+            </p>
+          )}
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
@@ -318,7 +294,7 @@ export default function BookingFlowPage({
                       setConfirmState("idle");
                     }}
                     className={`rounded-xl border px-5 py-3 transition-all ${
-                      selectedCourt.id === court.id
+                      selectedCourt?.id === court.id
                         ? "border-[#E6FA50]/40 bg-[#E6FA50]/10 text-[#E6FA50]"
                         : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/50 hover:border-white/[0.12]"
                     }`}
@@ -453,9 +429,14 @@ export default function BookingFlowPage({
                 Select one or more consecutive hours. Peak hours are highlighted.
               </p>
               <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
-                {timeSlots.map((slot) => {
-                  const isSelected = selectedSlots.includes(slot.startsAt);
-                  return (
+                {timeSlots.length === 0 ? (
+                  <div className="col-span-full py-8 text-center text-[11px] text-[#F7F7F7]/40 border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">
+                    {availabilityResponse ? "No slots available for this date." : "Select a court and date to see availability."}
+                  </div>
+                ) : (
+                  timeSlots.map((slot) => {
+                    const isSelected = selectedSlots.includes(slot.startsAt);
+                    return (
                     <button
                       key={slot.startsAt}
                       disabled={!slot.available}
@@ -486,7 +467,7 @@ export default function BookingFlowPage({
                       </span>
                     </button>
                   );
-                })}
+                }))}
               </div>
               <div className="mt-3 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
@@ -525,13 +506,13 @@ export default function BookingFlowPage({
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[#F7F7F7]/40">Venue</span>
                     <span className="text-sm font-medium text-[#F7F7F7]/80">
-                      {venue.name}
+                      {venue?.name ?? "—"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[#F7F7F7]/40">Court</span>
                     <span className="text-sm font-medium text-[#F7F7F7]/80">
-                      {selectedCourt.name}
+                      {selectedCourt?.name ?? "—"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">

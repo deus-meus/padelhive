@@ -8,7 +8,11 @@ export const queryKeys = {
   },
   bookings: {
     user: (tab: string) => ["bookings", "user", tab] as const,
+    detail: (id: string) => ["bookings", id] as const,
     invites: (id: string) => ["bookings", id, "invites"] as const,
+  },
+  payments: {
+    detail: (id: string) => ["payments", id] as const,
   },
   invites: {
     detail: (token: string) => ["invites", token] as const,

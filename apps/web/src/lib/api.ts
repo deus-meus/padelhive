@@ -104,6 +104,8 @@ type ApiPayment = {
   provider: string;
   method: string;
   providerReference: string | null;
+  providerToken: string | null;
+  providerRedirectUrl: string | null;
   paidAt: string | null;
   failedAt: string | null;
   createdAt: string;
@@ -316,6 +318,10 @@ export async function getUserBookings(
   filter: BookingFilter
 ): Promise<ApiBooking[]> {
   return apiFetch<ApiBooking[]>(`/bookings/me?filter=${filter}`);
+}
+
+export async function getBookingById(id: string): Promise<BookingSummary> {
+  return apiFetch<ApiBooking>(`/bookings/${id}`);
 }
 
 export async function getVenueAvailability(
