@@ -46,6 +46,8 @@ docker-compose.yml   # local PostgreSQL
 - `FIREBASE_PROJECT_ID`: Firebase project ID
 - `FIREBASE_CLIENT_EMAIL` (optional): For Firebase Admin Service Account
 - `FIREBASE_PRIVATE_KEY` (optional): For Firebase Admin Service Account
+- `MIDTRANS_IS_PRODUCTION`: Toggles sandbox vs production endpoints (default "false")
+- `MIDTRANS_SERVER_KEY`: Secret used for webhook signature verification and Basic auth
 
 **Web (`apps/web/.env`)**
 - `NEXT_PUBLIC_API_URL`: URL for the API backend

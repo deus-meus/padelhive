@@ -199,6 +199,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
     });
 
     const service = new PaymentsService(prisma as never, {} as never);
+    const warnMock = jest.spyOn((service as unknown as { logger: { warn: jest.Mock } }).logger, "warn").mockImplementation();
     
     const signature_key = generateSignature("payment-1", "200", "10000.00");
     const payload = {
@@ -216,6 +217,10 @@ describe("Midtrans Webhook and Gateway integration", () => {
       data: { status: PaymentStatus.PAID, paidAt: expect.any(Date), failedAt: undefined },
     });
     expect(txBookingUpdateMock!).not.toHaveBeenCalled();
+    expect(warnMock).toHaveBeenCalledWith(
+      "Settled payment landed on a non-payable booking and may need manual review/refund. Order ID: payment-1, Booking ID: booking-1, Current Booking Status: CANCELLED"
+    );
+    warnMock.mockRestore();
   });
 
   it("cancel webhook updates Payment to FAILED and leaves Booking unchanged", async () => {
