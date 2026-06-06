@@ -14,4 +14,5 @@ export interface CreateTransactionResult {
 
 export interface PaymentGateway {
   createTransaction(params: CreateTransactionParams): Promise<CreateTransactionResult>;
+  refundPayment(orderId: string, amount: number, refundKey: string): Promise<void>;
 }

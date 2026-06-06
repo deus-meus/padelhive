@@ -16,6 +16,6 @@ import { MidtransGateway } from "./gateways/midtrans.gateway";
       useClass: MidtransGateway,
     },
   ],
-  exports: [PaymentsService],
+  exports: [PaymentsService, PAYMENT_GATEWAY_TOKEN],
 })
 export class PaymentsModule {}

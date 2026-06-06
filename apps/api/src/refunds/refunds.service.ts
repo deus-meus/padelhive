@@ -1,11 +1,15 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingStatus, PaymentStatus, RefundStatus, Prisma } from "@prisma/client";
 import { CreateRefundDto } from "./dto/create-refund.dto";
+import { PAYMENT_GATEWAY_TOKEN, PaymentGateway } from "../payments/gateways/payment-gateway.interface";
 
 @Injectable()
 export class RefundsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(PAYMENT_GATEWAY_TOKEN) private readonly paymentGateway: PaymentGateway
+  ) {}
 
   async createRefund(userId: string, dto: CreateRefundDto) {
     if (!dto.reason || dto.reason.trim() === "") {
@@ -153,12 +157,16 @@ export class RefundsService {
   async processRefund(id: string, adminUserId: string) {
     const refund = await this.prisma.refund.findUnique({ 
       where: { id },
-      include: { booking: true } 
+      include: { booking: true, payment: true } 
     });
     if (!refund) throw new NotFoundException("Refund not found");
 
     if (refund.status !== RefundStatus.APPROVED) {
       throw new BadRequestException(`Cannot process refund in status ${refund.status}`);
+    }
+
+    if (refund.payment && refund.payment.provider === "midtrans") {
+      await this.paymentGateway.refundPayment(refund.payment.id, refund.amount, refund.id);
     }
 
     await this.prisma.$transaction(async (tx) => {
