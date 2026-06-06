@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { ThrottlerGuard, Throttle } from "@nestjs/throttler";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -43,6 +44,8 @@ export class InvitesController {
 
   @Get("invites/:token")
   @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: "Get public invite details by token" })
   @ApiOkResponse({ type: InviteResponseDto })
   @ApiNotFoundResponse({ description: "Invite not found" })
@@ -52,6 +55,8 @@ export class InvitesController {
 
   @Patch("invites/:token/rsvp")
   @Public()
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: "RSVP to an invite by public token" })
   @ApiOkResponse({ type: InviteResponseDto })
   @ApiBadRequestResponse({ description: "Invalid RSVP status" })

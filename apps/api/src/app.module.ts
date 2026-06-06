@@ -11,9 +11,11 @@ import { UsersModule } from "./users/users.module";
 import { VenuesModule } from "./venues/venues.module";
 import { VouchersModule } from "./vouchers/vouchers.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { ThrottlerModule } from "@nestjs/throttler";
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 10 }]),
     ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
