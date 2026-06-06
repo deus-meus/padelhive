@@ -3,6 +3,7 @@ import { RefundsService } from "./refunds.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
 import { BookingStatus, PaymentStatus, Prisma, RefundStatus } from "@prisma/client";
+import { PAYMENT_GATEWAY_TOKEN } from "../payments/gateways/payment-gateway.interface";
 
 describe("RefundsService", () => {
   let service: RefundsService;
@@ -30,6 +31,10 @@ describe("RefundsService", () => {
     $transaction: jest.fn(),
   };
 
+  const mockPaymentGateway = {
+    refundPayment: jest.fn(),
+  };
+
   beforeEach(async () => {
     mockPrismaService.$transaction.mockImplementation(async (cb: (arg: unknown) => unknown) => cb(mockPrismaService));
     const module: TestingModule = await Test.createTestingModule({
@@ -38,6 +43,10 @@ describe("RefundsService", () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: PAYMENT_GATEWAY_TOKEN,
+          useValue: mockPaymentGateway,
         },
       ],
     }).compile();
@@ -167,15 +176,17 @@ describe("RefundsService", () => {
       await expect(service.rejectRefund("1", "admin-1", "no")).rejects.toThrow(BadRequestException);
     });
 
-    it("processRefund should process an APPROVED refund and update booking/payment", async () => {
+    it("processRefund should call gateway for midtrans provider and update booking/payment", async () => {
       mockPrismaService.refund.findUnique.mockResolvedValue({ 
-        id: "1", status: RefundStatus.APPROVED, paymentId: "p-1", bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
       });
       mockPrismaService.refund.updateMany.mockResolvedValue({ count: 1 });
       mockPrismaService.refund.findUniqueOrThrow.mockResolvedValue({ id: "1", status: RefundStatus.PROCESSED });
+      mockPaymentGateway.refundPayment.mockResolvedValue(undefined);
 
       await expect(service.processRefund("1", "admin-1")).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
 
+      expect(mockPaymentGateway.refundPayment).toHaveBeenCalledWith("p-1", 100, "1");
       expect(mockPrismaService.refund.updateMany).toHaveBeenCalledWith({
         where: { id: "1", status: RefundStatus.APPROVED },
         data: { status: RefundStatus.PROCESSED, processedAt: expect.any(Date) },
@@ -196,6 +207,39 @@ describe("RefundsService", () => {
           actorUserId: "admin-1",
         },
       });
+    });
+
+    it("processRefund should skip gateway for internal provider", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ 
+        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "internal" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+      });
+      mockPrismaService.refund.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.refund.findUniqueOrThrow.mockResolvedValue({ id: "1", status: RefundStatus.PROCESSED });
+
+      await expect(service.processRefund("1", "admin-1")).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
+
+      expect(mockPaymentGateway.refundPayment).not.toHaveBeenCalled();
+    });
+
+    it("processRefund should reject if gateway throws and not call transaction", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ 
+        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+      });
+      mockPaymentGateway.refundPayment.mockRejectedValue(new Error("Gateway Error"));
+
+      await expect(service.processRefund("1", "admin-1")).rejects.toThrow("Gateway Error");
+
+      expect(mockPaymentGateway.refundPayment).toHaveBeenCalledWith("p-1", 100, "1");
+      expect(mockPrismaService.$transaction).not.toHaveBeenCalled();
+    });
+
+    it("processRefund should throw 400 and not call gateway if refund is not APPROVED", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ 
+        id: "1", amount: 100, status: RefundStatus.PROCESSED, paymentId: "p-1", payment: { id: "p-1", provider: "midtrans" }, bookingId: "b-1", booking: { status: BookingStatus.CONFIRMED }
+      });
+
+      await expect(service.processRefund("1", "admin-1")).rejects.toThrow(BadRequestException);
+      expect(mockPaymentGateway.refundPayment).not.toHaveBeenCalled();
     });
 
     it("process on a COMPLETED booking marks Payment REFUNDED but leaves booking COMPLETED", async () => {
