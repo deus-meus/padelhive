@@ -13,7 +13,7 @@ export class FirebaseAuthService {
   }
 
   async verifyIdToken(idToken: string): Promise<DecodedIdToken> {
-    return this.auth.verifyIdToken(idToken);
+    return this.auth.verifyIdToken(idToken, true);
   }
 
   private getFirebaseOptions() {

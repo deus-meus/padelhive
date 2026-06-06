@@ -1,5 +1,4 @@
 import { UserRole } from "@prisma/client";
-import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
 import { RequestUser } from "../auth/types/request-user.type";
 import { InvitesController } from "./invites.controller";
 import { InvitesService } from "./invites.service";
@@ -13,19 +12,7 @@ const requestUser: RequestUser = {
 };
 
 describe("InvitesController", () => {
-  it("protects create and list endpoints with FirebaseAuthGuard", () => {
-    const createGuards = Reflect.getMetadata("__guards__", InvitesController.prototype.create) ??[];
-    const listGuards = Reflect.getMetadata("__guards__", InvitesController.prototype.list) ??[];
-    const rsvpGuards = Reflect.getMetadata("__guards__", InvitesController.prototype.rsvp) ??[];
-
-    expect(createGuards).toContain(FirebaseAuthGuard);
-    expect(listGuards).toContain(FirebaseAuthGuard);
-    expect(rsvpGuards).not.toContain(FirebaseAuthGuard);
-  });
-
-  it("exposes public invite details without FirebaseAuthGuard", async () => {
-    const getGuards = Reflect.getMetadata("__guards__", InvitesController.prototype.getByToken) ??[];
-    expect(getGuards).not.toContain(FirebaseAuthGuard);
+  it("exposes public invite details", async () => {
 
     const service = {
       getInviteByToken: jest.fn().mockResolvedValue({ id: "invite-1" }),

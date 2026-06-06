@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -12,7 +12,6 @@ import {
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
 import { RequestUser } from "../auth/types/request-user.type";
 import { BookingsService } from "./bookings.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
@@ -25,7 +24,6 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Create a pending-payment booking" })
   @ApiCreatedResponse({ type: BookingResponseDto })
@@ -38,7 +36,6 @@ export class BookingsController {
   }
 
   @Get(":id")
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get current user's booking details" })
   @ApiOkResponse({ type: BookingResponseDto })
@@ -49,7 +46,6 @@ export class BookingsController {
   }
 
   @Patch(":id/cancel")
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Cancel current user's booking and calculate refund eligibility" })
   @ApiOkResponse({ type: BookingResponseDto })
@@ -61,7 +57,6 @@ export class BookingsController {
   }
 
   @Get("me")
-  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "List current user's bookings" })
   @ApiQuery({ name: "filter", enum: ["upcoming", "past", "cancelled"], required: false })
