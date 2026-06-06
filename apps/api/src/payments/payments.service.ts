@@ -1,10 +1,12 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { BookingStatus, CourtType, PaymentStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreatePaymentIntentDto } from "./dto/create-payment-intent.dto";
 import { PaymentResponseDto } from "./dto/payment-response.dto";
+import { MidtransWebhookDto } from "./dto/midtrans-webhook.dto";
+import { PAYMENT_GATEWAY_TOKEN, PaymentGateway } from "./gateways/payment-gateway.interface";
+import * as crypto from "crypto";
 
-const INTERNAL_PROVIDER = "internal";
 const SUPPORTED_METHODS = ["va", "ewallet", "card"];
 
 const paymentSelect = {
@@ -15,6 +17,8 @@ const paymentSelect = {
   provider: true,
   method: true,
   providerReference: true,
+  providerRedirectUrl: true,
+  providerToken: true,
   paidAt: true,
   failedAt: true,
   createdAt: true,
@@ -42,6 +46,8 @@ type SelectedPayment = {
   provider: string;
   method: string;
   providerReference: string | null;
+  providerRedirectUrl: string | null;
+  providerToken: string | null;
   paidAt: Date | null;
   failedAt: Date | null;
   createdAt: Date;
@@ -61,7 +67,11 @@ type SelectedPayment = {
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(PAYMENT_GATEWAY_TOKEN)
+    private readonly paymentGateway: PaymentGateway
+  ) {}
 
   async createIntentForUser(userId: string, body: CreatePaymentIntentDto): Promise<PaymentResponseDto> {
     this.assertSupportedMethod(body.method);
@@ -84,7 +94,7 @@ export class PaymentsService {
     }
 
     const pendingPayment = await this.prisma.payment.findFirst({
-      where: { bookingId: booking.id, status: PaymentStatus.PENDING },
+      where: { bookingId: booking.id, status: PaymentStatus.PENDING, provider: body.provider },
       select: paymentSelect,
     });
 
@@ -97,13 +107,46 @@ export class PaymentsService {
         bookingId: booking.id,
         amount: booking.finalAmount,
         status: PaymentStatus.PENDING,
-        provider: INTERNAL_PROVIDER,
+        provider: body.provider,
         method: body.method,
       },
+    });
+
+    let redirectUrl = null;
+    let token = null;
+    let providerReference = null;
+
+    if (body.provider === "midtrans") {
+      try {
+        const result = await this.paymentGateway.createTransaction({
+          orderId: payment.id,
+          amount: booking.finalAmount,
+          method: body.method,
+        });
+        redirectUrl = result.redirectUrl || null;
+        token = result.token || null;
+        providerReference = result.providerReference;
+
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            providerReference,
+            providerRedirectUrl: redirectUrl,
+            providerToken: token,
+          },
+        });
+      } catch (error) {
+        await this.prisma.payment.delete({ where: { id: payment.id } });
+        throw error;
+      }
+    }
+
+    const finalPayment = await this.prisma.payment.findUniqueOrThrow({
+      where: { id: payment.id },
       select: paymentSelect,
     });
 
-    return this.stripHostUserId(payment);
+    return this.stripHostUserId(finalPayment);
   }
 
   async findPaymentForUser(id: string, userId: string): Promise<PaymentResponseDto> {
@@ -155,6 +198,76 @@ export class PaymentsService {
     });
 
     return this.stripHostUserId(paidPayment);
+  }
+
+  async handleMidtransWebhook(payload: MidtransWebhookDto): Promise<void> {
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || "";
+    const hashString = `${payload.order_id}${payload.status_code}${payload.gross_amount}${serverKey}`;
+    const hash = crypto.createHash("sha512").update(hashString).digest("hex");
+
+    if (!payload.signature_key || payload.signature_key.length !== hash.length) {
+      throw new BadRequestException("Invalid signature length");
+    }
+
+    const isValid = crypto.timingSafeEqual(Buffer.from(payload.signature_key), Buffer.from(hash));
+    if (!isValid) {
+      throw new BadRequestException("Invalid signature");
+    }
+
+    const payment = await this.prisma.payment.findFirst({
+      where: { id: payload.order_id },
+      include: { booking: true },
+    });
+
+    if (!payment) {
+      return;
+    }
+
+    if (
+      payment.status === PaymentStatus.PAID ||
+      payment.status === PaymentStatus.FAILED ||
+      payment.status === PaymentStatus.REFUNDED
+    ) {
+      return;
+    }
+
+    let targetPaymentStatus: PaymentStatus | null = null;
+    let targetBookingStatus: BookingStatus | null = null;
+    const { transaction_status, fraud_status } = payload;
+
+    if (transaction_status === "settlement" || transaction_status === "capture") {
+      if (transaction_status === "capture" && fraud_status === "challenge") {
+        return;
+      }
+      targetPaymentStatus = PaymentStatus.PAID;
+      targetBookingStatus = BookingStatus.CONFIRMED;
+    } else if (["deny", "cancel", "expire"].includes(transaction_status)) {
+      targetPaymentStatus = PaymentStatus.FAILED;
+    } else if (transaction_status === "pending") {
+      return;
+    }
+
+    if (!targetPaymentStatus) {
+      return;
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: targetPaymentStatus!,
+          paidAt: targetPaymentStatus === PaymentStatus.PAID ? new Date() : undefined,
+          failedAt: targetPaymentStatus === PaymentStatus.FAILED ? new Date() : undefined,
+        },
+      });
+
+      if (targetBookingStatus === BookingStatus.CONFIRMED && payment.booking.status === BookingStatus.PENDING_PAYMENT) {
+        await tx.booking.update({
+          where: { id: payment.bookingId },
+          data: { status: targetBookingStatus },
+        });
+      }
+    });
   }
 
   private assertSupportedMethod(method: string): void {

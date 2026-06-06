@@ -72,6 +72,12 @@ export class PaymentResponseDto {
   providerReference!: string | null;
 
   @ApiProperty({ required: false, nullable: true })
+  providerRedirectUrl!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  providerToken!: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
   paidAt!: Date | null;
 
   @ApiProperty({ required: false, nullable: true })

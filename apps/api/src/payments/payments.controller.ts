@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -12,8 +12,10 @@ import {
 } from "@nestjs/swagger";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { RequestUser } from "../auth/types/request-user.type";
+import { Public } from "../auth/decorators/public.decorator";
 import { CreatePaymentIntentDto } from "./dto/create-payment-intent.dto";
 import { PaymentResponseDto } from "./dto/payment-response.dto";
+import { MidtransWebhookDto } from "./dto/midtrans-webhook.dto";
 import { PaymentsService } from "./payments.service";
 
 @ApiTags("payments")
@@ -55,5 +57,14 @@ export class PaymentsController {
   @ApiNotFoundResponse({ description: "Payment not found" })
   markPaid(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<PaymentResponseDto> {
     return this.paymentsService.markPaidForUser(id, user.id);
+  }
+
+  @Post("webhook")
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Midtrans webhook handler" })
+  @ApiOkResponse({ description: "Webhook processed" })
+  async handleWebhook(@Body() payload: MidtransWebhookDto): Promise<void> {
+    await this.paymentsService.handleMidtransWebhook(payload);
   }
 }

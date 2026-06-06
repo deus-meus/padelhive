@@ -191,6 +191,8 @@ model Payment {
   provider            String
   method              String
   providerReference   String?
+  providerRedirectUrl String?
+  providerToken       String?
   paidAt              DateTime?
   failedAt            DateTime?
   createdAt           DateTime      @default(now())
