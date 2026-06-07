@@ -29,6 +29,11 @@ export default function VouchersPage() {
   const isUsingFallback = isError || (data && data.length === 0);
   const apiError = isError ? "Could not reach the live voucher API." : null;
 
+  const hasApiData = Boolean(data && data.length > 0);
+  const shouldShowLoading = isLoadingVouchers && !hasApiData;
+  const shouldShowApiError = Boolean(apiError) && !shouldShowLoading;
+  const shouldShowFallback = isUsingFallback && !apiError && !shouldShowLoading;
+
   const active = vouchers.filter((v) => v.isActive);
   const expired = vouchers.filter((v) => !v.isActive);
   const filtered = filter === "active" ? active : expired;
@@ -60,9 +65,19 @@ export default function VouchersPage() {
         <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
           Use voucher codes to get discounts on your bookings.
         </p>
-        {(isLoadingVouchers || isUsingFallback || apiError) && (
-          <div className={`mt-5 rounded-xl border px-4 py-3 text-sm ${apiError && !isLoadingVouchers ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
-            {isLoadingVouchers ? "Loading live voucher data..." : apiError ? `${apiError} Showing demo voucher data.` : "Live API unavailable. Showing demo voucher data."}
+        {shouldShowLoading && (
+          <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-[#F7F7F7]/40">
+            Loading live voucher data...
+          </div>
+        )}
+        {shouldShowApiError && (
+          <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
+            {apiError} Showing demo voucher data.
+          </div>
+        )}
+        {shouldShowFallback && (
+          <div className="mt-5 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-sm text-[#E6FA50]/70">
+            Live API unavailable. Showing demo voucher data.
           </div>
         )}
       </section>
