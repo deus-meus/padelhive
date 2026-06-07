@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { RequireAuth } from "@/components/auth/require-auth";
+import { Navbar } from "@/components/shared/navbar";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
@@ -36,7 +37,8 @@ export default function AdminLayout({
 
   return (
     <RequireAuth allowedRoles={["super_admin"]}>
-    <div className="min-h-screen pt-20">
+      <Navbar />
+      <div className="min-h-screen pt-20">
       <div className="flex">
         <aside className="hidden lg:flex lg:w-[240px] lg:shrink-0 lg:flex-col lg:border-r lg:border-white/[0.04]">
           <nav className="sticky top-20 flex flex-col gap-1 p-5">
