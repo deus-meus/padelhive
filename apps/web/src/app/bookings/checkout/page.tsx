@@ -81,7 +81,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen pt-28 pb-16">
       <section className="container pb-6">
-        <Link href="/venues" className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/30 transition-colors hover:text-[#F7F7F7]/60">
+        <Link href="/venues" className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </Link>
       </section>
@@ -114,7 +114,7 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <h2 className="heading-3 text-lg text-[#F7F7F7]">{venue?.name}</h2>
-                  <p className="mt-1 flex items-center gap-2 caption text-[#F7F7F7]/30">
+                  <p className="mt-1 flex items-center gap-2 caption text-[#F7F7F7]/25">
                     <MapPin className="h-3 w-3" /> {venue?.location} · {venue?.city}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-3">
@@ -159,12 +159,12 @@ export default function CheckoutPage() {
                         : "border border-white/[0.04] bg-white/[0.02] hover:border-white/[0.08]"
                     }`}
                   >
-                    <CreditCard className={`h-4 w-4 ${paymentMethod === method.id ? "text-[#E6FA50]" : "text-[#F7F7F7]/30"}`} />
+                    <CreditCard className={`h-4 w-4 ${paymentMethod === method.id ? "text-[#E6FA50]" : "text-[#F7F7F7]/25"}`} />
                     <div className="flex-1">
                       <p className={`text-sm ${paymentMethod === method.id ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>
                         {method.label}
                       </p>
-                      <p className="caption text-[#F7F7F7]/20">{method.provider}</p>
+                      <p className="caption text-[#F7F7F7]/25">{method.provider}</p>
                     </div>
                     {paymentMethod === method.id && (
                       <CheckCircle2 className="h-4 w-4 text-[#E6FA50]" />
@@ -226,7 +226,7 @@ export default function CheckoutPage() {
                 {paymentStatus === "processing" ? "Processing..." : paymentStatus === "success" ? "Payment Authorized" : `Pay Rp ${(total / 1000).toFixed(0)}K`}
               </button>
 
-              <p className="caption text-center text-[#F7F7F7]/20 mt-3">
+              <p className="caption text-center text-[#F7F7F7]/25 mt-3">
                 Secure payment via Midtrans / Xendit
               </p>
             </div>
@@ -237,7 +237,7 @@ export default function CheckoutPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/70">{toast}</p>
+          <p className="caption text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
 function SummaryRow({ label, value, highlight, bold }: { label: string; value: string; highlight?: boolean; bold?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={`text-sm ${bold ? "font-medium text-[#F7F7F7]/70" : "text-[#F7F7F7]/40"}`}>{label}</span>
+      <span className={`text-sm ${bold ? "font-medium text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>{label}</span>
       <span className={`text-sm ${highlight ? "text-[#E6FA50]" : bold ? "font-semibold text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
     </div>
   );

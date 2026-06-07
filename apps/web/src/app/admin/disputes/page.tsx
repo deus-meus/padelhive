@@ -30,7 +30,7 @@ const STATUS_STYLES: Record<Dispute["status"], string> = {
   open: "bg-red-500/10 text-red-400",
   investigating: "bg-[#50C8C8]/10 text-[#50C8C8]",
   resolved: "bg-[#E6FA50]/10 text-[#E6FA50]",
-  closed: "bg-[#F7F7F7]/5 text-[#F7F7F7]/30",
+  closed: "bg-[#F7F7F7]/5 text-[#F7F7F7]/25",
 };
 
 export default function DisputesPage() {
@@ -64,7 +64,7 @@ export default function DisputesPage() {
   return (
     <div className="p-6 lg:p-8">
       <div className="mb-8">
-        <p className="caption text-[#F7F7F7]/30">Support</p>
+        <p className="caption text-[#F7F7F7]/25">Support</p>
         <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
           Dispute <span className="text-[#E6FA50]">Handling</span>
         </h1>
@@ -79,7 +79,7 @@ export default function DisputesPage() {
             className={`shrink-0 rounded-lg px-4 py-2 text-xs font-medium capitalize transition-all ${
               filter === tab
                 ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/70"
+                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
             }`}
           >
             {tab} ({items.filter((d) => tab === "all" ? true : d.status === tab).length})
@@ -91,7 +91,7 @@ export default function DisputesPage() {
       <div className="space-y-3">
         {filtered.length === 0 && (
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-            <p className="caption text-[#F7F7F7]/30">No disputes in this category</p>
+            <p className="caption text-[#F7F7F7]/25">No disputes in this category</p>
           </div>
         )}
         {filtered.map((dispute) => (
@@ -115,13 +115,13 @@ export default function DisputesPage() {
                   </div>
                   <p className="text-sm text-[#F7F7F7]/80 mt-2">{dispute.description}</p>
                   <div className="mt-3 flex flex-wrap items-center gap-4">
-                    <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/30">
+                    <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/25">
                       <UserCircle className="h-3.5 w-3.5" /> {dispute.user}
                     </span>
-                    <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/30">
+                    <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/25">
                       <Building2 className="h-3.5 w-3.5" /> {dispute.venue}
                     </span>
-                    <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/30">
+                    <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/25">
                       <Flag className="h-3.5 w-3.5" /> {dispute.createdAt}
                     </span>
                   </div>
@@ -159,7 +159,7 @@ export default function DisputesPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/70">{toast}</p>
+          <p className="caption text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>

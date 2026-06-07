@@ -105,7 +105,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               <h1 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-4xl">
                 Court secured for your match
               </h1>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/45">
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/40">
                 Your payment was successful and the court is confirmed.
               </p>
             </>
@@ -120,7 +120,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               <h1 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-4xl">
                 Payment could not be processed
               </h1>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/45">
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/40">
                 We could not confirm your payment. Please try again.
               </p>
             </>
@@ -135,7 +135,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               <h1 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-4xl">
                 Waiting for confirmation
               </h1>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/45">
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/40">
                 We are waiting for the payment provider to confirm your payment. This screen will update automatically.
               </p>
             </>
@@ -144,7 +144,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
           <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#06121A] p-5 text-left">
             <div className="flex items-start justify-between gap-4 border-b border-white/[0.06] pb-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/35">Booking ID</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">Booking ID</p>
                 <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{params.id}</p>
               </div>
               <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${isPaid ? "bg-[#E6FA50]/10 text-[#E6FA50]" : isFailed ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"}`}>
@@ -154,16 +154,16 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/35">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">
                   <MapPin className="h-3.5 w-3.5" />
                   Venue
                 </div>
                 <p className="mt-2 text-sm font-medium text-[#F7F7F7]/80">{venue}</p>
-                <p className="mt-1 text-xs text-[#F7F7F7]/35">{court}</p>
+                <p className="mt-1 text-xs text-[#F7F7F7]/40">{court}</p>
               </div>
 
               <div className="rounded-xl bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/35">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">
                   <CalendarDays className="h-3.5 w-3.5" />
                   Date
                 </div>
@@ -171,7 +171,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               </div>
 
               <div className="rounded-xl bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/35">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">
                   <Clock className="h-3.5 w-3.5" />
                   Time
                 </div>
@@ -181,7 +181,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               </div>
 
               <div className="rounded-xl bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/35">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">
                   <CreditCard className="h-3.5 w-3.5" />
                   Payment
                 </div>
@@ -210,7 +210,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
             )}
             <Link
               href="/venues"
-              className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70"
+              className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/60"
             >
               Book Another Court
             </Link>

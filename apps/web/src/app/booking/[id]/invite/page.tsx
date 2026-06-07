@@ -165,7 +165,7 @@ export default function InviteFriendsPage({
         {/* Back */}
         <Link
           href={`/venues/${venueId}/book`}
-          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to booking
@@ -183,7 +183,7 @@ export default function InviteFriendsPage({
 
         {/* Booking context */}
         <div className="mt-6 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#F7F7F7]/50">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#F7F7F7]/60">
             <span>{venue}</span>
             <span className="text-[#F7F7F7]/15">·</span>
             <span>{court}</span>
@@ -202,7 +202,7 @@ export default function InviteFriendsPage({
           </h2>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex min-w-0 flex-1 items-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
-              <span className="flex-1 truncate text-sm text-[#F7F7F7]/50">
+              <span className="flex-1 truncate text-sm text-[#F7F7F7]/60">
                 {firstInviteLink}
               </span>
             </div>
@@ -247,7 +247,7 @@ export default function InviteFriendsPage({
               onKeyDown={(e) => e.key === "Enter" && handleAddFriend()}
               disabled={inviteMutation.isPending}
               placeholder="friend@email.com"
-              className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none focus:ring-1 focus:ring-[#E6FA50]/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none focus:ring-1 focus:ring-[#E6FA50]/20 disabled:cursor-not-allowed disabled:opacity-50"
             />
             <button
               onClick={handleAddFriend}
@@ -299,13 +299,13 @@ export default function InviteFriendsPage({
           <div className="mt-4 space-y-3">
             {isLoading ? (
               <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
-                <p className="text-sm text-[#F7F7F7]/50">Loading invites...</p>
+                <p className="text-sm text-[#F7F7F7]/60">Loading invites...</p>
               </div>
             ) : invites.length === 0 ? (
               <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] p-6 text-center">
                 <Mail className="mx-auto h-8 w-8 text-[#50C8C8]/60" />
-                <h3 className="mt-3 text-sm font-medium text-[#F7F7F7]/70">No invites yet</h3>
-                <p className="mt-1 text-[11px] leading-relaxed text-[#F7F7F7]/30">
+                <h3 className="mt-3 text-sm font-medium text-[#F7F7F7]/60">No invites yet</h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-[#F7F7F7]/25">
                   Add a friend by email to generate RSVP link for this booking.
                 </p>
               </div>
@@ -327,7 +327,7 @@ export default function InviteFriendsPage({
                         <p className="truncate text-sm font-medium text-[#F7F7F7]/80">
                           {invite.name}
                         </p>
-                        <p className="truncate text-[11px] text-[#F7F7F7]/30">
+                        <p className="truncate text-[11px] text-[#F7F7F7]/25">
                           {invite.email}
                         </p>
                       </div>
@@ -341,7 +341,7 @@ export default function InviteFriendsPage({
                       </div>
                       <button
                         onClick={() => handleCopy(invite.token)}
-                        className="flex h-9 items-center gap-2 rounded-full border border-white/[0.06] px-3 text-[11px] font-medium text-[#F7F7F7]/50 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/80"
+                        className="flex h-9 items-center gap-2 rounded-full border border-white/[0.06] px-3 text-[11px] font-medium text-[#F7F7F7]/60 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/80"
                       >
                         {isCopied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
                         {isCopied ? "Copied" : "Copy Link"}

@@ -74,12 +74,12 @@ export default function VenueManagementPage() {
         <div className="mt-8 space-y-4">
           {isLoading && (
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-              <p className="caption text-[#F7F7F7]/30">Loading venues...</p>
+              <p className="caption text-[#F7F7F7]/25">Loading venues...</p>
             </div>
           )}
           {!isLoading && venues.length === 0 && (
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-              <p className="caption text-[#F7F7F7]/30">No venues found</p>
+              <p className="caption text-[#F7F7F7]/25">No venues found</p>
             </div>
           )}
           {!isLoading && venues.map((venue) => (
@@ -96,7 +96,7 @@ export default function VenueManagementPage() {
             />
             <div className="relative w-full max-w-md rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 shadow-2xl">
               <h2 className="heading-2 text-xl text-[#F7F7F7]">Add New Venue</h2>
-              <p className="mt-2 text-sm text-[#F7F7F7]/35">
+              <p className="mt-2 text-sm text-[#F7F7F7]/40">
                 Submit your venue for approval
               </p>
 
@@ -106,7 +106,7 @@ export default function VenueManagementPage() {
                   <input
                     type="text"
                     placeholder="e.g. Padel Bali Arena"
-                    className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none"
+                    className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -114,7 +114,7 @@ export default function VenueManagementPage() {
                   <input
                     type="text"
                     placeholder="Full address"
-                    className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none"
+                    className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -130,7 +130,7 @@ export default function VenueManagementPage() {
                   <textarea
                     rows={3}
                     placeholder="Describe your venue..."
-                    className="mt-1.5 w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none"
+                    className="mt-1.5 w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                   />
                 </div>
               </div>
@@ -138,7 +138,7 @@ export default function VenueManagementPage() {
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 rounded-full border border-white/[0.08] py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70"
+                  className="flex-1 rounded-full border border-white/[0.08] py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/60"
                 >
                   Cancel
                 </button>
@@ -159,7 +159,7 @@ export default function VenueManagementPage() {
         {/* Toast */}
         {toast && (
           <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40">
-            <p className="text-sm text-[#F7F7F7]/70">{toast}</p>
+            <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
           </div>
         )}
       </section>
@@ -193,19 +193,19 @@ function VenueCard({ venue, showToast }: { venue: Venue; showToast: (msg: string
               </span>
             )}
           </div>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-[#F7F7F7]/35">
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-[#F7F7F7]/40">
             <MapPin className="h-3.5 w-3.5" />
             {venue.location} · {venue.city}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-4">
-            <span className="flex items-center gap-1.5 text-xs text-[#F7F7F7]/30">
+            <span className="flex items-center gap-1.5 text-xs text-[#F7F7F7]/25">
               <Star className="h-3 w-3 fill-[#E6FA50] text-[#E6FA50]" />
               {venue.rating} ({venue.reviewCount})
             </span>
-            <span className="text-xs text-[#F7F7F7]/30">
+            <span className="text-xs text-[#F7F7F7]/25">
               {courts.length} courts
             </span>
-            <span className="text-xs text-[#F7F7F7]/30">
+            <span className="text-xs text-[#F7F7F7]/25">
               {venue.operatingHours.open} – {venue.operatingHours.close}
             </span>
           </div>
@@ -220,21 +220,21 @@ function VenueCard({ venue, showToast }: { venue: Venue; showToast: (msg: string
           </div>
           <Link
             href={`/venues/${venue.id}`}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/25 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
             title="View venue"
           >
             <Eye className="h-3.5 w-3.5" />
           </Link>
           <button
             onClick={() => showToast("Edit venue coming soon in backend integration.")}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/25 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
             title="Edit venue"
           >
             <Edit3 className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => showToast("More options coming soon in backend integration.")}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/30 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/25 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
           >
             <MoreVertical className="h-3.5 w-3.5" />
           </button>
@@ -246,7 +246,7 @@ function VenueCard({ venue, showToast }: { venue: Venue; showToast: (msg: string
         {venue.facilities.map((f) => (
           <span
             key={f}
-            className="rounded-full bg-white/[0.03] px-3 py-1 text-[10px] font-medium text-[#F7F7F7]/30"
+            className="rounded-full bg-white/[0.03] px-3 py-1 text-[10px] font-medium text-[#F7F7F7]/25"
           >
             {f}
           </span>

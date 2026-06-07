@@ -41,7 +41,7 @@ export default function BookingDetailPage() {
     return (
       <div className="min-h-screen pt-28">
         <div className="container py-16 text-center">
-          <p className="text-sm text-[#F7F7F7]/30">Booking not found.</p>
+          <p className="text-sm text-[#F7F7F7]/25">Booking not found.</p>
           <Link href="/bookings" className="mt-4 inline-flex items-center gap-2 text-sm text-[#E6FA50] hover:underline">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
           </Link>
@@ -127,7 +127,7 @@ export default function BookingDetailPage() {
     <div className="min-h-screen pt-28 pb-16">
       {/* Back nav */}
       <section className="container pb-6">
-        <Link href="/bookings" className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/30 transition-colors hover:text-[#F7F7F7]/60">
+        <Link href="/bookings" className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
         </Link>
       </section>
@@ -193,7 +193,7 @@ export default function BookingDetailPage() {
               {currentBooking.status === "confirmed" && (
                 <button
                   onClick={handleShareInvite}
-                  className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-white/[0.06] py-2.5 text-xs font-medium text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/70"
+                  className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-white/[0.06] py-2.5 text-xs font-medium text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
                 >
                   <Users className="h-3.5 w-3.5" /> Invite More Friends
                 </button>
@@ -207,14 +207,14 @@ export default function BookingDetailPage() {
                 <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-4">
                   <ShieldCheck className="h-5 w-5 shrink-0 text-[#E6FA50]" />
                   <div>
-                    <p className="text-sm font-medium text-[#F7F7F7]/70">Full refund before H-1</p>
+                    <p className="text-sm font-medium text-[#F7F7F7]/60">Full refund before H-1</p>
                     <p className="caption text-[#F7F7F7]/25">Cancel 24+ hours before booking date</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-4">
                   <ShieldX className="h-5 w-5 shrink-0 text-red-400" />
                   <div>
-                    <p className="text-sm font-medium text-[#F7F7F7]/70">Non-refundable after H-1</p>
+                    <p className="text-sm font-medium text-[#F7F7F7]/60">Non-refundable after H-1</p>
                     <p className="caption text-[#F7F7F7]/25">Less than 24 hours before booking</p>
                   </div>
                 </div>
@@ -244,20 +244,20 @@ export default function BookingDetailPage() {
 
               <div className="space-y-2 rounded-xl bg-white/[0.02] p-3">
                 <div className="flex items-center justify-between">
-                  <span className="caption text-[#F7F7F7]/30">Method</span>
+                  <span className="caption text-[#F7F7F7]/25">Method</span>
                   <span className="text-xs font-medium text-[#F7F7F7]/60">{currentBooking.payment.method}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="caption text-[#F7F7F7]/30">Provider</span>
+                  <span className="caption text-[#F7F7F7]/25">Provider</span>
                   <span className="text-xs font-medium text-[#F7F7F7]/60 uppercase">{currentBooking.payment.provider}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="caption text-[#F7F7F7]/30">Status</span>
+                  <span className="caption text-[#F7F7F7]/25">Status</span>
                   <PaymentBadge status={isCancelled ? "refunded" : currentBooking.payment.status} />
                 </div>
                 {currentBooking.payment.paidAt && (
                   <div className="flex items-center justify-between">
-                    <span className="caption text-[#F7F7F7]/30">Paid at</span>
+                    <span className="caption text-[#F7F7F7]/25">Paid at</span>
                     <span className="caption text-[#F7F7F7]/40">{new Date(currentBooking.payment.paidAt).toLocaleString()}</span>
                   </div>
                 )}
@@ -279,7 +279,7 @@ export default function BookingDetailPage() {
                 >
                   <Share2 className="h-4 w-4 text-[#50C8C8]" />
                   Share invite link
-                  <Copy className="ml-auto h-3.5 w-3.5 text-[#F7F7F7]/20" />
+                  <Copy className="ml-auto h-3.5 w-3.5 text-[#F7F7F7]/25" />
                 </button>
                 <Link
                   href={`/booking/${currentBooking.id}/payment`}
@@ -308,18 +308,18 @@ export default function BookingDetailPage() {
           <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
             <p className="section-label">Cancel Booking</p>
             <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Cancel this booking?</h2>
-            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/45">
+            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/40">
               This will cancel your booking and release the court time.
             </p>
             <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
-              <p className="text-sm font-medium text-[#F7F7F7]/70">Refund eligibility</p>
+              <p className="text-sm font-medium text-[#F7F7F7]/60">Refund eligibility</p>
               <p className="mt-1 text-xs leading-5 text-[#F7F7F7]/40">{getRefundNote()}</p>
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setShowCancelModal(false)}
                 disabled={isCancelling}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70 disabled:opacity-40"
+                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/60 disabled:opacity-40"
               >
                 Keep Booking
               </button>
@@ -338,7 +338,7 @@ export default function BookingDetailPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/70">{toast}</p>
+          <p className="caption text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>
@@ -358,7 +358,7 @@ function InfoCard({
     <div className="rounded-xl bg-white/[0.02] p-3">
       <Icon className="h-3.5 w-3.5 text-[#50C8C8]" />
       <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{value}</p>
-      <p className="caption mt-0.5 text-[#F7F7F7]/20">{label}</p>
+      <p className="caption mt-0.5 text-[#F7F7F7]/25">{label}</p>
     </div>
   );
 }
@@ -384,7 +384,7 @@ function ParticipantRow({ participant }: { participant: Participant }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm text-[#F7F7F7]/70 truncate">{participant.name}</p>
+          <p className="text-sm text-[#F7F7F7]/60 truncate">{participant.name}</p>
           {participant.isHost && (
             <span className="rounded-full bg-[#E6FA50]/10 px-2 py-0.5 text-[9px] font-medium uppercase text-[#E6FA50]">Host</span>
           )}
@@ -401,7 +401,7 @@ function ParticipantRow({ participant }: { participant: Participant }) {
 function PaymentRow({ label, value, highlight, bold }: { label: string; value: string; highlight?: boolean; bold?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={`text-sm ${bold ? "font-medium text-[#F7F7F7]/70" : "text-[#F7F7F7]/40"}`}>{label}</span>
+      <span className={`text-sm ${bold ? "font-medium text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>{label}</span>
       <span className={`text-sm ${highlight ? "text-[#E6FA50]" : bold ? "font-semibold text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
     </div>
   );
@@ -411,11 +411,11 @@ function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     confirmed: "bg-[#E6FA50]/10 text-[#E6FA50]",
     pending: "bg-[#50C8C8]/10 text-[#50C8C8]",
-    completed: "bg-white/[0.04] text-[#F7F7F7]/30",
+    completed: "bg-white/[0.04] text-[#F7F7F7]/25",
     cancelled: "bg-red-500/10 text-red-400/70",
   };
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/30"}`}>
+    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/25"}`}>
       {status}
     </span>
   );

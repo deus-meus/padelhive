@@ -89,7 +89,7 @@ const STATUS_CONFIG = {
   pending: { label: "Pending", icon: Clock, color: "text-yellow-400", bg: "bg-yellow-400/10" },
   completed: { label: "Completed", icon: CheckCircle2, color: "text-[#50C8C8]", bg: "bg-[#50C8C8]/10" },
   cancelled: { label: "Cancelled", icon: XCircle, color: "text-red-400", bg: "bg-red-400/10" },
-  expired: { label: "Expired", icon: XCircle, color: "text-[#F7F7F7]/30", bg: "bg-white/[0.03]" },
+  expired: { label: "Expired", icon: XCircle, color: "text-[#F7F7F7]/25", bg: "bg-white/[0.03]" },
 };
 
 const PAYMENT_STATUS: Record<string, "paid" | "pending" | "refunded"> = {
@@ -237,7 +237,7 @@ export default function BookingsManagementPage() {
                         );
                       })()}
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#F7F7F7]/30">
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#F7F7F7]/25">
                       <span>{venue?.name}</span>
                       <span className="text-[#F7F7F7]/10">·</span>
                       <span>{court?.name}</span>
@@ -260,7 +260,7 @@ export default function BookingsManagementPage() {
 
           {filteredBookings.length === 0 && (
             <div className="rounded-xl border border-dashed border-white/[0.08] p-12 text-center">
-              <p className="text-sm text-[#F7F7F7]/30">
+              <p className="text-sm text-[#F7F7F7]/25">
                 No {activeTab} bookings found.
               </p>
             </div>

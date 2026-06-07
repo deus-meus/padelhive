@@ -281,7 +281,7 @@ export default function PaymentPage({
         {/* Back */}
         <Link
           href={`/venues/${venueId}/book`}
-          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to booking
@@ -363,7 +363,7 @@ export default function PaymentPage({
                 <div className="mt-4 space-y-3">
                   <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#F7F7F7]/50">
+                      <span className="text-sm text-[#F7F7F7]/60">
                         Price per player
                       </span>
                       <span className="text-sm font-semibold text-[#E6FA50]">
@@ -394,7 +394,7 @@ export default function PaymentPage({
                             <p className="text-sm font-medium text-[#F7F7F7]/80">
                               {player.name}
                             </p>
-                            <p className="text-[11px] text-[#F7F7F7]/30">
+                            <p className="text-[11px] text-[#F7F7F7]/25">
                               Rp {player.amount.toLocaleString("id-ID")}
                             </p>
                           </div>
@@ -416,7 +416,7 @@ export default function PaymentPage({
                   })}
 
                   <div className="rounded-lg bg-white/[0.02] p-3">
-                    <p className="text-[11px] text-[#F7F7F7]/30">
+                    <p className="text-[11px] text-[#F7F7F7]/25">
                       You pay the remaining balance. Friends who haven&apos;t
                       paid will be charged their share separately.
                     </p>
@@ -434,10 +434,10 @@ export default function PaymentPage({
                 <UserPlus className="h-4 w-4 text-[#50C8C8]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[#F7F7F7]/70">
+                <p className="text-sm font-medium text-[#F7F7F7]/60">
                   Invite Friends
                 </p>
-                <p className="text-[11px] text-[#F7F7F7]/30">
+                <p className="text-[11px] text-[#F7F7F7]/25">
                   Share your booking link and manage RSVPs
                 </p>
               </div>
@@ -477,12 +477,12 @@ export default function PaymentPage({
                           className={`text-sm font-medium ${
                             isSelected
                               ? "text-[#E6FA50]"
-                              : "text-[#F7F7F7]/70"
+                              : "text-[#F7F7F7]/60"
                           }`}
                         >
                           {method.label}
                         </p>
-                        <p className="text-[11px] text-[#F7F7F7]/30">
+                        <p className="text-[11px] text-[#F7F7F7]/25">
                           {method.description}
                         </p>
                       </div>
@@ -541,7 +541,7 @@ export default function PaymentPage({
 
                 <div className="mt-4 border-t border-white/[0.06] pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#F7F7F7]/70">
+                    <span className="text-sm font-medium text-[#F7F7F7]/60">
                       {splitEnabled ? "You pay" : "Total"}
                     </span>
                     <span className="price text-xl text-[#F7F7F7]">
@@ -574,7 +574,7 @@ export default function PaymentPage({
                   <button
                     onClick={handleMarkPaid}
                     disabled={markingPaid || processing || !booking}
-                    className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {markingPaid ? "Marking Paid..." : "Mark as Paid (Demo)"}
                   </button>

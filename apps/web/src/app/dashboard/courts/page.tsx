@@ -69,7 +69,7 @@ export default function CourtsPage() {
               className={`rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
                 activeVenueId === v.id
                   ? "bg-[#E6FA50] text-[#06121A]"
-                  : "bg-white/[0.03] text-[#F7F7F7]/35 hover:bg-white/[0.06] hover:text-[#F7F7F7]/70"
+                  : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
               }`}
             >
               {v.name}
@@ -164,13 +164,13 @@ export default function CourtsPage() {
 
         {isCourtsLoading && (
           <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
-            <p className="text-sm text-[#F7F7F7]/30">Loading courts...</p>
+            <p className="text-sm text-[#F7F7F7]/25">Loading courts...</p>
           </div>
         )}
 
         {!isCourtsLoading && courts.length === 0 && activeVenueId && (
           <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
-            <p className="text-sm text-[#F7F7F7]/30">No courts for this venue yet.</p>
+            <p className="text-sm text-[#F7F7F7]/25">No courts for this venue yet.</p>
             <button
               onClick={() => showToast("Add court coming soon in backend integration.")}
               className="btn-lime mt-4 rounded-full px-6 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
@@ -183,7 +183,7 @@ export default function CourtsPage() {
         {/* Toast */}
         {toast && (
           <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40">
-            <p className="text-sm text-[#F7F7F7]/70">{toast}</p>
+            <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
           </div>
         )}
       </section>
@@ -216,7 +216,7 @@ function PricingCard({
         <Icon
           className={`h-3 w-3 ${highlight ? "text-[#E6FA50]/60" : "text-[#F7F7F7]/25"}`}
         />
-        <span className="text-[10px] text-[#F7F7F7]/30">{label}</span>
+        <span className="text-[10px] text-[#F7F7F7]/25">{label}</span>
       </div>
       {editing ? (
         <input
@@ -234,7 +234,7 @@ function PricingCard({
         </p>
       )}
       {editing && (
-        <p className="mt-1 text-[9px] text-[#F7F7F7]/20">× 1,000 IDR</p>
+        <p className="mt-1 text-[9px] text-[#F7F7F7]/25">× 1,000 IDR</p>
       )}
     </div>
   );

@@ -249,14 +249,14 @@ export default function BookingFlowPage({
           </div>
         )}
         {courts.length === 0 && (
-          <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
+          <div className="mb-5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-[#F7F7F7]/60">
             No courts are available for this venue yet.
           </div>
         )}
         {/* Back */}
         <Link
           href={venue ? `/venues/${venue.id}` : "/venues"}
-          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to venue
@@ -296,7 +296,7 @@ export default function BookingFlowPage({
                     className={`rounded-xl border px-5 py-3 transition-all ${
                       selectedCourt?.id === court.id
                         ? "border-[#E6FA50]/40 bg-[#E6FA50]/10 text-[#E6FA50]"
-                        : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/50 hover:border-white/[0.12]"
+                        : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-white/[0.12]"
                     }`}
                   >
                     <p className="text-sm font-medium">{court.name}</p>
@@ -320,7 +320,7 @@ export default function BookingFlowPage({
                     setDateScrollStart(Math.max(0, dateScrollStart - 4))
                   }
                   disabled={dateScrollStart === 0}
-                  className="hidden sm:block rounded-lg border border-white/[0.06] p-2 text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60 disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="hidden sm:block rounded-lg border border-white/[0.06] p-2 text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60 disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -387,7 +387,7 @@ export default function BookingFlowPage({
                     )
                   }
                   disabled={dateScrollStart >= DAYS_AHEAD - 7}
-                  className="hidden sm:block rounded-lg border border-white/[0.06] p-2 text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60 disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="hidden sm:block rounded-lg border border-white/[0.06] p-2 text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60 disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -399,7 +399,7 @@ export default function BookingFlowPage({
                     setDateScrollStart(Math.max(0, dateScrollStart - 4))
                   }
                   disabled={dateScrollStart === 0}
-                  className="flex items-center gap-1 text-[11px] text-[#F7F7F7]/30 disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 text-[11px] text-[#F7F7F7]/25 disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                   Previous
@@ -411,7 +411,7 @@ export default function BookingFlowPage({
                     )
                   }
                   disabled={dateScrollStart >= DAYS_AHEAD - 7}
-                  className="flex items-center gap-1 text-[11px] text-[#F7F7F7]/30 disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 text-[11px] text-[#F7F7F7]/25 disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   Next
                   <ChevronRight className="h-3.5 w-3.5" />
@@ -447,8 +447,8 @@ export default function BookingFlowPage({
                           : isSelected
                             ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]"
                             : slot.isPeak
-                              ? "border-[#E6FA50]/15 bg-[#E6FA50]/[0.03] text-[#F7F7F7]/50 hover:border-[#E6FA50]/30"
-                              : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/50 hover:border-white/[0.15]"
+                              ? "border-[#E6FA50]/15 bg-[#E6FA50]/[0.03] text-[#F7F7F7]/60 hover:border-[#E6FA50]/30"
+                              : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-white/[0.15]"
                       }`}
                     >
                       <span className="text-xs font-medium">{slot.startsAt}</span>
@@ -472,21 +472,21 @@ export default function BookingFlowPage({
               <div className="mt-3 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-white/[0.06] bg-[#0C1B26]" />
-                  <span className="text-[10px] text-[#F7F7F7]/30">
+                  <span className="text-[10px] text-[#F7F7F7]/25">
                     Off-Peak
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-[#E6FA50]/15 bg-[#E6FA50]/[0.03]" />
-                  <span className="text-[10px] text-[#F7F7F7]/30">Peak</span>
+                  <span className="text-[10px] text-[#F7F7F7]/25">Peak</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm bg-white/[0.02]" />
-                  <span className="text-[10px] text-[#F7F7F7]/30">Booked</span>
+                  <span className="text-[10px] text-[#F7F7F7]/25">Booked</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-[#E6FA50] bg-[#E6FA50]/15" />
-                  <span className="text-[10px] text-[#F7F7F7]/30">
+                  <span className="text-[10px] text-[#F7F7F7]/25">
                     Selected
                   </span>
                 </div>
@@ -566,7 +566,7 @@ export default function BookingFlowPage({
 
                 <div className="mt-4 border-t border-white/[0.06] pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#F7F7F7]/70">
+                    <span className="text-sm font-medium text-[#F7F7F7]/60">
                       Total
                     </span>
                     <span className="price text-xl text-[#F7F7F7]">

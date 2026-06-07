@@ -497,7 +497,7 @@ function Step({ number, title, description }: { number: string; title: string; d
         <h3 className="heading-2 text-lg text-[#F7F7F7] transition-colors duration-300 group-hover:text-[#E6FA50] md:text-xl">
           {title}
         </h3>
-        <p className="mt-2 max-w-md text-sm text-[#F7F7F7]/35 font-light leading-relaxed">{description}</p>
+        <p className="mt-2 max-w-md text-sm text-[#F7F7F7]/40 font-light leading-relaxed">{description}</p>
       </div>
     </div>
   );
