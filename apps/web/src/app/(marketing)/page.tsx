@@ -50,9 +50,9 @@ export default async function HomePage() {
 
         <div className="container relative z-10 flex flex-1 flex-col justify-center pt-28 pb-20 md:pt-32 md:pb-24">
           <h1 className="display-xl text-[clamp(2.75rem,8vw,7.5rem)] leading-[0.92] text-[#F7F7F7]">
-            PLAY.
+            BOOK.
             <br />
-            <span className="text-[#E6FA50]">COMPETE.</span>
+            <span className="text-[#E6FA50]">PLAY.</span>
             <br />
             CONNECT.
           </h1>
@@ -80,17 +80,18 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Stats strip */}
-        <div className="relative z-10 border-t border-white/[0.06] bg-[#06121A]/80 backdrop-blur-sm">
-          <div className="container flex items-center justify-between py-4">
-            <StatInline value="5,000+" label="Players" />
-            <div className="h-4 w-px bg-white/[0.08]" />
-            <StatInline value="50+" label="Venues" />
-            <div className="h-4 w-px bg-white/[0.08]" />
-            <StatInline value="200+" label="Matches/mo" />
-            <div className="hidden h-4 w-px bg-white/[0.08] md:block" />
-            <StatInline value="15K+" label="Hours Played" className="hidden md:flex" />
-          </div>
+      </section>
+
+      {/* ─── STATS ─── */}
+      <section className="border-y border-white/[0.06] bg-[#06121A]">
+        <div className="container flex items-center justify-between py-5">
+          <StatInline value="5,000+" label="Players" />
+          <div className="h-4 w-px bg-white/[0.08]" />
+          <StatInline value="50+" label="Venues" />
+          <div className="h-4 w-px bg-white/[0.08]" />
+          <StatInline value="200+" label="Matches/mo" />
+          <div className="hidden h-4 w-px bg-white/[0.08] md:block" />
+          <StatInline value="15K+" label="Hours Played" className="hidden md:flex" />
         </div>
       </section>
 
