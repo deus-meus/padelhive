@@ -10,9 +10,13 @@ import {
   LayoutDashboard,
   Shield,
   LogOut,
-  User,
+  Ticket,
   LogIn,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
+import { getUserBookings, getVouchers } from "@/lib/api";
+import { mockVouchers } from "@/mock/vouchers";
 import { useAuthStore } from "@/stores/auth-store";
 
 export function Navbar() {
@@ -48,6 +52,28 @@ export function Navbar() {
 
   const showDashboard = user?.role === "venue_owner" || user?.role === "venue_admin";
   const showAdmin = user?.role === "super_admin";
+
+  const isPlayer = !!user && !showDashboard && !showAdmin;
+
+  const { data: upcomingBookings = [], isLoading: bookingsLoading } = useQuery({
+    queryKey: queryKeys.bookings.user("upcoming"),
+    queryFn: () => getUserBookings("upcoming"),
+    enabled: isPlayer && avatarOpen,
+    staleTime: 60_000,
+  });
+  const nextBooking = upcomingBookings.find(
+    (b) => b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT"
+  );
+
+  const { data: vouchersData = [], isLoading: vouchersLoading } = useQuery({
+    queryKey: queryKeys.vouchers.all(),
+    queryFn: getVouchers,
+    enabled: isPlayer && avatarOpen,
+    staleTime: 60_000,
+  });
+  const hasVoucherData = Boolean(vouchersData && vouchersData.length > 0);
+  const voucherList = hasVoucherData ? vouchersData : mockVouchers;
+  const activeVoucherCount = voucherList.filter((v) => v.isActive).length;
 
   return (
     <header
@@ -96,10 +122,24 @@ export function Navbar() {
                     </span>
                   </div>
                   <div className="border-t border-white/[0.04] my-1" />
-                  {!showDashboard && !showAdmin && (
-                    <MenuLink href="/bookings" icon={CalendarDays} onClick={() => setAvatarOpen(false)}>
-                      Bookings
-                    </MenuLink>
+                  {isPlayer && (
+                    <Link
+                      href="/bookings"
+                      onClick={() => setAvatarOpen(false)}
+                      className="flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
+                    >
+                      <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#50C8C8]" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block">Bookings</span>
+                        <span className="block truncate text-[11px] text-[#F7F7F7]/25">
+                          {bookingsLoading
+                            ? "Loading…"
+                            : nextBooking
+                              ? `Next: ${nextBooking.venue?.name ?? "Court"} · ${nextBooking.bookingDate}`
+                              : "No upcoming bookings"}
+                        </span>
+                      </span>
+                    </Link>
                   )}
                   {showDashboard && (
                     <MenuLink href="/dashboard" icon={LayoutDashboard} onClick={() => setAvatarOpen(false)}>
@@ -111,10 +151,27 @@ export function Navbar() {
                       Admin Panel
                     </MenuLink>
                   )}
-                  {!showDashboard && !showAdmin && (
-                    <MenuLink href="/vouchers" icon={User} onClick={() => setAvatarOpen(false)}>
-                      Vouchers
-                    </MenuLink>
+                  {isPlayer && (
+                    <Link
+                      href="/vouchers"
+                      onClick={() => setAvatarOpen(false)}
+                      className="flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
+                    >
+                      <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-[#50C8C8]" />
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center justify-between gap-2">
+                          <span>Vouchers</span>
+                          {activeVoucherCount > 0 && (
+                            <span className="rounded-full bg-[#E6FA50]/10 px-2 py-0.5 text-[10px] font-medium text-[#E6FA50]">
+                              {activeVoucherCount}
+                            </span>
+                          )}
+                        </span>
+                        <span className="block truncate text-[11px] text-[#F7F7F7]/25">
+                          {vouchersLoading && !hasVoucherData ? "Loading…" : `${activeVoucherCount} active`}
+                        </span>
+                      </span>
+                    </Link>
                   )}
                   <div className="border-t border-white/[0.04] my-1" />
                   <button
