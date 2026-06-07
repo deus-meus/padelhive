@@ -23,11 +23,13 @@ const IMG = {
 };
 
 export default async function HomePage() {
-  let venues: any[] = [];
+  let venues: Awaited<ReturnType<typeof getVenues>> = [];
   try {
     venues = await getVenues({ revalidate: 60 });
   } catch (error) {
-    console.warn("Failed to fetch venues for home page:", error);
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Failed to fetch venues for home page");
+    }
   }
 
   const featuredVenue = venues.length > 0 ? venues[0] : null;
