@@ -242,7 +242,7 @@ export default function BookingFlowPage({
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-4xl py-component">
+      <div className="container max-w-4xl pb-component pt-28 md:pt-32">
         {(isLoadingApiData || apiError) && (
           <div className={`mb-5 rounded-xl border px-4 py-3 text-sm ${apiError && !isLoadingApiData ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
             {isLoadingApiData ? "Loading live court data..." : apiError ? `${apiError}` : "Live API unavailable."}
@@ -310,21 +310,35 @@ export default function BookingFlowPage({
 
             {/* Date Selector */}
             <div>
-              <h2 className="section-label flex items-center">
-                <Calendar className="mr-2 inline h-3.5 w-3.5" />
-                Select Date
-              </h2>
-              <div className="mt-3 flex items-center gap-2">
-                <button
-                  onClick={() =>
-                    setDateScrollStart(Math.max(0, dateScrollStart - 4))
-                  }
-                  disabled={dateScrollStart === 0}
-                  className="hidden sm:block rounded-lg border border-white/[0.06] p-2 text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60 disabled:opacity-20 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <div className="grid flex-1 grid-cols-4 gap-2 sm:grid-cols-7">
+              <div className="flex items-center justify-between">
+                <h2 className="section-label flex items-center">
+                  <Calendar className="mr-2 inline h-3.5 w-3.5" />
+                  Select Date
+                </h2>
+                <div className="hidden items-center gap-2 sm:flex">
+                  <button
+                    onClick={() =>
+                      setDateScrollStart(Math.max(0, dateScrollStart - 4))
+                    }
+                    disabled={dateScrollStart === 0}
+                    className="rounded-lg border border-white/[0.06] p-2 text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/70 disabled:opacity-20 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() =>
+                      setDateScrollStart(
+                        Math.min(DAYS_AHEAD - 7, dateScrollStart + 4)
+                      )
+                    }
+                    disabled={dateScrollStart >= DAYS_AHEAD - 7}
+                    className="rounded-lg border border-white/[0.06] p-2 text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/70 disabled:opacity-20 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
                   {dates
                     .slice(dateScrollStart, dateScrollStart + 7)
                     .map((date, idx) => {
@@ -380,18 +394,6 @@ export default function BookingFlowPage({
                       );
                     })}
                 </div>
-                <button
-                  onClick={() =>
-                    setDateScrollStart(
-                      Math.min(DAYS_AHEAD - 7, dateScrollStart + 4)
-                    )
-                  }
-                  disabled={dateScrollStart >= DAYS_AHEAD - 7}
-                  className="hidden sm:block rounded-lg border border-white/[0.06] p-2 text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60 disabled:opacity-20 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
               {/* Mobile pagination */}
               <div className="mt-2 flex items-center justify-between sm:hidden">
                 <button
