@@ -174,7 +174,7 @@ export default function BookingsPage() {
       <div className="min-h-screen pt-28">
         <section className="container pb-8">
           <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
-            My <span className="text-[#E6FA50]">Bookings</span>
+            <span className="text-[#E6FA50]">Bookings</span>
           </h1>
           <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
             Manage your upcoming matches and booking history.
@@ -192,7 +192,7 @@ export default function BookingsPage() {
       <div className="min-h-screen pt-28">
         <section className="container pb-8">
           <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
-            My <span className="text-[#E6FA50]">Bookings</span>
+            <span className="text-[#E6FA50]">Bookings</span>
           </h1>
           <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
             Manage your upcoming matches and booking history.
@@ -216,7 +216,7 @@ export default function BookingsPage() {
       {/* Header */}
       <section className="container pb-8">
         <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
-          My <span className="text-[#E6FA50]">Bookings</span>
+          <span className="text-[#E6FA50]">Bookings</span>
         </h1>
         <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
           Manage your upcoming matches and booking history.

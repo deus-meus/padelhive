@@ -96,9 +96,11 @@ export function Navbar() {
                     </span>
                   </div>
                   <div className="border-t border-white/[0.04] my-1" />
-                  <MenuLink href="/bookings" icon={CalendarDays} onClick={() => setAvatarOpen(false)}>
-                    My Bookings
-                  </MenuLink>
+                  {!showDashboard && !showAdmin && (
+                    <MenuLink href="/bookings" icon={CalendarDays} onClick={() => setAvatarOpen(false)}>
+                      Bookings
+                    </MenuLink>
+                  )}
                   {showDashboard && (
                     <MenuLink href="/dashboard" icon={LayoutDashboard} onClick={() => setAvatarOpen(false)}>
                       Dashboard
@@ -109,9 +111,11 @@ export function Navbar() {
                       Admin Panel
                     </MenuLink>
                   )}
-                  <MenuLink href="/vouchers" icon={User} onClick={() => setAvatarOpen(false)}>
-                    Vouchers
-                  </MenuLink>
+                  {!showDashboard && !showAdmin && (
+                    <MenuLink href="/vouchers" icon={User} onClick={() => setAvatarOpen(false)}>
+                      Vouchers
+                    </MenuLink>
+                  )}
                   <div className="border-t border-white/[0.04] my-1" />
                   <button
                     onClick={handleLogout}
