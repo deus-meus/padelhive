@@ -115,7 +115,7 @@ function LoginContent() {
           {/* Divider */}
           <div className="my-6 flex items-center gap-4">
             <div className="flex-1 border-t border-white/[0.06]" />
-            <span className="caption text-[#F7F7F7]/20">or</span>
+            <span className="caption text-[#F7F7F7]/25">or</span>
             <div className="flex-1 border-t border-white/[0.06]" />
           </div>
 
@@ -127,7 +127,7 @@ function LoginContent() {
               className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === "phone"
                   ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                  : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
+                  : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
               }`}
             >
               <Phone className="h-3.5 w-3.5" /> Phone
@@ -138,7 +138,7 @@ function LoginContent() {
               className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === "email"
                   ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                  : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
+                  : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
               }`}
             >
               <Mail className="h-3.5 w-3.5" /> Email
@@ -148,9 +148,9 @@ function LoginContent() {
           {/* Input */}
           <div className="relative mb-4">
             {method === "phone" ? (
-              <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/20" />
+              <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
             ) : (
-              <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/20" />
+              <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
             )}
             <input
               type={method === "phone" ? "tel" : "email"}
@@ -159,7 +159,7 @@ function LoginContent() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleOTPRequest(); }}
               disabled={isLoading}
-              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
 
@@ -188,7 +188,7 @@ function LoginContent() {
                 key={role}
                 onClick={() => handleDemoLogin(role)}
                 disabled={isLoading}
-                className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-xs font-medium text-[#F7F7F7]/50 transition-all hover:border-[#E6FA50]/20 hover:text-[#E6FA50] disabled:opacity-50"
+                className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-xs font-medium text-[#F7F7F7]/60 transition-all hover:border-[#E6FA50]/20 hover:text-[#E6FA50] disabled:opacity-50"
               >
                 {label}
               </button>
@@ -196,7 +196,7 @@ function LoginContent() {
           </div>
         </div>
 
-        <p className="mt-6 text-center caption text-[#F7F7F7]/20">
+        <p className="mt-6 text-center caption text-[#F7F7F7]/25">
           By signing in, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
@@ -204,7 +204,7 @@ function LoginContent() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/70">{toast}</p>
+          <p className="caption text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>
