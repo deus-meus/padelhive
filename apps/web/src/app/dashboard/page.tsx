@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const maxRevenue = Math.max(...REVENUE_DATA.map((d) => d.value));
 
   return (
-    <div className="py-component">
+    <div className="pt-element pb-component">
       {/* ─── WELCOME ─── */}
       <section className="container pb-component">
         <p className="caption text-[#F7F7F7]/25">Good morning</p>

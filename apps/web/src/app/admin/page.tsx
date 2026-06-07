@@ -16,7 +16,7 @@ import { adminKPIs } from "@/mock/admin";
 
 export default function AdminOverviewPage() {
   return (
-    <div className="p-6 lg:p-8">
+    <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
       <div className="mb-8">
         <p className="caption text-[#F7F7F7]/25">Marketplace Admin</p>
         <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
