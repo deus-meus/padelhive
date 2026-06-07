@@ -113,7 +113,7 @@ export default function RevenuePage() {
               <p className="metric mt-3 text-3xl text-[#F7F7F7]">
                 Rp {(totalRevenue / 1000000).toFixed(1)}M
               </p>
-              <p className="mt-1 text-xs text-[#F7F7F7]/30">
+              <p className="mt-1 text-xs text-[#F7F7F7]/25">
                 {period === "monthly" ? "This year" : "This week"}
               </p>
             </div>
@@ -123,7 +123,7 @@ export default function RevenuePage() {
                 className={`rounded-lg px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.1em] transition-all ${
                   period === "weekly"
                     ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                    : "bg-white/[0.03] text-[#F7F7F7]/25 hover:text-[#F7F7F7]/50"
+                    : "bg-white/[0.03] text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
                 }`}
               >
                 Weekly
@@ -133,7 +133,7 @@ export default function RevenuePage() {
                 className={`rounded-lg px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.1em] transition-all ${
                   period === "monthly"
                     ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                    : "bg-white/[0.03] text-[#F7F7F7]/25 hover:text-[#F7F7F7]/50"
+                    : "bg-white/[0.03] text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
                 }`}
               >
                 Monthly
@@ -156,7 +156,7 @@ export default function RevenuePage() {
                       Rp {(d.value / 1000000).toFixed(1)}M
                     </div>
                   </div>
-                  <span className="caption text-[#F7F7F7]/20">{label}</span>
+                  <span className="caption text-[#F7F7F7]/25">{label}</span>
                 </div>
               );
             })}
@@ -172,7 +172,7 @@ export default function RevenuePage() {
                 key={stat.label}
                 className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5"
               >
-                <p className="caption text-[#F7F7F7]/30">{stat.label}</p>
+                <p className="caption text-[#F7F7F7]/25">{stat.label}</p>
                 <p className="metric mt-2 text-xl text-[#F7F7F7]">{stat.value}</p>
                 <span
                   className={`mt-2 inline-flex items-center gap-0.5 text-[10px] font-medium ${
@@ -200,7 +200,7 @@ export default function RevenuePage() {
                 key={court.name + court.venue}
                 className="flex items-center gap-4 border-b border-white/[0.03] py-4 last:border-0"
               >
-                <span className="metric w-6 text-center text-sm text-[#F7F7F7]/20">
+                <span className="metric w-6 text-center text-sm text-[#F7F7F7]/25">
                   {i + 1}
                 </span>
                 <div className="flex-1 min-w-0">

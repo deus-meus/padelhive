@@ -77,7 +77,7 @@ export default function RefundsPage() {
   return (
     <div className="p-6 lg:p-8">
       <div className="mb-8">
-        <p className="caption text-[#F7F7F7]/30">Financial</p>
+        <p className="caption text-[#F7F7F7]/25">Financial</p>
         <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
           Refund <span className="text-[#E6FA50]">Management</span>
         </h1>
@@ -90,14 +90,14 @@ export default function RefundsPage() {
           <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-3">
             <ShieldCheck className="h-4 w-4 shrink-0 text-[#E6FA50]" />
             <div>
-              <p className="text-xs font-medium text-[#F7F7F7]/70">Full refund before H-1</p>
+              <p className="text-xs font-medium text-[#F7F7F7]/60">Full refund before H-1</p>
               <p className="caption text-[#F7F7F7]/25">Cancellation 24+ hours before booking</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-3">
             <ShieldX className="h-4 w-4 shrink-0 text-red-400" />
             <div>
-              <p className="text-xs font-medium text-[#F7F7F7]/70">Non-refundable after H-1</p>
+              <p className="text-xs font-medium text-[#F7F7F7]/60">Non-refundable after H-1</p>
               <p className="caption text-[#F7F7F7]/25">Less than 24 hours before booking</p>
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function RefundsPage() {
             className={`shrink-0 rounded-lg px-4 py-2 text-xs font-medium transition-all ${
               filter === tab
                 ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/70"
+                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
             }`}
           >
             {tab}
@@ -125,12 +125,12 @@ export default function RefundsPage() {
       <div className="space-y-3">
         {isLoading && (
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-            <p className="caption text-[#F7F7F7]/30">Loading refunds...</p>
+            <p className="caption text-[#F7F7F7]/25">Loading refunds...</p>
           </div>
         )}
         {!isLoading && refunds.length === 0 && (
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-            <p className="caption text-[#F7F7F7]/30">No refund requests in this category</p>
+            <p className="caption text-[#F7F7F7]/25">No refund requests in this category</p>
           </div>
         )}
         {!isLoading && refunds.map((refund) => (
@@ -150,7 +150,7 @@ export default function RefundsPage() {
                     <span className="text-sm font-medium text-[#50C8C8]">{refund.bookingId}</span>
                     <RefundStatusBadge status={refund.status} />
                   </div>
-                  <p className="text-sm text-[#F7F7F7]/70 mt-1">
+                  <p className="text-sm text-[#F7F7F7]/60 mt-1">
                     {refund.booking?.host?.name || refund.booking?.host?.email || "Unknown User"}
                   </p>
                   <p className="caption text-[#F7F7F7]/25 mt-0.5">
@@ -208,7 +208,7 @@ export default function RefundsPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/70">{toast}</p>
+          <p className="caption text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>

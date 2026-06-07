@@ -98,7 +98,7 @@ export function VoucherApply({
             </span>
             <button
               onClick={handleRemove}
-              className="flex h-6 w-6 items-center justify-center rounded-md text-[#F7F7F7]/30 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]/60"
+              className="flex h-6 w-6 items-center justify-center rounded-md text-[#F7F7F7]/25 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]/60"
             >
               <XCircle className="h-3.5 w-3.5" />
             </button>
@@ -112,14 +112,14 @@ export function VoucherApply({
     <div className="space-y-2">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Ticket className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/20" />
+          <Ticket className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
           <input
             type="text"
             placeholder="Enter voucher code"
             value={code}
             onChange={(e) => { setCode(e.target.value.toUpperCase()); setResult(null); }}
             onKeyDown={(e) => { if (e.key === "Enter") validateVoucher(); }}
-            className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-2.5 pl-10 pr-4 text-sm font-medium tracking-wider text-[#F7F7F7] placeholder:text-[#F7F7F7]/20 placeholder:tracking-normal placeholder:font-normal focus:border-[#E6FA50]/30 focus:outline-none"
+            className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-2.5 pl-10 pr-4 text-sm font-medium tracking-wider text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 placeholder:tracking-normal placeholder:font-normal focus:border-[#E6FA50]/30 focus:outline-none"
           />
         </div>
         <button

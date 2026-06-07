@@ -39,7 +39,7 @@ export default function VenueApprovalPage() {
   return (
     <div className="p-6 lg:p-8">
       <div className="mb-8">
-        <p className="caption text-[#F7F7F7]/30">Venue Management</p>
+        <p className="caption text-[#F7F7F7]/25">Venue Management</p>
         <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
           Venue <span className="text-[#E6FA50]">Approval</span>
         </h1>
@@ -54,7 +54,7 @@ export default function VenueApprovalPage() {
             className={`shrink-0 rounded-lg px-4 py-2 text-xs font-medium capitalize transition-all ${
               filter === tab
                 ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/70"
+                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
             }`}
           >
             {tab} ({venues.filter((v) => tab === "all" ? true : v.status === tab).length})
@@ -66,7 +66,7 @@ export default function VenueApprovalPage() {
       <div className="space-y-3">
         {filtered.length === 0 && (
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-            <p className="caption text-[#F7F7F7]/30">No venues in this category</p>
+            <p className="caption text-[#F7F7F7]/25">No venues in this category</p>
           </div>
         )}
         {filtered.map((venue) => (
@@ -79,16 +79,16 @@ export default function VenueApprovalPage() {
                 <div className="min-w-0">
                   <p className="heading-3 text-sm text-[#F7F7F7]">{venue.name}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-3">
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/30">
+                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
                       <Users className="h-3 w-3" /> {venue.ownerName}
                     </span>
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/30">
+                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
                       <MapPin className="h-3 w-3" /> {venue.city}
                     </span>
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/30">
+                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
                       <Calendar className="h-3 w-3" /> {venue.submittedAt}
                     </span>
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/30">
+                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
                       <FileText className="h-3 w-3" /> {venue.documents.length} docs
                     </span>
                   </div>
@@ -101,7 +101,7 @@ export default function VenueApprovalPage() {
                   <>
                     <button
                       onClick={() => setDetailModal(venue)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#F7F7F7]/50 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]"
                       title="View details"
                     >
                       <Eye className="h-4 w-4" />
@@ -140,7 +140,7 @@ export default function VenueApprovalPage() {
               <DetailRow label="Courts" value={`${detailModal.courts} courts`} />
               <DetailRow label="Submitted" value={detailModal.submittedAt} />
               <div>
-                <p className="caption text-[#F7F7F7]/30 mb-2">Documents</p>
+                <p className="caption text-[#F7F7F7]/25 mb-2">Documents</p>
                 <div className="space-y-1">
                   {detailModal.documents.length > 0 ? detailModal.documents.map((doc) => (
                     <div key={doc} className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2">
@@ -148,7 +148,7 @@ export default function VenueApprovalPage() {
                       <span className="caption text-[#F7F7F7]/60">{doc}</span>
                     </div>
                   )) : (
-                    <p className="caption text-[#F7F7F7]/20">No documents uploaded</p>
+                    <p className="caption text-[#F7F7F7]/25">No documents uploaded</p>
                   )}
                 </div>
               </div>
@@ -180,7 +180,7 @@ export default function VenueApprovalPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/70">{toast}</p>
+          <p className="caption text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>
@@ -203,8 +203,8 @@ function StatusBadge({ status }: { status: "pending" | "approved" | "rejected" }
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2">
-      <span className="caption text-[#F7F7F7]/30">{label}</span>
-      <span className="caption text-[#F7F7F7]/70">{value}</span>
+      <span className="caption text-[#F7F7F7]/25">{label}</span>
+      <span className="caption text-[#F7F7F7]/60">{value}</span>
     </div>
   );
 }

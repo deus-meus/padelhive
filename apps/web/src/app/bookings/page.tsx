@@ -181,7 +181,7 @@ export default function BookingsPage() {
           </p>
         </section>
         <div className="container py-16 text-center">
-          <p className="text-sm text-[#F7F7F7]/30">Loading your bookings...</p>
+          <p className="text-sm text-[#F7F7F7]/25">Loading your bookings...</p>
         </div>
       </div>
     );
@@ -262,7 +262,7 @@ export default function BookingsPage() {
                 </Link>
                 <button
                   onClick={() => handleShare(nextBooking.id)}
-                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/20 hover:text-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
+                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/20 hover:text-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
                 >
                   <Share2 className="h-3.5 w-3.5" />
                   Share
@@ -305,7 +305,7 @@ export default function BookingsPage() {
                 className={`relative px-5 py-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors whitespace-nowrap ${
                   activeTab === tab
                     ? "text-[#E6FA50]"
-                    : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
+                    : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
                 }`}
               >
                 {tab} ({count})
@@ -321,7 +321,7 @@ export default function BookingsPage() {
           {activeTab === "refunds" ? (
             myRefunds.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-sm text-[#F7F7F7]/30">No refund requests.</p>
+                <p className="text-sm text-[#F7F7F7]/25">No refund requests.</p>
               </div>
             ) : (
               myRefunds.map((refund) => (
@@ -350,7 +350,7 @@ export default function BookingsPage() {
           ) : (
             tabData[activeTab].length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-sm text-[#F7F7F7]/30">No {activeTab} bookings.</p>
+                <p className="text-sm text-[#F7F7F7]/25">No {activeTab} bookings.</p>
               </div>
             ) : (
               tabData[activeTab].map((booking, i) => (
@@ -374,18 +374,18 @@ export default function BookingsPage() {
           <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
             <p className="section-label">Cancel Booking</p>
             <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Cancel this booking?</h2>
-            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/45">
+            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/40">
               This will cancel your booking and release the court time.
             </p>
             <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
-              <p className="text-sm font-medium text-[#F7F7F7]/70">Refund eligibility</p>
+              <p className="text-sm font-medium text-[#F7F7F7]/60">Refund eligibility</p>
               <p className="mt-1 text-xs leading-5 text-[#F7F7F7]/40">{getRefundNote(bookingToCancel)}</p>
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setBookingToCancel(null)}
                 disabled={isCancelling}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70 disabled:opacity-40"
+                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
               >
                 Keep Booking
               </button>
@@ -415,7 +415,7 @@ export default function BookingsPage() {
                 value={refundReason}
                 onChange={(e) => setRefundReason(e.target.value)}
                 placeholder="Please describe why you are requesting a refund..."
-                className="w-full h-24 resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/30 focus:border-[#E6FA50]/30 focus:outline-none"
+                className="w-full h-24 resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                 disabled={refundMutation.isPending}
               />
             </div>
@@ -423,7 +423,7 @@ export default function BookingsPage() {
               <button
                 onClick={() => { setBookingToRefund(null); setRefundReason(""); }}
                 disabled={refundMutation.isPending}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/50 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/70 disabled:opacity-40"
+                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
               >
                 Cancel
               </button>
@@ -442,7 +442,7 @@ export default function BookingsPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/70">{toast}</p>
+          <p className="caption text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>
@@ -462,7 +462,7 @@ function DetailChip({
     <div className="rounded-xl bg-white/[0.03] p-3">
       <Icon className="h-3.5 w-3.5 text-[#50C8C8]" />
       <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7]">{value}</p>
-      <p className="caption mt-0.5 text-[#F7F7F7]/20">{label}</p>
+      <p className="caption mt-0.5 text-[#F7F7F7]/25">{label}</p>
     </div>
   );
 }
@@ -480,7 +480,7 @@ function StatCard({
     <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
       <Icon className="h-4 w-4 text-[#50C8C8]" />
       <p className="metric mt-3 text-2xl text-[#E6FA50]">{value}</p>
-      <p className="caption mt-1 text-[#F7F7F7]/30">{label}</p>
+      <p className="caption mt-1 text-[#F7F7F7]/25">{label}</p>
     </div>
   );
 }
@@ -528,7 +528,7 @@ function BookingRow({
           </h3>
           <StatusPill status={booking.status} />
         </div>
-        <p className={`mt-1 flex flex-wrap items-center gap-3 caption ${muted ? "text-[#F7F7F7]/20" : "text-[#F7F7F7]/35"}`}>
+        <p className={`mt-1 flex flex-wrap items-center gap-3 caption ${muted ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]/40"}`}>
           <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{court?.name}</span>
           <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{booking.bookingDate}</span>
           <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{booking.startsAt}–{booking.endsAt}</span>
@@ -536,14 +536,14 @@ function BookingRow({
       </div>
 
       <div className="flex items-center gap-2 sm:shrink-0">
-        <p className={`price text-base ${muted ? "text-[#F7F7F7]/20" : "text-[#F7F7F7]"}`}>
+        <p className={`price text-base ${muted ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]"}`}>
           Rp {(booking.finalAmount / 1000).toFixed(0)}K
         </p>
         <div className="flex gap-1.5">
           <Link
             href={`/bookings/${booking.id}`}
             aria-label={`View details for ${venue?.name ?? "booking"}`}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/70 focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/60 focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
             title="View Details"
           >
             <Eye className="h-3.5 w-3.5" />
@@ -606,12 +606,12 @@ function StatusPill({ status }: { status: string }) {
   const styles: Record<string, string> = {
     CONFIRMED: "bg-[#E6FA50]/10 text-[#E6FA50]",
     PENDING_PAYMENT: "bg-[#50C8C8]/10 text-[#50C8C8]",
-    COMPLETED: "bg-white/[0.04] text-[#F7F7F7]/30",
+    COMPLETED: "bg-white/[0.04] text-[#F7F7F7]/25",
     CANCELLED: "bg-red-500/10 text-red-400/70",
-    EXPIRED: "bg-white/[0.04] text-[#F7F7F7]/30",
+    EXPIRED: "bg-white/[0.04] text-[#F7F7F7]/25",
   };
   return (
-    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/30"}`}>
+    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/25"}`}>
       {status}
     </span>
   );

@@ -115,7 +115,7 @@ export default function OperatingHoursPage() {
               className={`rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
                 activeVenueId === v.id
                   ? "bg-[#E6FA50] text-[#06121A]"
-                  : "bg-white/[0.03] text-[#F7F7F7]/35 hover:bg-white/[0.06] hover:text-[#F7F7F7]/70"
+                  : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
               }`}
             >
               {v.name}
@@ -127,7 +127,7 @@ export default function OperatingHoursPage() {
         {venue && (
           <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3">
             <Clock className="h-4 w-4 text-[#50C8C8]" />
-            <span className="text-sm text-[#F7F7F7]/50">
+            <span className="text-sm text-[#F7F7F7]/60">
               Default: {venue.operatingHours.open} – {venue.operatingHours.close}
             </span>
           </div>
@@ -137,10 +137,10 @@ export default function OperatingHoursPage() {
         <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] overflow-hidden">
           {/* Header row */}
           <div className="grid grid-cols-[1fr_80px_80px_60px] gap-4 border-b border-white/[0.04] px-6 py-3 sm:grid-cols-[1fr_120px_120px_80px]">
-            <span className="caption text-[#F7F7F7]/30">Day</span>
-            <span className="caption text-[#F7F7F7]/30">Open</span>
-            <span className="caption text-[#F7F7F7]/30">Close</span>
-            <span className="caption text-[#F7F7F7]/30">Status</span>
+            <span className="caption text-[#F7F7F7]/25">Day</span>
+            <span className="caption text-[#F7F7F7]/25">Open</span>
+            <span className="caption text-[#F7F7F7]/25">Close</span>
+            <span className="caption text-[#F7F7F7]/25">Status</span>
           </div>
 
           {/* Day rows */}
@@ -151,7 +151,7 @@ export default function OperatingHoursPage() {
                 !day.isOpen ? "opacity-40" : ""
               }`}
             >
-              <span className="text-sm font-medium text-[#F7F7F7]/70">
+              <span className="text-sm font-medium text-[#F7F7F7]/60">
                 {day.day}
               </span>
               <input

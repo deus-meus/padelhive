@@ -22,7 +22,7 @@ export default function MetricsPage() {
   return (
     <div className="p-6 lg:p-8">
       <div className="mb-8">
-        <p className="caption text-[#F7F7F7]/30">Analytics</p>
+        <p className="caption text-[#F7F7F7]/25">Analytics</p>
         <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
           Marketplace <span className="text-[#E6FA50]">Metrics</span>
         </h1>
@@ -43,7 +43,7 @@ export default function MetricsPage() {
                 className={`rounded-lg px-3 py-1.5 text-[11px] font-medium uppercase transition-all ${
                   chartView === view
                     ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                    : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
+                    : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
                 }`}
               >
                 {view}
@@ -95,7 +95,7 @@ export default function MetricsPage() {
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E6FA50]/10 text-[10px] font-semibold text-[#E6FA50]">
                         {idx + 1}
                       </span>
-                      <span className="text-sm text-[#F7F7F7]/70">{city.city}</span>
+                      <span className="text-sm text-[#F7F7F7]/60">{city.city}</span>
                     </div>
                     <div className="text-right">
                       <span className="text-sm text-[#F7F7F7]/60">{city.bookings.toLocaleString()} bookings</span>
@@ -127,7 +127,7 @@ export default function MetricsPage() {
                   {idx + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#F7F7F7]/70 truncate">{venue.name}</p>
+                  <p className="text-sm text-[#F7F7F7]/60 truncate">{venue.name}</p>
                   <p className="caption text-[#F7F7F7]/25">{venue.city}</p>
                 </div>
                 <div className="text-right shrink-0">
@@ -181,7 +181,7 @@ function GrowthCard({
       <p className="caption text-[#F7F7F7]/25 mb-2">{label}</p>
       <p className="metric text-xl text-[#F7F7F7]">{current}</p>
       <div className="mt-2 flex items-center gap-2">
-        <span className="caption text-[#F7F7F7]/20">vs {previous}</span>
+        <span className="caption text-[#F7F7F7]/25">vs {previous}</span>
         <span className="text-[11px] font-medium text-[#E6FA50]">{growth}</span>
       </div>
     </div>

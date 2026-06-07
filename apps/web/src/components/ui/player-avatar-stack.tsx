@@ -80,7 +80,7 @@ export function PlayerAvatarStack({
               zIndex: 0,
             }}
           >
-            <span className="text-[10px] font-medium text-[#F7F7F7]/50">
+            <span className="text-[10px] font-medium text-[#F7F7F7]/60">
               +{remaining}
             </span>
           </div>
@@ -88,8 +88,8 @@ export function PlayerAvatarStack({
       </div>
 
       {showCount && (
-        <p className="text-xs text-[#F7F7F7]/30">
-          <span className="font-medium text-[#F7F7F7]/50">{players.length}</span>
+        <p className="text-xs text-[#F7F7F7]/25">
+          <span className="font-medium text-[#F7F7F7]/60">{players.length}</span>
           {totalSpots ? ` / ${totalSpots} joined` : " joined"}
           {spotsLeft > 0 && (
             <span> · {spotsLeft} spots left</span>

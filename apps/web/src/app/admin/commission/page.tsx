@@ -31,7 +31,7 @@ export default function CommissionPage() {
   return (
     <div className="p-6 lg:p-8">
       <div className="mb-8">
-        <p className="caption text-[#F7F7F7]/30">Settings</p>
+        <p className="caption text-[#F7F7F7]/25">Settings</p>
         <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
           Commission <span className="text-[#E6FA50]">Settings</span>
         </h1>
@@ -59,7 +59,7 @@ export default function CommissionPage() {
               onChange={(e) => setDefaultCommission(Number(e.target.value))}
               className="w-24 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-center text-lg font-semibold text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#F7F7F7]/30">%</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#F7F7F7]/25">%</span>
           </div>
           <button
             onClick={handleSaveDefault}
@@ -104,7 +104,7 @@ export default function CommissionPage() {
                     }}
                     className="w-20 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-center text-sm font-medium text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
                   />
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#F7F7F7]/30">%</span>
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#F7F7F7]/25">%</span>
                 </div>
                 {venue.commission !== commissionSettings.perVenue[idx]?.commission && (
                   <span className="text-[10px] text-amber-400">modified</span>
@@ -125,7 +125,7 @@ export default function CommissionPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/70">{toast}</p>
+          <p className="caption text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>

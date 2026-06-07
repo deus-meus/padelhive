@@ -103,7 +103,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
         <div className="container flex min-h-[60vh] max-w-xl items-center justify-center py-12">
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#E6FA50]" />
-            <p className="mt-4 text-sm text-[#F7F7F7]/50">Loading invite...</p>
+            <p className="mt-4 text-sm text-[#F7F7F7]/60">Loading invite...</p>
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
             </p>
             <button
               onClick={() => refetch()}
-              className="mt-6 rounded-full border border-white/[0.08] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/70 hover:border-white/[0.15] hover:text-[#F7F7F7]"
+              className="mt-6 rounded-full border border-white/[0.08] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/60 hover:border-white/[0.15] hover:text-[#F7F7F7]"
             >
               Try Again
             </button>
@@ -140,7 +140,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
       <div className="container max-w-2xl py-8">
         <Link
           href="/venues"
-          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 transition-colors hover:text-[#F7F7F7]/70"
+          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 transition-colors hover:text-[#F7F7F7]/60"
         >
           <ArrowLeft className="h-4 w-4" />
           Browse venues
@@ -153,7 +153,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
               <h1 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-3xl">
                 Join {invite.booking.host.name ?? "your host"} for padel
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-[#F7F7F7]/45">
+              <p className="mt-2 text-sm leading-relaxed text-[#F7F7F7]/40">
                 RSVP for this court booking. No login or payment required.
               </p>
             </div>
@@ -169,16 +169,16 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
                 <MapPin className="mt-0.5 h-4 w-4 text-[#50C8C8]" />
                 <div>
                   <p className="text-sm font-medium text-[#F7F7F7]/80">{invite.booking.venue.name}</p>
-                  <p className="text-[11px] text-[#F7F7F7]/35">{invite.booking.venue.city}</p>
+                  <p className="text-[11px] text-[#F7F7F7]/40">{invite.booking.venue.city}</p>
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#F7F7F7]/30">Court</p>
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#F7F7F7]/25">Court</p>
                   <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{invite.booking.court.name}</p>
                 </div>
                 <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#F7F7F7]/30">Time</p>
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#F7F7F7]/25">Time</p>
                   <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{formatTimeRange(invite.booking.startsAt, invite.booking.endsAt)}</p>
                 </div>
               </div>
@@ -199,7 +199,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
               </div>
               <div>
                 <p className="text-sm font-medium text-[#F7F7F7]/80">{invite.name}</p>
-                <p className="text-[11px] text-[#F7F7F7]/35">{invite.email}</p>
+                <p className="text-[11px] text-[#F7F7F7]/40">{invite.email}</p>
               </div>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
             <div className={`mt-6 rounded-2xl border border-white/[0.06] ${resultCopy.bg} p-5 text-center`}>
               <ResultIcon className={`mx-auto h-10 w-10 ${resultCopy.color}`} />
               <h2 className="heading-2 mt-4 text-xl text-[#F7F7F7]">{resultCopy.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-[#F7F7F7]/50">{resultCopy.body}</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#F7F7F7]/60">{resultCopy.body}</p>
             </div>
           ) : (
             <div className="mt-6 grid gap-3 sm:grid-cols-2">

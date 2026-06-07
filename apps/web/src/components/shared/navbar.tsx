@@ -89,7 +89,7 @@ export function Navbar() {
                 <div className="absolute right-0 top-12 w-56 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-2 shadow-2xl">
                   <div className="px-3 py-2 mb-1">
                     <p className="text-sm font-medium text-[#F7F7F7]">{user.name}</p>
-                    <p className="caption text-[#F7F7F7]/30">{user.email}</p>
+                    <p className="caption text-[#F7F7F7]/25">{user.email}</p>
                     <span className="mt-1 inline-block rounded-full bg-[#E6FA50]/10 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#E6FA50]">
                       {user.role.replace("_", " ")}
                     </span>
@@ -176,7 +176,7 @@ export function Navbar() {
                   <img src={user.avatarUrl} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
                   <div>
                     <p className="text-sm font-medium text-[#F7F7F7]">{user.name}</p>
-                    <p className="caption text-[#F7F7F7]/30">{user.role.replace("_", " ")}</p>
+                    <p className="caption text-[#F7F7F7]/25">{user.role.replace("_", " ")}</p>
                   </div>
                 </div>
                 <button
@@ -231,7 +231,7 @@ function MobileNavLink({
     <Link
       href={href}
       onClick={onClick}
-      className="flex h-12 items-center rounded-xl px-4 label text-[#F7F7F7]/70 transition-colors hover:bg-white/5 hover:text-[#F7F7F7]"
+      className="flex h-12 items-center rounded-xl px-4 label text-[#F7F7F7]/60 transition-colors hover:bg-white/5 hover:text-[#F7F7F7]"
     >
       {children}
     </Link>

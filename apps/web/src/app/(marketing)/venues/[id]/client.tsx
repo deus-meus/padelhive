@@ -175,14 +175,14 @@ export default function VenueDetailPage({
                 <span className="label font-semibold text-[#E6FA50]">
                   {venue.rating}
                 </span>
-                <span className="caption text-[#F7F7F7]/30">
+                <span className="caption text-[#F7F7F7]/25">
                   ({venue.reviewCount} reviews)
                 </span>
               </div>
             </div>
 
             {/* Description */}
-            <p className="mt-6 text-sm font-light leading-relaxed text-[#F7F7F7]/50">
+            <p className="mt-6 text-sm font-light leading-relaxed text-[#F7F7F7]/60">
               {venue.description}
             </p>
 
@@ -231,7 +231,7 @@ export default function VenueDetailPage({
                         <p className="heading-3 text-sm text-[#F7F7F7]">
                           {court.name}
                         </p>
-                        <p className="caption mt-0.5 text-[#F7F7F7]/30">
+                        <p className="caption mt-0.5 text-[#F7F7F7]/25">
                           {court.type} court
                         </p>
                       </div>
@@ -290,7 +290,7 @@ export default function VenueDetailPage({
               <h2 className="heading-2 text-lg text-[#F7F7F7]">
                 Today&apos;s Availability
               </h2>
-              <p className="caption mt-1 text-[#F7F7F7]/30">
+              <p className="caption mt-1 text-[#F7F7F7]/25">
                 {courts[0]?.name ?? "Court A"} ·{" "}
                 {new Date().toLocaleDateString("en-US", {
                   weekday: "long",
@@ -318,19 +318,19 @@ export default function VenueDetailPage({
               <div className="mt-3 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-white/[0.08] bg-[#0C1B26]" />
-                  <span className="text-[10px] text-[#F7F7F7]/30">
+                  <span className="text-[10px] text-[#F7F7F7]/25">
                     Available
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-[#E6FA50]/20 bg-[#E6FA50]/5" />
-                  <span className="text-[10px] text-[#F7F7F7]/30">
+                  <span className="text-[10px] text-[#F7F7F7]/25">
                     Peak Hour
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm bg-white/[0.02]" />
-                  <span className="text-[10px] text-[#F7F7F7]/30">Booked</span>
+                  <span className="text-[10px] text-[#F7F7F7]/25">Booked</span>
                 </div>
               </div>
             </div>
@@ -345,7 +345,7 @@ export default function VenueDetailPage({
                     <p className="mt-3 text-sm text-[#F7F7F7]/40">
                       {venue.location}
                     </p>
-                    <p className="mt-1 text-xs text-[#F7F7F7]/20">
+                    <p className="mt-1 text-xs text-[#F7F7F7]/25">
                       {venue.city}, Indonesia
                     </p>
                   </div>
@@ -434,7 +434,7 @@ export default function VenueDetailPage({
                           <p className="heading-3 text-sm text-[#F7F7F7]">
                             {review.name}
                           </p>
-                          <p className="caption text-[#F7F7F7]/20">
+                          <p className="caption text-[#F7F7F7]/25">
                             {review.date}
                           </p>
                         </div>
@@ -474,27 +474,27 @@ export default function VenueDetailPage({
 
                 <div className="mt-6 space-y-3">
                   <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                    <p className="caption text-[#F7F7F7]/30">Date</p>
+                    <p className="caption text-[#F7F7F7]/25">Date</p>
                     <p className="heading-3 mt-1 text-sm text-[#F7F7F7]">
                       Today
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                      <p className="caption text-[#F7F7F7]/30">Start</p>
+                      <p className="caption text-[#F7F7F7]/25">Start</p>
                       <p className="heading-3 mt-1 text-sm text-[#F7F7F7]">
                         10:00
                       </p>
                     </div>
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                      <p className="caption text-[#F7F7F7]/30">End</p>
+                      <p className="caption text-[#F7F7F7]/25">End</p>
                       <p className="heading-3 mt-1 text-sm text-[#F7F7F7]">
                         11:00
                       </p>
                     </div>
                   </div>
                   <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                    <p className="caption text-[#F7F7F7]/30">Court</p>
+                    <p className="caption text-[#F7F7F7]/25">Court</p>
                     <p className="heading-3 mt-1 text-sm text-[#F7F7F7]">
                       {courts[0]?.name ?? "Court A"}
                     </p>
@@ -525,13 +525,13 @@ export default function VenueDetailPage({
               <div className="mt-4 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="caption text-[#F7F7F7]/30">Courts</span>
+                    <span className="caption text-[#F7F7F7]/25">Courts</span>
                     <span className="label text-[#F7F7F7]/60">
                       {courts.length}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="caption text-[#F7F7F7]/30">
+                    <span className="caption text-[#F7F7F7]/25">
                       Price range
                     </span>
                     <span className="label text-[#F7F7F7]/60">
@@ -539,19 +539,19 @@ export default function VenueDetailPage({
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="caption text-[#F7F7F7]/30">Hours</span>
+                    <span className="caption text-[#F7F7F7]/25">Hours</span>
                     <span className="label text-[#F7F7F7]/60">
                       {venue.operatingHours.open} – {venue.operatingHours.close}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="caption text-[#F7F7F7]/30">Rating</span>
+                    <span className="caption text-[#F7F7F7]/25">Rating</span>
                     <span className="label text-[#E6FA50]">
                       {venue.rating}/5
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="caption text-[#F7F7F7]/30">Refund</span>
+                    <span className="caption text-[#F7F7F7]/25">Refund</span>
                     <span className="label text-[#F7F7F7]/60">
                       Free cancel &gt;24h
                     </span>
