@@ -65,7 +65,7 @@ export function Navbar() {
     (b) => b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT"
   );
 
-  const { data: vouchersData = [], isLoading: vouchersLoading } = useQuery({
+  const { data: vouchersData = [] } = useQuery({
     queryKey: queryKeys.vouchers.all(),
     queryFn: getVouchers,
     enabled: isPlayer,
@@ -98,34 +98,43 @@ export function Navbar() {
           </nav>
         )}
 
-        {isPlayer && (
-          <div className="hidden items-center gap-2 md:flex">
-            <Link
-              href="/bookings"
-              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-xs text-[#F7F7F7]/60 transition-colors hover:border-white/20 hover:text-[#F7F7F7]"
-            >
-              <CalendarDays className="h-3.5 w-3.5 shrink-0 text-[#50C8C8]" />
-              <span className="max-w-[200px] truncate">
-                {bookingsLoading
-                  ? "Loading…"
-                  : nextBooking
-                    ? `Next: ${nextBooking.venue?.name ?? "Court"} · ${nextBooking.bookingDate}`
-                    : "No upcoming bookings"}
-              </span>
-            </Link>
-            <Link
-              href="/vouchers"
-              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-xs text-[#F7F7F7]/60 transition-colors hover:border-white/20 hover:text-[#F7F7F7]"
-            >
-              <Ticket className="h-3.5 w-3.5 shrink-0 text-[#50C8C8]" />
-              <span>
-                {activeVoucherCount} {activeVoucherCount === 1 ? "voucher" : "vouchers"}
-              </span>
-            </Link>
-          </div>
-        )}
+
 
         <div className="flex items-center gap-4">
+          {isPlayer && (
+            <div className="flex items-center gap-1">
+              <Link
+                href="/bookings"
+                aria-label="Bookings"
+                title={
+                  bookingsLoading
+                    ? "Loading bookings…"
+                    : nextBooking
+                      ? `Next: ${nextBooking.venue?.name ?? "Court"} · ${nextBooking.bookingDate}`
+                      : "No upcoming bookings"
+                }
+                className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.05] hover:text-[#F7F7F7]"
+              >
+                <CalendarDays className="h-[18px] w-[18px]" />
+                {nextBooking && (
+                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#E6FA50] ring-2 ring-[#06121A]" />
+                )}
+              </Link>
+              <Link
+                href="/vouchers"
+                aria-label="Vouchers"
+                title={`${activeVoucherCount} active voucher${activeVoucherCount === 1 ? "" : "s"}`}
+                className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.05] hover:text-[#F7F7F7]"
+              >
+                <Ticket className="h-[18px] w-[18px]" />
+                {activeVoucherCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E6FA50] px-1 text-[10px] font-semibold leading-none text-[#06121A]">
+                    {activeVoucherCount}
+                  </span>
+                )}
+              </Link>
+            </div>
+          )}
           {user ? (
             <div ref={avatarRef} className="relative">
               <button
@@ -149,25 +158,7 @@ export function Navbar() {
                     </span>
                   </div>
                   <div className="border-t border-white/[0.04] my-1" />
-                  {isPlayer && (
-                    <Link
-                      href="/bookings"
-                      onClick={() => setAvatarOpen(false)}
-                      className="flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
-                    >
-                      <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[#50C8C8]" />
-                      <span className="min-w-0 flex-1">
-                        <span className="block">Bookings</span>
-                        <span className="block truncate text-[11px] text-[#F7F7F7]/25">
-                          {bookingsLoading
-                            ? "Loading…"
-                            : nextBooking
-                              ? `Next: ${nextBooking.venue?.name ?? "Court"} · ${nextBooking.bookingDate}`
-                              : "No upcoming bookings"}
-                        </span>
-                      </span>
-                    </Link>
-                  )}
+
                   {showDashboard && (
                     <MenuLink href="/dashboard" icon={LayoutDashboard} onClick={() => setAvatarOpen(false)}>
                       Dashboard
@@ -178,28 +169,7 @@ export function Navbar() {
                       Admin Panel
                     </MenuLink>
                   )}
-                  {isPlayer && (
-                    <Link
-                      href="/vouchers"
-                      onClick={() => setAvatarOpen(false)}
-                      className="flex items-start gap-3 rounded-xl px-3 py-2.5 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
-                    >
-                      <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-[#50C8C8]" />
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center justify-between gap-2">
-                          <span>Vouchers</span>
-                          {activeVoucherCount > 0 && (
-                            <span className="rounded-full bg-[#E6FA50]/10 px-2 py-0.5 text-[10px] font-medium text-[#E6FA50]">
-                              {activeVoucherCount}
-                            </span>
-                          )}
-                        </span>
-                        <span className="block truncate text-[11px] text-[#F7F7F7]/25">
-                          {vouchersLoading && !hasVoucherData ? "Loading…" : `${activeVoucherCount} active`}
-                        </span>
-                      </span>
-                    </Link>
-                  )}
+
                   <div className="border-t border-white/[0.04] my-1" />
                   <button
                     onClick={handleLogout}
