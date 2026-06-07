@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { RequireAuth } from "@/components/auth/require-auth";
+import { Navbar } from "@/components/shared/navbar";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -34,7 +35,8 @@ export default function DashboardLayout({
 
   return (
     <RequireAuth allowedRoles={["venue_owner", "venue_admin"]}>
-    <div className="min-h-screen pt-20">
+      <Navbar />
+      <div className="min-h-screen pt-20">
       <div className="flex">
         {/* Sidebar — desktop */}
         <aside className="hidden lg:flex lg:w-[240px] lg:shrink-0 lg:flex-col lg:border-r lg:border-white/[0.04]">
