@@ -348,7 +348,7 @@ export default async function HomePage() {
             </h2>
           </div>
 
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-x-12 gap-y-2 md:grid-cols-2">
             <Step number="01" title="Book a Court" description="Browse premium venues. Check real-time availability. Reserve your court in seconds." />
             <Step number="02" title="Invite Your Crew" description="Share your booking link. Friends RSVP instantly. Build your squad for every session." />
             <Step number="03" title="Split the Cost" description="Everyone pays their share automatically. No awkward conversations." />
@@ -488,7 +488,7 @@ function CityBlock({
 
 function Step({ number, title, description }: { number: string; title: string; description: string }) {
   return (
-    <div className="group flex gap-8 border-b border-white/[0.04] py-10 last:border-0 md:gap-12 md:py-12">
+    <div className="group flex gap-8 py-8 md:gap-12 md:py-10">
       <span className="font-heading text-5xl font-bold text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20 md:text-6xl tracking-[-0.04em]">
         {number}
       </span>
