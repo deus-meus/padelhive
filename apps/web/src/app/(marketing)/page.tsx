@@ -339,7 +339,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="py-section border-t border-white/[0.04]">
+      <section id="how-it-works" className="py-section border-t border-white/[0.04]">
         <div className="container">
           <div className="mb-subsection text-center">
             <h2 className="display-xl text-[clamp(3rem,8vw,7rem)] text-[#F7F7F7]">
