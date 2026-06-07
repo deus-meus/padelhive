@@ -138,7 +138,7 @@ export default function VenueManagementPage() {
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 rounded-full border border-white/[0.08] py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/60"
+                  className="flex-1 rounded-full border border-white/[0.08] py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80"
                 >
                   Cancel
                 </button>

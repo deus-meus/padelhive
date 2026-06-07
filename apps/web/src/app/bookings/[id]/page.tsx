@@ -319,7 +319,7 @@ export default function BookingDetailPage() {
               <button
                 onClick={() => setShowCancelModal(false)}
                 disabled={isCancelling}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/60 disabled:opacity-40"
+                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
               >
                 Keep Booking
               </button>

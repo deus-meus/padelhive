@@ -95,7 +95,7 @@ export default function AdminLayout({
                     className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-all ${
                       isActive
                         ? "bg-[#E6FA50]/10 font-medium text-[#E6FA50]"
-                        : "text-[#F7F7F7]/60 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
+                        : "text-[#F7F7F7]/60 hover:bg-white/[0.03] hover:text-[#F7F7F7]/80"
                     }`}
                   >
                     <Icon className="h-4 w-4" />

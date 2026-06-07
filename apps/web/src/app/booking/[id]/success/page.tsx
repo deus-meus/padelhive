@@ -210,7 +210,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
             )}
             <Link
               href="/venues"
-              className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/60"
+              className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80"
             >
               Book Another Court
             </Link>
