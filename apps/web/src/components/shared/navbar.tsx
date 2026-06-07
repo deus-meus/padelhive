@@ -66,6 +66,8 @@ export function Navbar() {
 
         <nav className="hidden items-center gap-8 md:flex">
           <NavLink href="/venues">Venues</NavLink>
+          {!user && <NavLink href="/#how-it-works">How It Works</NavLink>}
+          {!user && <NavLink href="/#community">Community</NavLink>}
           {user && <NavLink href="/bookings">My Bookings</NavLink>}
           {showDashboard && <NavLink href="/dashboard">Dashboard</NavLink>}
           {showAdmin && <NavLink href="/admin">Admin</NavLink>}
@@ -146,6 +148,16 @@ export function Navbar() {
             <MobileNavLink href="/venues" onClick={() => setMobileOpen(false)}>
               Venues
             </MobileNavLink>
+            {!user && (
+              <MobileNavLink href="/#how-it-works" onClick={() => setMobileOpen(false)}>
+                How It Works
+              </MobileNavLink>
+            )}
+            {!user && (
+              <MobileNavLink href="/#community" onClick={() => setMobileOpen(false)}>
+                Community
+              </MobileNavLink>
+            )}
             {user && (
               <MobileNavLink href="/bookings" onClick={() => setMobileOpen(false)}>
                 My Bookings
