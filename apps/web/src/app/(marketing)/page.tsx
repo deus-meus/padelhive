@@ -37,7 +37,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
+      <section className="relative flex min-h-[100svh] flex-col overflow-hidden">
         <div className="absolute inset-0">
           <img
             src={IMG.hero}
@@ -48,7 +48,7 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#06121A] via-[#06121A]/40 to-transparent" />
         </div>
 
-        <div className="container relative z-10 pb-24 md:pb-28">
+        <div className="container relative z-10 flex flex-1 flex-col justify-center pt-28 pb-20 md:pt-32 md:pb-24">
           <h1 className="display-xl text-[clamp(2.75rem,8vw,7.5rem)] leading-[0.92] text-[#F7F7F7]">
             PLAY.
             <br />
@@ -95,7 +95,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── SEARCH ─── */}
-      <section className="py-section-sm border-b border-white/[0.04]">
+      <section className="pt-10 pb-12 md:pt-12 md:pb-16 border-b border-white/[0.04]">
         <div className="container">
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5 md:p-6">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto_auto_auto] md:items-center md:gap-3">
