@@ -58,7 +58,7 @@ export default async function HomePage() {
           </h1>
 
           <div className="mt-10 flex flex-col gap-6 md:mt-12 md:flex-row md:items-end md:justify-between">
-            <p className="body-lg max-w-md text-[#F7F7F7]/50">
+            <p className="body-lg max-w-md text-[#F7F7F7]/60">
               Indonesia&apos;s padel community. Book courts, join matches,
               meet players.
             </p>
@@ -154,7 +154,7 @@ export default async function HomePage() {
 
           {!featuredVenue ? (
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center md:p-12">
-              <p className="text-[#F7F7F7]/50 mb-4">No featured venue available at the moment.</p>
+              <p className="text-[#F7F7F7]/60 mb-4">No featured venue available at the moment.</p>
               <Link href="/venues" className="btn-lime inline-flex h-10 items-center justify-center rounded-xl px-6 text-[11px] font-semibold uppercase tracking-[0.08em]">
                 Browse All Venues
               </Link>
@@ -176,7 +176,7 @@ export default async function HomePage() {
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 fill-[#E6FA50] text-[#E6FA50]" />
                     <span className="label font-semibold text-[#E6FA50]">{featuredVenue.rating}</span>
-                    <span className="caption text-[#F7F7F7]/30">· {featuredVenue.reviewCount} reviews</span>
+                    <span className="caption text-[#F7F7F7]/25">· {featuredVenue.reviewCount} reviews</span>
                   </div>
 
                   <h3 className="heading-2 mt-4 text-2xl text-[#F7F7F7] md:text-3xl">
@@ -188,7 +188,7 @@ export default async function HomePage() {
                     {featuredVenue.location} · {featuredVenue.city}
                   </p>
 
-                  <p className="mt-5 text-sm font-light leading-relaxed text-[#F7F7F7]/30">
+                  <p className="mt-5 text-sm font-light leading-relaxed text-[#F7F7F7]/25">
                     {featuredVenue.description}
                   </p>
 
@@ -285,7 +285,7 @@ export default async function HomePage() {
                   </span>
                 </div>
                 <p className="heading-3 mt-3 text-sm text-[#F7F7F7]">Padel Bali Arena</p>
-                <p className="mt-1 flex items-center gap-2 caption text-[#F7F7F7]/30">
+                <p className="mt-1 flex items-center gap-2 caption text-[#F7F7F7]/25">
                   <Calendar className="h-3 w-3" /> Tomorrow · 18:00
                 </p>
                 <Link href="/venues/venue-1/book" className="btn-lime mt-4 flex w-full items-center justify-center rounded-full py-2.5 text-[10px] font-semibold uppercase tracking-[0.08em]">
@@ -296,7 +296,7 @@ export default async function HomePage() {
 
             {/* Content */}
             <div className="flex flex-col justify-center">
-              <p className="body-lg max-w-md text-[#F7F7F7]/50">
+              <p className="body-lg max-w-md text-[#F7F7F7]/60">
                 Padelhive is where Indonesia&apos;s padel community lives.
                 Join open matches, find partners at your level, split costs,
                 and grow your network.
@@ -315,7 +315,7 @@ export default async function HomePage() {
                   size={36}
                   showCount={false}
                 />
-                <p className="caption mt-3 text-[#F7F7F7]/30">
+                <p className="caption mt-3 text-[#F7F7F7]/25">
                   <span className="font-medium text-[#F7F7F7]/60">+2,847</span> joined this month
                 </p>
               </div>
@@ -323,15 +323,15 @@ export default async function HomePage() {
               <div className="mt-12 grid grid-cols-3 gap-6">
                 <div>
                   <p className="metric text-3xl text-[#E6FA50] md:text-4xl">10K+</p>
-                  <p className="caption mt-2 text-[#F7F7F7]/30">Players</p>
+                  <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
                 <div>
                   <p className="metric text-3xl text-[#F7F7F7] md:text-4xl">2K+</p>
-                  <p className="caption mt-2 text-[#F7F7F7]/30">Matches/mo</p>
+                  <p className="caption mt-2 text-[#F7F7F7]/25">Matches/mo</p>
                 </div>
                 <div>
                   <p className="metric text-3xl text-[#F7F7F7] md:text-4xl">95%</p>
-                  <p className="caption mt-2 text-[#F7F7F7]/30">Match rate</p>
+                  <p className="caption mt-2 text-[#F7F7F7]/25">Match rate</p>
                 </div>
               </div>
 
@@ -385,7 +385,7 @@ export default async function HomePage() {
 
           <div className="space-y-5">
             {venues.length === 0 ? (
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center text-[#F7F7F7]/50">
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center text-[#F7F7F7]/60">
                 No venues found.
               </div>
             ) : (
@@ -411,12 +411,12 @@ export default async function HomePage() {
                         <div className="flex items-center gap-2">
                           <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
                           <span className="label font-semibold text-[#E6FA50]">{venue.rating}</span>
-                          <span className="caption text-[#F7F7F7]/30">· {venue.reviewCount} reviews</span>
+                          <span className="caption text-[#F7F7F7]/25">· {venue.reviewCount} reviews</span>
                         </div>
                         <h3 className="heading-2 mt-3 text-xl text-[#F7F7F7] md:text-2xl">
                           {venue.name}
                         </h3>
-                        <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/30">
+                        <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/25">
                           <MapPin className="h-3.5 w-3.5" />
                           {venue.location} · {venue.city}
                         </p>
@@ -445,7 +445,7 @@ function StatInline({ value, label, className = "" }: { value: string; label: st
   return (
     <div className={`flex items-baseline gap-2 ${className}`}>
       <span className="font-heading text-base font-semibold text-[#E6FA50] tracking-[-0.02em] md:text-lg">{value}</span>
-      <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#F7F7F7]/30">{label}</span>
+      <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#F7F7F7]/25">{label}</span>
     </div>
   );
 }

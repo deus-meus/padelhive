@@ -45,10 +45,10 @@ export default function DashboardPage() {
   const maxRevenue = Math.max(...REVENUE_DATA.map((d) => d.value));
 
   return (
-    <div className="py-8">
+    <div className="py-component">
       {/* ─── WELCOME ─── */}
-      <section className="container pb-8">
-        <p className="caption text-[#F7F7F7]/30">Good morning</p>
+      <section className="container pb-component">
+        <p className="caption text-[#F7F7F7]/25">Good morning</p>
         <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] md:text-4xl">
           Welcome back, <span className="text-[#E6FA50]">Dwi</span>
         </h1>
@@ -60,7 +60,7 @@ export default function DashboardPage() {
       </section>
 
       {/* ─── KPIs ─── */}
-      <section className="container pb-8">
+      <section className="container pb-component">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           <KPICard icon={DollarSign} label="Revenue" value={`Rp ${(totalRevenue / 1000).toFixed(0)}K`} trend="+12%" trendUp />
           <KPICard icon={CalendarDays} label="Bookings" value={totalBookings.toString()} trend="+8%" trendUp />
@@ -71,7 +71,7 @@ export default function DashboardPage() {
       </section>
 
       {/* ─── REVENUE + UTILIZATION ─── */}
-      <section className="container pb-8">
+      <section className="container pb-component">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]">
           {/* Revenue chart */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8">
@@ -99,7 +99,7 @@ export default function DashboardPage() {
                     className="w-full rounded-md bg-[#E6FA50]/15 transition-colors duration-200 hover:bg-[#E6FA50]/30"
                     style={{ height: `${(d.value / maxRevenue) * 140}px` }}
                   />
-                  <span className="caption text-[#F7F7F7]/20">{d.day}</span>
+                  <span className="caption text-[#F7F7F7]/25">{d.day}</span>
                 </div>
               ))}
             </div>
@@ -125,21 +125,21 @@ export default function DashboardPage() {
       </section>
 
       {/* ─── TODAY'S SCHEDULE ─── */}
-      <section className="container pb-8">
+      <section className="container pb-component">
         <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8">
           <div className="flex items-center justify-between mb-6">
             <p className="section-label">Today&apos;s Schedule</p>
-            <span className="caption text-[#F7F7F7]/20">{TODAYS_SCHEDULE.length} bookings</span>
+            <span className="caption text-[#F7F7F7]/25">{TODAYS_SCHEDULE.length} bookings</span>
           </div>
 
           <div className="space-y-0">
             {TODAYS_SCHEDULE.map((slot, i) => (
               <div key={i} className="flex items-center gap-5 border-b border-white/[0.03] py-3.5 last:border-0">
-                <span className="metric w-12 shrink-0 text-base text-[#F7F7F7]/45">{slot.time}</span>
+                <span className="metric w-12 shrink-0 text-base text-[#F7F7F7]/40">{slot.time}</span>
                 <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${slot.status === "confirmed" ? "bg-[#E6FA50]" : "border-2 border-[#50C8C8] bg-transparent"}`} />
                 <div className="flex-1">
                   <p className="heading-3 text-sm text-[#F7F7F7]">{slot.player}</p>
-                  <p className="caption text-[#F7F7F7]/20">{slot.court}</p>
+                  <p className="caption text-[#F7F7F7]/25">{slot.court}</p>
                 </div>
                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${slot.status === "confirmed" ? "bg-[#E6FA50]/10 text-[#E6FA50]" : "bg-[#50C8C8]/10 text-[#50C8C8]"}`}>
                   {slot.status}
@@ -151,7 +151,7 @@ export default function DashboardPage() {
       </section>
 
       {/* ─── RECENT BOOKINGS ─── */}
-      <section className="container pb-8">
+      <section className="container pb-component">
         <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8">
           <div className="flex items-center justify-between mb-6">
             <p className="section-label">Recent Bookings</p>
@@ -168,10 +168,10 @@ export default function DashboardPage() {
                 <div key={booking.id} className="flex items-center gap-4 rounded-lg bg-white/[0.02] p-3.5 transition-colors hover:bg-white/[0.04]">
                   <div className="flex-1 min-w-0">
                     <p className="heading-3 truncate text-sm text-[#F7F7F7]">{venue?.name}</p>
-                    <p className="caption mt-0.5 text-[#F7F7F7]/20">{court?.name} · {booking.bookingDate} · {booking.startTime}</p>
+                    <p className="caption mt-0.5 text-[#F7F7F7]/25">{court?.name} · {booking.bookingDate} · {booking.startTime}</p>
                   </div>
-                  <p className="price shrink-0 text-sm text-[#F7F7F7]/50">Rp {(booking.totalAmount / 1000).toFixed(0)}K</p>
-                  <div className={`h-2 w-2 shrink-0 rounded-full ${booking.status === "confirmed" ? "bg-[#E6FA50]" : booking.status === "pending" ? "bg-[#50C8C8]" : "bg-[#F7F7F7]/20"}`} />
+                  <p className="price shrink-0 text-sm text-[#F7F7F7]/60">Rp {(booking.totalAmount / 1000).toFixed(0)}K</p>
+                  <div className={`h-2 w-2 shrink-0 rounded-full ${booking.status === "confirmed" ? "bg-[#E6FA50]" : booking.status === "pending" ? "bg-[#50C8C8]" : "bg-[#F7F7F7]/25"}`} />
                 </div>
               );
             })}
@@ -180,7 +180,7 @@ export default function DashboardPage() {
       </section>
 
       {/* ─── QUICK ACTIONS ─── */}
-      <section className="container pb-12">
+      <section className="container pb-component">
         <p className="section-label mb-5">Quick Actions</p>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <QuickAction icon={Plus} label="Add Court" href="/dashboard/courts" />
@@ -209,7 +209,7 @@ function KPICard({
   highlight?: boolean;
 }) {
   return (
-    <div className={`rounded-2xl border p-5 ${highlight ? "border-[#50C8C8]/20 bg-[#50C8C8]/5" : "border-white/[0.06] bg-[#0C1B26]"}`}>
+    <div className={`rounded-2xl border p-6 ${highlight ? "border-[#50C8C8]/20 bg-[#50C8C8]/5" : "border-white/[0.06] bg-[#0C1B26]"}`}>
       <div className="flex items-center justify-between">
         <Icon className="h-4 w-4 text-[#50C8C8]" />
         {trend && (
@@ -228,7 +228,7 @@ function CourtBar({ name, percentage }: { name: string; percentage: number }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="label text-[#F7F7F7]/45">{name}</span>
+        <span className="label text-[#F7F7F7]/40">{name}</span>
         <span className="metric text-sm text-[#E6FA50]">{percentage}%</span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.04]">
@@ -240,11 +240,11 @@ function CourtBar({ name, percentage }: { name: string; percentage: number }) {
 
 function QuickAction({ icon: Icon, label, href }: { icon: React.ComponentType<{ className?: string }>; label: string; href: string }) {
   return (
-    <Link href={href} className="flex flex-col items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5 transition-all duration-200 hover:border-[#E6FA50]/20 hover:bg-[#E6FA50]/5">
+    <Link href={href} className="flex flex-col items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all duration-200 hover:border-[#E6FA50]/20 hover:bg-[#E6FA50]/5">
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E6FA50]/10">
         <Icon className="h-4 w-4 text-[#E6FA50]" />
       </div>
-      <span className="caption font-medium text-[#F7F7F7]/45">{label}</span>
+      <span className="caption font-medium text-[#F7F7F7]/40">{label}</span>
     </Link>
   );
 }

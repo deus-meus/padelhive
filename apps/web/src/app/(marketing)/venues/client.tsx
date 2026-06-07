@@ -100,7 +100,7 @@ export default function VenuesPage() {
             <br />
             <span className="text-[#E6FA50]">PLAY.</span>
           </h1>
-          <p className="body-lg mt-5 max-w-md text-[#F7F7F7]/50">
+          <p className="body-lg mt-5 max-w-md text-[#F7F7F7]/60">
             Premium padel venues across Indonesia. Find your court, join a match, meet your crew.
           </p>
           <div className="mt-8 flex gap-3">
@@ -149,7 +149,7 @@ export default function VenuesPage() {
                   {featured.location}
                 </p>
 
-                <p className="mt-5 text-sm font-light leading-relaxed text-[#F7F7F7]/30">{featured.description}</p>
+                <p className="mt-5 text-sm font-light leading-relaxed text-[#F7F7F7]/25">{featured.description}</p>
 
                 {/* Facilities */}
                 <div className="mt-5 flex flex-wrap gap-2">
@@ -162,17 +162,17 @@ export default function VenuesPage() {
                 <div className="mt-7 flex items-center gap-5 border-t border-white/[0.06] pt-6">
                   <div>
                     <p className="price text-xl text-[#50C8C8]">{featuredPrice > 0 ? `Rp ${(featuredPrice / 1000).toFixed(0)}K` : "Pricing soon"}</p>
-                    <p className="caption mt-0.5 text-[#F7F7F7]/20">per hour</p>
+                    <p className="caption mt-0.5 text-[#F7F7F7]/25">per hour</p>
                   </div>
                   <div className="h-9 w-px bg-white/[0.06]" />
                   <div>
                     <p className="metric text-xl text-[#F7F7F7]">{featuredCourts.length}</p>
-                    <p className="caption mt-0.5 text-[#F7F7F7]/20">courts</p>
+                    <p className="caption mt-0.5 text-[#F7F7F7]/25">courts</p>
                   </div>
                   <div className="h-9 w-px bg-white/[0.06]" />
                   <div>
                     <p className="text-sm font-medium text-[#E6FA50]">Available today</p>
-                    <p className="caption mt-0.5 text-[#F7F7F7]/20">open slots</p>
+                    <p className="caption mt-0.5 text-[#F7F7F7]/25">open slots</p>
                   </div>
                 </div>
 
@@ -181,7 +181,7 @@ export default function VenuesPage() {
                   <span className="btn-lime inline-flex h-11 items-center gap-2 rounded-full px-7 text-[11px] font-semibold uppercase tracking-[0.08em]">
                     View Availability <ArrowRight className="h-3.5 w-3.5" />
                   </span>
-                  <span className="inline-flex h-11 items-center rounded-full border border-white/10 px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/40 transition-colors group-hover:border-white/20 group-hover:text-[#F7F7F7]/70">
+                  <span className="inline-flex h-11 items-center rounded-full border border-white/10 px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/40 transition-colors group-hover:border-white/20 group-hover:text-[#F7F7F7]/60">
                     See Details
                   </span>
                 </div>
@@ -194,12 +194,12 @@ export default function VenuesPage() {
       {/* ─── OPEN MATCHES ─── */}
       <section id="matches" className="py-section-sm border-t border-white/[0.04]">
         <div className="container">
-          <div className="mb-8 flex items-end justify-between">
+          <div className="mb-subsection flex items-end justify-between">
             <div>
               <span className="section-label">Open Matches</span>
-              <h2 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-3xl">Join a <span className="text-[#E6FA50]">Match</span></h2>
+              <h2 className="heading-1 mt-4 text-3xl text-[#F7F7F7] md:text-4xl">Join a <span className="text-[#E6FA50]">Match</span></h2>
             </div>
-            <Link href="/venues#venues" className="group hidden items-center gap-2 label text-[#F7F7F7]/30 transition-colors hover:text-[#E6FA50] md:flex">
+            <Link href="/venues#venues" className="group hidden items-center gap-2 label text-[#F7F7F7]/25 transition-colors hover:text-[#E6FA50] md:flex">
               All matches <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
@@ -210,11 +210,11 @@ export default function VenuesPage() {
                 <span className={`w-fit rounded-full px-3 py-1 text-[10px] font-medium uppercase tracking-[0.1em] ${
                   match.level === "Beginner" ? "bg-[#50C8C8]/10 text-[#50C8C8]" :
                   match.level === "Intermediate" ? "bg-[#E6FA50]/10 text-[#E6FA50]" :
-                  "bg-white/[0.05] text-[#F7F7F7]/50"
+                  "bg-white/[0.05] text-[#F7F7F7]/60"
                 }`}>{match.level}</span>
 
                 <h3 className="heading-3 mt-4 text-base text-[#F7F7F7]">{match.venue}</h3>
-                <div className="mt-2 flex items-center gap-3 caption text-[#F7F7F7]/30">
+                <div className="mt-2 flex items-center gap-3 caption text-[#F7F7F7]/25">
                   <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{match.date}</span>
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{match.time}</span>
                 </div>
@@ -243,9 +243,9 @@ export default function VenuesPage() {
       {/* ─── CITIES ─── */}
       <section className="py-section-sm border-t border-white/[0.04]">
         <div className="container">
-          <div className="mb-8">
+          <div className="mb-subsection">
             <span className="section-label">Destinations</span>
-            <h2 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-3xl">Explore <span className="text-[#E6FA50]">Cities</span></h2>
+            <h2 className="heading-1 mt-4 text-3xl text-[#F7F7F7] md:text-4xl">Explore <span className="text-[#E6FA50]">Cities</span></h2>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
@@ -257,7 +257,7 @@ export default function VenuesPage() {
                 <div className="relative aspect-[16/10] overflow-hidden rounded-2xl">
                   <img src={c.image} alt={`Padel in ${c.name}`} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#06121A]/80 via-[#06121A]/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 p-5">
+                  <div className="absolute bottom-0 left-0 p-6">
                     <p className="section-label">{c.venues} venues</p>
                     <h3 className="display-lg mt-1 text-2xl text-[#F7F7F7] md:text-3xl">{c.name.toUpperCase()}</h3>
                   </div>
@@ -269,17 +269,18 @@ export default function VenuesPage() {
       </section>
 
       {/* ─── WHY PADELHIVE ─── */}
-      <section className="py-12 md:py-16 border-t border-white/[0.04]">
+      <section className="py-section-sm border-t border-white/[0.04]">
         <div className="container">
           <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[2fr_3fr] lg:gap-16">
             {/* Left — heading */}
             <div>
-              <h2 className="display-lg text-[clamp(2rem,5vw,3.5rem)] text-[#F7F7F7]">
+              <span className="section-label block mb-4">Why Padelhive</span>
+              <h2 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
                 BOOK. SPLIT.
                 <br />
                 <span className="text-[#E6FA50]">PLAY.</span>
               </h2>
-              <p className="mt-4 text-sm font-light leading-relaxed text-[#F7F7F7]/35 max-w-sm">
+              <p className="mt-4 text-sm font-light leading-relaxed text-[#F7F7F7]/40 max-w-sm">
                 Everything you need to organize your next padel session — from court booking to friends and split payments.
               </p>
             </div>
@@ -298,10 +299,10 @@ export default function VenuesPage() {
       {/* ─── VENUE LISTINGS ─── */}
       <section id="venues" className="py-section-sm border-t border-white/[0.04]">
         <div className="container">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="mb-subsection flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <span className="section-label">All Venues</span>
-              <h2 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-3xl">Browse <span className="text-[#E6FA50]">Courts</span></h2>
+              <h2 className="heading-1 mt-4 text-3xl text-[#F7F7F7] md:text-4xl">Browse <span className="text-[#E6FA50]">Courts</span></h2>
             </div>
           </div>
 
@@ -322,7 +323,7 @@ export default function VenuesPage() {
           )}
 
           {/* Search */}
-          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mb-subsection flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex flex-1 items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3">
               <Search className="h-4 w-4 shrink-0 text-[#F7F7F7]/25" />
               <input
@@ -339,7 +340,7 @@ export default function VenuesPage() {
                   key={c}
                   onClick={() => setCity(c)}
                   className={`rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all duration-200 ${
-                    city === c ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/35 hover:bg-white/[0.06] hover:text-[#F7F7F7]/70"
+                    city === c ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
                   }`}
                 >{c}</button>
               ))}
@@ -362,19 +363,19 @@ export default function VenuesPage() {
                         <span className="absolute left-3 top-3 rounded-full bg-[#E6FA50] px-2.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#06121A]">Verified</span>
                       )}
                     </div>
-                    <div className="p-5">
+                    <div className="p-6">
                       <div className="flex items-center gap-2">
                         <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
                         <span className="label font-semibold text-[#E6FA50]">{venue.rating}</span>
                         <span className="caption text-[#F7F7F7]/25">({venue.reviewCount})</span>
                       </div>
                       <h3 className="heading-3 mt-2 text-base text-[#F7F7F7]">{venue.name}</h3>
-                      <p className="mt-1 flex items-center gap-1.5 caption text-[#F7F7F7]/30">
+                      <p className="mt-1 flex items-center gap-1.5 caption text-[#F7F7F7]/25">
                         <MapPin className="h-3 w-3" />{venue.city}
                       </p>
                       <div className="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-3">
                         <span className="price text-sm text-[#50C8C8]">{price > 0 ? `Rp ${(price / 1000).toFixed(0)}K/hr` : "Pricing soon"}</span>
-                        <span className="caption text-[#F7F7F7]/20">{courts.length} courts</span>
+                        <span className="caption text-[#F7F7F7]/25">{courts.length} courts</span>
                       </div>
                     </div>
                   </article>
@@ -385,7 +386,7 @@ export default function VenuesPage() {
 
           {filteredVenues.length === 0 && (
             <div className="py-16 text-center">
-              <p className="text-sm text-[#F7F7F7]/30">No venues found.</p>
+              <p className="text-sm text-[#F7F7F7]/25">No venues found.</p>
               <button onClick={() => { setSearch(""); setCity("All"); }} className="mt-3 label font-semibold text-[#E6FA50]">Clear filters</button>
             </div>
           )}
@@ -402,7 +403,7 @@ function FeatureCard({ icon: Icon, title, description }: { icon: React.Component
         <Icon className="h-5 w-5 text-[#E6FA50]" />
       </div>
       <h3 className="heading-3 mt-4 text-sm text-[#F7F7F7]">{title}</h3>
-      <p className="caption mt-2 text-[#F7F7F7]/30 leading-relaxed">{description}</p>
+      <p className="caption mt-2 text-[#F7F7F7]/25 leading-relaxed">{description}</p>
     </div>
   );
 }

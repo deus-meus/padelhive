@@ -57,8 +57,9 @@ export default function VouchersPage() {
   }
 
   return (
-    <div className="min-h-screen pt-28">
-      <section className="container pb-8">
+    <div className="min-h-screen py-section-sm space-y-subsection">
+      <section className="container">
+        <span className="section-label block mb-4">Rewards</span>
         <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
           Promo & <span className="text-[#E6FA50]">Vouchers</span>
         </h1>
@@ -83,7 +84,7 @@ export default function VouchersPage() {
       </section>
 
       {/* Tabs */}
-      <section className="container pb-8">
+      <section className="container">
         <div className="flex gap-1 border-b border-white/[0.06]">
           {(["active", "expired"] as const).map((tab) => (
             <button
@@ -92,7 +93,7 @@ export default function VouchersPage() {
               className={`relative px-5 py-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors ${
                 filter === tab
                   ? "text-[#E6FA50]"
-                  : "text-[#F7F7F7]/30 hover:text-[#F7F7F7]/60"
+                  : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
               }`}
             >
               {tab} ({tab === "active" ? active.length : expired.length})
@@ -105,12 +106,12 @@ export default function VouchersPage() {
       </section>
 
       {/* Voucher Grid */}
-      <section className="container pb-section-sm">
+      <section className="container">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((voucher) => (
             <div
               key={voucher.id}
-              className={`group relative overflow-hidden rounded-2xl border p-5 transition-all duration-200 ${
+              className={`group relative overflow-hidden rounded-2xl border p-6 transition-all duration-200 ${
                 voucher.isActive
                   ? "border-white/[0.06] bg-[#0C1B26] hover:border-[#E6FA50]/15"
                   : "border-white/[0.03] bg-[#0C1B26]/50 opacity-60"
@@ -140,7 +141,7 @@ export default function VouchersPage() {
                 {voucher.isActive && (
                   <button
                     onClick={() => copyCode(voucher.code)}
-                    className="flex h-6 w-6 items-center justify-center rounded-md bg-white/[0.04] text-[#F7F7F7]/30 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/60"
+                    className="flex h-6 w-6 items-center justify-center rounded-md bg-white/[0.04] text-[#F7F7F7]/25 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/60"
                   >
                     <Copy className="h-3 w-3" />
                   </button>
@@ -150,12 +151,12 @@ export default function VouchersPage() {
               {/* Details */}
               <div className="space-y-1.5">
                 {voucher.minPurchase && (
-                  <p className="caption text-[#F7F7F7]/30">
+                  <p className="caption text-[#F7F7F7]/25">
                     Min. spend Rp {(voucher.minPurchase / 1000).toFixed(0)}K
                   </p>
                 )}
                 {voucher.maxDiscount && (
-                  <p className="caption text-[#F7F7F7]/30">
+                  <p className="caption text-[#F7F7F7]/25">
                     Max discount Rp {(voucher.maxDiscount / 1000).toFixed(0)}K
                   </p>
                 )}
@@ -168,8 +169,8 @@ export default function VouchersPage() {
               {/* Usage bar */}
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="caption text-[#F7F7F7]/20">Usage</span>
-                  <span className="caption text-[#F7F7F7]/30">{voucher.usedCount}/{voucher.usageLimit}</span>
+                  <span className="caption text-[#F7F7F7]/25">Usage</span>
+                  <span className="caption text-[#F7F7F7]/25">{voucher.usedCount}/{voucher.usageLimit}</span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-white/[0.04]">
                   <div
@@ -182,7 +183,7 @@ export default function VouchersPage() {
               {/* View details */}
               <button
                 onClick={() => setSelectedVoucher(voucher)}
-                className="mt-4 w-full rounded-xl border border-white/[0.06] py-2 text-xs font-medium text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/70"
+                className="mt-4 w-full rounded-xl border border-white/[0.06] py-2 text-xs font-medium text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
               >
                 View Details
               </button>
@@ -193,7 +194,7 @@ export default function VouchersPage() {
         {filtered.length === 0 && (
           <div className="py-16 text-center">
             <Ticket className="mx-auto h-8 w-8 text-[#F7F7F7]/10 mb-3" />
-            <p className="text-sm text-[#F7F7F7]/30">No {filter} vouchers available.</p>
+            <p className="text-sm text-[#F7F7F7]/25">No {filter} vouchers available.</p>
           </div>
         )}
       </section>
@@ -205,7 +206,7 @@ export default function VouchersPage() {
           <div className="relative w-full max-w-md rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 shadow-2xl">
             <button
               onClick={() => setSelectedVoucher(null)}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-[#F7F7F7]/30 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]/60"
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-[#F7F7F7]/25 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]/60"
             >
               <X className="h-4 w-4" />
             </button>
@@ -223,7 +224,7 @@ export default function VouchersPage() {
             </div>
 
             <h2 className="heading-2 text-xl text-[#F7F7F7] tracking-wider mb-1">{selectedVoucher.code}</h2>
-            <p className="caption text-[#F7F7F7]/30 mb-5">
+            <p className="caption text-[#F7F7F7]/25 mb-5">
               {selectedVoucher.type === "percentage" ? "Percentage discount" : "Fixed amount discount"}
             </p>
 
@@ -256,7 +257,7 @@ export default function VouchersPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption flex items-center gap-2 text-[#F7F7F7]/70">
+          <p className="caption flex items-center gap-2 text-[#F7F7F7]/60">
             <CheckCircle2 className="h-3.5 w-3.5 text-[#E6FA50]" />
             {toast}
           </p>
@@ -269,8 +270,8 @@ export default function VouchersPage() {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2.5">
-      <span className="caption text-[#F7F7F7]/30">{label}</span>
-      <span className="text-sm font-medium text-[#F7F7F7]/70">{value}</span>
+      <span className="caption text-[#F7F7F7]/25">{label}</span>
+      <span className="text-sm font-medium text-[#F7F7F7]/60">{value}</span>
     </div>
   );
 }

@@ -125,7 +125,7 @@ function VerifyContent() {
           {/* Back button */}
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/30 transition-colors hover:text-[#F7F7F7]/60 mb-6"
+            className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60 mb-6"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Edit {method}
           </Link>
@@ -133,7 +133,7 @@ function VerifyContent() {
           <h1 className="heading-2 text-xl text-[#F7F7F7] mb-2">Verify OTP</h1>
           <p className="text-sm text-[#F7F7F7]/40 mb-6">
             We sent a 6-digit code to{" "}
-            <span className="text-[#F7F7F7]/70 font-medium">{decodeURIComponent(contact) || "your device"}</span>
+            <span className="text-[#F7F7F7]/60 font-medium">{decodeURIComponent(contact) || "your device"}</span>
           </p>
 
           {/* OTP Input */}
@@ -192,7 +192,7 @@ function VerifyContent() {
           <div className="mt-4 text-center">
             {resendCooldown > 0 ? (
               <p className="caption text-[#F7F7F7]/25">
-                Resend code in <span className="text-[#F7F7F7]/50">{resendCooldown}s</span>
+                Resend code in <span className="text-[#F7F7F7]/60">{resendCooldown}s</span>
               </p>
             ) : (
               <button
@@ -206,7 +206,7 @@ function VerifyContent() {
 
           {/* Demo hint */}
           <div className="mt-6 rounded-lg bg-white/[0.02] px-3 py-2 text-center">
-            <p className="caption text-[#F7F7F7]/20">
+            <p className="caption text-[#F7F7F7]/25">
               Demo OTP: <span className="text-[#50C8C8] font-medium">123456</span>
             </p>
           </div>
