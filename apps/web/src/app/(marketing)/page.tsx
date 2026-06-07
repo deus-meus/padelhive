@@ -479,8 +479,8 @@ function CityBlock({
           <h3 className="display-lg mt-2 text-4xl text-[#F7F7F7] md:text-6xl">{name}</h3>
           <p className="mt-2 max-w-xs text-sm font-light text-[#F7F7F7]/40">{tagline}</p>
         </div>
-        <div className="absolute bottom-8 right-8 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:border-[#E6FA50] md:bottom-10 md:right-10">
-          <ArrowRight className="h-4 w-4 text-[#E6FA50]" />
+        <div className="absolute bottom-8 right-8 flex h-11 w-11 items-center justify-center rounded-full bg-[#E6FA50] opacity-0 transition-all duration-300 group-hover:opacity-100 md:bottom-10 md:right-10">
+          <ArrowRight className="h-4 w-4 text-[#06121A]" />
         </div>
       </div>
     </Link>
