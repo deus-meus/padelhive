@@ -58,7 +58,7 @@ export function Navbar() {
   const { data: upcomingBookings = [], isLoading: bookingsLoading } = useQuery({
     queryKey: queryKeys.bookings.user("upcoming"),
     queryFn: () => getUserBookings("upcoming"),
-    enabled: isPlayer && avatarOpen,
+    enabled: isPlayer,
     staleTime: 60_000,
   });
   const nextBooking = upcomingBookings.find(
@@ -68,7 +68,7 @@ export function Navbar() {
   const { data: vouchersData = [], isLoading: vouchersLoading } = useQuery({
     queryKey: queryKeys.vouchers.all(),
     queryFn: getVouchers,
-    enabled: isPlayer && avatarOpen,
+    enabled: isPlayer,
     staleTime: 60_000,
   });
   const hasVoucherData = Boolean(vouchersData && vouchersData.length > 0);
@@ -96,6 +96,33 @@ export function Navbar() {
             <NavLink href="/#how-it-works">How It Works</NavLink>
             <NavLink href="/#community">Community</NavLink>
           </nav>
+        )}
+
+        {isPlayer && (
+          <div className="hidden items-center gap-2 md:flex">
+            <Link
+              href="/bookings"
+              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-xs text-[#F7F7F7]/60 transition-colors hover:border-white/20 hover:text-[#F7F7F7]"
+            >
+              <CalendarDays className="h-3.5 w-3.5 shrink-0 text-[#50C8C8]" />
+              <span className="max-w-[200px] truncate">
+                {bookingsLoading
+                  ? "Loading…"
+                  : nextBooking
+                    ? `Next: ${nextBooking.venue?.name ?? "Court"} · ${nextBooking.bookingDate}`
+                    : "No upcoming bookings"}
+              </span>
+            </Link>
+            <Link
+              href="/vouchers"
+              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-xs text-[#F7F7F7]/60 transition-colors hover:border-white/20 hover:text-[#F7F7F7]"
+            >
+              <Ticket className="h-3.5 w-3.5 shrink-0 text-[#50C8C8]" />
+              <span>
+                {activeVoucherCount} {activeVoucherCount === 1 ? "voucher" : "vouchers"}
+              </span>
+            </Link>
+          </div>
         )}
 
         <div className="flex items-center gap-4">
