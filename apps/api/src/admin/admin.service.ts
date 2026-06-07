@@ -26,13 +26,17 @@ export class AdminService {
         where.bookingDate.gte = new Date(`${fromDate}T00:00:00Z`);
       }
       if (toDate) {
-        where.bookingDate.lte = new Date(`${toDate}T00:00:00Z`);
+        const nextDay = new Date(`${toDate}T00:00:00Z`);
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+        where.bookingDate.lt = nextDay;
       }
     }
 
-    const pageNum = parseInt(page as string, 10) || 1;
-    let sizeNum = parseInt(pageSize as string, 10) || 20;
-    if (sizeNum > 100) sizeNum = 100;
+    const rawPage = Number.parseInt(String(page), 10);
+    const pageNum = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+    const rawSize = Number.parseInt(String(pageSize), 10);
+    const sizeNumUncapped = Number.isFinite(rawSize) && rawSize > 0 ? rawSize : 20;
+    const sizeNum = Math.min(100, sizeNumUncapped);
 
     const skip = (pageNum - 1) * sizeNum;
 
