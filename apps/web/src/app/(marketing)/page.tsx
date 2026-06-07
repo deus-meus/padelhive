@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Metadata } from "next";
-import { Star, MapPin, ArrowRight, Users, Calendar, Search, Clock as ClockIcon } from "lucide-react";
+import { Star, MapPin, ArrowRight, Calendar, Search, Clock as ClockIcon } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "PadelHive - Play. Compete. Connect.",
@@ -153,9 +153,15 @@ export default async function HomePage() {
           </div>
 
           {!featuredVenue ? (
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center md:p-12">
-              <p className="text-[#F7F7F7]/60 mb-4">No featured venue available at the moment.</p>
-              <Link href="/venues" className="btn-lime inline-flex h-10 items-center justify-center rounded-xl px-6 text-[11px] font-semibold uppercase tracking-[0.08em]">
+            <div className="flex flex-col items-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center md:py-20">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
+                <Star className="h-6 w-6 text-[#E6FA50]" />
+              </div>
+              <h3 className="heading-3 mt-6 text-lg text-[#F7F7F7]">Featured venues coming soon</h3>
+              <p className="mt-2 max-w-sm text-sm font-light text-[#F7F7F7]/40">
+                We&apos;re curating the best courts in Indonesia. Check back soon or explore everything available now.
+              </p>
+              <Link href="/venues" className="btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6 text-[11px] font-semibold uppercase tracking-[0.08em]">
                 Browse All Venues
               </Link>
             </div>
@@ -275,23 +281,7 @@ export default async function HomePage() {
                 />
               </div>
 
-              <div className="absolute -bottom-6 -right-4 w-64 rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-5 shadow-2xl shadow-black/60 md:-right-6 md:w-72">
-                <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-[#E6FA50]/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-[#E6FA50]">
-                    Open Match
-                  </span>
-                  <span className="flex items-center gap-1 caption text-[#F7F7F7]/40">
-                    <Users className="h-3 w-3" /> 2 spots
-                  </span>
-                </div>
-                <p className="heading-3 mt-3 text-sm text-[#F7F7F7]">Padel Bali Arena</p>
-                <p className="mt-1 flex items-center gap-2 caption text-[#F7F7F7]/25">
-                  <Calendar className="h-3 w-3" /> Tomorrow · 18:00
-                </p>
-                <Link href="/venues/venue-1/book" className="btn-lime mt-4 flex w-full items-center justify-center rounded-full py-2.5 text-[10px] font-semibold uppercase tracking-[0.08em]">
-                  Join Match
-                </Link>
-              </div>
+
             </div>
 
             {/* Content */}
@@ -385,8 +375,17 @@ export default async function HomePage() {
 
           <div className="space-y-5">
             {venues.length === 0 ? (
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center text-[#F7F7F7]/60">
-                No venues found.
+              <div className="flex flex-col items-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center md:py-20">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
+                  <MapPin className="h-6 w-6 text-[#E6FA50]" />
+                </div>
+                <h3 className="heading-3 mt-6 text-lg text-[#F7F7F7]">No venues yet</h3>
+                <p className="mt-2 max-w-sm text-sm font-light text-[#F7F7F7]/40">
+                  New courts are being added across Indonesia. Browse the full directory to see what&apos;s live.
+                </p>
+                <Link href="/venues" className="btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6 text-[11px] font-semibold uppercase tracking-[0.08em]">
+                  Browse All Venues
+                </Link>
               </div>
             ) : (
               venues.map((venue, i) => {
