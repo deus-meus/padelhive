@@ -241,8 +241,8 @@ export default function BookingFlowPage({
   })();
 
   return (
-    <div className="min-h-screen pt-20">
-      <div className="container max-w-4xl py-8">
+    <div className="min-h-screen">
+      <div className="container max-w-4xl py-component">
         {(isLoadingApiData || apiError) && (
           <div className={`mb-5 rounded-xl border px-4 py-3 text-sm ${apiError && !isLoadingApiData ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
             {isLoadingApiData ? "Loading live court data..." : apiError ? `${apiError}` : "Live API unavailable."}
@@ -264,7 +264,7 @@ export default function BookingFlowPage({
 
         {/* Header */}
         <div className="mt-6">
-          <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+          <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
             Book a Court
           </h1>
           {venue && (
@@ -275,12 +275,12 @@ export default function BookingFlowPage({
           )}
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
+        <div className="mt-component grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
           {/* Left — Selection */}
-          <div className="space-y-8">
+          <div className="space-y-component">
             {/* Court Selector */}
             <div>
-              <h2 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
+              <h2 className="section-label">
                 Select Court
               </h2>
               <div className="mt-3 flex flex-wrap gap-3">
@@ -310,7 +310,7 @@ export default function BookingFlowPage({
 
             {/* Date Selector */}
             <div>
-              <h2 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
+              <h2 className="section-label flex items-center">
                 <Calendar className="mr-2 inline h-3.5 w-3.5" />
                 Select Date
               </h2>
@@ -421,7 +421,7 @@ export default function BookingFlowPage({
 
             {/* Time Slot Selector */}
             <div>
-              <h2 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
+              <h2 className="section-label flex items-center">
                 <Clock className="mr-2 inline h-3.5 w-3.5" />
                 Select Time
               </h2>
@@ -498,7 +498,7 @@ export default function BookingFlowPage({
           <div className="lg:relative">
             <div className="lg:sticky lg:top-28">
               <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-                <h3 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
+                <h3 className="section-label">
                   Booking Summary
                 </h3>
 
@@ -579,7 +579,7 @@ export default function BookingFlowPage({
 
                 {selectedSlots.length === 0 && (
                   <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                    <p className="text-[11px] leading-relaxed text-[#F7F7F7]/35">
+                    <p className="text-[11px] leading-relaxed text-[#F7F7F7]/40">
                       Select at least one available time slot to continue.
                     </p>
                   </div>
@@ -608,7 +608,7 @@ export default function BookingFlowPage({
                 </button>
 
                 <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/[0.02] p-3">
-                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F7F7F7]/20" />
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F7F7F7]/25" />
                   <p className="text-[11px] leading-relaxed text-[#F7F7F7]/25">
                     Free cancellation up to 24 hours before your booking. After
                     that, standard refund policy applies.
