@@ -6,8 +6,7 @@ export const metadata: Metadata = {
   title: "PadelHive - Play. Compete. Connect.",
   description: "Indonesia's premier padel community. Book courts, join matches, meet players.",
 };
-import { mockVenues } from "@/mock/venues";
-import { mockCourts } from "@/mock/courts";
+import { getVenues } from "@/lib/api";
 import { PlayerAvatarStack } from "@/components/ui/player-avatar-stack";
 import { padelImg } from "@/lib/images";
 
@@ -23,10 +22,15 @@ const IMG = {
   venue3: padelImg(600),
 };
 
-export default function HomePage() {
-  const featuredVenue = mockVenues[0];
-  const featuredCourts = mockCourts.filter((c) => c.venueId === featuredVenue.id);
-  const featuredPrice = Math.min(...featuredCourts.map((c) => c.pricing.weekdayOffPeak));
+export default async function HomePage() {
+  let venues: any[] = [];
+  try {
+    venues = await getVenues({ revalidate: 60 });
+  } catch (error) {
+    console.warn("Failed to fetch venues for home page:", error);
+  }
+
+  const featuredVenue = venues.length > 0 ? venues[0] : null;
 
   return (
     <>
@@ -146,58 +150,60 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <Link href={`/venues/${featuredVenue.id}`} className="group block">
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
-              {/* Image */}
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl lg:aspect-[16/10]">
-                <img
-                  src={IMG.featured}
-                  alt={featuredVenue.name}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
-                />
-              </div>
-
-              {/* Info */}
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 fill-[#E6FA50] text-[#E6FA50]" />
-                  <span className="label font-semibold text-[#E6FA50]">{featuredVenue.rating}</span>
-                  <span className="caption text-[#F7F7F7]/30">· {featuredVenue.reviewCount} reviews</span>
-                </div>
-
-                <h3 className="heading-2 mt-4 text-2xl text-[#F7F7F7] md:text-3xl">
-                  {featuredVenue.name}
-                </h3>
-
-                <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/40">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {featuredVenue.location} · {featuredVenue.city}
-                </p>
-
-                <p className="mt-5 text-sm font-light leading-relaxed text-[#F7F7F7]/30">
-                  {featuredVenue.description}
-                </p>
-
-                <div className="mt-8 flex gap-8">
-                  <div>
-                    <p className="price text-2xl text-[#50C8C8]">
-                      Rp {(featuredPrice / 1000).toFixed(0)}K
-                    </p>
-                    <p className="caption mt-1 text-[#F7F7F7]/20">per hour</p>
-                  </div>
-                  <div>
-                    <p className="metric text-2xl text-[#F7F7F7]">{featuredCourts.length}</p>
-                    <p className="caption mt-1 text-[#F7F7F7]/20">courts</p>
-                  </div>
-                </div>
-
-                <div className="mt-8 inline-flex items-center gap-2 label font-semibold text-[#E6FA50] transition-all group-hover:gap-3">
-                  View Availability
-                  <ArrowRight className="h-4 w-4" />
-                </div>
-              </div>
+          {!featuredVenue ? (
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center md:p-12">
+              <p className="text-[#F7F7F7]/50 mb-4">No featured venue available at the moment.</p>
+              <Link href="/venues" className="btn-lime inline-flex h-10 items-center justify-center rounded-xl px-6 text-[11px] font-semibold uppercase tracking-[0.08em]">
+                Browse All Venues
+              </Link>
             </div>
-          </Link>
+          ) : (
+            <Link href={`/venues/${featuredVenue.id}`} className="group block">
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+                {/* Image */}
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl lg:aspect-[16/10]">
+                  <img
+                    src={IMG.featured}
+                    alt={featuredVenue.name}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
+                  />
+                </div>
+
+                {/* Info */}
+                <div className="flex flex-col justify-center">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 fill-[#E6FA50] text-[#E6FA50]" />
+                    <span className="label font-semibold text-[#E6FA50]">{featuredVenue.rating}</span>
+                    <span className="caption text-[#F7F7F7]/30">· {featuredVenue.reviewCount} reviews</span>
+                  </div>
+
+                  <h3 className="heading-2 mt-4 text-2xl text-[#F7F7F7] md:text-3xl">
+                    {featuredVenue.name}
+                  </h3>
+
+                  <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/40">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {featuredVenue.location} · {featuredVenue.city}
+                  </p>
+
+                  <p className="mt-5 text-sm font-light leading-relaxed text-[#F7F7F7]/30">
+                    {featuredVenue.description}
+                  </p>
+
+                  <div className="mt-8">
+                    <p className="text-sm font-medium text-[#50C8C8]">
+                      See availability for pricing
+                    </p>
+                  </div>
+
+                  <div className="mt-8 inline-flex items-center gap-2 label font-semibold text-[#E6FA50] transition-all group-hover:gap-3">
+                    View Availability
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
         </div>
       </section>
 
@@ -376,59 +382,56 @@ export default function HomePage() {
           </div>
 
           <div className="space-y-5">
-            {mockVenues.map((venue, i) => {
-              const courts = mockCourts.filter((c) => c.venueId === venue.id);
-              const price = Math.min(...courts.map((c) => c.pricing.weekdayOffPeak));
-              const images = [IMG.venue1, IMG.venue2, IMG.venue3];
+            {venues.length === 0 ? (
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center text-[#F7F7F7]/50">
+                No venues found.
+              </div>
+            ) : (
+              venues.map((venue, i) => {
+                const images = [IMG.venue1, IMG.venue2, IMG.venue3];
 
-              return (
-                <Link key={venue.id} href={`/venues/${venue.id}`} className="group block">
-                  <article className="grid grid-cols-1 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] transition-all duration-300 group-hover:border-[#E6FA50]/15 md:grid-cols-[1fr_1fr]">
-                    <div className="relative aspect-[4/3] overflow-hidden md:aspect-[16/10]">
-                      <img
-                        src={images[i % images.length]}
-                        alt={venue.name}
-                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
-                      />
-                      {venue.isVerified && (
-                        <span className="absolute left-4 top-4 rounded-full bg-[#E6FA50] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-[#06121A]">
-                          Verified
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-col justify-center p-8 md:p-10">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
-                        <span className="label font-semibold text-[#E6FA50]">{venue.rating}</span>
-                        <span className="caption text-[#F7F7F7]/30">· {venue.reviewCount} reviews</span>
+                return (
+                  <Link key={venue.id} href={`/venues/${venue.id}`} className="group block">
+                    <article className="grid grid-cols-1 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] transition-all duration-300 group-hover:border-[#E6FA50]/15 md:grid-cols-[1fr_1fr]">
+                      <div className="relative aspect-[4/3] overflow-hidden md:aspect-[16/10]">
+                        <img
+                          src={images[i % images.length]}
+                          alt={venue.name}
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
+                        />
+                        {venue.isVerified && (
+                          <span className="absolute left-4 top-4 rounded-full bg-[#E6FA50] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-[#06121A]">
+                            Verified
+                          </span>
+                        )}
                       </div>
-                      <h3 className="heading-2 mt-3 text-xl text-[#F7F7F7] md:text-2xl">
-                        {venue.name}
-                      </h3>
-                      <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/30">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {venue.location} · {venue.city}
-                      </p>
-                      <div className="mt-6 flex items-center gap-6">
-                        <div>
-                          <p className="price text-lg text-[#50C8C8]">
-                            Rp {(price / 1000).toFixed(0)}K
+                      <div className="flex flex-col justify-center p-8 md:p-10">
+                        <div className="flex items-center gap-2">
+                          <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
+                          <span className="label font-semibold text-[#E6FA50]">{venue.rating}</span>
+                          <span className="caption text-[#F7F7F7]/30">· {venue.reviewCount} reviews</span>
+                        </div>
+                        <h3 className="heading-2 mt-3 text-xl text-[#F7F7F7] md:text-2xl">
+                          {venue.name}
+                        </h3>
+                        <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/30">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {venue.location} · {venue.city}
+                        </p>
+                        <div className="mt-6">
+                          <p className="text-sm font-medium text-[#50C8C8]">
+                            See availability for pricing
                           </p>
-                          <p className="caption mt-0.5 text-[#F7F7F7]/20">per hour</p>
                         </div>
-                        <div>
-                          <p className="metric text-lg text-[#F7F7F7]">{courts.length}</p>
-                          <p className="caption mt-0.5 text-[#F7F7F7]/20">courts</p>
-                        </div>
+                        <span className="mt-6 inline-flex items-center gap-2 label font-semibold text-[#E6FA50] opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:gap-3">
+                          View Availability <ArrowRight className="h-4 w-4" />
+                        </span>
                       </div>
-                      <span className="mt-6 inline-flex items-center gap-2 label font-semibold text-[#E6FA50] opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:gap-3">
-                        View Availability <ArrowRight className="h-4 w-4" />
-                      </span>
-                    </div>
-                  </article>
-                </Link>
-              );
-            })}
+                    </article>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
