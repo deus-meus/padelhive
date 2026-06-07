@@ -64,14 +64,13 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
-          <NavLink href="/venues">Venues</NavLink>
-          {!user && <NavLink href="/#how-it-works">How It Works</NavLink>}
-          {!user && <NavLink href="/#community">Community</NavLink>}
-          {user && <NavLink href="/bookings">My Bookings</NavLink>}
-          {showDashboard && <NavLink href="/dashboard">Dashboard</NavLink>}
-          {showAdmin && <NavLink href="/admin">Admin</NavLink>}
-        </nav>
+        {!user && (
+          <nav className="hidden items-center gap-8 md:flex">
+            <NavLink href="/venues">Venues</NavLink>
+            <NavLink href="/#how-it-works">How It Works</NavLink>
+            <NavLink href="/#community">Community</NavLink>
+          </nav>
+        )}
 
         <div className="flex items-center gap-4">
           {user ? (
@@ -132,73 +131,37 @@ export function Navbar() {
             </Link>
           )}
 
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7] md:hidden"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          {!user && (
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7] md:hidden"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          )}
         </div>
       </div>
 
-      {mobileOpen && (
+      {mobileOpen && !user && (
         <div className="glass-nav border-t border-white/[0.06] md:hidden">
           <nav className="container flex flex-col gap-1 py-4">
             <MobileNavLink href="/venues" onClick={() => setMobileOpen(false)}>
               Venues
             </MobileNavLink>
-            {!user && (
-              <MobileNavLink href="/#how-it-works" onClick={() => setMobileOpen(false)}>
-                How It Works
-              </MobileNavLink>
-            )}
-            {!user && (
-              <MobileNavLink href="/#community" onClick={() => setMobileOpen(false)}>
-                Community
-              </MobileNavLink>
-            )}
-            {user && (
-              <MobileNavLink href="/bookings" onClick={() => setMobileOpen(false)}>
-                My Bookings
-              </MobileNavLink>
-            )}
-            {showDashboard && (
-              <MobileNavLink href="/dashboard" onClick={() => setMobileOpen(false)}>
-                Dashboard
-              </MobileNavLink>
-            )}
-            {showAdmin && (
-              <MobileNavLink href="/admin" onClick={() => setMobileOpen(false)}>
-                Admin Panel
-              </MobileNavLink>
-            )}
-            {user ? (
-              <>
-                <div className="border-t border-white/[0.04] my-2" />
-                <div className="flex items-center gap-3 px-4 py-2">
-                  <img src={user.avatarUrl} alt={user.name} className="h-8 w-8 rounded-full object-cover" />
-                  <div>
-                    <p className="text-sm font-medium text-[#F7F7F7]">{user.name}</p>
-                    <p className="caption text-[#F7F7F7]/25">{user.role.replace("_", " ")}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex h-12 items-center gap-3 rounded-xl px-4 text-sm text-red-400/70 transition-colors hover:bg-red-500/5 hover:text-red-400"
-                >
-                  <LogOut className="h-4 w-4" /> Sign Out
-                </button>
-              </>
-            ) : (
-              <Link
-                href="/auth/login"
-                onClick={() => setMobileOpen(false)}
-                className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]"
-              >
-                <LogIn className="h-4 w-4" /> Sign In
-              </Link>
-            )}
+            <MobileNavLink href="/#how-it-works" onClick={() => setMobileOpen(false)}>
+              How It Works
+            </MobileNavLink>
+            <MobileNavLink href="/#community" onClick={() => setMobileOpen(false)}>
+              Community
+            </MobileNavLink>
+            <Link
+              href="/auth/login"
+              onClick={() => setMobileOpen(false)}
+              className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]"
+            >
+              <LogIn className="h-4 w-4" /> Sign In
+            </Link>
           </nav>
         </div>
       )}
