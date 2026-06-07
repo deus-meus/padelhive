@@ -122,20 +122,12 @@ export function Navbar() {
               )}
             </div>
           ) : (
-            <>
-              <Link
-                href="/auth/login"
-                className="hidden items-center gap-2 text-sm font-medium text-[#F7F7F7]/60 transition-colors hover:text-[#F7F7F7] md:flex"
-              >
-                <LogIn className="h-4 w-4" /> Sign In
-              </Link>
-              <Link
-                href="/venues"
-                className="btn-lime hidden h-10 items-center rounded-full px-6 text-[11px] font-semibold uppercase tracking-[0.08em] md:inline-flex"
-              >
-                Book a Court
-              </Link>
-            </>
+            <Link
+              href="/auth/login"
+              className="btn-lime hidden h-10 items-center gap-2 rounded-full px-6 text-[11px] font-semibold uppercase tracking-[0.08em] md:inline-flex"
+            >
+              <LogIn className="h-4 w-4" /> Sign In
+            </Link>
           )}
 
           <button
@@ -187,18 +179,13 @@ export function Navbar() {
                 </button>
               </>
             ) : (
-              <>
-                <MobileNavLink href="/auth/login" onClick={() => setMobileOpen(false)}>
-                  Sign In
-                </MobileNavLink>
-                <Link
-                  href="/venues"
-                  onClick={() => setMobileOpen(false)}
-                  className="btn-lime mt-3 flex h-12 items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]"
-                >
-                  Book a Court
-                </Link>
-              </>
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileOpen(false)}
+                className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]"
+              >
+                <LogIn className="h-4 w-4" /> Sign In
+              </Link>
             )}
           </nav>
         </div>
