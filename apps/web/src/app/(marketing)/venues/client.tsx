@@ -47,6 +47,14 @@ export default function VenuesPage() {
     queryFn: getVenues,
   });
 
+  const hasApiData = Boolean(apiVenues && apiVenues.length > 0);
+  const usingMockFallback = !hasApiData;
+  const shouldShowLoading = isLoadingVenues && !hasApiData && !usingMockFallback;
+  const isUsingFallback = isVenuesError || (apiVenues && apiVenues.length === 0);
+  const apiError = isVenuesError ? "Could not reach the live venue API." : null;
+  const shouldShowApiError = Boolean(apiError) && !isLoadingVenues;
+  const shouldShowFallback = isUsingFallback && !apiError && !isLoadingVenues;
+
   const venues = apiVenues && apiVenues.length > 0 ? apiVenues : mockVenues;
   const hasLiveVenues = !!(apiVenues && apiVenues.length > 0);
 
@@ -64,9 +72,6 @@ export default function VenuesPage() {
         return acc;
       }, {})
     : groupCourtsByVenue(mockCourts);
-
-  const isUsingFallback = isVenuesError || (apiVenues && apiVenues.length === 0);
-  const apiError = isVenuesError ? "Could not reach the live venue API." : null;
 
   const filteredVenues = venues.filter((venue) => {
     const matchesSearch = venue.name.toLowerCase().includes(search.toLowerCase());
@@ -300,19 +305,19 @@ export default function VenuesPage() {
             </div>
           </div>
 
-          {isLoadingVenues && (
+          {shouldShowLoading && (
             <div className="mb-4 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-[#F7F7F7]/40">
               Loading live venue data...
             </div>
           )}
-          {apiError && !isLoadingVenues && (
+          {shouldShowApiError && (
             <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
               {apiError} Showing demo venue data.
             </div>
           )}
-          {isUsingFallback && !isLoadingVenues && !apiError && (
+          {shouldShowFallback && (
             <div className="mb-4 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-sm text-[#E6FA50]/70">
-              Live API unavailable. Showing demo venue data.
+              Showing demo venue data.
             </div>
           )}
 

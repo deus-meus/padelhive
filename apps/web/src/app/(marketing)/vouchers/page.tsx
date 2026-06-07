@@ -25,9 +25,16 @@ export default function VouchersPage() {
     queryFn: getVouchers,
   });
 
-  const vouchers = data && data.length > 0 ? data : mockVouchers;
-  const isUsingFallback = isError || (data && data.length === 0);
+  const hasApiData = Boolean(data && data.length > 0);
+  const usingMockFallback = !hasApiData;
   const apiError = isError ? "Could not reach the live voucher API." : null;
+  const isUsingFallback = isError || (data && data.length === 0);
+
+  const shouldShowLoading = isLoadingVouchers && !hasApiData && !usingMockFallback;
+  const shouldShowApiError = Boolean(apiError) && !isLoadingVouchers;
+  const shouldShowFallback = isUsingFallback && !apiError && !isLoadingVouchers;
+
+  const vouchers = data && data.length > 0 ? data : mockVouchers;
 
   const active = vouchers.filter((v) => v.isActive);
   const expired = vouchers.filter((v) => !v.isActive);
@@ -60,9 +67,19 @@ export default function VouchersPage() {
         <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
           Use voucher codes to get discounts on your bookings.
         </p>
-        {(isLoadingVouchers || isUsingFallback || apiError) && (
-          <div className={`mt-5 rounded-xl border px-4 py-3 text-sm ${apiError && !isLoadingVouchers ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
-            {isLoadingVouchers ? "Loading live voucher data..." : apiError ? `${apiError} Showing demo voucher data.` : "Live API unavailable. Showing demo voucher data."}
+        {shouldShowLoading && (
+          <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-[#F7F7F7]/40">
+            Loading live voucher data...
+          </div>
+        )}
+        {shouldShowApiError && (
+          <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
+            {apiError} Showing demo voucher data.
+          </div>
+        )}
+        {shouldShowFallback && (
+          <div className="mt-5 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-sm text-[#E6FA50]/70">
+            Showing demo voucher data.
           </div>
         )}
       </section>
