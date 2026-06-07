@@ -2,6 +2,7 @@ import { ForbiddenException, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { UserRole } from "@prisma/client";
 import { AdminController } from "../admin/admin.controller";
+import { AdminService } from "../admin/admin.service";
 import { AuthController } from "./auth.controller";
 import { ROLES_KEY } from "./decorators/roles.decorator";
 import { FirebaseAuthService } from "./firebase-auth.service";
@@ -172,7 +173,7 @@ describe("me controllers", () => {
   });
 
   it("returns current user from admin me", () => {
-    expect(new AdminController().me(adminUser)).toEqual(adminUser);
+    expect(new AdminController(undefined as unknown as AdminService).me(adminUser)).toEqual(adminUser);
   });
 
   it("declares SUPER_ADMIN metadata on admin me", () => {
