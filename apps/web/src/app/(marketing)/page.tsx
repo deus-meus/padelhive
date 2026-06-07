@@ -37,7 +37,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[100dvh] flex-col justify-end overflow-hidden">
+      <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden">
         <div className="absolute inset-0">
           <img
             src={IMG.hero}
@@ -49,7 +49,7 @@ export default async function HomePage() {
         </div>
 
         <div className="container relative z-10 pb-24 md:pb-28">
-          <h1 className="display-xl text-[clamp(4.5rem,14vw,13rem)] text-[#F7F7F7]">
+          <h1 className="display-xl text-[clamp(2.75rem,8vw,7.5rem)] leading-[0.92] text-[#F7F7F7]">
             PLAY.
             <br />
             <span className="text-[#E6FA50]">COMPETE.</span>
