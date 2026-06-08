@@ -1,7 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { GetAdminBookingsDto } from "./dto/get-admin-bookings.dto";
-import { Prisma } from "@prisma/client";
+import { BookingStatus, PaymentStatus, Prisma, RefundStatus, VenueStatus } from "@prisma/client";
+import { AdminOverviewDto } from "./dto/admin-overview.dto";
+import { utcToWibDateStr } from "../common/pricing.util";
 
 @Injectable()
 export class AdminService {
@@ -79,6 +81,69 @@ export class AdminService {
       page: pageNum,
       pageSize: sizeNum,
       total,
+    };
+  }
+
+  async getOverview(): Promise<AdminOverviewDto> {
+    const todayWib = utcToWibDateStr(new Date());
+    const monthStart = new Date(`${todayWib.slice(0, 7)}-01T00:00:00.000Z`);
+    
+    const monthEndExclusive = new Date(monthStart);
+    monthEndExclusive.setUTCMonth(monthEndExclusive.getUTCMonth() + 1);
+
+    const [
+      monthAggregate,
+      totalBookings,
+      activeVenues,
+      pendingApprovals,
+      refundRequests,
+      paidCount,
+      failedCount
+    ] = await Promise.all([
+      this.prisma.booking.aggregate({
+        where: {
+          status: { in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED] },
+          bookingDate: { gte: monthStart, lt: monthEndExclusive }
+        },
+        _sum: { finalAmount: true, platformFee: true },
+        _count: { _all: true }
+      }),
+      this.prisma.booking.count({
+        where: { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.EXPIRED] } }
+      }),
+      this.prisma.venue.count({ where: { status: VenueStatus.APPROVED } }),
+      this.prisma.venue.count({ where: { status: VenueStatus.PENDING } }),
+      this.prisma.refund.count({ where: { status: RefundStatus.PENDING } }),
+      this.prisma.payment.count({ where: { status: PaymentStatus.PAID } }),
+      this.prisma.payment.count({ where: { status: PaymentStatus.FAILED } }),
+    ]);
+
+    const gmv = monthAggregate._sum.finalAmount ?? 0;
+    const commissionRevenue = monthAggregate._sum.platformFee ?? 0;
+    const monthBookings = monthAggregate._count._all;
+
+    const paymentSuccessRate = (paidCount + failedCount) > 0 
+      ? Math.round(paidCount / (paidCount + failedCount) * 100) 
+      : 0;
+    
+    const avgBookingValue = monthBookings > 0 
+      ? Math.round(gmv / monthBookings) 
+      : 0;
+
+    const avgCommissionRate = gmv > 0 
+      ? Math.round((commissionRevenue / gmv) * 1000) / 10 
+      : 0;
+
+    return {
+      gmv,
+      commissionRevenue,
+      totalBookings,
+      activeVenues,
+      pendingApprovals,
+      refundRequests,
+      paymentSuccessRate,
+      avgBookingValue,
+      avgCommissionRate,
     };
   }
 }

@@ -475,3 +475,20 @@ export type OwnerDashboard = {
 export async function getOwnerDashboard(): Promise<OwnerDashboard> {
   return apiFetch<OwnerDashboard>("/bookings/owner-dashboard");
 }
+
+export type AdminOverview = {
+  gmv: number;
+  commissionRevenue: number;
+  totalBookings: number;
+  activeVenues: number;
+  pendingApprovals: number;
+  refundRequests: number;
+  paymentSuccessRate: number;
+  avgBookingValue: number;
+  avgCommissionRate: number;
+};
+
+export async function getAdminOverview(): Promise<AdminOverview> {
+  return apiFetch<AdminOverview>("/admin/overview");
+}
+

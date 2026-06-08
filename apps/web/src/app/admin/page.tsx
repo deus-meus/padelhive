@@ -3,18 +3,56 @@
 import {
   DollarSign,
   Building2,
-  Users,
-  TrendingUp,
-  ArrowUpRight,
   CalendarCheck,
   Clock,
   RotateCcw,
-  AlertTriangle,
   CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
-import { adminKPIs } from "@/mock/admin";
+import { useQuery } from "@tanstack/react-query";
+import { getAdminOverview } from "@/lib/api";
+import { queryKeys } from "@/lib/queries";
 
 export default function AdminOverviewPage() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: queryKeys.admin.overview(),
+    queryFn: getAdminOverview,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8 space-y-8">
+        <div className="mb-8">
+          <div className="h-4 w-32 animate-pulse rounded bg-white/[0.04] mb-2" />
+          <div className="h-8 w-64 animate-pulse rounded bg-white/[0.04]" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white/[0.04]" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 mb-8">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white/[0.04]" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white/[0.04]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8 text-center">
+        <p className="text-[#F7F7F7]/60">Couldn&apos;t load admin metrics</p>
+      </div>
+    );
+  }
+
   return (
     <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
       <div className="mb-8">
@@ -26,25 +64,23 @@ export default function AdminOverviewPage() {
 
       {/* Primary KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
-        <KPI icon={TrendingUp} label="GMV This Month" value={formatCurrency(adminKPIs.gmv)} trend={adminKPIs.gmvTrend} trendUp />
-        <KPI icon={DollarSign} label="Commission Revenue" value={formatCurrency(adminKPIs.commissionRevenue)} trend={adminKPIs.commissionTrend} trendUp />
-        <KPI icon={CalendarCheck} label="Total Bookings" value={adminKPIs.totalBookings.toLocaleString()} trend={adminKPIs.bookingsTrend} trendUp />
-        <KPI icon={Building2} label="Active Venues" value={adminKPIs.activeVenues.toString()} trend={adminKPIs.venuesTrend} trendUp />
+        <KPI icon={TrendingUp} label="GMV This Month" value={formatCurrency(data.gmv)} />
+        <KPI icon={DollarSign} label="Commission Revenue" value={formatCurrency(data.commissionRevenue)} />
+        <KPI icon={CalendarCheck} label="Total Bookings" value={data.totalBookings.toLocaleString()} />
+        <KPI icon={Building2} label="Active Venues" value={data.activeVenues.toString()} />
       </div>
 
       {/* Secondary KPIs */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
-        <KPI icon={Clock} label="Pending Approvals" value={adminKPIs.pendingApprovals.toString()} variant="warning" />
-        <KPI icon={RotateCcw} label="Refund Requests" value={adminKPIs.refundRequests.toString()} variant="warning" />
-        <KPI icon={AlertTriangle} label="Open Disputes" value={adminKPIs.disputes.toString()} variant="danger" />
-        <KPI icon={CheckCircle2} label="Payment Success" value={`${adminKPIs.paymentSuccessRate}%`} variant="success" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 mb-8">
+        <KPI icon={Clock} label="Pending Approvals" value={data.pendingApprovals.toString()} variant="warning" />
+        <KPI icon={RotateCcw} label="Refund Requests" value={data.refundRequests.toString()} variant="warning" />
+        <KPI icon={CheckCircle2} label="Payment Success" value={`${data.paymentSuccessRate}%`} variant="success" />
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-        <QuickStat label="Avg. Booking Value" value="Rp 420K" description="Per transaction average" />
-        <QuickStat label="Venue Retention" value="92%" description="Active after 3 months" />
-        <QuickStat label="Avg. Commission" value="10.5%" description="Weighted platform fee" />
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <QuickStat label="Avg. Booking Value" value={formatCurrency(data.avgBookingValue)} description="Per transaction average, this month" />
+        <QuickStat label="Avg. Commission" value={`${data.avgCommissionRate.toFixed(1)}%`} description="Weighted platform fee" />
       </div>
     </div>
   );
@@ -84,11 +120,6 @@ function KPI({
     <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
       <div className="flex items-center justify-between">
         <Icon className={`h-4 w-4 ${iconColor}`} />
-        {trend && (
-          <span className={`flex items-center gap-0.5 text-[10px] font-medium ${trendUp ? "text-[#E6FA50]" : "text-red-400"}`}>
-            <ArrowUpRight className="h-3 w-3" />{trend}
-          </span>
-        )}
       </div>
       <p className="metric mt-3 text-2xl text-[#F7F7F7]">{value}</p>
       <p className="caption mt-1 text-[#F7F7F7]/25">{label}</p>
