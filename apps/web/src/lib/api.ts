@@ -457,3 +457,21 @@ export async function rejectRefund(id: string, adminNotes?: string): Promise<Api
 export async function processRefund(id: string): Promise<ApiRefund> {
   return apiFetch<ApiRefund>(`/refunds/${id}/process`, { method: "PATCH" });
 }
+
+export type OwnerDashboard = {
+  kpis: {
+    weeklyRevenue: number;
+    weeklyBookings: number;
+    occupancyRate: number;
+    activeCourts: number;
+    pendingPayments: number;
+  };
+  revenueSeries: Array<{ date: string; label: string; value: number }>;
+  courtUtilization: Array<{ courtId: string; name: string; occupancyRate: number }>;
+  todaysSchedule: Array<{ bookingId: string; time: string; court: string; player: string; status: string }>;
+  recentBookings: Array<{ id: string; venueName: string; courtName: string; bookingDate: string; time: string; finalAmount: number; status: string }>;
+};
+
+export async function getOwnerDashboard(): Promise<OwnerDashboard> {
+  return apiFetch<OwnerDashboard>("/bookings/owner-dashboard");
+}
