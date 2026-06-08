@@ -11,6 +11,9 @@ export const queryKeys = {
     detail: (id: string) => ["bookings", id] as const,
     invites: (id: string) => ["bookings", id, "invites"] as const,
   },
+  dashboard: {
+    owner: () => ["dashboard", "owner"] as const,
+  },
   payments: {
     detail: (id: string) => ["payments", id] as const,
   },

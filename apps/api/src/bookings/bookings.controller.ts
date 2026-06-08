@@ -11,12 +11,15 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
+import { UserRole } from "@prisma/client";
+import { Roles } from "../auth/decorators/roles.decorator";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { RequestUser } from "../auth/types/request-user.type";
 import { BookingsService } from "./bookings.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 import { BookingListItemDto } from "./dto/list-bookings.dto";
+import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
 
 @ApiTags("bookings")
 @Controller("bookings")
@@ -33,6 +36,16 @@ export class BookingsController {
   @ApiConflictResponse({ description: "Court is unavailable for the requested time" })
   create(@Body() body: CreateBookingDto, @CurrentUser() user: RequestUser): Promise<BookingResponseDto> {
     return this.bookingsService.createBookingForUser(user.id, body);
+  }
+
+  @Get("owner-dashboard")
+  @Roles(UserRole.VENUE_OWNER, UserRole.VENUE_ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get venue owner dashboard summary" })
+  @ApiOkResponse({ type: OwnerDashboardDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  ownerDashboard(@CurrentUser() user: RequestUser) {
+    return this.bookingsService.getOwnerDashboard(user.id, user.role === UserRole.SUPER_ADMIN);
   }
 
   @Get(":id")

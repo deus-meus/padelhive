@@ -3,6 +3,7 @@ import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus } fr
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
+import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
 import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc } from "../common/pricing.util";
 import { 
   PENDING_PAYMENT_TTL_MS, 
@@ -383,4 +384,188 @@ export class BookingsService {
     });
   }
 
+  async getOwnerDashboard(userId: string, isSuperAdmin: boolean): Promise<OwnerDashboardDto> {
+    const venues = await this.prisma.venue.findMany({
+      where: isSuperAdmin ? {} : {
+        OR: [{ ownerId: userId }, { admins: { some: { userId } } }]
+      },
+      select: {
+        id: true,
+        name: true,
+        openTime: true,
+        closeTime: true,
+        courts: {
+          select: { id: true, name: true, isActive: true },
+        },
+      },
+    });
+
+    if (venues.length === 0) {
+      return {
+        kpis: { weeklyRevenue: 0, weeklyBookings: 0, occupancyRate: 0, activeCourts: 0, pendingPayments: 0 },
+        revenueSeries: [],
+        courtUtilization: [],
+        todaysSchedule: [],
+        recentBookings: [],
+      };
+    }
+
+    const venueIds = venues.map((v) => v.id);
+    const activeCourts = venues.flatMap((v) =>
+      v.courts.filter((c) => c.isActive).map((c) => ({ ...c, venueId: v.id, openTime: v.openTime, closeTime: v.closeTime }))
+    );
+
+    const todayDate = new Date();
+    const todayWibStr = utcToWibDateStr(todayDate);
+    const todayUtcDate = new Date(`${todayWibStr}T00:00:00.000Z`);
+
+    const dateLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const revenueSeriesMap = new Map<string, { date: string; label: string; value: number }>();
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(todayUtcDate.getTime() - i * 24 * 60 * 60 * 1000);
+      const dSafeStr = d.toISOString().split("T")[0];
+      revenueSeriesMap.set(dSafeStr, {
+        date: dSafeStr,
+        label: dateLabels[d.getUTCDay()],
+        value: 0,
+      });
+    }
+
+    const weekStart = new Date(todayUtcDate.getTime() - 6 * 24 * 60 * 60 * 1000);
+    const weekEndExclusive = new Date(todayUtcDate.getTime() + 1 * 24 * 60 * 60 * 1000);
+
+    const windowBookings = await this.prisma.booking.findMany({
+      where: {
+        venueId: { in: venueIds },
+        bookingDate: { gte: weekStart, lt: weekEndExclusive },
+      },
+      select: {
+        id: true,
+        bookingDate: true,
+        startsAt: true,
+        durationMinutes: true,
+        status: true,
+        finalAmount: true,
+        courtId: true,
+        court: { select: { id: true, name: true } },
+        venue: { select: { name: true } },
+        host: { select: { name: true } },
+      },
+    });
+
+    let weeklyRevenue = 0;
+    let weeklyBookings = 0;
+    const courtBookedMinutes = new Map<string, number>();
+
+    for (const b of windowBookings) {
+      if (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.COMPLETED) {
+        weeklyRevenue += b.finalAmount;
+        
+        const wibDateStr = utcToWibDateStr(b.bookingDate);
+        const dayStats = revenueSeriesMap.get(wibDateStr);
+        if (dayStats) {
+          dayStats.value += b.finalAmount;
+        }
+
+        const booked = courtBookedMinutes.get(b.courtId) || 0;
+        courtBookedMinutes.set(b.courtId, booked + b.durationMinutes);
+      }
+      
+      if (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.COMPLETED || b.status === BookingStatus.PENDING_PAYMENT) {
+        weeklyBookings += 1;
+      }
+    }
+
+    const courtUtilization = [];
+    let totalOccupancyRate = 0;
+    let countedActiveCourts = 0;
+
+    for (const c of activeCourts) {
+      const openHour = parseInt(c.openTime.split(":")[0], 10);
+      const closeHour = parseInt(c.closeTime.split(":")[0], 10);
+      const hoursPerDay = closeHour - openHour;
+      let capacityHours = 0;
+      if (hoursPerDay > 0) {
+        capacityHours = hoursPerDay * 7;
+      }
+
+      const bookedHours = (courtBookedMinutes.get(c.id) || 0) / 60;
+      let rate = 0;
+      if (capacityHours > 0) {
+        rate = Math.round(Math.min(100, (bookedHours / capacityHours) * 100));
+      }
+      
+      courtUtilization.push({
+        courtId: c.id,
+        name: c.name,
+        occupancyRate: rate,
+      });
+
+      if (capacityHours > 0) {
+        totalOccupancyRate += rate;
+        countedActiveCourts += 1;
+      }
+    }
+
+    courtUtilization.sort((a, b) => b.occupancyRate - a.occupancyRate);
+    const occupancyRate = countedActiveCourts > 0 ? Math.round(totalOccupancyRate / countedActiveCourts) : 0;
+
+    const pendingPayments = await this.prisma.booking.count({
+      where: {
+        venueId: { in: venueIds },
+        status: BookingStatus.PENDING_PAYMENT,
+      },
+    });
+
+    const todaysSchedule = windowBookings
+      .filter((b) => b.bookingDate.getTime() === todayUtcDate.getTime() && (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.PENDING_PAYMENT))
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+      .map((b) => ({
+        bookingId: b.id,
+        time: `${String(wibHourFromUtc(b.startsAt)).padStart(2, "0")}:00`,
+        court: b.court.name,
+        player: b.host?.name ?? "Guest",
+        status: b.status,
+      }));
+
+    const recentBookingsRaw = await this.prisma.booking.findMany({
+      where: { venueId: { in: venueIds } },
+      orderBy: { startsAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        bookingDate: true,
+        startsAt: true,
+        finalAmount: true,
+        status: true,
+        venue: { select: { name: true } },
+        court: { select: { name: true } },
+      },
+    });
+
+    const recentBookings = recentBookingsRaw.map((b) => ({
+      id: b.id,
+      venueName: b.venue.name,
+      courtName: b.court.name,
+      bookingDate: utcToWibDateStr(b.bookingDate),
+      time: `${String(wibHourFromUtc(b.startsAt)).padStart(2, "0")}:00`,
+      finalAmount: b.finalAmount,
+      status: b.status,
+    }));
+
+    return {
+      kpis: {
+        weeklyRevenue,
+        weeklyBookings,
+        occupancyRate,
+        activeCourts: activeCourts.length,
+        pendingPayments,
+      },
+      revenueSeries: Array.from(revenueSeriesMap.values()),
+      courtUtilization,
+      todaysSchedule,
+      recentBookings,
+    };
+  }
 }
