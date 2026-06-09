@@ -7,6 +7,8 @@ import { RequestUser } from "../auth/types/request-user.type";
 import { AdminService } from "./admin.service";
 import { GetAdminBookingsDto } from "./dto/get-admin-bookings.dto";
 import { AdminOverviewDto } from "./dto/admin-overview.dto";
+import { GetCommissionDto } from "./dto/get-commission.dto";
+import { CommissionReportDto } from "./dto/commission-report.dto";
 import { VenuesService } from "../venues/venues.service";
 import { VenueResponseDto } from "../venues/dto/venue-response.dto";
 import { UpdateVenueStatusDto } from "./dto/update-venue-status.dto";
@@ -54,5 +56,13 @@ export class AdminController {
   @ApiOkResponse({ type: VenueResponseDto })
   updateVenueStatus(@Param("id") id: string, @Body() body: UpdateVenueStatusDto) {
     return this.venuesService.setVenueStatus(id, body.status);
+  }
+
+  @Get("commission")
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: "Per-venue platform commission report" })
+  @ApiOkResponse({ type: CommissionReportDto })
+  getCommission(@Query() query: GetCommissionDto) {
+    return this.adminService.getCommission(query);
   }
 }
