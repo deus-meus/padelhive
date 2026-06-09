@@ -74,12 +74,39 @@ export default function VenueManagementPage() {
 
         {/* Venue List */}
         <div className="mt-8 space-y-4">
-          {isError ? (
+          {isLoading ? (
+            <>
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <div className="h-6 w-48 animate-pulse rounded-md bg-white/[0.04]" />
+                      </div>
+                      <div className="mt-2 h-4 w-64 animate-pulse rounded-md bg-white/[0.04]" />
+                      <div className="mt-4 flex flex-wrap items-center gap-4">
+                        <div className="h-4 w-16 animate-pulse rounded-md bg-white/[0.04]" />
+                        <div className="h-4 w-20 animate-pulse rounded-md bg-white/[0.04]" />
+                        <div className="h-4 w-32 animate-pulse rounded-md bg-white/[0.04]" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-24 animate-pulse rounded-full bg-white/[0.04]" />
+                      {[...Array(3)].map((_, j) => (
+                        <div key={j} className="h-9 w-9 animate-pulse rounded-lg bg-white/[0.04]" />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.04] pt-4">
+                    {[...Array(4)].map((_, j) => (
+                      <div key={j} className="h-6 w-16 animate-pulse rounded-full bg-white/[0.04]" />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : isError ? (
             <ErrorBanner title="Couldn't load venues" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
-          ) : isLoading ? (
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-              <p className="caption text-[#F7F7F7]/25">Loading venues...</p>
-            </div>
           ) : venues.length === 0 ? (
             <EmptyState icon={Building2} title="No venues yet" description="Add your first venue to start managing courts and bookings." actionLabel="Add Venue" onAction={() => setShowAddModal(true)} />
           ) : (

@@ -22,24 +22,32 @@ export default function AdminOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8 space-y-8">
+      <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
         <div className="mb-8">
-          <div className="h-4 w-32 animate-pulse rounded bg-white/[0.04] mb-2" />
-          <div className="h-8 w-64 animate-pulse rounded bg-white/[0.04]" />
+          <p className="caption text-[#F7F7F7]/25">Marketplace Admin</p>
+          <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
+            Operations <span className="text-[#E6FA50]">Overview</span>
+          </h1>
         </div>
+
+        {/* Primary KPIs */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white/[0.04]" />
+            <div key={i} className="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
           ))}
         </div>
+
+        {/* Secondary KPIs */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 mb-8">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white/[0.04]" />
+            <div key={i} className="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
           ))}
         </div>
+
+        {/* Quick Stats */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white/[0.04]" />
+            <div key={i} className="h-[140px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
           ))}
         </div>
       </div>
@@ -63,13 +71,6 @@ export default function AdminOverviewPage() {
             isRetrying={isFetching}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
-          <KPI icon={TrendingUp} label="GMV This Month" value="—" />
-          <KPI icon={DollarSign} label="Commission Revenue" value="—" />
-          <KPI icon={CalendarCheck} label="Total Bookings" value="—" />
-          <KPI icon={Building2} label="Active Venues" value="—" />
-        </div>
-        <div className="mt-component h-72 rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
       </div>
     );
   }
