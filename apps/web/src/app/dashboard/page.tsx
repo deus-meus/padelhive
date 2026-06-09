@@ -15,10 +15,11 @@ import { useQuery } from "@tanstack/react-query";
 import { getOwnerDashboard } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
 import { useAuthStore } from "@/stores/auth-store";
+import { ErrorState } from "@/components/ui/error-state";
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: queryKeys.dashboard.owner(),
     queryFn: getOwnerDashboard,
   });
@@ -39,8 +40,13 @@ export default function DashboardPage() {
 
   if (isError || !data) {
     return (
-      <div className="pt-element pb-component container text-center">
-        <p className="text-[#F7F7F7]/60">Couldn&apos;t load dashboard data</p>
+      <div className="pt-element pb-component container">
+        <ErrorState
+          title="Couldn't load your dashboard"
+          description="We couldn't reach the server to load your venue data. Check your connection and try again."
+          onRetry={() => refetch()}
+          isRetrying={isFetching}
+        />
       </div>
     );
   }

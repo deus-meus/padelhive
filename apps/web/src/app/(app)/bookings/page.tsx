@@ -20,6 +20,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking, ApiRefund } from "@/lib/api";
+import { ErrorState } from "@/components/ui/error-state";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -41,7 +42,7 @@ export default function BookingsPage() {
   const [bookingToRefund, setBookingToRefund] = useState<ApiBooking | null>(null);
   const [refundReason, setRefundReason] = useState("");
 
-  const { data: bookings = [], isLoading, isError, error: queryError } = useQuery({
+  const { data: bookings = [], isLoading, isError, error: queryError, refetch, isFetching } = useQuery({
     queryKey: queryKeys.bookings.user(activeTab === "refunds" ? "cancelled" : activeTab),
     queryFn: () => activeTab === "refunds" ? getUserBookings("cancelled") : getUserBookings(activeTab),
   });
@@ -198,14 +199,13 @@ export default function BookingsPage() {
             Manage your upcoming matches and booking history.
           </p>
         </section>
-        <div className="container py-16 text-center">
-          <p className="text-sm text-red-400/80">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded-full bg-red-500/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-300 transition-colors hover:bg-red-500/25"
-          >
-            Retry
-          </button>
+        <div className="container py-16">
+          <ErrorState
+            title="Couldn't load bookings"
+            description={typeof error === 'string' ? error : "We couldn't reach the server. Check your connection and try again."}
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+          />
         </div>
       </div>
     );
