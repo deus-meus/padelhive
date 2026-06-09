@@ -14,6 +14,7 @@ import {
   MoreVertical,
   Building2,
   Loader2,
+  type LucideIcon,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
@@ -21,7 +22,7 @@ import { getVenuesManage, createVenue, updateVenue, getVenueCourts, getApiErrorM
 import { Venue } from "@/types";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
-const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string }> = {
+const STATUS_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string; bg: string }> = {
   APPROVED: { label: "Approved", icon: CheckCircle2, color: "text-green-400", bg: "bg-green-400/10" },
   PENDING: { label: "Pending Review", icon: Clock, color: "text-yellow-400", bg: "bg-yellow-400/10" },
   REJECTED: { label: "Rejected", icon: XCircle, color: "text-red-400", bg: "bg-red-400/10" },

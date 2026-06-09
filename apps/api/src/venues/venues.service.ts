@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { VenueStatus } from "@prisma/client";
+import { Prisma, VenueStatus } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { VenueResponseDto } from "./dto/venue-response.dto";
 import { CreateVenueDto } from "./dto/create-venue.dto";
@@ -156,7 +156,7 @@ export class VenuesService {
     const fieldsToValidate = Object.fromEntries(Object.entries(dto).filter(([, v]) => v !== undefined));
     this.validateVenueFields(fieldsToValidate, { partial: true });
 
-    const data: Record<string, unknown> = {};
+    const data: Prisma.VenueUpdateInput = {};
     if (dto.name !== undefined) data.name = dto.name.trim();
     if (dto.location !== undefined) data.location = dto.location.trim();
     if (dto.city !== undefined) data.city = dto.city.trim();
