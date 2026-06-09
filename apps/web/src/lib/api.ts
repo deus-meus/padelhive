@@ -312,6 +312,15 @@ function mapVenue(venue: ApiVenue): Venue {
   };
 }
 
+function mapVenueManage(venue: ApiVenue): Venue {
+  return {
+    ...mapVenue(venue),
+    imageUrl: venue.imageUrl ?? "",
+    photos: venue.photos,
+    facilities: venue.facilities,
+  };
+}
+
 function mapCourt(court: ApiCourt, venueId: string): Court {
   return {
     id: court.id,
@@ -372,7 +381,7 @@ export type UpdateVenueInput = Partial<VenueInput>;
 
 export async function getVenuesManage(): Promise<Venue[]> {
   const venues = await apiFetch<ApiVenue[]>("/venues/manage");
-  return venues.map(mapVenue);
+  return venues.map(mapVenueManage);
 }
 
 export async function createVenue(input: VenueInput): Promise<Venue> {
