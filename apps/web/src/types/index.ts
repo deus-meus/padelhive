@@ -27,6 +27,7 @@ export interface Venue {
   rating: number;
   reviewCount: number;
   isVerified: boolean;
+  status?: "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
   createdAt: string;
 }
 

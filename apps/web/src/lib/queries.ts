@@ -1,6 +1,7 @@
 export const queryKeys = {
   venues: {
     all: () => ["venues"] as const,
+    manage: () => ["venues", "manage"] as const,
     detail: (id: string) => ["venues", id] as const,
     courts: (id: string) => ["venues", id, "courts"] as const,
     courtsManage: (id: string) => ["venues", id, "courts", "manage"] as const,

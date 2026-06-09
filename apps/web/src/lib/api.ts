@@ -307,6 +307,7 @@ function mapVenue(venue: ApiVenue): Venue {
     rating: Number(venue.rating),
     reviewCount: Number(venue.reviewCount),
     isVerified: venue.status === "APPROVED",
+    status: venue.status as Venue["status"],
     createdAt: new Date().toISOString(),
   };
 }
@@ -353,6 +354,41 @@ export async function getVenue(id: string, opts?: { revalidate?: number }): Prom
   const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
   const venue = await apiFetch<ApiVenue>(`/venues/${id}`, options);
   return mapVenue(venue);
+}
+
+export type VenueInput = {
+  name: string;
+  location: string;
+  city: string;
+  description: string;
+  openTime: string;
+  closeTime: string;
+  imageUrl?: string;
+  photos?: string[];
+  facilities?: string[];
+};
+
+export type UpdateVenueInput = Partial<VenueInput>;
+
+export async function getVenuesManage(): Promise<Venue[]> {
+  const venues = await apiFetch<ApiVenue[]>("/venues/manage");
+  return venues.map(mapVenue);
+}
+
+export async function createVenue(input: VenueInput): Promise<Venue> {
+  const v = await apiFetch<ApiVenue>("/venues", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  return mapVenue(v);
+}
+
+export async function updateVenue(id: string, input: UpdateVenueInput): Promise<Venue> {
+  const v = await apiFetch<ApiVenue>(`/venues/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+  return mapVenue(v);
 }
 
 export async function getVenueCourts(venueId: string, opts?: { revalidate?: number }): Promise<Court[]> {
