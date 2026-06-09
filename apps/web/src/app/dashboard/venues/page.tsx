@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
-import { getVenuesManage, createVenue, updateVenue, getVenueCourts, getApiErrorMessage, VenueInput, UpdateVenueInput } from "@/lib/api";
+import { getVenuesManage, createVenue, updateVenue, getApiErrorMessage, VenueInput, UpdateVenueInput } from "@/lib/api";
 import { Venue } from "@/types";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
@@ -477,11 +477,6 @@ function VenueFormModal({
 }
 
 function VenueCard({ venue, onEdit, showToast }: { venue: Venue; onEdit: (v: Venue) => void; showToast: (msg: string) => void }) {
-  const { data: courts = [] } = useQuery({
-    queryKey: queryKeys.venues.courts(venue.id),
-    queryFn: () => getVenueCourts(venue.id),
-  });
-
   const status = venue.status ?? "PENDING";
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG["PENDING"];
   const StatusIcon = config.icon;
@@ -512,7 +507,7 @@ function VenueCard({ venue, onEdit, showToast }: { venue: Venue; onEdit: (v: Ven
               {venue.rating} ({venue.reviewCount})
             </span>
             <span className="text-xs text-[#F7F7F7]/25">
-              {courts.length} courts
+              {venue.courtCount ?? 0} courts
             </span>
             <span className="text-xs text-[#F7F7F7]/25">
               {venue.operatingHours.open} – {venue.operatingHours.close}

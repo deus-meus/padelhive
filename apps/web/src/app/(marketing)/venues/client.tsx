@@ -9,8 +9,7 @@ import { MapPin, Star, Search, ArrowUpDown } from "lucide-react";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
-import { getVenueCourts, getVenues } from "@/lib/api";
-import { Court } from "@/types";
+import { getVenues } from "@/lib/api";
 
 const CITIES = ["All", "Bali", "Jakarta", "Surabaya"];
 
@@ -27,12 +26,7 @@ const IMG = {
   venue3: padelImg(600),
 };
 
-function groupCourtsByVenue(courts: Court[]) {
-  return courts.reduce<Record<string, Court[]>>((acc, court) => {
-    acc[court.venueId] = [...(acc[court.venueId] ?? []), court];
-    return acc;
-  }, {});
-}
+
 
 export default function VenuesPage() {
   const searchParams = useSearchParams();
@@ -51,20 +45,6 @@ export default function VenuesPage() {
   const venues = apiVenues && apiVenues.length > 0 ? apiVenues : mockVenues;
   const hasLiveVenues = !!(apiVenues && apiVenues.length > 0);
 
-  const courtQueries = useQueries({
-    queries: venues.map((venue) => ({
-      queryKey: queryKeys.venues.courts(venue.id),
-      queryFn: () => getVenueCourts(venue.id),
-      enabled: hasLiveVenues,
-    })),
-  });
-
-  const courtsByVenue = hasLiveVenues
-    ? courtQueries.reduce<Record<string, Court[]>>((acc, query, index) => {
-        acc[venues[index].id] = query.data ?? [];
-        return acc;
-      }, {})
-    : groupCourtsByVenue(mockCourts);
 
   const isUsingFallback = isVenuesError || (apiVenues && apiVenues.length === 0);
   const apiError = isVenuesError ? "Could not reach the live venue API." : null;
@@ -86,15 +66,13 @@ export default function VenuesPage() {
       sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     } else if (sort === "price") {
       sorted.sort((a, b) => {
-        const ca = courtsByVenue[a.id] ?? [];
-        const cb = courtsByVenue[b.id] ?? [];
-        const pa = ca.length ? Math.min(...ca.map((c) => c.pricing.weekdayOffPeak)) : Number.POSITIVE_INFINITY;
-        const pb = cb.length ? Math.min(...cb.map((c) => c.pricing.weekdayOffPeak)) : Number.POSITIVE_INFINITY;
+        const pa = a.priceFrom ?? Number.POSITIVE_INFINITY;
+        const pb = b.priceFrom ?? Number.POSITIVE_INFINITY;
         return pa - pb;
       });
     }
     return sorted;
-  }, [venues, search, city, sort, courtsByVenue]);
+  }, [venues, search, city, sort]);
 
   return (
     <>
@@ -178,8 +156,8 @@ export default function VenuesPage() {
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filteredVenues.map((venue, i) => {
-              const courts = courtsByVenue[venue.id] ?? [];
-              const price = courts.length ? Math.min(...courts.map((c) => c.pricing.weekdayOffPeak)) : 0;
+              const price = venue.priceFrom ?? 0;
+              const courtCount = venue.courtCount ?? 0;
               const images = [IMG.venue1, IMG.venue2, IMG.venue3];
 
               return (
@@ -203,7 +181,7 @@ export default function VenuesPage() {
                       </p>
                       <div className="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-3">
                         <span className="price text-sm text-[#50C8C8]">{price > 0 ? `Rp ${(price / 1000).toFixed(0)}K/hr` : "Pricing soon"}</span>
-                        <span className="caption text-[#F7F7F7]/25">{courts.length} courts</span>
+                        <span className="caption text-[#F7F7F7]/25">{courtCount} courts</span>
                       </div>
                     </div>
                   </article>

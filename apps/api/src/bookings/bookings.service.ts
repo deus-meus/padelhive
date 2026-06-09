@@ -584,9 +584,9 @@ export class BookingsService {
       const dateLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const todayDate = new Date();
       const todayWibStr = utcToWibDateStr(todayDate);
-      const [yearStr, monthStr] = todayWibStr.split('-');
-      let year = parseInt(yearStr, 10);
-      let month = parseInt(monthStr, 10);
+      const [, monthStr] = todayWibStr.split('-');
+      // const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10);
 
       for (let i = 11; i >= 0; i--) {
         let m = month - i;
@@ -621,8 +621,8 @@ export class BookingsService {
     const todayDate = new Date();
     const todayWibStr = utcToWibDateStr(todayDate);
     const [yearStr, monthStr] = todayWibStr.split('-');
-    let year = parseInt(yearStr, 10);
-    let month = parseInt(monthStr, 10);
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
 
     let windowMonth = month - 11;
     let windowYear = year;
