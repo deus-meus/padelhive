@@ -29,6 +29,8 @@ export interface Venue {
   isVerified: boolean;
   status?: "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
   createdAt: string;
+  courtCount?: number;
+  priceFrom?: number;
 }
 
 export interface Court {

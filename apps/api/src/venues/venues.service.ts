@@ -20,10 +20,19 @@ const venueSelect = {
   rating: true,
   reviewCount: true,
   status: true,
+  courts: {
+    where: { isActive: true },
+    select: { weekdayOffPeak: true },
+  },
+  _count: {
+    select: { courts: { where: { isActive: true } } },
+  },
 };
 
-type SelectedVenue = Omit<VenueResponseDto, "rating"> & {
+type SelectedVenue = Omit<VenueResponseDto, "rating" | "courtCount" | "priceFrom"> & {
   rating: { toNumber: () => number } | number;
+  courts: { weekdayOffPeak: number }[];
+  _count: { courts: number };
 };
 
 @Injectable()
@@ -54,9 +63,12 @@ export class VenuesService {
   }
 
   private toVenueResponse(venue: SelectedVenue): VenueResponseDto {
+    const { courts, _count, ...rest } = venue;
     return {
-      ...venue,
+      ...rest,
       rating: typeof venue.rating === "number" ? venue.rating : venue.rating.toNumber(),
+      courtCount: _count.courts,
+      priceFrom: courts.length > 0 ? Math.min(...courts.map(c => c.weekdayOffPeak)) : 0,
     };
   }
 
@@ -101,12 +113,17 @@ export class VenuesService {
     const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "venue";
     let slug = base;
     let counter = 2;
-    while (true) {
+    let isUnique = false;
+    while (!isUnique) {
       const existing = await this.prisma.venue.findUnique({ where: { slug }, select: { id: true } });
-      if (!existing) return slug;
+      if (!existing) {
+        isUnique = true;
+        return slug;
+      }
       slug = `${base}-${counter}`;
       counter++;
     }
+    return slug;
   }
 
   async findVenuesForManagement(userId: string, isSuperAdmin: boolean): Promise<VenueResponseDto[]> {

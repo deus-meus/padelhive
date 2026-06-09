@@ -43,4 +43,10 @@ export class VenueResponseDto {
 
   @ApiProperty({ enum: VenueStatus })
   status!: VenueStatus;
+
+  @ApiProperty()
+  courtCount!: number;
+
+  @ApiProperty()
+  priceFrom!: number;
 }

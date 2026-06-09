@@ -19,6 +19,8 @@ type ApiVenue = {
   rating: number;
   reviewCount: number;
   status: "APPROVED" | string;
+  courtCount?: number;
+  priceFrom?: number;
 };
 
 type ApiCourt = {
@@ -309,6 +311,8 @@ function mapVenue(venue: ApiVenue): Venue {
     isVerified: venue.status === "APPROVED",
     status: venue.status as Venue["status"],
     createdAt: new Date().toISOString(),
+    courtCount: venue.courtCount,
+    priceFrom: venue.priceFrom,
   };
 }
 

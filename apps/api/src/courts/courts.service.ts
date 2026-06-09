@@ -57,7 +57,7 @@ export class CourtsService {
     }
   }
 
-  private validateCourtFields(fields: Record<string, any>, { partial }: { partial: boolean }) {
+  private validateCourtFields(fields: Record<string, unknown>, { partial }: { partial: boolean }) {
     if (partial && Object.keys(fields).length === 0) {
       throw new BadRequestException("No fields to update");
     }
@@ -136,8 +136,8 @@ export class CourtsService {
           isActive: true,
         },
       });
-    } catch (error: any) {
-      if (error.code === "P2002") {
+    } catch (error: unknown) {
+      if ((error as { code?: string }).code === "P2002") {
         throw new ConflictException("A court with this name already exists in this venue");
       }
       throw error;
@@ -149,7 +149,7 @@ export class CourtsService {
     
     // Convert DTO to plain object without undefined fields
     const fieldsToValidate = Object.fromEntries(
-      Object.entries(dto).filter(([_, v]) => v !== undefined)
+      Object.entries(dto).filter(([, v]) => v !== undefined)
     );
     this.validateCourtFields(fieldsToValidate, { partial: true });
 
@@ -162,7 +162,7 @@ export class CourtsService {
       throw new NotFoundException("Court not found");
     }
 
-    const data: any = {};
+    const data: Record<string, unknown> = {};
     if (dto.name !== undefined) data.name = dto.name.trim();
     if (dto.type !== undefined) data.type = dto.type;
     if (dto.weekdayPeak !== undefined) data.weekdayPeak = dto.weekdayPeak;
@@ -186,8 +186,8 @@ export class CourtsService {
           isActive: true,
         },
       });
-    } catch (error: any) {
-      if (error.code === "P2002") {
+    } catch (error: unknown) {
+      if ((error as { code?: string }).code === "P2002") {
         throw new ConflictException("A court with this name already exists in this venue");
       }
       throw error;
