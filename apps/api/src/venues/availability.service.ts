@@ -79,14 +79,10 @@ export class AvailabilityService {
       return {
         date: dateStr,
         timezone: TIMEZONE,
-        courts: courts.map(c => ({
+        courts: courts.map((c) => ({
           id: c.id,
           name: c.name,
           type: c.type,
-          weekdayPeak: c.weekdayPeak,
-          weekdayOffPeak: c.weekdayOffPeak,
-          weekendPeak: c.weekendPeak,
-          weekendOffPeak: c.weekendOffPeak,
           slots: [],
         })),
       };
