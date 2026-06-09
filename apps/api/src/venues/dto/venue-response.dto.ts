@@ -35,6 +35,9 @@ export class VenueResponseDto {
   @ApiProperty()
   closeTime!: string;
 
+  @ApiPropertyOptional({ nullable: true })
+  weeklyHours!: Record<string, { open: string; close: string; closed?: boolean }> | null;
+
   @ApiProperty()
   rating!: number;
 

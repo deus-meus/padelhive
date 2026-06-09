@@ -17,6 +17,7 @@ const venueSelect = {
   facilities: true,
   openTime: true,
   closeTime: true,
+  weeklyHours: true,
   rating: true,
   reviewCount: true,
   status: true,
@@ -29,8 +30,9 @@ const venueSelect = {
   },
 };
 
-type SelectedVenue = Omit<VenueResponseDto, "rating" | "courtCount" | "priceFrom"> & {
+type SelectedVenue = Omit<VenueResponseDto, "rating" | "courtCount" | "priceFrom" | "weeklyHours"> & {
   rating: { toNumber: () => number } | number;
+  weeklyHours: Prisma.JsonValue | null;
   courts: { weekdayOffPeak: number }[];
   _count: { courts: number };
 };
@@ -66,6 +68,7 @@ export class VenuesService {
     const { courts, _count, ...rest } = venue;
     return {
       ...rest,
+      weeklyHours: venue.weeklyHours ? (venue.weeklyHours as Record<string, { open: string; close: string; closed?: boolean }>) : null,
       rating: typeof venue.rating === "number" ? venue.rating : venue.rating.toNumber(),
       courtCount: _count.courts,
       priceFrom: courts.length > 0 ? Math.min(...courts.map(c => c.weekdayOffPeak)) : 0,
@@ -104,6 +107,30 @@ export class VenuesService {
       if (fields[field] !== undefined) {
         if (!Array.isArray(fields[field]) || !fields[field].every(item => typeof item === "string")) {
           throw new BadRequestException(`${field} must be an array of strings`);
+        }
+      }
+    }
+
+    if (fields.weeklyHours !== undefined && fields.weeklyHours !== null) {
+      if (typeof fields.weeklyHours !== "object" || Array.isArray(fields.weeklyHours)) {
+        throw new BadRequestException("weeklyHours must be an object");
+      }
+      const validKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+      for (const [key, val] of Object.entries(fields.weeklyHours as Record<string, unknown>)) {
+        if (!validKeys.includes(key)) {
+          throw new BadRequestException(`Unknown key in weeklyHours: ${key}`);
+        }
+        const value = val as { open?: string; close?: string; closed?: boolean };
+        if (value.closed !== true) {
+          if (typeof value.open !== "string" || !/^\d{2}:\d{2}$/.test(value.open)) {
+            throw new BadRequestException("weeklyHours open must be HH:MM string");
+          }
+          if (typeof value.close !== "string" || !/^\d{2}:\d{2}$/.test(value.close)) {
+            throw new BadRequestException("weeklyHours close must be HH:MM string");
+          }
+          if (value.close <= value.open) {
+            throw new BadRequestException("weeklyHours close time must be after open time");
+          }
         }
       }
     }
@@ -155,6 +182,7 @@ export class VenuesService {
           facilities: dto.facilities ?? [],
           openTime: dto.openTime.trim(),
           closeTime: dto.closeTime.trim(),
+          weeklyHours: dto.weeklyHours ? (dto.weeklyHours as Prisma.InputJsonValue) : Prisma.JsonNull,
         },
         select: venueSelect,
       });
@@ -183,6 +211,9 @@ export class VenuesService {
     if (dto.facilities !== undefined) data.facilities = dto.facilities;
     if (dto.openTime !== undefined) data.openTime = dto.openTime.trim();
     if (dto.closeTime !== undefined) data.closeTime = dto.closeTime.trim();
+    if (dto.weeklyHours !== undefined) {
+      data.weeklyHours = dto.weeklyHours === null ? Prisma.JsonNull : (dto.weeklyHours as Prisma.InputJsonValue);
+    }
 
     try {
       const venue = await this.prisma.venue.update({
