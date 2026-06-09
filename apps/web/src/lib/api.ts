@@ -611,6 +611,51 @@ export async function getAdminOverview(): Promise<AdminOverview> {
   return apiFetch<AdminOverview>("/admin/overview");
 }
 
+export type AdminBookingItem = {
+  id: string;
+  bookingDate: string;
+  startsAt: string;
+  endsAt: string;
+  durationMinutes: number;
+  status: string;
+  courtAmount: number;
+  platformFee: number;
+  voucherDiscount: number;
+  finalAmount: number;
+  venue: { id: string; name: string; city: string };
+  court: { id: string; name: string; type: string };
+  host: { id: string; name: string | null; email: string };
+  payment: { id: string; amount: number; status: string; provider: string; method: string } | null;
+};
+
+export type AdminBookingsResponse = {
+  items: AdminBookingItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
+export type GetAdminBookingsParams = {
+  status?: string;
+  venueId?: string;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export async function getAdminBookings(params: GetAdminBookingsParams = {}): Promise<AdminBookingsResponse> {
+  const q = new URLSearchParams();
+  if (params.status) q.set("status", params.status);
+  if (params.venueId) q.set("venueId", params.venueId);
+  if (params.fromDate) q.set("fromDate", params.fromDate);
+  if (params.toDate) q.set("toDate", params.toDate);
+  if (params.page) q.set("page", String(params.page));
+  if (params.pageSize) q.set("pageSize", String(params.pageSize));
+  const qs = q.toString();
+  return apiFetch<AdminBookingsResponse>(`/admin/bookings${qs ? `?${qs}` : ""}`);
+}
+
 type VenueStatusValue = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
 
 export async function getAdminVenues(status?: VenueStatusValue): Promise<Venue[]> {
