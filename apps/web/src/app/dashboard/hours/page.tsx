@@ -1,74 +1,69 @@
 "use client";
 
-import { useState } from "react";
-import { Clock, Save, CheckCircle2, Building2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { Save, CheckCircle2, Building2, Loader2, Clock } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
-import { getVenues } from "@/lib/api";
-import { Venue } from "@/types";
+import { getVenuesManage, updateVenue, getApiErrorMessage } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
-const DAYS = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
-
-interface DaySchedule {
-  day: string;
-  open: string;
-  close: string;
-  isOpen: boolean;
-}
-
-function getDefaultSchedule(venue: Venue): DaySchedule[] {
-  return DAYS.map((day) => ({
-    day,
-    open: venue.operatingHours.open,
-    close: venue.operatingHours.close,
-    isOpen: true,
-  }));
-}
-
 export default function OperatingHoursPage() {
+  const queryClient = useQueryClient();
   const { data: venues = [], isLoading, isError: isVenuesError, error: venuesError, refetch: refetchVenues, isFetching: isVenuesFetching } = useQuery({
-    queryKey: queryKeys.venues.all(),
-    queryFn: getVenues,
+    queryKey: queryKeys.venues.manage(),
+    queryFn: getVenuesManage,
   });
 
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
   const activeVenueId = selectedVenueId || (venues.length > 0 ? venues[0].id : null);
   const venue = venues.find((v) => v.id === activeVenueId);
 
-  const [schedule, setSchedule] = useState<DaySchedule[] | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [openTime, setOpenTime] = useState("");
+  const [closeTime, setCloseTime] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Sync inputs when venue changes
+  useEffect(() => {
+    if (venue) {
+      setOpenTime(venue.operatingHours.open);
+      setCloseTime(venue.operatingHours.close);
+      setErrorMsg(null);
+    }
+  }, [venue]);
 
   function handleVenueChange(id: string) {
     setSelectedVenueId(id);
-    const v = venues.find((v) => v.id === id);
-    if (v) setSchedule(getDefaultSchedule(v));
-    setSaved(false);
+    setErrorMsg(null);
   }
 
-  // Initialize schedule once venue is loaded
-  if (venue && !schedule) {
-    setSchedule(getDefaultSchedule(venue));
-  }
-
-  function updateDay(index: number, field: keyof DaySchedule, value: string | boolean) {
-    setSchedule((prev) =>
-      prev ? prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)) : null
-    );
-    setSaved(false);
-  }
+  const { mutate, isPending, isSuccess, reset } = useMutation({
+    mutationFn: (data: { openTime: string; closeTime: string }) => {
+      if (!activeVenueId) throw new Error("No venue selected");
+      return updateVenue(activeVenueId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.venues.manage() });
+      if (activeVenueId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.venues.detail(activeVenueId) });
+      }
+      setTimeout(() => reset(), 2000);
+    },
+    onError: (err) => {
+      setErrorMsg(getApiErrorMessage(err));
+    },
+  });
 
   function handleSave() {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (!openTime || !closeTime) {
+      setErrorMsg("Both open and close times are required.");
+      return;
+    }
+    if (closeTime <= openTime) {
+      setErrorMsg("Close time must be after open time.");
+      return;
+    }
+    setErrorMsg(null);
+    mutate({ openTime, closeTime });
   }
 
   return (
@@ -81,18 +76,24 @@ export default function OperatingHoursPage() {
               Operating Hours
             </h1>
             <p className="mt-1 text-sm text-[#F7F7F7]/40">
-              Set opening and closing times per day
+              Set venue-wide open and close times
             </p>
           </div>
           <button
             onClick={handleSave}
-            className={`flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-all ${
-              saved
+            disabled={isPending || isLoading || isVenuesError || venues.length === 0}
+            className={`flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+              isSuccess
                 ? "bg-green-400/10 text-green-400 border border-green-400/30"
                 : "btn-lime"
             }`}
           >
-            {saved ? (
+            {isPending ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Saving
+              </>
+            ) : isSuccess ? (
               <>
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Saved
@@ -108,29 +109,13 @@ export default function OperatingHoursPage() {
 
         {isLoading ? (
           <>
-            {/* Skeleton Venue selector */}
             <div className="mt-6 flex gap-2">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-9 w-24 animate-pulse rounded-full bg-white/[0.04]" />
               ))}
             </div>
-
-            {/* Skeleton Schedule table */}
-            <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] overflow-hidden">
-              <div className="grid grid-cols-[1fr_80px_80px_60px] gap-4 border-b border-white/[0.04] px-6 py-3 sm:grid-cols-[1fr_120px_120px_80px]">
-                <span className="caption text-[#F7F7F7]/25">Day</span>
-                <span className="caption text-[#F7F7F7]/25">Open</span>
-                <span className="caption text-[#F7F7F7]/25">Close</span>
-                <span className="caption text-[#F7F7F7]/25">Status</span>
-              </div>
-              {[...Array(7)].map((_, i) => (
-                <div key={i} className="grid grid-cols-[1fr_80px_80px_60px] items-center gap-4 border-b border-white/[0.03] px-6 py-4 sm:grid-cols-[1fr_120px_120px_80px]">
-                  <div className="h-5 w-24 animate-pulse rounded-md bg-white/[0.04]" />
-                  <div className="h-8 w-full animate-pulse rounded-lg bg-white/[0.04]" />
-                  <div className="h-8 w-full animate-pulse rounded-lg bg-white/[0.04]" />
-                  <div className="h-6 w-16 animate-pulse rounded-full bg-white/[0.04]" />
-                </div>
-              ))}
+            <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+              <div className="h-16 w-full animate-pulse rounded-lg bg-white/[0.04]" />
             </div>
           </>
         ) : isVenuesError ? (
@@ -144,86 +129,61 @@ export default function OperatingHoursPage() {
         ) : (
           <>
             {/* Venue selector */}
-            <div className="mt-6 flex gap-2">
-          {venues.map((v) => (
-            <button
-              key={v.id}
-              onClick={() => handleVenueChange(v.id)}
-              className={`rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
-                activeVenueId === v.id
-                  ? "bg-[#E6FA50] text-[#06121A]"
-                  : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
-              }`}
-            >
-              {v.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Current hours summary */}
-        {venue && (
-          <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3">
-            <Clock className="h-4 w-4 text-[#50C8C8]" />
-            <span className="text-sm text-[#F7F7F7]/60">
-              Default: {venue.operatingHours.open} – {venue.operatingHours.close}
-            </span>
-          </div>
-        )}
-
-        {/* Schedule table */}
-        <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] overflow-hidden">
-          {/* Header row */}
-          <div className="grid grid-cols-[1fr_80px_80px_60px] gap-4 border-b border-white/[0.04] px-6 py-3 sm:grid-cols-[1fr_120px_120px_80px]">
-            <span className="caption text-[#F7F7F7]/25">Day</span>
-            <span className="caption text-[#F7F7F7]/25">Open</span>
-            <span className="caption text-[#F7F7F7]/25">Close</span>
-            <span className="caption text-[#F7F7F7]/25">Status</span>
-          </div>
-
-          {/* Day rows */}
-          {schedule?.map((day, i) => (
-            <div
-              key={day.day}
-              className={`grid grid-cols-[1fr_80px_80px_60px] items-center gap-4 border-b border-white/[0.03] px-6 py-4 last:border-0 sm:grid-cols-[1fr_120px_120px_80px] ${
-                !day.isOpen ? "opacity-40" : ""
-              }`}
-            >
-              <span className="text-sm font-medium text-[#F7F7F7]/60">
-                {day.day}
-              </span>
-              <input
-                type="time"
-                value={day.open}
-                onChange={(e) => updateDay(i, "open", e.target.value)}
-                disabled={!day.isOpen}
-                className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-2 py-1.5 text-xs text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed [color-scheme:dark]"
-              />
-              <input
-                type="time"
-                value={day.close}
-                onChange={(e) => updateDay(i, "close", e.target.value)}
-                disabled={!day.isOpen}
-                className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-2 py-1.5 text-xs text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed [color-scheme:dark]"
-              />
-              <button
-                onClick={() => updateDay(i, "isOpen", !day.isOpen)}
-                className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em] transition-all ${
-                  day.isOpen
-                    ? "bg-green-400/10 text-green-400"
-                    : "bg-red-400/10 text-red-400"
-                }`}
-              >
-                {day.isOpen ? "Open" : "Closed"}
-              </button>
+            <div className="mt-6 flex gap-2 overflow-x-auto no-scrollbar">
+              {venues.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => handleVenueChange(v.id)}
+                  className={`shrink-0 rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
+                    activeVenueId === v.id
+                      ? "bg-[#E6FA50] text-[#06121A]"
+                      : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
+                  }`}
+                >
+                  {v.name}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Info */}
-        <p className="mt-4 text-[11px] text-[#F7F7F7]/25">
-          Changes apply to all courts in this venue. Peak hours (09:00–11:00 &
-          16:00–21:00) are configured in Courts & Pricing.
-        </p>
+            {/* Editing Box */}
+            <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
+                  <Clock className="h-5 w-5 text-[#50C8C8]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-[#F7F7F7]">Venue Hours</h3>
+                  <p className="text-xs text-[#F7F7F7]/40 mt-0.5">Applies to all courts in this venue.</p>
+                </div>
+              </div>
+
+              {errorMsg && (
+                <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
+                  {errorMsg}
+                </div>
+              )}
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[#F7F7F7]/60">Open Time</label>
+                  <input
+                    type="time"
+                    value={openTime}
+                    onChange={(e) => setOpenTime(e.target.value)}
+                    className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [color-scheme:dark]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[#F7F7F7]/60">Close Time</label>
+                  <input
+                    type="time"
+                    value={closeTime}
+                    onChange={(e) => setCloseTime(e.target.value)}
+                    className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+            </div>
           </>
         )}
       </section>

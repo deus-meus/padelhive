@@ -107,7 +107,7 @@ export default function AdminMetricsPage() {
             <div className="flex h-64 items-end justify-between gap-2 md:gap-4">
               {data.monthlySeries.map((m) => {
                 const heightPct = maxGmv > 0 ? (m.gmv / maxGmv) * 100 : 0;
-                const monthName = new Date(`${m.month}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "short" });
+                const monthName = new Date(`${m.month}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
                 return (
                   <div key={m.month} className="group relative flex w-full flex-col items-center justify-end h-full">
                     <div
