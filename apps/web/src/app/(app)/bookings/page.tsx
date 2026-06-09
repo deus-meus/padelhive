@@ -20,7 +20,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking, ApiRefund } from "@/lib/api";
-import { ErrorOverlay } from "@/components/ui/error-state";
+import { ErrorState } from "@/components/ui/error-state";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -200,7 +200,7 @@ export default function BookingsPage() {
           </p>
         </section>
         <div className="container py-16">
-          <ErrorOverlay
+          <ErrorState
             title="Couldn't load bookings"
             description={typeof error === 'string' ? error : "We couldn't reach the server. Check your connection and try again."}
             onRetry={() => refetch()}

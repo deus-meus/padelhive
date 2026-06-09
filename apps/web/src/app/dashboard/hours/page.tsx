@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, Save, CheckCircle2 } from "lucide-react";
+import { Clock, Save, CheckCircle2, Building2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getVenues } from "@/lib/api";
 import { Venue } from "@/types";
+import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
 const DAYS = [
   "Monday",
@@ -34,7 +35,7 @@ function getDefaultSchedule(venue: Venue): DaySchedule[] {
 }
 
 export default function OperatingHoursPage() {
-  const { data: venues = [], isLoading } = useQuery({
+  const { data: venues = [], isLoading, isError: isVenuesError, refetch: refetchVenues, isFetching: isVenuesFetching } = useQuery({
     queryKey: queryKeys.venues.all(),
     queryFn: getVenues,
   });
@@ -105,9 +106,19 @@ export default function OperatingHoursPage() {
           </button>
         </div>
 
-        {/* Venue selector */}
-        <div className="mt-6 flex gap-2">
-          {isLoading && <span className="text-sm text-[#F7F7F7]/40">Loading venues...</span>}
+        {isVenuesError ? (
+          <div className="mt-6">
+            <ErrorBanner title="Couldn't load venues" description="We couldn't reach the server. Check your connection and try again." onRetry={() => refetchVenues()} isRetrying={isVenuesFetching} />
+          </div>
+        ) : !isLoading && venues.length === 0 ? (
+          <div className="mt-6">
+            <EmptyState icon={Building2} title="No venues yet" description="Add a venue first to set its operating hours." actionLabel="Go to Venues" actionHref="/dashboard/venues" />
+          </div>
+        ) : (
+          <>
+            {/* Venue selector */}
+            <div className="mt-6 flex gap-2">
+              {isLoading && <span className="text-sm text-[#F7F7F7]/40">Loading venues...</span>}
           {venues.map((v) => (
             <button
               key={v.id}
@@ -187,6 +198,8 @@ export default function OperatingHoursPage() {
           Changes apply to all courts in this venue. Peak hours (09:00–11:00 &
           16:00–21:00) are configured in Courts & Pricing.
         </p>
+          </>
+        )}
       </section>
     </div>
   );

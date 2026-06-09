@@ -13,11 +13,13 @@ import {
   Edit3,
   Eye,
   MoreVertical,
+  Building2,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getVenues, getVenueCourts } from "@/lib/api";
 import { Venue } from "@/types";
+import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
 type ApprovalStatus = "approved" | "pending" | "rejected" | "draft";
 
@@ -38,7 +40,7 @@ export default function VenueManagementPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  const { data: venues = [], isLoading } = useQuery({
+  const { data: venues = [], isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: queryKeys.venues.all(),
     queryFn: getVenues,
   });
@@ -72,19 +74,19 @@ export default function VenueManagementPage() {
 
         {/* Venue List */}
         <div className="mt-8 space-y-4">
-          {isLoading && (
+          {isError ? (
+            <ErrorBanner title="Couldn't load venues" description="We couldn't reach the server. Check your connection and try again." onRetry={() => refetch()} isRetrying={isFetching} />
+          ) : isLoading ? (
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
               <p className="caption text-[#F7F7F7]/25">Loading venues...</p>
             </div>
+          ) : venues.length === 0 ? (
+            <EmptyState icon={Building2} title="No venues yet" description="Add your first venue to start managing courts and bookings." actionLabel="Add Venue" onAction={() => setShowAddModal(true)} />
+          ) : (
+            venues.map((venue) => (
+              <VenueCard key={venue.id} venue={venue} showToast={showToast} />
+            ))
           )}
-          {!isLoading && venues.length === 0 && (
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-              <p className="caption text-[#F7F7F7]/25">No venues found</p>
-            </div>
-          )}
-          {!isLoading && venues.map((venue) => (
-            <VenueCard key={venue.id} venue={venue} showToast={showToast} />
-          ))}
         </div>
 
         {/* Add Venue Modal */}

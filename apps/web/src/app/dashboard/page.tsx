@@ -15,7 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getOwnerDashboard } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
 import { useAuthStore } from "@/stores/auth-store";
-import { ErrorOverlay } from "@/components/ui/error-state";
+import { ErrorBanner } from "@/components/ui/error-state";
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -39,14 +39,29 @@ export default function DashboardPage() {
   }
 
   if (isError || !data) {
+    const firstName = user?.name?.split(" ")[0] ?? "there";
     return (
       <div className="pt-element pb-component container">
-        <ErrorOverlay
-          title="Couldn't load your dashboard"
-          description="We couldn't reach the server to load your venue data. Check your connection and try again."
-          onRetry={() => refetch()}
-          isRetrying={isFetching}
-        />
+        <p className="caption text-[#F7F7F7]/25">Good morning</p>
+        <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] md:text-4xl">
+          Welcome back, <span className="text-[#E6FA50]">{firstName}</span>
+        </h1>
+        <div className="mt-8">
+          <ErrorBanner
+            title="Couldn't load your dashboard"
+            description="We couldn't reach the server to load your venue data. Check your connection and try again."
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+          />
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
+          <KPICard icon={DollarSign} label="Revenue" value="—" />
+          <KPICard icon={CalendarDays} label="Bookings" value="—" />
+          <KPICard icon={TrendingUp} label="Occupancy" value="—" />
+          <KPICard icon={Building2} label="Active Courts" value="—" />
+          <KPICard icon={Clock} label="Pending Payments" value="—" highlight />
+        </div>
+        <div className="mt-component h-72 rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
       </div>
     );
   }
