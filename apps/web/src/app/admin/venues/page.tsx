@@ -4,207 +4,205 @@ import { useState } from "react";
 import {
   Building2,
   CheckCircle2,
-  XCircle,
-  Eye,
-  FileText,
+  Clock,
   MapPin,
-  Calendar,
-  Users,
+  XCircle,
+  Loader2,
+  type LucideIcon,
 } from "lucide-react";
-import { venueApprovals, type VenueApproval } from "@/mock/admin";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
+import { getAdminVenues, updateVenueStatus, getApiErrorMessage } from "@/lib/api";
+import { Venue } from "@/types";
+import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
-export default function VenueApprovalPage() {
-  const [venues, setVenues] = useState<VenueApproval[]>(venueApprovals);
-  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
+type TabValue = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED" | "ALL";
+
+const STATUS_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string; bg: string }> = {
+  APPROVED: { label: "Approved", icon: CheckCircle2, color: "text-green-400", bg: "bg-green-400/10" },
+  PENDING: { label: "Pending Review", icon: Clock, color: "text-yellow-400", bg: "bg-yellow-400/10" },
+  REJECTED: { label: "Rejected", icon: XCircle, color: "text-red-400", bg: "bg-red-400/10" },
+  SUSPENDED: { label: "Suspended", icon: XCircle, color: "text-orange-400", bg: "bg-orange-400/10" },
+};
+
+const TABS: { label: string; value: TabValue }[] = [
+  { label: "Pending", value: "PENDING" },
+  { label: "Approved", value: "APPROVED" },
+  { label: "Rejected", value: "REJECTED" },
+  { label: "Suspended", value: "SUSPENDED" },
+  { label: "All", value: "ALL" },
+];
+
+export default function AdminVenuesPage() {
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<TabValue>("PENDING");
   const [toast, setToast] = useState<string | null>(null);
-  const [detailModal, setDetailModal] = useState<VenueApproval | null>(null);
+  const [inFlightId, setInFlightId] = useState<string | null>(null);
 
-  const filtered = venues.filter((v) => filter === "all" ? true : v.status === filter);
+  const { data: venues = [], isLoading, isError, error, refetch, isFetching } = useQuery({
+    queryKey: queryKeys.admin.venues(activeTab),
+    queryFn: () => getAdminVenues(activeTab === "ALL" ? undefined : (activeTab as any)),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: any }) => updateVenueStatus(id, status),
+    onMutate: (vars) => setInFlightId(vars.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "venues"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.overview() });
+      showToast("Venue status updated.");
+    },
+    onError: (err) => {
+      showToast(getApiErrorMessage(err));
+    },
+    onSettled: () => {
+      setInFlightId(null);
+    },
+  });
 
   function showToast(msg: string) {
     setToast(msg);
-    setTimeout(() => setToast(null), 2500);
-  }
-
-  function handleApprove(id: string) {
-    setVenues((prev) => prev.map((v) => v.id === id ? { ...v, status: "approved" as const } : v));
-    showToast("Venue approved successfully");
-  }
-
-  function handleReject(id: string) {
-    setVenues((prev) => prev.map((v) => v.id === id ? { ...v, status: "rejected" as const } : v));
-    showToast("Venue rejected");
+    setTimeout(() => setToast(null), 3000);
   }
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
+      {/* Header */}
       <div className="mb-8">
-        <p className="caption text-[#F7F7F7]/25">Venue Management</p>
-        <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
+        <p className="caption text-[#E6FA50]">Marketplace Admin</p>
+        <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] sm:text-4xl">
           Venue <span className="text-[#E6FA50]">Approval</span>
         </h1>
       </div>
 
-      {/* Filter tabs */}
-      <div className="mb-6 flex gap-2 overflow-x-auto">
-        {(["pending", "approved", "rejected", "all"] as const).map((tab) => (
+      {/* Tabs */}
+      <div className="mb-6 flex overflow-x-auto border-b border-white/[0.08] no-scrollbar">
+        {TABS.map((tab) => (
           <button
-            key={tab}
-            onClick={() => setFilter(tab)}
-            className={`shrink-0 rounded-lg px-4 py-2 text-xs font-medium capitalize transition-all ${
-              filter === tab
-                ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
+            key={tab.value}
+            onClick={() => setActiveTab(tab.value)}
+            className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+              activeTab === tab.value
+                ? "border-[#E6FA50] text-[#F7F7F7]"
+                : "border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
             }`}
           >
-            {tab} ({venues.filter((v) => tab === "all" ? true : v.status === tab).length})
+            {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Venue list */}
-      <div className="space-y-3">
-        {filtered.length === 0 && (
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-            <p className="caption text-[#F7F7F7]/25">No venues in this category</p>
-          </div>
-        )}
-        {filtered.map((venue) => (
-          <div key={venue.id} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#E6FA50]/10">
-                  <Building2 className="h-4 w-4 text-[#E6FA50]" />
-                </div>
-                <div className="min-w-0">
-                  <p className="heading-3 text-sm text-[#F7F7F7]">{venue.name}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-3">
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                      <Users className="h-3 w-3" /> {venue.ownerName}
-                    </span>
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                      <MapPin className="h-3 w-3" /> {venue.city}
-                    </span>
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                      <Calendar className="h-3 w-3" /> {venue.submittedAt}
-                    </span>
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                      <FileText className="h-3 w-3" /> {venue.documents.length} docs
-                    </span>
+      {/* Venue List */}
+      <div className="space-y-4">
+        {isLoading ? (
+          <>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-32 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+            ))}
+          </>
+        ) : isError ? (
+          <ErrorBanner title="Couldn't load venues" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+        ) : venues.length === 0 ? (
+          <EmptyState
+            icon={Building2}
+            title="No venues found"
+            description={
+              activeTab === "PENDING"
+                ? "There are no venues waiting for approval."
+                : "No venues match the selected status."
+            }
+          />
+        ) : (
+          venues.map((venue) => {
+            const isUpdating = inFlightId === venue.id;
+            const status = venue.status ?? "PENDING";
+            const config = STATUS_CONFIG[status] ?? STATUS_CONFIG["PENDING"];
+            const StatusIcon = config.icon;
+
+            return (
+              <div
+                key={venue.id}
+                className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all"
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <h3 className="heading-2 text-lg text-[#F7F7F7] truncate">
+                        {venue.name}
+                      </h3>
+                      <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${config.bg}`}>
+                        <StatusIcon className={`h-3 w-3 ${config.color}`} />
+                        <span className={`text-[9px] font-medium uppercase tracking-[0.1em] ${config.color}`}>
+                          {config.label}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-[#F7F7F7]/40">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {venue.location} · {venue.city}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {status === "PENDING" && (
+                      <>
+                        <button
+                          onClick={() => updateMutation.mutate({ id: venue.id, status: "REJECTED" })}
+                          disabled={isUpdating}
+                          className="flex h-9 items-center justify-center rounded-full border border-red-500/50 px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+                        >
+                          {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Reject"}
+                        </button>
+                        <button
+                          onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
+                          disabled={isUpdating}
+                          className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
+                        >
+                          {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Approve"}
+                        </button>
+                      </>
+                    )}
+                    {status === "APPROVED" && (
+                      <button
+                        onClick={() => updateMutation.mutate({ id: venue.id, status: "SUSPENDED" })}
+                        disabled={isUpdating}
+                        className="flex h-9 items-center justify-center rounded-full border border-orange-500/50 px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-orange-400 transition-colors hover:bg-orange-500/10 disabled:opacity-50"
+                      >
+                        {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Suspend"}
+                      </button>
+                    )}
+                    {status === "REJECTED" && (
+                      <button
+                        onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
+                        disabled={isUpdating}
+                        className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
+                      >
+                        {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Approve"}
+                      </button>
+                    )}
+                    {status === "SUSPENDED" && (
+                      <button
+                        onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
+                        disabled={isUpdating}
+                        className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
+                      >
+                        {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Reactivate"}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 sm:shrink-0">
-                <StatusBadge status={venue.status} />
-                {venue.status === "pending" && (
-                  <>
-                    <button
-                      onClick={() => setDetailModal(venue)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]"
-                      title="View details"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleApprove(venue.id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E6FA50]/10 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20"
-                      title="Approve"
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleReject(venue.id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20"
-                      title="Reject"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })
+        )}
       </div>
-
-      {/* Detail Modal */}
-      {detailModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm" onClick={() => setDetailModal(null)} />
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 shadow-2xl">
-            <h2 className="heading-2 text-lg text-[#F7F7F7]">{detailModal.name}</h2>
-            <div className="mt-4 space-y-3">
-              <DetailRow label="Owner" value={detailModal.ownerName} />
-              <DetailRow label="City" value={detailModal.city} />
-              <DetailRow label="Courts" value={`${detailModal.courts} courts`} />
-              <DetailRow label="Submitted" value={detailModal.submittedAt} />
-              <div>
-                <p className="caption text-[#F7F7F7]/25 mb-2">Documents</p>
-                <div className="space-y-1">
-                  {detailModal.documents.length > 0 ? detailModal.documents.map((doc) => (
-                    <div key={doc} className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2">
-                      <FileText className="h-3.5 w-3.5 text-[#50C8C8]" />
-                      <span className="caption text-[#F7F7F7]/60">{doc}</span>
-                    </div>
-                  )) : (
-                    <p className="caption text-[#F7F7F7]/25">No documents uploaded</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={() => { handleApprove(detailModal.id); setDetailModal(null); }}
-                className="btn-lime flex-1 rounded-xl px-4 py-2.5 text-sm"
-              >
-                Approve
-              </button>
-              <button
-                onClick={() => { handleReject(detailModal.id); setDetailModal(null); }}
-                className="flex-1 rounded-xl border border-red-500/30 px-4 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-500/10"
-              >
-                Reject
-              </button>
-              <button
-                onClick={() => setDetailModal(null)}
-                className="btn-outline-white rounded-xl px-4 py-2.5 text-sm"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/60">{toast}</p>
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40">
+          <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: "pending" | "approved" | "rejected" }) {
-  const styles = {
-    pending: "bg-amber-500/10 text-amber-400",
-    approved: "bg-[#E6FA50]/10 text-[#E6FA50]",
-    rejected: "bg-red-500/10 text-red-400",
-  };
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status]}`}>
-      {status}
-    </span>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2">
-      <span className="caption text-[#F7F7F7]/25">{label}</span>
-      <span className="caption text-[#F7F7F7]/60">{value}</span>
     </div>
   );
 }
