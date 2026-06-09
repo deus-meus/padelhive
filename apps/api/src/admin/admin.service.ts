@@ -4,6 +4,8 @@ import { GetAdminBookingsDto } from "./dto/get-admin-bookings.dto";
 import { BookingStatus, PaymentStatus, Prisma, RefundStatus, VenueStatus } from "@prisma/client";
 import { AdminOverviewDto } from "./dto/admin-overview.dto";
 import { utcToWibDateStr } from "../common/pricing.util";
+import { GetCommissionDto } from "./dto/get-commission.dto";
+import { CommissionReportDto, CommissionVenueRowDto } from "./dto/commission-report.dto";
 
 @Injectable()
 export class AdminService {
@@ -144,6 +146,72 @@ export class AdminService {
       paymentSuccessRate,
       avgBookingValue,
       avgCommissionRate,
+    };
+  }
+
+  async getCommission(query: GetCommissionDto): Promise<CommissionReportDto> {
+    const { fromDate, toDate } = query;
+    const where: Prisma.BookingWhereInput = {
+      status: { in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED] },
+    };
+
+    if (fromDate || toDate) {
+      where.bookingDate = {};
+      if (fromDate) {
+        where.bookingDate.gte = new Date(`${fromDate}T00:00:00Z`);
+      }
+      if (toDate) {
+        const nextDay = new Date(`${toDate}T00:00:00Z`);
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+        where.bookingDate.lt = nextDay;
+      }
+    }
+
+    const grouped = await this.prisma.booking.groupBy({
+      by: ["venueId"],
+      where,
+      _sum: { platformFee: true, finalAmount: true },
+      _count: { _all: true },
+    });
+
+    const venueIds = grouped.map((g) => g.venueId);
+    const venuesData = await this.prisma.venue.findMany({
+      where: { id: { in: venueIds } },
+      select: { id: true, name: true, city: true, commissionRate: true },
+    });
+
+    const venueMap = new Map(venuesData.map((v) => [v.id, v]));
+
+    const rows: CommissionVenueRowDto[] = grouped.map((g) => {
+      const venue = venueMap.get(g.venueId);
+      const commission = g._sum.platformFee ?? 0;
+      const gmv = g._sum.finalAmount ?? 0;
+      
+      return {
+        venueId: g.venueId,
+        venueName: venue?.name ?? "Unknown venue",
+        city: venue?.city ?? "—",
+        commissionRate: venue?.commissionRate != null ? Number(venue.commissionRate) : 0,
+        bookings: g._count._all,
+        gmv,
+        commission,
+        effectiveRate: gmv > 0 ? Math.round((commission / gmv) * 1000) / 10 : 0,
+      };
+    });
+
+    rows.sort((a, b) => b.commission - a.commission);
+
+    const totalCommission = rows.reduce((sum, r) => sum + r.commission, 0);
+    const totalGmv = rows.reduce((sum, r) => sum + r.gmv, 0);
+    const totalBookings = rows.reduce((sum, r) => sum + r.bookings, 0);
+    const avgCommissionRate = totalGmv > 0 ? Math.round((totalCommission / totalGmv) * 1000) / 10 : 0;
+
+    return {
+      totalCommission,
+      totalGmv,
+      totalBookings,
+      avgCommissionRate,
+      venues: rows,
     };
   }
 }
