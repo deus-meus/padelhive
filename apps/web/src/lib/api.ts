@@ -683,3 +683,10 @@ export async function getCommissionReport(params: GetCommissionParams = {}): Pro
   return apiFetch<CommissionReport>(`/admin/commission${qs ? `?${qs}` : ""}`);
 }
 
+export interface AdminMetricsMonth { month: string; gmv: number; commission: number; bookings: number; }
+export interface AdminMetricsStatus { status: string; count: number; }
+export interface AdminMetrics { totalGmv: number; totalCommission: number; totalBookings: number; avgMonthlyGmv: number; monthlySeries: AdminMetricsMonth[]; statusBreakdown: AdminMetricsStatus[]; }
+
+export async function getAdminMetrics(): Promise<AdminMetrics> {
+  return apiFetch<AdminMetrics>("/admin/metrics");
+}

@@ -20,6 +20,7 @@ export const queryKeys = {
       ["admin", "bookings", params.status ?? "all", params.page ?? 1] as const,
     commission: (params?: { fromDate?: string; toDate?: string }) => 
       ["admin", "commission", params?.fromDate ?? "all", params?.toDate ?? "all"] as const,
+    metrics: () => ["admin", "metrics"] as const,
   },
   dashboard: {
     owner: () => ["dashboard", "owner"] as const,
