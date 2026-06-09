@@ -11,9 +11,12 @@ import {
   ShieldCheck,
   ShieldX,
   Loader2,
+  History,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { queryKeys } from "@/lib/queries";
-import { getRefunds, approveRefund, rejectRefund, processRefund, getApiErrorMessage, RefundStatus, ApiRefund } from "@/lib/api";
+import { getRefunds, approveRefund, rejectRefund, processRefund, getApiErrorMessage, RefundStatus, ApiRefund, getRefundHistory } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
 const formatIDR = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
@@ -32,6 +35,7 @@ export default function RefundsPage() {
   const [actingId, setActingId] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: refunds = [], isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: queryKeys.refunds.list(filter === "ALL" ? undefined : filter),
@@ -186,6 +190,25 @@ export default function RefundsPage() {
                           Requested: {new Date(refund.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                         </span>
                       </div>
+                      <div className="mt-3">
+                        <button
+                          onClick={() => setExpandedId(expandedId === refund.id ? null : refund.id)}
+                          className="flex items-center gap-1.5 caption text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60 transition-colors"
+                        >
+                          <History className="h-3 w-3" />
+                          View history
+                          {expandedId === refund.id ? (
+                            <ChevronUp className="h-3 w-3" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3" />
+                          )}
+                        </button>
+                      </div>
+                      {expandedId === refund.id && (
+                        <div className="mt-4 border-t border-white/[0.06] pt-4">
+                          <RefundHistoryTimeline refundId={refund.id} />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -302,5 +325,67 @@ function RefundStatusBadge({ status }: { status: RefundStatus }) {
     <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status]}`}>
       {status}
     </span>
+  );
+}
+
+function RefundHistoryTimeline({ refundId }: { refundId: string }) {
+  const { data: events = [], isLoading, isError, error } = useQuery({
+    queryKey: queryKeys.refunds.history(refundId),
+    queryFn: () => getRefundHistory(refundId),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <div className="h-4 w-full animate-pulse rounded bg-white/[0.04]" />
+        <div className="h-4 w-full animate-pulse rounded bg-white/[0.04]" />
+        <div className="h-4 w-full animate-pulse rounded bg-white/[0.04]" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return <p className="caption text-[#F7F7F7]/40">{getApiErrorMessage(error)}</p>;
+  }
+
+  if (events.length === 0) {
+    return <p className="caption text-[#F7F7F7]/40">No history recorded yet.</p>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {events.map((event) => {
+        const actorName = event.actor?.name || event.actor?.email || "System";
+        const formattedTime = new Date(event.createdAt).toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Jakarta"
+        });
+
+        return (
+          <div key={event.id} className="border-l-2 border-white/[0.06] pl-4 relative">
+            <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-[#E6FA50]" />
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              {event.fromStatus ? (
+                <RefundStatusBadge status={event.fromStatus} />
+              ) : (
+                <span className="caption text-[#F7F7F7]/40 uppercase tracking-[0.1em]">Requested</span>
+              )}
+              <span className="text-[#F7F7F7]/40 text-xs">→</span>
+              <RefundStatusBadge status={event.toStatus} />
+            </div>
+            <p className="caption text-[#F7F7F7]/40">
+              {actorName} &middot; {formattedTime}
+            </p>
+            {event.notes && (
+              <p className="caption italic text-[#F7F7F7]/60 mt-1">&ldquo;{event.notes}&rdquo;</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
