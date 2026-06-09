@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { MapPin, Star, Search, ArrowUpDown } from "lucide-react";
@@ -34,8 +35,12 @@ function groupCourtsByVenue(courts: Court[]) {
 }
 
 export default function VenuesPage() {
-  const [search, setSearch] = useState("");
-  const [city, setCity] = useState("All");
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
+  const [city, setCity] = useState(() => {
+    const c = searchParams.get("city");
+    return c && CITIES.includes(c) ? c : "All";
+  });
   const [sort, setSort] = useState<SortKey>("recommended");
 
   const { data: apiVenues, isLoading: isLoadingVenues, isError: isVenuesError } = useQuery({

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getVenues } from "@/lib/api";
@@ -20,7 +21,9 @@ export default async function VenuesPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <VenuesClient />
+      <Suspense fallback={null}>
+        <VenuesClient />
+      </Suspense>
     </HydrationBoundary>
   );
 }
