@@ -9,16 +9,26 @@ import {
   Zap,
   Sun,
   Building2,
+  Loader2,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
-import { getVenues, getVenueCourts } from "@/lib/api";
+import { getVenues, getVenueCourtsManage, createCourt, updateCourt, getApiErrorMessage, CreateCourtInput, UpdateCourtInput } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { Court } from "@/types";
 
 export default function CourtsPage() {
-  const [editingCourt, setEditingCourt] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [editingCourtId, setEditingCourtId] = useState<string | null>(null);
+  const [editingPrices, setEditingPrices] = useState<{
+    weekdayOffPeak: string;
+    weekdayPeak: string;
+    weekendOffPeak: string;
+    weekendPeak: string;
+  } | null>(null);
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const { data: venues = [], isLoading: isVenuesLoading, isError: isVenuesError, error: venuesError, refetch: refetchVenues, isFetching: isVenuesFetching } = useQuery({
     queryKey: queryKeys.venues.all(),
@@ -29,14 +39,80 @@ export default function CourtsPage() {
   const venue = venues.find((v) => v.id === activeVenueId);
 
   const { data: courts = [], isLoading: isCourtsLoading } = useQuery({
-    queryKey: activeVenueId ? queryKeys.venues.courts(activeVenueId) : [],
-    queryFn: () => activeVenueId ? getVenueCourts(activeVenueId) : Promise.resolve([]),
+    queryKey: activeVenueId ? queryKeys.venues.courtsManage(activeVenueId) : [],
+    queryFn: () => activeVenueId ? getVenueCourtsManage(activeVenueId) : Promise.resolve([]),
     enabled: !!activeVenueId,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateCourtInput) => createCourt(activeVenueId!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.venues.courtsManage(activeVenueId!) });
+      setIsAddModalOpen(false);
+      showToast("Court added");
+    },
+    onError: (err) => {
+      showToast(getApiErrorMessage(err));
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ courtId, data }: { courtId: string; data: UpdateCourtInput }) => updateCourt(activeVenueId!, courtId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.venues.courtsManage(activeVenueId!) });
+      setEditingCourtId(null);
+      setEditingPrices(null);
+      showToast("Court updated");
+    },
+    onError: (err) => {
+      showToast(getApiErrorMessage(err));
+    },
   });
 
   function showToast(msg: string) {
     setToast(msg);
-    setTimeout(() => setToast(null), 2500);
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  function handleEditClick(court: Court) {
+    if (editingCourtId === court.id) {
+      setEditingCourtId(null);
+      setEditingPrices(null);
+    } else {
+      setEditingCourtId(court.id);
+      setEditingPrices({
+        weekdayOffPeak: String(court.pricing.weekdayOffPeak / 1000),
+        weekdayPeak: String(court.pricing.weekdayPeak / 1000),
+        weekendOffPeak: String(court.pricing.weekendOffPeak / 1000),
+        weekendPeak: String(court.pricing.weekendPeak / 1000),
+      });
+    }
+  }
+
+  function handleSavePricing(courtId: string) {
+    if (!editingPrices) return;
+    const weekdayOffPeak = parseInt(editingPrices.weekdayOffPeak, 10) * 1000;
+    const weekdayPeak = parseInt(editingPrices.weekdayPeak, 10) * 1000;
+    const weekendOffPeak = parseInt(editingPrices.weekendOffPeak, 10) * 1000;
+    const weekendPeak = parseInt(editingPrices.weekendPeak, 10) * 1000;
+
+    if (isNaN(weekdayOffPeak) || isNaN(weekdayPeak) || isNaN(weekendOffPeak) || isNaN(weekendPeak) ||
+        weekdayOffPeak < 0 || weekdayPeak < 0 || weekendOffPeak < 0 || weekendPeak < 0) {
+      showToast("Prices must be valid numbers >= 0");
+      return;
+    }
+
+    updateMutation.mutate({
+      courtId,
+      data: { weekdayOffPeak, weekdayPeak, weekendOffPeak, weekendPeak }
+    });
+  }
+
+  function handleToggleActive(court: Court) {
+    updateMutation.mutate({
+      courtId: court.id,
+      data: { isActive: !court.isActive }
+    });
   }
 
   return (
@@ -53,8 +129,9 @@ export default function CourtsPage() {
             </p>
           </div>
           <button
-            onClick={() => showToast("Add court coming soon in backend integration.")}
-            className="btn-lime flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em]"
+            onClick={() => setIsAddModalOpen(true)}
+            disabled={!activeVenueId}
+            className="btn-lime flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Court
@@ -103,12 +180,16 @@ export default function CourtsPage() {
         ) : (
           <>
             {/* Venue selector */}
-            <div className="mt-6 flex gap-2">
+            <div className="mt-6 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
           {venues.map((v) => (
             <button
               key={v.id}
-              onClick={() => setSelectedVenueId(v.id)}
-              className={`rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
+              onClick={() => {
+                setSelectedVenueId(v.id);
+                setEditingCourtId(null);
+                setEditingPrices(null);
+              }}
+              className={`whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
                 activeVenueId === v.id
                   ? "bg-[#E6FA50] text-[#06121A]"
                   : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
@@ -122,7 +203,7 @@ export default function CourtsPage() {
         {/* Courts list */}
         <div className="mt-8 space-y-4">
           {courts.map((court) => {
-            const isEditing = editingCourt === court.id;
+            const isEditing = editingCourtId === court.id;
             return (
               <div
                 key={court.id}
@@ -147,17 +228,42 @@ export default function CourtsPage() {
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={() => setEditingCourt(isEditing ? null : court.id)}
-                    className={`flex h-9 items-center gap-2 rounded-lg border px-4 text-[11px] font-medium transition-all ${
-                      isEditing
-                        ? "border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]"
-                        : "border-white/[0.06] text-[#F7F7F7]/40 hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
-                    }`}
-                  >
-                    <Edit3 className="h-3 w-3" />
-                    {isEditing ? "Done" : "Edit Pricing"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleToggleActive(court)}
+                      disabled={updateMutation.isPending}
+                      className="flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-3 text-[11px] font-medium text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60 disabled:opacity-50"
+                    >
+                      {court.isActive ? "Deactivate" : "Activate"}
+                    </button>
+                    {isEditing ? (
+                      <button
+                        onClick={() => handleSavePricing(court.id)}
+                        disabled={updateMutation.isPending}
+                        className="flex h-9 items-center gap-2 rounded-lg border border-[#E6FA50]/30 bg-[#E6FA50]/10 px-4 text-[11px] font-medium text-[#E6FA50] transition-all hover:bg-[#E6FA50]/20 disabled:opacity-50"
+                      >
+                        {updateMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Edit3 className="h-3 w-3" />}
+                        Save
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleEditClick(court)}
+                        className="flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-4 text-[11px] font-medium text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                        Edit Pricing
+                      </button>
+                    )}
+                    {isEditing && (
+                      <button
+                        onClick={() => handleEditClick(court)}
+                        disabled={updateMutation.isPending}
+                        className="flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-3 text-[11px] font-medium text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60 disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Pricing grid */}
@@ -165,26 +271,30 @@ export default function CourtsPage() {
                   <PricingCard
                     label="Weekday Off-Peak"
                     icon={Sun}
-                    price={court.pricing.weekdayOffPeak}
+                    price={isEditing ? editingPrices!.weekdayOffPeak : court.pricing.weekdayOffPeak}
+                    onChange={(val) => setEditingPrices(prev => ({...prev!, weekdayOffPeak: val}))}
                     editing={isEditing}
                   />
                   <PricingCard
                     label="Weekday Peak"
                     icon={Zap}
-                    price={court.pricing.weekdayPeak}
+                    price={isEditing ? editingPrices!.weekdayPeak : court.pricing.weekdayPeak}
+                    onChange={(val) => setEditingPrices(prev => ({...prev!, weekdayPeak: val}))}
                     editing={isEditing}
                     highlight
                   />
                   <PricingCard
                     label="Weekend Off-Peak"
                     icon={Sun}
-                    price={court.pricing.weekendOffPeak}
+                    price={isEditing ? editingPrices!.weekendOffPeak : court.pricing.weekendOffPeak}
+                    onChange={(val) => setEditingPrices(prev => ({...prev!, weekendOffPeak: val}))}
                     editing={isEditing}
                   />
                   <PricingCard
                     label="Weekend Peak"
                     icon={Zap}
-                    price={court.pricing.weekendPeak}
+                    price={isEditing ? editingPrices!.weekendPeak : court.pricing.weekendPeak}
+                    onChange={(val) => setEditingPrices(prev => ({...prev!, weekendPeak: val}))}
                     editing={isEditing}
                     highlight
                   />
@@ -206,7 +316,7 @@ export default function CourtsPage() {
             <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
               <p className="text-sm text-[#F7F7F7]/25">No courts for this venue yet.</p>
               <button
-                onClick={() => showToast("Add court coming soon in backend integration.")}
+                onClick={() => setIsAddModalOpen(true)}
                 className="btn-lime mt-4 rounded-full px-6 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
               >
                 Add First Court
@@ -223,6 +333,15 @@ export default function CourtsPage() {
             <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
           </div>
         )}
+
+        {/* Add Modal */}
+        {isAddModalOpen && (
+          <AddCourtModal
+            onClose={() => setIsAddModalOpen(false)}
+            onSubmit={(data) => createMutation.mutate(data)}
+            isPending={createMutation.isPending}
+          />
+        )}
       </section>
     </div>
   );
@@ -232,15 +351,19 @@ function PricingCard({
   label,
   icon: Icon,
   price,
+  onChange,
   editing,
   highlight,
 }: {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  price: number;
+  price: number | string;
+  onChange?: (val: string) => void;
   editing: boolean;
   highlight?: boolean;
 }) {
+  const displayPrice = typeof price === "number" ? (price / 1000).toFixed(0) : price;
+
   return (
     <div
       className={`rounded-xl border p-4 transition-all ${
@@ -258,7 +381,8 @@ function PricingCard({
       {editing ? (
         <input
           type="text"
-          defaultValue={(price / 1000).toFixed(0)}
+          value={displayPrice}
+          onChange={(e) => onChange?.(e.target.value)}
           className="mt-2 w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-sm font-medium text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
         />
       ) : (
@@ -267,12 +391,169 @@ function PricingCard({
             highlight ? "text-[#E6FA50]/80" : "text-[#F7F7F7]/60"
           }`}
         >
-          Rp {(price / 1000).toFixed(0)}K
+          Rp {displayPrice}K
         </p>
       )}
       {editing && (
         <p className="mt-1 text-[9px] text-[#F7F7F7]/25">× 1,000 IDR</p>
       )}
+    </div>
+  );
+}
+
+function AddCourtModal({
+  onClose,
+  onSubmit,
+  isPending,
+}: {
+  onClose: () => void;
+  onSubmit: (data: CreateCourtInput) => void;
+  isPending: boolean;
+}) {
+  const [name, setName] = useState("");
+  const [type, setType] = useState<"INDOOR" | "OUTDOOR">("INDOOR");
+  const [weekdayOffPeak, setWeekdayOffPeak] = useState("100");
+  const [weekdayPeak, setWeekdayPeak] = useState("150");
+  const [weekendOffPeak, setWeekendOffPeak] = useState("150");
+  const [weekendPeak, setWeekendPeak] = useState("200");
+  const [isActive, setIsActive] = useState(true);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    const prices = [weekdayOffPeak, weekdayPeak, weekendOffPeak, weekendPeak].map(p => parseInt(p, 10) * 1000);
+    if (prices.some(isNaN) || prices.some(p => p < 0)) return;
+
+    onSubmit({
+      name: name.trim(),
+      type,
+      weekdayOffPeak: prices[0],
+      weekdayPeak: prices[1],
+      weekendOffPeak: prices[2],
+      weekendPeak: prices[3],
+      isActive,
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl border border-white/[0.06] bg-[#0C1B26] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-white/[0.06] p-6">
+          <h2 className="text-lg font-semibold text-[#F7F7F7]">Add New Court</h2>
+          <button onClick={onClose} className="text-[#F7F7F7]/40 hover:text-[#F7F7F7]">
+            <XCircle className="h-5 w-5" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-[#F7F7F7]/60">Court Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Court A"
+                className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[#F7F7F7]/60">Type</label>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value as "INDOOR" | "OUTDOOR")}
+                className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [&>option]:bg-[#0C1B26]"
+              >
+                <option value="INDOOR">Indoor</option>
+                <option value="OUTDOOR">Outdoor</option>
+              </select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-[#F7F7F7]/60">Weekday Off-Peak (K)</label>
+                <input
+                  type="text"
+                  value={weekdayOffPeak}
+                  onChange={(e) => setWeekdayOffPeak(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#F7F7F7]/60">Weekday Peak (K)</label>
+                <input
+                  type="text"
+                  value={weekdayPeak}
+                  onChange={(e) => setWeekdayPeak(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#F7F7F7]/60">Weekend Off-Peak (K)</label>
+                <input
+                  type="text"
+                  value={weekendOffPeak}
+                  onChange={(e) => setWeekendOffPeak(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#F7F7F7]/60">Weekend Peak (K)</label>
+                <input
+                  type="text"
+                  value={weekendPeak}
+                  onChange={(e) => setWeekendPeak(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <label className="text-xs font-medium text-[#F7F7F7]/60">Status:</label>
+              <button
+                type="button"
+                onClick={() => setIsActive(!isActive)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  isActive ? "bg-[#E6FA50]" : "bg-white/20"
+                }`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                    isActive ? "translate-x-4 bg-[#06121A]" : "translate-x-1"
+                  }`}
+                />
+              </button>
+              <span className="text-sm text-[#F7F7F7]">
+                {isActive ? "Active" : "Inactive"}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isPending}
+              className="rounded-full px-5 py-2 text-sm font-medium text-[#F7F7F7]/60 hover:bg-white/[0.04] hover:text-[#F7F7F7] disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="btn-lime flex items-center justify-center gap-2 rounded-full px-6 py-2 text-sm font-semibold disabled:opacity-50"
+            >
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              Create Court
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -361,6 +361,39 @@ export async function getVenueCourts(venueId: string, opts?: { revalidate?: numb
   return courts.map((court) => mapCourt(court, venueId));
 }
 
+export type CreateCourtInput = {
+  name: string;
+  type: "INDOOR" | "OUTDOOR";
+  weekdayPeak: number;
+  weekdayOffPeak: number;
+  weekendPeak: number;
+  weekendOffPeak: number;
+  isActive?: boolean;
+};
+
+export type UpdateCourtInput = Partial<CreateCourtInput>;
+
+export async function getVenueCourtsManage(venueId: string): Promise<Court[]> {
+  const courts = await apiFetch<ApiCourt[]>(`/venues/${venueId}/courts/manage`);
+  return courts.map((c) => mapCourt(c, venueId));
+}
+
+export async function createCourt(venueId: string, input: CreateCourtInput): Promise<Court> {
+  const c = await apiFetch<ApiCourt>(`/venues/${venueId}/courts`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  return mapCourt(c, venueId);
+}
+
+export async function updateCourt(venueId: string, courtId: string, input: UpdateCourtInput): Promise<Court> {
+  const c = await apiFetch<ApiCourt>(`/venues/${venueId}/courts/${courtId}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+  return mapCourt(c, venueId);
+}
+
 export async function getVouchers(): Promise<Voucher[]> {
   const vouchers = await apiFetch<ApiVoucher[]>("/vouchers");
   return vouchers.map(mapVoucher);
