@@ -10,51 +10,32 @@ import {
   Clock,
   ShieldCheck,
   ShieldX,
+  Loader2,
 } from "lucide-react";
 import { queryKeys } from "@/lib/queries";
-import { getRefunds, approveRefund, rejectRefund, processRefund, RefundStatus, ApiRefund } from "@/lib/api";
+import { getRefunds, approveRefund, rejectRefund, processRefund, getApiErrorMessage, RefundStatus, ApiRefund } from "@/lib/api";
+import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+
+const formatIDR = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
+
+const formatBookingDate = (iso?: string) => {
+  if (!iso) return "—";
+  const datePart = iso.split("T")[0] ?? iso;
+  return new Date(`${datePart}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+};
 
 export default function RefundsPage() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<RefundStatus | "ALL">("PENDING");
   const [toast, setToast] = useState<string | null>(null);
 
-  const { data: refunds = [], isLoading } = useQuery({
+  const [actingId, setActingId] = useState<string | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const { data: refunds = [], isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: queryKeys.refunds.list(filter === "ALL" ? undefined : filter),
     queryFn: () => getRefunds(filter === "ALL" ? undefined : filter),
-  });
-
-  const approveMutation = useMutation({
-    mutationFn: (id: string) => approveRefund(id, "Approved from admin dashboard"),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.detail(data.id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.history(data.id) });
-      showToast("Refund approved — now Process it to issue the payout");
-    },
-  });
-
-  const processMutation = useMutation({
-    mutationFn: (id: string) => processRefund(id),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.detail(data.id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.history(data.id) });
-      showToast("Refund processed — payout issued to customer");
-    },
-    onError: () => {
-      showToast("Failed to process refund — gateway error, please retry");
-    },
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: (id: string) => rejectRefund(id, "Rejected from admin dashboard"),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.detail(data.id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.history(data.id) });
-      showToast("Refund rejected");
-    },
   });
 
   function showToast(msg: string) {
@@ -62,12 +43,42 @@ export default function RefundsPage() {
     setTimeout(() => setToast(null), 2500);
   }
 
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => approveRefund(id),
+    onMutate: (id) => setActingId(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
+      showToast("Refund approved — now process it to issue the payout");
+    },
+    onError: (err) => showToast(getApiErrorMessage(err)),
+    onSettled: () => setActingId(null),
+  });
+
+  const processMutation = useMutation({
+    mutationFn: (id: string) => processRefund(id),
+    onMutate: (id) => setActingId(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
+      showToast("Refund processed — payout issued to customer");
+    },
+    onError: (err) => showToast(getApiErrorMessage(err)),
+    onSettled: () => setActingId(null),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: ({ id, notes }: { id: string; notes: string }) => rejectRefund(id, notes),
+    onMutate: (vars) => setActingId(vars.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
+      setRejectTarget(null);
+      showToast("Refund rejected");
+    },
+    onError: (err) => showToast(getApiErrorMessage(err)),
+    onSettled: () => setActingId(null),
+  });
+
   function handleApprove(id: string) {
     approveMutation.mutate(id);
-  }
-
-  function handleReject(id: string) {
-    rejectMutation.mutate(id);
   }
 
   function handleProcess(id: string) {
@@ -75,10 +86,10 @@ export default function RefundsPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
       <div className="mb-8">
-        <p className="caption text-[#F7F7F7]/25">Financial</p>
-        <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
+        <p className="caption text-[#E6FA50]">Financial</p>
+        <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] sm:text-4xl">
           Refund <span className="text-[#E6FA50]">Management</span>
         </h1>
       </div>
@@ -105,7 +116,7 @@ export default function RefundsPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="mb-6 flex gap-2 overflow-x-auto">
+      <div className="mb-6 flex gap-2 overflow-x-auto no-scrollbar">
         {(["PENDING", "APPROVED", "REJECTED", "PROCESSED", "ALL"] as const).map((tab) => (
           <button
             key={tab}
@@ -123,87 +134,152 @@ export default function RefundsPage() {
 
       {/* Refund list */}
       <div className="space-y-3">
-        {isLoading && (
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-            <p className="caption text-[#F7F7F7]/25">Loading refunds...</p>
-          </div>
-        )}
-        {!isLoading && refunds.length === 0 && (
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-            <p className="caption text-[#F7F7F7]/25">No refund requests in this category</p>
-          </div>
-        )}
-        {!isLoading && refunds.map((refund) => (
-          <div key={refund.id} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-start gap-4">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                  refund.status === "PENDING" ? "bg-amber-500/10" : "bg-[#E6FA50]/10"
-                }`}>
-                  {refund.status === "PENDING"
-                    ? <AlertCircle className="h-4 w-4 text-amber-400" />
-                    : <RotateCcw className="h-4 w-4 text-[#E6FA50]" />
-                  }
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-[#50C8C8]">{refund.bookingId}</span>
-                    <RefundStatusBadge status={refund.status} />
-                  </div>
-                  <p className="text-sm text-[#F7F7F7]/60 mt-1">
-                    {refund.booking?.host?.name || refund.booking?.host?.email || "Unknown User"}
-                  </p>
-                  <p className="caption text-[#F7F7F7]/25 mt-0.5">
-                    {refund.booking?.venue?.name || "Unknown Venue"}
-                  </p>
-                  <p className="caption text-[#F7F7F7]/40 mt-2 italic">&ldquo;{refund.reason}&rdquo;</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                      <Clock className="h-3 w-3" /> Booking: {refund.booking?.bookingDate ? new Date(refund.booking.bookingDate).toLocaleDateString() : "—"}
-                    </span>
-                    <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                      Requested: {new Date(refund.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
+        {isLoading ? (
+          <>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+            ))}
+          </>
+        ) : isError ? (
+          <ErrorBanner title="Couldn't load refunds" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+        ) : refunds.length === 0 ? (
+          <EmptyState
+            icon={RotateCcw}
+            title="No refunds found"
+            description={filter === "PENDING" ? "There are no refund requests waiting for review." : "No refunds match the selected filter."}
+          />
+        ) : (
+          refunds.map((refund) => {
+            const isActing = actingId === refund.id;
 
-              <div className="flex items-center gap-3 sm:shrink-0 sm:flex-col sm:items-end">
-                <p className="price text-lg text-[#F7F7F7]">Rp {(Number(refund.amount) / 1000).toFixed(0)}K</p>
-                {refund.status === "PENDING" && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleApprove(refund.id)}
-                      disabled={approveMutation.isPending || rejectMutation.isPending}
-                      className="flex h-8 items-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-xs font-medium text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Approve
-                    </button>
-                    <button
-                      onClick={() => handleReject(refund.id)}
-                      disabled={approveMutation.isPending || rejectMutation.isPending}
-                      className="flex h-8 items-center gap-1.5 rounded-lg bg-red-500/10 px-3 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
-                    >
-                      <XCircle className="h-3.5 w-3.5" /> Reject
-                    </button>
+            return (
+              <div key={refund.id} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                      refund.status === "PENDING" ? "bg-amber-500/10" : "bg-[#E6FA50]/10"
+                    }`}>
+                      {refund.status === "PENDING"
+                        ? <AlertCircle className="h-4 w-4 text-amber-400" />
+                        : <RotateCcw className="h-4 w-4 text-[#E6FA50]" />
+                      }
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-[#F7F7F7]">
+                          {refund.booking?.venue?.name ?? "Unknown venue"}
+                        </span>
+                        <RefundStatusBadge status={refund.status} />
+                      </div>
+                      <p className="caption text-[#F7F7F7]/40 mt-1">
+                        {refund.booking?.court?.name ?? "Court"} · #{refund.bookingId.slice(0, 8)}
+                      </p>
+                      <p className="text-sm text-[#F7F7F7]/60 mt-1">
+                        {refund.booking?.host?.name || refund.booking?.host?.email || "Unknown User"}
+                      </p>
+                      <p className="caption text-[#F7F7F7]/40 mt-2 italic">&ldquo;{refund.reason}&rdquo;</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-3">
+                        <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
+                          <Clock className="h-3 w-3" /> Booking: {formatBookingDate(refund.booking?.bookingDate)}
+                        </span>
+                        <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
+                          Requested: {new Date(refund.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                )}
-                {refund.status === "APPROVED" && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleProcess(refund.id)}
-                      disabled={processMutation.isPending}
-                      className="flex h-8 items-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-xs font-medium text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" /> Process refund
-                    </button>
+
+                  <div className="flex items-center gap-3 sm:shrink-0 sm:flex-col sm:items-end">
+                    <p className="price text-lg text-[#F7F7F7]">{formatIDR(Number(refund.amount))}</p>
+                    {refund.status === "PENDING" && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApprove(refund.id)}
+                          disabled={actingId !== null}
+                          className="flex h-8 min-w-[80px] items-center justify-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-xs font-medium text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50"
+                        >
+                          {isActing && approveMutation.isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <><CheckCircle2 className="h-3.5 w-3.5" /> Approve</>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRejectReason("");
+                            setRejectTarget(refund.id);
+                          }}
+                          disabled={actingId !== null}
+                          className="flex h-8 min-w-[80px] items-center justify-center gap-1.5 rounded-lg bg-red-500/10 px-3 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                        >
+                          {isActing && rejectMutation.isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <><XCircle className="h-3.5 w-3.5" /> Reject</>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    {refund.status === "APPROVED" && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleProcess(refund.id)}
+                          disabled={actingId !== null}
+                          className="flex h-8 min-w-[120px] items-center justify-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-xs font-medium text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50"
+                        >
+                          {isActing && processMutation.isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <><RotateCcw className="h-3.5 w-3.5" /> Process refund</>
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Reject Modal */}
+      {rejectTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm" onClick={() => setRejectTarget(null)} />
+          <div className="relative w-full max-w-md rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 shadow-2xl">
+            <h2 className="heading-2 text-xl text-[#F7F7F7]">Reject refund</h2>
+            <div className="mt-4">
+              <textarea
+                rows={4}
+                placeholder="Reason for rejection (required)..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+              />
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setRejectTarget(null)}
+                disabled={rejectMutation.isPending}
+                className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => rejectMutation.mutate({ id: rejectTarget, notes: rejectReason.trim() })}
+                disabled={!rejectReason.trim() || rejectMutation.isPending}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/10 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+              >
+                {rejectMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Confirm Reject
+              </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (
