@@ -97,6 +97,7 @@ model Venue {
   facilities     String[]     @default([])
   openTime       String
   closeTime      String
+  weeklyHours    Json?
   rating         Decimal      @default(0) @db.Decimal(3, 2)
   reviewCount    Int          @default(0)
   commissionRate Decimal      @default(10) @db.Decimal(5, 2)

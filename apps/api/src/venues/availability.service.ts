@@ -28,15 +28,29 @@ export class AvailabilityService {
 
     const venue = await this.prisma.venue.findFirst({
       where: { id: venueId, status: VenueStatus.APPROVED },
-      select: { id: true, openTime: true, closeTime: true },
+      select: { id: true, openTime: true, closeTime: true, weeklyHours: true },
     });
 
     if (!venue) {
       throw new NotFoundException("Venue not found");
     }
 
-    const startHour = this.parseOperatingHour(venue.openTime, DEFAULT_OPEN_HOUR);
-    const endHour = this.parseOperatingHour(venue.closeTime, DEFAULT_CLOSE_HOUR);
+    const dayIdx = new Date(dateStr + "T12:00:00Z").getUTCDay();
+    const key = ["sun","mon","tue","wed","thu","fri","sat"][dayIdx];
+
+    let startHour = this.parseOperatingHour(venue.openTime, DEFAULT_OPEN_HOUR);
+    let endHour = this.parseOperatingHour(venue.closeTime, DEFAULT_CLOSE_HOUR);
+    let isClosed = false;
+
+    if (venue.weeklyHours && typeof venue.weeklyHours === "object" && key in venue.weeklyHours) {
+      const entry = (venue.weeklyHours as Record<string, { open?: string; close?: string; closed?: boolean }>)[key];
+      if (entry.closed === true) {
+        isClosed = true;
+      } else {
+        if (entry.open) startHour = this.parseOperatingHour(entry.open, DEFAULT_OPEN_HOUR);
+        if (entry.close) endHour = this.parseOperatingHour(entry.close, DEFAULT_CLOSE_HOUR);
+      }
+    }
 
     const courtWhere: { venueId: string; isActive: boolean; id?: string } = {
       venueId,
@@ -61,11 +75,20 @@ export class AvailabilityService {
       },
     });
 
-    if (courts.length === 0) {
+    if (courts.length === 0 || isClosed) {
       return {
         date: dateStr,
         timezone: TIMEZONE,
-        courts: [],
+        courts: courts.map(c => ({
+          id: c.id,
+          name: c.name,
+          type: c.type,
+          weekdayPeak: c.weekdayPeak,
+          weekdayOffPeak: c.weekdayOffPeak,
+          weekendPeak: c.weekendPeak,
+          weekendOffPeak: c.weekendOffPeak,
+          slots: [],
+        })),
       };
     }
 

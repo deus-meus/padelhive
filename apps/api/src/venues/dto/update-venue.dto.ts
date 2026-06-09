@@ -20,6 +20,9 @@ export class UpdateVenueDto {
   closeTime?: string;
 
   @ApiPropertyOptional()
+  weeklyHours?: Record<string, { open: string; close: string; closed?: boolean }> | null;
+
+  @ApiPropertyOptional()
   imageUrl?: string;
 
   @ApiPropertyOptional({ type: [String] })

@@ -21,6 +21,7 @@ type ApiVenue = {
   status: "APPROVED" | string;
   courtCount?: number;
   priceFrom?: number;
+  weeklyHours?: Record<string, { open: string; close: string; closed?: boolean }> | null;
 };
 
 type ApiCourt = {
@@ -306,6 +307,7 @@ function mapVenue(venue: ApiVenue): Venue {
         : [padelImg(1200, 85), padelImg(600), padelImg(600)],
     facilities: venue.facilities,
     operatingHours: { open: venue.openTime, close: venue.closeTime },
+    weeklyHours: venue.weeklyHours ?? null,
     rating: Number(venue.rating),
     reviewCount: Number(venue.reviewCount),
     isVerified: venue.status === "APPROVED",
@@ -379,6 +381,7 @@ export type VenueInput = {
   imageUrl?: string;
   photos?: string[];
   facilities?: string[];
+  weeklyHours?: Record<string, { open: string; close: string; closed?: boolean }>;
 };
 
 export type UpdateVenueInput = Partial<VenueInput>;

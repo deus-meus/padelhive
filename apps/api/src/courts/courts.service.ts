@@ -77,7 +77,7 @@ export class CourtsService {
     const priceFields = ["weekdayPeak", "weekdayOffPeak", "weekendPeak", "weekendOffPeak"];
     for (const field of priceFields) {
       if (!partial || fields[field] !== undefined) {
-        if (!Number.isInteger(fields[field]) || fields[field] < 0) {
+        if (!Number.isInteger(fields[field]) || (fields[field] as number) < 0) {
           throw new BadRequestException("Prices must be non-negative whole numbers");
         }
       }
@@ -111,7 +111,7 @@ export class CourtsService {
 
   async createCourt(venueId: string, userId: string, isSuperAdmin: boolean, dto: CreateCourtDto): Promise<CourtResponseDto> {
     await this.assertVenueManageable(venueId, userId, isSuperAdmin);
-    this.validateCourtFields(dto, { partial: false });
+    this.validateCourtFields(dto as unknown as Record<string, unknown>, { partial: false });
 
     try {
       return await this.prisma.court.create({

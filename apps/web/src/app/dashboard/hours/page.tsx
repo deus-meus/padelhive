@@ -1,11 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, CheckCircle2, Building2, Loader2, Clock } from "lucide-react";
+import { Save, CheckCircle2, Building2, Loader2, Clock, Copy } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getVenuesManage, updateVenue, getApiErrorMessage } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+
+const DAYS = [
+  { key: "mon", label: "Monday" },
+  { key: "tue", label: "Tuesday" },
+  { key: "wed", label: "Wednesday" },
+  { key: "thu", label: "Thursday" },
+  { key: "fri", label: "Friday" },
+  { key: "sat", label: "Saturday" },
+  { key: "sun", label: "Sunday" },
+];
+
+type DaySchedule = {
+  key: string;
+  label: string;
+  open: string;
+  close: string;
+  closed: boolean;
+};
 
 export default function OperatingHoursPage() {
   const queryClient = useQueryClient();
@@ -18,15 +36,35 @@ export default function OperatingHoursPage() {
   const activeVenueId = selectedVenueId || (venues.length > 0 ? venues[0].id : null);
   const venue = venues.find((v) => v.id === activeVenueId);
 
-  const [openTime, setOpenTime] = useState("");
-  const [closeTime, setCloseTime] = useState("");
+  const [schedule, setSchedule] = useState<DaySchedule[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Sync inputs when venue changes
   useEffect(() => {
     if (venue) {
-      setOpenTime(venue.operatingHours.open);
-      setCloseTime(venue.operatingHours.close);
+      if (venue.weeklyHours) {
+        setSchedule(
+          DAYS.map((d) => {
+            const entry = venue.weeklyHours![d.key] || { open: "06:00", close: "22:00", closed: false };
+            return {
+              key: d.key,
+              label: d.label,
+              open: entry.open || "06:00",
+              close: entry.close || "22:00",
+              closed: !!entry.closed,
+            };
+          })
+        );
+      } else {
+        setSchedule(
+          DAYS.map((d) => ({
+            key: d.key,
+            label: d.label,
+            open: venue.operatingHours.open,
+            close: venue.operatingHours.close,
+            closed: false,
+          }))
+        );
+      }
       setErrorMsg(null);
     }
   }, [venue]);
@@ -37,7 +75,7 @@ export default function OperatingHoursPage() {
   }
 
   const { mutate, isPending, isSuccess, reset } = useMutation({
-    mutationFn: (data: { openTime: string; closeTime: string }) => {
+    mutationFn: (data: { weeklyHours: Record<string, { open: string; close: string; closed: boolean }> }) => {
       if (!activeVenueId) throw new Error("No venue selected");
       return updateVenue(activeVenueId, data);
     },
@@ -54,22 +92,52 @@ export default function OperatingHoursPage() {
   });
 
   function handleSave() {
-    if (!openTime || !closeTime) {
-      setErrorMsg("Both open and close times are required.");
-      return;
-    }
-    if (closeTime <= openTime) {
-      setErrorMsg("Close time must be after open time.");
-      return;
+    for (const day of schedule) {
+      if (!day.closed) {
+        if (!day.open || !day.close) {
+          setErrorMsg("Both open and close times are required for all open days.");
+          return;
+        }
+        if (day.close <= day.open) {
+          setErrorMsg(`Close time must be after open time on ${day.label}.`);
+          return;
+        }
+      }
     }
     setErrorMsg(null);
-    mutate({ openTime, closeTime });
+
+    const weeklyHours: Record<string, { open: string; close: string; closed: boolean }> = {};
+    schedule.forEach((day) => {
+      weeklyHours[day.key] = { open: day.open, close: day.close, closed: day.closed };
+    });
+
+    mutate({ weeklyHours });
+  }
+
+  function handleDayChange(index: number, field: keyof DaySchedule, value: string | boolean) {
+    setSchedule((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  }
+
+  function copyMonday() {
+    const mon = schedule.find((s) => s.key === "mon");
+    if (!mon) return;
+    setSchedule((prev) =>
+      prev.map((s) => ({
+        ...s,
+        open: mon.open,
+        close: mon.close,
+        closed: mon.closed,
+      }))
+    );
   }
 
   return (
     <div className="py-8">
       <section className="container max-w-3xl">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
@@ -128,7 +196,6 @@ export default function OperatingHoursPage() {
           </div>
         ) : (
           <>
-            {/* Venue selector */}
             <div className="mt-6 flex gap-2 overflow-x-auto no-scrollbar">
               {venues.map((v) => (
                 <button
@@ -145,16 +212,24 @@ export default function OperatingHoursPage() {
               ))}
             </div>
 
-            {/* Editing Box */}
             <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
-                  <Clock className="h-5 w-5 text-[#50C8C8]" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
+                    <Clock className="h-5 w-5 text-[#50C8C8]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-[#F7F7F7]">Venue Hours</h3>
+                    <p className="text-xs text-[#F7F7F7]/40 mt-0.5">Applies to all courts in this venue.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-[#F7F7F7]">Venue Hours</h3>
-                  <p className="text-xs text-[#F7F7F7]/40 mt-0.5">Applies to all courts in this venue.</p>
-                </div>
+                <button
+                  onClick={copyMonday}
+                  className="flex items-center gap-1.5 rounded-full border border-white/[0.08] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80"
+                >
+                  <Copy className="h-3 w-3" />
+                  Copy Monday
+                </button>
               </div>
 
               {errorMsg && (
@@ -163,25 +238,50 @@ export default function OperatingHoursPage() {
                 </div>
               )}
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#F7F7F7]/60">Open Time</label>
-                  <input
-                    type="time"
-                    value={openTime}
-                    onChange={(e) => setOpenTime(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [color-scheme:dark]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#F7F7F7]/60">Close Time</label>
-                  <input
-                    type="time"
-                    value={closeTime}
-                    onChange={(e) => setCloseTime(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [color-scheme:dark]"
-                  />
-                </div>
+              <div className="space-y-4">
+                {schedule.map((day, index) => (
+                  <div key={day.key} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                    <div className="flex items-center justify-between sm:w-32">
+                      <span className="text-sm font-medium text-[#F7F7F7]/80">{day.label}</span>
+                      <label className="flex items-center gap-2 cursor-pointer sm:hidden">
+                        <span className="text-xs text-[#F7F7F7]/40">Closed</span>
+                        <input
+                          type="checkbox"
+                          checked={day.closed}
+                          onChange={(e) => handleDayChange(index, "closed", e.target.checked)}
+                          className="h-4 w-4 rounded border-white/[0.2] bg-transparent text-[#E6FA50] focus:ring-[#E6FA50]/30 focus:ring-offset-0"
+                        />
+                      </label>
+                    </div>
+                    
+                    <div className="flex-1 grid grid-cols-2 gap-4">
+                      <input
+                        type="time"
+                        value={day.open}
+                        onChange={(e) => handleDayChange(index, "open", e.target.value)}
+                        disabled={day.closed}
+                        className="w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed [color-scheme:dark]"
+                      />
+                      <input
+                        type="time"
+                        value={day.close}
+                        onChange={(e) => handleDayChange(index, "close", e.target.value)}
+                        disabled={day.closed}
+                        className="w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed [color-scheme:dark]"
+                      />
+                    </div>
+
+                    <label className="hidden sm:flex items-center gap-2 cursor-pointer ml-2">
+                      <input
+                        type="checkbox"
+                        checked={day.closed}
+                        onChange={(e) => handleDayChange(index, "closed", e.target.checked)}
+                        className="h-4 w-4 rounded border-white/[0.2] bg-transparent text-[#E6FA50] focus:ring-[#E6FA50]/30 focus:ring-offset-0"
+                      />
+                      <span className="text-xs font-medium text-[#F7F7F7]/40 uppercase tracking-wider">Closed</span>
+                    </label>
+                  </div>
+                ))}
               </div>
             </div>
           </>
