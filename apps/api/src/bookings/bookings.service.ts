@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
+import { RevenueDto } from "./dto/revenue.dto";
 import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc } from "../common/pricing.util";
 import { 
   PENDING_PAYMENT_TTL_MS, 
@@ -566,6 +567,186 @@ export class BookingsService {
       courtUtilization,
       todaysSchedule,
       recentBookings,
+    };
+  }
+
+  async getRevenue(userId: string, isSuperAdmin: boolean): Promise<RevenueDto> {
+    const venues = await this.prisma.venue.findMany({
+      where: isSuperAdmin ? {} : {
+        OR: [{ ownerId: userId }, { admins: { some: { userId } } }]
+      },
+      select: { id: true },
+    });
+
+    if (venues.length === 0) {
+      const emptyMonthly = [];
+      const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dateLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const todayDate = new Date();
+      const todayWibStr = utcToWibDateStr(todayDate);
+      const [yearStr, monthStr] = todayWibStr.split('-');
+      let year = parseInt(yearStr, 10);
+      let month = parseInt(monthStr, 10);
+
+      for (let i = 11; i >= 0; i--) {
+        let m = month - i;
+        if (m < 1) { m += 12; }
+        emptyMonthly.push({ month: shortMonths[m - 1], value: 0 });
+      }
+
+      const emptyWeekly = [];
+      const todayUtcDate = new Date(`${todayWibStr}T00:00:00.000Z`);
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(todayUtcDate.getTime() - i * 24 * 60 * 60 * 1000);
+        emptyWeekly.push({ day: dateLabels[d.getUTCDay()], value: 0 });
+      }
+
+      return {
+        monthlySeries: emptyMonthly,
+        weeklySeries: emptyWeekly,
+        kpis: {
+          totalRevenue: 0,
+          totalBookings: 0,
+          avgBookingValue: 0,
+          uniquePlayers: 0,
+          cancellationRate: 0,
+          repeatCustomerRate: 0,
+        },
+        topCourts: [],
+      };
+    }
+
+    const venueIds = venues.map((v) => v.id);
+
+    const todayDate = new Date();
+    const todayWibStr = utcToWibDateStr(todayDate);
+    const [yearStr, monthStr] = todayWibStr.split('-');
+    let year = parseInt(yearStr, 10);
+    let month = parseInt(monthStr, 10);
+
+    let windowMonth = month - 11;
+    let windowYear = year;
+    if (windowMonth < 1) {
+      windowMonth += 12;
+      windowYear -= 1;
+    }
+    const windowStartWib = `${windowYear}-${String(windowMonth).padStart(2, '0')}-01T00:00:00.000Z`;
+    const windowStart = new Date(windowStartWib);
+
+    const windowBookings = await this.prisma.booking.findMany({
+      where: {
+        venueId: { in: venueIds },
+        bookingDate: { gte: windowStart },
+      },
+      select: {
+        id: true,
+        bookingDate: true,
+        finalAmount: true,
+        status: true,
+        hostUserId: true,
+        courtId: true,
+        court: { select: { name: true } },
+        venue: { select: { name: true } },
+      },
+    });
+
+    const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthlySeriesMap = new Map<string, { month: string; value: number }>();
+    for (let i = 11; i >= 0; i--) {
+      let m = month - i;
+      let y = year;
+      if (m < 1) {
+        m += 12;
+        y -= 1;
+      }
+      const mStr = String(m).padStart(2, '0');
+      const key = `${y}-${mStr}`;
+      const label = shortMonths[m - 1];
+      monthlySeriesMap.set(key, { month: label, value: 0 });
+    }
+
+    const dateLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const weeklySeriesMap = new Map<string, { day: string; value: number }>();
+    const todayUtcDate = new Date(`${todayWibStr}T00:00:00.000Z`);
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(todayUtcDate.getTime() - i * 24 * 60 * 60 * 1000);
+      const dSafeStr = d.toISOString().split("T")[0];
+      weeklySeriesMap.set(dSafeStr, {
+        day: dateLabels[d.getUTCDay()],
+        value: 0,
+      });
+    }
+
+    let totalRevenue = 0;
+    let totalBookings = 0;
+    let cancelledCount = 0;
+    const uniquePlayersMap = new Map<string, number>();
+    const topCourtsMap = new Map<string, { courtId: string; name: string; venue: string; bookings: number; revenue: number }>();
+
+    for (const b of windowBookings) {
+      if (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.COMPLETED) {
+        totalRevenue += b.finalAmount;
+        totalBookings += 1;
+        uniquePlayersMap.set(b.hostUserId, (uniquePlayersMap.get(b.hostUserId) || 0) + 1);
+
+        const wibDateStr = utcToWibDateStr(b.bookingDate);
+        const monthKey = wibDateStr.slice(0, 7);
+        const mData = monthlySeriesMap.get(monthKey);
+        if (mData) {
+          mData.value += b.finalAmount;
+        }
+
+        const wData = weeklySeriesMap.get(wibDateStr);
+        if (wData) {
+          wData.value += b.finalAmount;
+        }
+
+        const cData = topCourtsMap.get(b.courtId);
+        if (cData) {
+          cData.bookings += 1;
+          cData.revenue += b.finalAmount;
+        } else {
+          topCourtsMap.set(b.courtId, {
+            courtId: b.courtId,
+            name: b.court.name,
+            venue: b.venue.name,
+            bookings: 1,
+            revenue: b.finalAmount,
+          });
+        }
+      } else if (b.status === BookingStatus.CANCELLED) {
+        cancelledCount += 1;
+      }
+    }
+
+    const avgBookingValue = totalBookings > 0 ? Math.round(totalRevenue / totalBookings) : 0;
+    const uniquePlayers = uniquePlayersMap.size;
+    const cancellationRate = (totalBookings + cancelledCount) > 0 
+      ? Math.round((cancelledCount / (totalBookings + cancelledCount)) * 1000) / 10 
+      : 0;
+    
+    let repeatCustomers = 0;
+    for (const count of uniquePlayersMap.values()) {
+      if (count >= 2) repeatCustomers++;
+    }
+    const repeatCustomerRate = uniquePlayers > 0 ? Math.round((repeatCustomers / uniquePlayers) * 100) : 0;
+
+    const topCourts = Array.from(topCourtsMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return {
+      monthlySeries: Array.from(monthlySeriesMap.values()),
+      weeklySeries: Array.from(weeklySeriesMap.values()),
+      kpis: {
+        totalRevenue,
+        totalBookings,
+        avgBookingValue,
+        uniquePlayers,
+        cancellationRate,
+        repeatCustomerRate,
+      },
+      topCourts,
     };
   }
 }

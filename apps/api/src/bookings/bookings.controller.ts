@@ -20,6 +20,7 @@ import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 import { BookingListItemDto } from "./dto/list-bookings.dto";
 import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
+import { RevenueDto } from "./dto/revenue.dto";
 
 @ApiTags("bookings")
 @Controller("bookings")
@@ -46,6 +47,16 @@ export class BookingsController {
   @ApiUnauthorizedResponse({ description: "Authentication required" })
   ownerDashboard(@CurrentUser() user: RequestUser) {
     return this.bookingsService.getOwnerDashboard(user.id, user.role === UserRole.SUPER_ADMIN);
+  }
+
+  @Get("revenue")
+  @Roles(UserRole.VENUE_OWNER, UserRole.VENUE_ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get venue owner revenue analytics" })
+  @ApiOkResponse({ type: RevenueDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  revenue(@CurrentUser() user: RequestUser) {
+    return this.bookingsService.getRevenue(user.id, user.role === UserRole.SUPER_ADMIN);
   }
 
   @Get(":id")

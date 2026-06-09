@@ -499,6 +499,24 @@ export async function getOwnerDashboard(): Promise<OwnerDashboard> {
   return apiFetch<OwnerDashboard>("/bookings/owner-dashboard");
 }
 
+export type OwnerRevenue = {
+  monthlySeries: Array<{ month: string; value: number }>;
+  weeklySeries: Array<{ day: string; value: number }>;
+  kpis: {
+    totalRevenue: number;
+    totalBookings: number;
+    avgBookingValue: number;
+    uniquePlayers: number;
+    cancellationRate: number;
+    repeatCustomerRate: number;
+  };
+  topCourts: Array<{ courtId: string; name: string; venue: string; bookings: number; revenue: number }>;
+};
+
+export function getRevenue() {
+  return apiFetch<OwnerRevenue>("/bookings/revenue");
+}
+
 export type AdminOverview = {
   gmv: number;
   commissionRevenue: number;
