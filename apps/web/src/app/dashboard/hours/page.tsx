@@ -106,11 +106,38 @@ export default function OperatingHoursPage() {
           </button>
         </div>
 
-        {isVenuesError ? (
+        {isLoading ? (
+          <>
+            {/* Skeleton Venue selector */}
+            <div className="mt-6 flex gap-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-9 w-24 animate-pulse rounded-full bg-white/[0.04]" />
+              ))}
+            </div>
+
+            {/* Skeleton Schedule table */}
+            <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] overflow-hidden">
+              <div className="grid grid-cols-[1fr_80px_80px_60px] gap-4 border-b border-white/[0.04] px-6 py-3 sm:grid-cols-[1fr_120px_120px_80px]">
+                <span className="caption text-[#F7F7F7]/25">Day</span>
+                <span className="caption text-[#F7F7F7]/25">Open</span>
+                <span className="caption text-[#F7F7F7]/25">Close</span>
+                <span className="caption text-[#F7F7F7]/25">Status</span>
+              </div>
+              {[...Array(7)].map((_, i) => (
+                <div key={i} className="grid grid-cols-[1fr_80px_80px_60px] items-center gap-4 border-b border-white/[0.03] px-6 py-4 sm:grid-cols-[1fr_120px_120px_80px]">
+                  <div className="h-5 w-24 animate-pulse rounded-md bg-white/[0.04]" />
+                  <div className="h-8 w-full animate-pulse rounded-lg bg-white/[0.04]" />
+                  <div className="h-8 w-full animate-pulse rounded-lg bg-white/[0.04]" />
+                  <div className="h-6 w-16 animate-pulse rounded-full bg-white/[0.04]" />
+                </div>
+              ))}
+            </div>
+          </>
+        ) : isVenuesError ? (
           <div className="mt-6">
             <ErrorBanner title="Couldn't load venues" error={venuesError} onRetry={() => refetchVenues()} isRetrying={isVenuesFetching} />
           </div>
-        ) : !isLoading && venues.length === 0 ? (
+        ) : venues.length === 0 ? (
           <div className="mt-6">
             <EmptyState icon={Building2} title="No venues yet" description="Add a venue first to set its operating hours." actionLabel="Go to Venues" actionHref="/dashboard/venues" />
           </div>
@@ -118,7 +145,6 @@ export default function OperatingHoursPage() {
           <>
             {/* Venue selector */}
             <div className="mt-6 flex gap-2">
-              {isLoading && <span className="text-sm text-[#F7F7F7]/40">Loading venues...</span>}
           {venues.map((v) => (
             <button
               key={v.id}

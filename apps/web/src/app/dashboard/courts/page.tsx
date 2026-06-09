@@ -61,11 +61,42 @@ export default function CourtsPage() {
           </button>
         </div>
 
-        {isVenuesError ? (
+        {isVenuesLoading || isCourtsLoading ? (
+          <>
+            {/* Skeleton Venue selector */}
+            <div className="mt-6 flex gap-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-9 w-24 animate-pulse rounded-full bg-white/[0.04]" />
+              ))}
+            </div>
+            {/* Skeleton Courts list */}
+            <div className="mt-8 space-y-4">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-6 w-32 animate-pulse rounded-md bg-white/[0.04]" />
+                      <div className="h-5 w-16 animate-pulse rounded-full bg-white/[0.04]" />
+                    </div>
+                    <div className="h-9 w-24 animate-pulse rounded-lg bg-white/[0.04]" />
+                  </div>
+                  <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {[...Array(4)].map((_, j) => (
+                      <div key={j} className="h-[90px] animate-pulse rounded-xl border border-white/[0.04] bg-white/[0.02]" />
+                    ))}
+                  </div>
+                  <div className="mt-4 flex items-center gap-4 border-t border-white/[0.04] pt-4">
+                    <div className="h-3 w-48 animate-pulse rounded-md bg-white/[0.04]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : isVenuesError ? (
           <div className="mt-8">
             <ErrorBanner title="Couldn't load venues" error={venuesError} onRetry={() => refetchVenues()} isRetrying={isVenuesFetching} />
           </div>
-        ) : !isVenuesLoading && venues.length === 0 ? (
+        ) : venues.length === 0 ? (
           <div className="mt-8">
             <EmptyState icon={Building2} title="No venues yet" description="Add a venue first to manage its courts and pricing." actionLabel="Go to Venues" actionHref="/dashboard/venues" />
           </div>
@@ -73,7 +104,6 @@ export default function CourtsPage() {
           <>
             {/* Venue selector */}
             <div className="mt-6 flex gap-2">
-              {isVenuesLoading && <span className="text-sm text-[#F7F7F7]/40">Loading venues...</span>}
           {venues.map((v) => (
             <button
               key={v.id}
@@ -172,25 +202,18 @@ export default function CourtsPage() {
               </div>
             );
           })}
+          {courts.length === 0 && activeVenueId && (
+            <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
+              <p className="text-sm text-[#F7F7F7]/25">No courts for this venue yet.</p>
+              <button
+                onClick={() => showToast("Add court coming soon in backend integration.")}
+                className="btn-lime mt-4 rounded-full px-6 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
+              >
+                Add First Court
+              </button>
+            </div>
+          )}
         </div>
-
-        {isCourtsLoading && (
-          <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
-            <p className="text-sm text-[#F7F7F7]/25">Loading courts...</p>
-          </div>
-        )}
-
-        {!isCourtsLoading && courts.length === 0 && activeVenueId && (
-          <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
-            <p className="text-sm text-[#F7F7F7]/25">No courts for this venue yet.</p>
-            <button
-              onClick={() => showToast("Add court coming soon in backend integration.")}
-              className="btn-lime mt-4 rounded-full px-6 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
-            >
-              Add First Court
-            </button>
-          </div>
-        )}
           </>
         )}
 

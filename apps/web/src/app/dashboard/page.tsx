@@ -25,15 +25,54 @@ export default function DashboardPage() {
   });
 
   if (isLoading) {
+    const firstName = user?.name?.split(" ")[0] ?? "there";
     return (
-      <div className="pt-element pb-component container space-y-8">
-        <div className="h-20 w-64 animate-pulse rounded bg-white/[0.04]" />
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white/[0.04]" />
-          ))}
-        </div>
-        <div className="h-96 animate-pulse rounded-2xl bg-white/[0.04]" />
+      <div className="pt-element pb-component">
+        {/* WELCOME */}
+        <section className="container pb-component">
+          <p className="caption text-[#F7F7F7]/25">Good morning</p>
+          <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] md:text-4xl">
+            Welcome back, <span className="text-[#E6FA50]">{firstName}</span>
+          </h1>
+          <div className="mt-3 h-5 w-48 animate-pulse rounded-md bg-white/[0.04]" />
+        </section>
+
+        {/* KPIs */}
+        <section className="container pb-component">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+            ))}
+          </div>
+        </section>
+
+        {/* REVENUE + UTILIZATION */}
+        <section className="container pb-component">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]">
+            <div className="h-[300px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+            <div className="h-[300px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+          </div>
+        </section>
+
+        {/* TODAY'S SCHEDULE */}
+        <section className="container pb-component">
+          <div className="h-[250px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+        </section>
+
+        {/* RECENT BOOKINGS */}
+        <section className="container pb-component">
+          <div className="h-[250px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+        </section>
+
+        {/* QUICK ACTIONS */}
+        <section className="container pb-component">
+          <div className="mb-5 h-5 w-24 animate-pulse rounded-md bg-white/[0.04]" />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-[104px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+            ))}
+          </div>
+        </section>
       </div>
     );
   }
@@ -54,14 +93,6 @@ export default function DashboardPage() {
             isRetrying={isFetching}
           />
         </div>
-        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
-          <KPICard icon={DollarSign} label="Revenue" value="—" />
-          <KPICard icon={CalendarDays} label="Bookings" value="—" />
-          <KPICard icon={TrendingUp} label="Occupancy" value="—" />
-          <KPICard icon={Building2} label="Active Courts" value="—" />
-          <KPICard icon={Clock} label="Pending Payments" value="—" highlight />
-        </div>
-        <div className="mt-component h-72 rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
       </div>
     );
   }
