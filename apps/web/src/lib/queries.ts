@@ -16,6 +16,7 @@ export const queryKeys = {
   },
   dashboard: {
     owner: () => ["dashboard", "owner"] as const,
+    revenue: () => ["dashboard", "revenue"] as const,
   },
   payments: {
     detail: (id: string) => ["payments", id] as const,
