@@ -36,3 +36,37 @@ export function ErrorState({
     </div>
   );
 }
+
+export function ErrorOverlay({
+  title,
+  description,
+  onRetry,
+  isRetrying = false,
+}: {
+  title?: string;
+  description?: string;
+  onRetry?: () => void;
+  isRetrying?: boolean;
+}) {
+  return (
+    <div className="relative min-h-[70vh] w-full overflow-hidden">
+      <div aria-hidden className="pointer-events-none select-none space-y-6 opacity-40 blur-[2px]">
+        <div className="h-14 w-56 animate-pulse rounded-lg bg-white/[0.04]" />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/[0.04]" />
+          ))}
+        </div>
+        <div className="h-72 animate-pulse rounded-2xl bg-white/[0.04]" />
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center px-4">
+        <ErrorState
+          title={title}
+          description={description}
+          onRetry={onRetry}
+          isRetrying={isRetrying}
+        />
+      </div>
+    </div>
+  );
+}
