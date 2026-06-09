@@ -181,4 +181,26 @@ export class VenuesService {
       throw error;
     }
   }
+
+  async findVenuesForAdmin(status?: VenueStatus): Promise<VenueResponseDto[]> {
+    const where: Prisma.VenueWhereInput = status && Object.values(VenueStatus).includes(status) ? { status } : {};
+    const venues = await this.prisma.venue.findMany({
+      where,
+      orderBy: [{ createdAt: "desc" }],
+      select: venueSelect,
+    });
+    return venues.map(v => this.toVenueResponse(v));
+  }
+
+  async setVenueStatus(id: string, status: VenueStatus): Promise<VenueResponseDto> {
+    if (!Object.values(VenueStatus).includes(status)) throw new BadRequestException("Invalid status");
+    const existing = await this.prisma.venue.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) throw new NotFoundException("Venue not found");
+    const venue = await this.prisma.venue.update({
+      where: { id },
+      data: { status },
+      select: venueSelect,
+    });
+    return this.toVenueResponse(venue);
+  }
 }

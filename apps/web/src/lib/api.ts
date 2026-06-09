@@ -602,3 +602,19 @@ export async function getAdminOverview(): Promise<AdminOverview> {
   return apiFetch<AdminOverview>("/admin/overview");
 }
 
+type VenueStatusValue = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
+
+export async function getAdminVenues(status?: VenueStatusValue): Promise<Venue[]> {
+  const q = status ? `?status=${status}` : "";
+  const venues = await apiFetch<ApiVenue[]>(`/admin/venues${q}`);
+  return venues.map(mapVenue);
+}
+
+export async function updateVenueStatus(id: string, status: VenueStatusValue): Promise<Venue> {
+  const v = await apiFetch<ApiVenue>(`/admin/venues/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+  return mapVenue(v);
+}
+

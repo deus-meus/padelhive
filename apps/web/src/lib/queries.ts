@@ -15,6 +15,7 @@ export const queryKeys = {
   },
   admin: {
     overview: () => ["admin", "overview"] as const,
+    venues: (status?: string) => ["admin", "venues", status ?? "all"] as const,
   },
   dashboard: {
     owner: () => ["dashboard", "owner"] as const,
