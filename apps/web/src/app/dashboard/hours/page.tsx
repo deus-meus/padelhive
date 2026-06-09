@@ -35,7 +35,7 @@ function getDefaultSchedule(venue: Venue): DaySchedule[] {
 }
 
 export default function OperatingHoursPage() {
-  const { data: venues = [], isLoading, isError: isVenuesError, refetch: refetchVenues, isFetching: isVenuesFetching } = useQuery({
+  const { data: venues = [], isLoading, isError: isVenuesError, error: venuesError, refetch: refetchVenues, isFetching: isVenuesFetching } = useQuery({
     queryKey: queryKeys.venues.all(),
     queryFn: getVenues,
   });
@@ -108,7 +108,7 @@ export default function OperatingHoursPage() {
 
         {isVenuesError ? (
           <div className="mt-6">
-            <ErrorBanner title="Couldn't load venues" description="We couldn't reach the server. Check your connection and try again." onRetry={() => refetchVenues()} isRetrying={isVenuesFetching} />
+            <ErrorBanner title="Couldn't load venues" error={venuesError} onRetry={() => refetchVenues()} isRetrying={isVenuesFetching} />
           </div>
         ) : !isLoading && venues.length === 0 ? (
           <div className="mt-6">

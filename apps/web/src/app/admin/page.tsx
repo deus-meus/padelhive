@@ -15,7 +15,7 @@ import { queryKeys } from "@/lib/queries";
 import { ErrorBanner } from "@/components/ui/error-state";
 
 export default function AdminOverviewPage() {
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: queryKeys.admin.overview(),
     queryFn: getAdminOverview,
   });
@@ -58,7 +58,7 @@ export default function AdminOverviewPage() {
         <div className="mb-6">
           <ErrorBanner
             title="Couldn't load admin metrics"
-            description="We couldn't reach the server to load platform metrics. Check your connection and try again."
+            error={error}
             onRetry={() => refetch()}
             isRetrying={isFetching}
           />
