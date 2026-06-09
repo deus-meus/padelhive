@@ -219,6 +219,29 @@ export class ApiRequestError extends Error {
   }
 }
 
+export function getApiErrorMessage(error: unknown): string {
+  if (error instanceof ApiRequestError) {
+    const status = error.status;
+    if (status === 401 || status === 403) {
+      return "Your session may have expired. Please sign in and try again.";
+    }
+    if (status === 404) {
+      return "We couldn't find this data. It may have been moved or removed.";
+    }
+    if (status === 408 || status === 429) {
+      return "The server is busy right now. Please wait a moment and try again.";
+    }
+    if (typeof status === "number" && status >= 500) {
+      return "The server ran into a problem. Please try again in a moment.";
+    }
+    if (error.message && !error.message.startsWith("API request failed")) {
+      return error.message;
+    }
+    return "Something went wrong while loading this data. Please try again.";
+  }
+  return "We couldn't reach the server. Check your connection and try again.";
+}
+
 type ApiFetchOptions = RequestInit;
 
 async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<T> {

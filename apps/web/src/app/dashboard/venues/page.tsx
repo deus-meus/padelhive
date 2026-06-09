@@ -40,7 +40,7 @@ export default function VenueManagementPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  const { data: venues = [], isLoading, isError, refetch, isFetching } = useQuery({
+  const { data: venues = [], isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: queryKeys.venues.all(),
     queryFn: getVenues,
   });
@@ -75,7 +75,7 @@ export default function VenueManagementPage() {
         {/* Venue List */}
         <div className="mt-8 space-y-4">
           {isError ? (
-            <ErrorBanner title="Couldn't load venues" description="We couldn't reach the server. Check your connection and try again." onRetry={() => refetch()} isRetrying={isFetching} />
+            <ErrorBanner title="Couldn't load venues" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
           ) : isLoading ? (
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
               <p className="caption text-[#F7F7F7]/25">Loading venues...</p>

@@ -2,6 +2,7 @@
 
 import { AlertTriangle, RotateCw, Inbox } from "lucide-react";
 import Link from "next/link";
+import { getApiErrorMessage } from "@/lib/api";
 export function ErrorState({
   title = "Couldn't load data",
   description = "We couldn't reach the server. Check your connection and try again.",
@@ -40,22 +41,26 @@ export function ErrorState({
 export function ErrorBanner({
   title = "Couldn't load data",
   description,
+  error,
   onRetry,
   isRetrying = false,
 }: {
   title?: string;
   description?: string;
+  error?: unknown;
   onRetry?: () => void;
   isRetrying?: boolean;
 }) {
+  const resolvedDescription = description ?? (error !== undefined ? getApiErrorMessage(error) : "Couldn't load data");
+
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
         <div>
           <p className="text-sm font-medium text-[#F7F7F7]">{title}</p>
-          {description ? (
-            <p className="mt-0.5 text-xs leading-5 text-[#F7F7F7]/40">{description}</p>
+          {resolvedDescription ? (
+            <p className="mt-0.5 text-xs leading-5 text-[#F7F7F7]/40">{resolvedDescription}</p>
           ) : null}
         </div>
       </div>
