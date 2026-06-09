@@ -14,6 +14,8 @@ import {
   MoreVertical,
   Building2,
   Loader2,
+  X,
+  ImageIcon,
   type LucideIcon,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -184,6 +186,24 @@ function VenueFormModal({
   const [description, setDescription] = useState(initial?.description || "");
   const [openTime, setOpenTime] = useState(initial?.operatingHours?.open || "06:00");
   const [closeTime, setCloseTime] = useState(initial?.operatingHours?.close || "23:00");
+  const [imageUrl, setImageUrl] = useState(initial?.imageUrl || "");
+  const [coverError, setCoverError] = useState(false);
+  const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
+  const [photoDraft, setPhotoDraft] = useState("");
+  const [facilities, setFacilities] = useState<string[]>(initial?.facilities ?? []);
+  const [facilityDraft, setFacilityDraft] = useState("");
+
+  const handleAddPhoto = () => {
+    const val = photoDraft.trim();
+    if (val && !photos.includes(val)) setPhotos([...photos, val]);
+    setPhotoDraft("");
+  };
+
+  const handleAddFacility = () => {
+    const val = facilityDraft.trim();
+    if (val && !facilities.includes(val)) setFacilities([...facilities, val]);
+    setFacilityDraft("");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,17 +217,20 @@ function VenueFormModal({
       description,
       openTime,
       closeTime,
+      imageUrl: imageUrl.trim(),
+      photos,
+      facilities,
     });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.06] bg-[#0C1B26] shadow-2xl">
-        <div className="flex items-center justify-between border-b border-white/[0.06] p-6">
+      <div className="relative flex w-full max-w-lg max-h-[90vh] flex-col rounded-2xl border border-white/[0.06] bg-[#0C1B26] shadow-2xl">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] p-6">
           <h2 className="heading-2 text-xl text-[#F7F7F7]">
             {mode === "add" ? "Add New Venue" : "Edit Venue"}
           </h2>
@@ -216,8 +239,9 @@ function VenueFormModal({
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="space-y-4">
+        <div className="overflow-y-auto p-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+            <div className="space-y-4">
             <div>
               <label className="caption text-[#F7F7F7]/40">Venue Name</label>
               <input
@@ -284,27 +308,169 @@ function VenueFormModal({
                 />
               </div>
             </div>
-          </div>
+            </div>
 
-          <div className="mt-8 flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isPending}
-              className="flex-1 rounded-full border border-white/[0.08] py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="btn-lime flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
-            >
-              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {mode === "add" ? "Submit for Approval" : "Save Changes"}
-            </button>
-          </div>
-        </form>
+            <hr className="border-white/[0.06]" />
+
+            {/* Cover Image */}
+            <div>
+              <label className="caption text-[#F7F7F7]/40">Cover Image URL (Optional)</label>
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => {
+                  setImageUrl(e.target.value);
+                  setCoverError(false);
+                }}
+                placeholder="https://..."
+                className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+              />
+              {imageUrl && !coverError && (
+                <img
+                  src={imageUrl}
+                  alt="Cover preview"
+                  className="mt-2 h-24 w-full rounded-xl object-cover"
+                  onError={() => setCoverError(true)}
+                />
+              )}
+            </div>
+
+            {/* Photo Gallery */}
+            <div>
+              <label className="caption text-[#F7F7F7]/40">Photo Gallery (Optional)</label>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  type="url"
+                  value={photoDraft}
+                  onChange={(e) => setPhotoDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddPhoto();
+                    }
+                  }}
+                  placeholder="Add photo URL..."
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddPhoto}
+                  className="btn-lime shrink-0 rounded-xl px-4 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                >
+                  Add
+                </button>
+              </div>
+              {photos.length === 0 ? (
+                <p className="mt-2 text-xs text-[#F7F7F7]/40">No photos added yet.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {photos.map((p, idx) => (
+                    <div key={idx} className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] p-2">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <img
+                          src={p}
+                          alt="Thumbnail"
+                          className="h-10 w-10 shrink-0 rounded object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                        <span className="truncate text-xs text-[#F7F7F7]/60">{p}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPhotos(photos.filter((_, i) => i !== idx))}
+                        className="ml-2 shrink-0 p-1 text-[#F7F7F7]/40 hover:text-red-400"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Facilities */}
+            <div>
+              <label className="caption text-[#F7F7F7]/40">Facilities (Optional)</label>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  type="text"
+                  value={facilityDraft}
+                  onChange={(e) => setFacilityDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddFacility();
+                    }
+                  }}
+                  placeholder="Add facility..."
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddFacility}
+                  className="btn-lime shrink-0 rounded-xl px-4 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {facilities.map((f, idx) => (
+                  <span
+                    key={idx}
+                    className="flex items-center gap-1.5 rounded-full bg-white/[0.03] pl-3 pr-1.5 py-1 text-[10px] font-medium text-[#F7F7F7]/60"
+                  >
+                    {f}
+                    <button
+                      type="button"
+                      onClick={() => setFacilities(facilities.filter((_, i) => i !== idx))}
+                      className="rounded-full p-0.5 hover:bg-white/[0.1] hover:text-[#F7F7F7]"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="mt-3 border-t border-white/[0.04] pt-3">
+                <p className="mb-2 text-[10px] uppercase tracking-wider text-[#F7F7F7]/40">Quick Add:</p>
+                <div className="flex flex-wrap gap-2">
+                  {["Parking", "Showers", "Locker Room", "Cafe", "Pro Shop", "WiFi", "Equipment Rental", "Seating Area"].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => {
+                        if (!facilities.includes(preset)) setFacilities([...facilities, preset]);
+                      }}
+                      className="rounded-full border border-white/[0.06] px-2 py-1 text-[10px] text-[#F7F7F7]/40 transition-colors hover:border-[#E6FA50]/50 hover:text-[#F7F7F7]"
+                    >
+                      + {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isPending}
+                className="flex-1 rounded-full border border-white/[0.08] py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="btn-lime flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
+              >
+                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {mode === "add" ? "Submit for Approval" : "Save Changes"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
