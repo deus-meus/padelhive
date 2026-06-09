@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertTriangle, RotateCw } from "lucide-react";
-
+import { AlertTriangle, RotateCw, Inbox } from "lucide-react";
+import Link from "next/link";
 export function ErrorState({
   title = "Couldn't load data",
   description = "We couldn't reach the server. Check your connection and try again.",
@@ -37,8 +37,8 @@ export function ErrorState({
   );
 }
 
-export function ErrorOverlay({
-  title,
+export function ErrorBanner({
+  title = "Couldn't load data",
   description,
   onRetry,
   isRetrying = false,
@@ -49,24 +49,63 @@ export function ErrorOverlay({
   isRetrying?: boolean;
 }) {
   return (
-    <div className="relative min-h-[70vh] w-full overflow-hidden">
-      <div aria-hidden className="pointer-events-none select-none space-y-6 opacity-40 blur-[2px]">
-        <div className="h-14 w-56 animate-pulse rounded-lg bg-white/[0.04]" />
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/[0.04]" />
-          ))}
+    <div className="flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+        <div>
+          <p className="text-sm font-medium text-[#F7F7F7]">{title}</p>
+          {description ? (
+            <p className="mt-0.5 text-xs leading-5 text-[#F7F7F7]/40">{description}</p>
+          ) : null}
         </div>
-        <div className="h-72 animate-pulse rounded-2xl bg-white/[0.04]" />
       </div>
-      <div className="absolute inset-0 flex items-center justify-center px-4">
-        <ErrorState
-          title={title}
-          description={description}
-          onRetry={onRetry}
-          isRetrying={isRetrying}
-        />
+      {onRetry ? (
+        <button
+          onClick={onRetry}
+          disabled={isRetrying}
+          className="inline-flex h-9 shrink-0 items-center gap-2 self-start rounded-full border border-amber-400/30 bg-amber-400/10 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-300 transition-colors hover:bg-amber-400/20 disabled:opacity-50 sm:self-auto"
+        >
+          <RotateCw className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`} />
+          {isRetrying ? "Retrying" : "Try again"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+export function EmptyState({
+  icon: Icon = Inbox,
+  title,
+  description,
+  actionLabel,
+  onAction,
+  actionHref,
+}: {
+  icon?: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  actionHref?: string;
+}) {
+  const actionClass =
+    "btn-lime mt-6 inline-flex items-center rounded-full px-6 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]";
+  return (
+    <div className="mx-auto flex max-w-md flex-col items-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center md:py-20">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.04]">
+        <Icon className="h-5 w-5 text-[#F7F7F7]/40" />
       </div>
+      <h3 className="mt-5 text-lg font-semibold text-[#F7F7F7]">{title}</h3>
+      {description ? (
+        <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/40">{description}</p>
+      ) : null}
+      {actionLabel ? (
+        actionHref ? (
+          <Link href={actionHref} className={actionClass}>{actionLabel}</Link>
+        ) : (
+          <button onClick={onAction} className={actionClass}>{actionLabel}</button>
+        )
+      ) : null}
     </div>
   );
 }

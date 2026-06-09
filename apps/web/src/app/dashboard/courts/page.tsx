@@ -8,17 +8,19 @@ import {
   XCircle,
   Zap,
   Sun,
+  Building2,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getVenues, getVenueCourts } from "@/lib/api";
+import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
 export default function CourtsPage() {
   const [editingCourt, setEditingCourt] = useState<string | null>(null);
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const { data: venues = [], isLoading: isVenuesLoading } = useQuery({
+  const { data: venues = [], isLoading: isVenuesLoading, isError: isVenuesError, refetch: refetchVenues, isFetching: isVenuesFetching } = useQuery({
     queryKey: queryKeys.venues.all(),
     queryFn: getVenues,
   });
@@ -59,9 +61,19 @@ export default function CourtsPage() {
           </button>
         </div>
 
-        {/* Venue selector */}
-        <div className="mt-6 flex gap-2">
-          {isVenuesLoading && <span className="text-sm text-[#F7F7F7]/40">Loading venues...</span>}
+        {isVenuesError ? (
+          <div className="mt-8">
+            <ErrorBanner title="Couldn't load venues" description="We couldn't reach the server. Check your connection and try again." onRetry={() => refetchVenues()} isRetrying={isVenuesFetching} />
+          </div>
+        ) : !isVenuesLoading && venues.length === 0 ? (
+          <div className="mt-8">
+            <EmptyState icon={Building2} title="No venues yet" description="Add a venue first to manage its courts and pricing." actionLabel="Go to Venues" actionHref="/dashboard/venues" />
+          </div>
+        ) : (
+          <>
+            {/* Venue selector */}
+            <div className="mt-6 flex gap-2">
+              {isVenuesLoading && <span className="text-sm text-[#F7F7F7]/40">Loading venues...</span>}
           {venues.map((v) => (
             <button
               key={v.id}
@@ -178,6 +190,8 @@ export default function CourtsPage() {
               Add First Court
             </button>
           </div>
+        )}
+          </>
         )}
 
         {/* Toast */}

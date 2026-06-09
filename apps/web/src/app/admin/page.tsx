@@ -12,7 +12,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getAdminOverview } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
-import { ErrorOverlay } from "@/components/ui/error-state";
+import { ErrorBanner } from "@/components/ui/error-state";
 
 export default function AdminOverviewPage() {
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -49,12 +49,27 @@ export default function AdminOverviewPage() {
   if (isError || !data) {
     return (
       <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
-        <ErrorOverlay
-          title="Couldn't load admin metrics"
-          description="We couldn't reach the server to load platform metrics. Check your connection and try again."
-          onRetry={() => refetch()}
-          isRetrying={isFetching}
-        />
+        <div className="mb-8">
+          <p className="caption text-[#F7F7F7]/25">Marketplace Admin</p>
+          <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
+            Operations <span className="text-[#E6FA50]">Overview</span>
+          </h1>
+        </div>
+        <div className="mb-6">
+          <ErrorBanner
+            title="Couldn't load admin metrics"
+            description="We couldn't reach the server to load platform metrics. Check your connection and try again."
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+          <KPI icon={TrendingUp} label="GMV This Month" value="—" />
+          <KPI icon={DollarSign} label="Commission Revenue" value="—" />
+          <KPI icon={CalendarCheck} label="Total Bookings" value="—" />
+          <KPI icon={Building2} label="Active Venues" value="—" />
+        </div>
+        <div className="mt-component h-72 rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
       </div>
     );
   }
