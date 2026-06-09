@@ -12,7 +12,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getAdminOverview } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorOverlay } from "@/components/ui/error-state";
 
 export default function AdminOverviewPage() {
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -49,7 +49,7 @@ export default function AdminOverviewPage() {
   if (isError || !data) {
     return (
       <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
-        <ErrorState
+        <ErrorOverlay
           title="Couldn't load admin metrics"
           description="We couldn't reach the server to load platform metrics. Check your connection and try again."
           onRetry={() => refetch()}
