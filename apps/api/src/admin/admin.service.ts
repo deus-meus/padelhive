@@ -6,6 +6,7 @@ import { AdminOverviewDto } from "./dto/admin-overview.dto";
 import { utcToWibDateStr } from "../common/pricing.util";
 import { GetCommissionDto } from "./dto/get-commission.dto";
 import { CommissionReportDto, CommissionVenueRowDto } from "./dto/commission-report.dto";
+import { AdminMetricsDto, AdminMetricsMonthDto, AdminMetricsStatusDto } from "./dto/admin-metrics.dto";
 
 @Injectable()
 export class AdminService {
@@ -212,6 +213,77 @@ export class AdminService {
       totalBookings,
       avgCommissionRate,
       venues: rows,
+    };
+  }
+
+  async getMetrics(): Promise<AdminMetricsDto> {
+    const wibToday = utcToWibDateStr(new Date());
+    const yy = parseInt(wibToday.slice(0, 4), 10);
+    const mm = parseInt(wibToday.slice(5, 7), 10);
+
+    const windowStart = new Date(Date.UTC(yy, mm - 1 - 11, 1));
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        status: { in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED] },
+        bookingDate: { gte: windowStart },
+      },
+      select: {
+        bookingDate: true,
+        finalAmount: true,
+        platformFee: true,
+      },
+    });
+
+    const monthlyMap = new Map<string, { gmv: number; commission: number; bookings: number }>();
+    
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(Date.UTC(yy, mm - 1 - 11 + i, 1));
+      const mStr = d.toISOString().slice(0, 7);
+      monthlyMap.set(mStr, { gmv: 0, commission: 0, bookings: 0 });
+    }
+
+    for (const b of bookings) {
+      const mStr = b.bookingDate.toISOString().slice(0, 7);
+      if (monthlyMap.has(mStr)) {
+        const bucket = monthlyMap.get(mStr)!;
+        bucket.gmv += b.finalAmount;
+        bucket.commission += b.platformFee;
+        bucket.bookings += 1;
+      }
+    }
+
+    const monthlySeries: AdminMetricsMonthDto[] = Array.from(monthlyMap.entries()).map(([month, data]) => ({
+      month,
+      ...data,
+    }));
+
+    monthlySeries.sort((a, b) => a.month.localeCompare(b.month));
+
+    const totalGmv = monthlySeries.reduce((sum, m) => sum + m.gmv, 0);
+    const totalCommission = monthlySeries.reduce((sum, m) => sum + m.commission, 0);
+    const totalBookings = monthlySeries.reduce((sum, m) => sum + m.bookings, 0);
+    const avgMonthlyGmv = Math.round(totalGmv / 12);
+
+    const statusGroups = await this.prisma.booking.groupBy({
+      by: ["status"],
+      where: { bookingDate: { gte: windowStart } },
+      _count: { _all: true },
+    });
+
+    const statusBreakdown: AdminMetricsStatusDto[] = statusGroups.map((g) => ({
+      status: g.status,
+      count: g._count._all,
+    }));
+    statusBreakdown.sort((a, b) => b.count - a.count);
+
+    return {
+      totalGmv,
+      totalCommission,
+      totalBookings,
+      avgMonthlyGmv,
+      monthlySeries,
+      statusBreakdown,
     };
   }
 }
