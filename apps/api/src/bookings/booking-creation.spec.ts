@@ -36,6 +36,7 @@ const cancellableBooking = {
   platformFee: 20000,
   voucherDiscount: 0,
   finalAmount: 420000,
+  voucherId: null,
   cancelledAt: null,
   venue: { id: "venue-1", name: "Padel Bali", city: "Bali" },
   court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
@@ -47,33 +48,40 @@ const cancellableBooking = {
   },
 };
 
-function createPrisma(overrides: Record<string, unknown> = {}) {
+function createPrisma(overrides: Record<string, any> = {}) {
+  const defaultBookingCreate = jest.fn().mockResolvedValue({
+    id: "booking-1",
+    bookingDate: new Date("2099-06-01T00:00:00.000Z"),
+    startsAt: new Date("2099-06-01T02:00:00.000Z"),
+    endsAt: new Date("2099-06-01T04:00:00.000Z"),
+    durationMinutes: 120,
+    status: BookingStatus.PENDING_PAYMENT,
+    courtAmount: 400000,
+    platformFee: 20000,
+    voucherDiscount: 0,
+    finalAmount: 420000,
+    venue: { id: "venue-1", name: "Padel Bali", city: "Bali" },
+    court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
+    host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
+  });
+  const defaultBookingUpdate = jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED });
+  
+  const bookingCreate = overrides.booking?.create ?? defaultBookingCreate;
+  const bookingUpdate = overrides.booking?.update ?? defaultBookingUpdate;
+
   return {
     venue: { findFirst: jest.fn().mockResolvedValue(approvedVenue) },
     court: { findFirst: jest.fn().mockResolvedValue(activeCourt) },
     booking: {
       findFirst: jest.fn().mockResolvedValue(null),
-      create: jest.fn().mockResolvedValue({
-        id: "booking-1",
-        bookingDate: new Date("2099-06-01T00:00:00.000Z"),
-        startsAt: new Date("2099-06-01T02:00:00.000Z"),
-        endsAt: new Date("2099-06-01T04:00:00.000Z"),
-        durationMinutes: 120,
-        status: BookingStatus.PENDING_PAYMENT,
-        courtAmount: 400000,
-        platformFee: 20000,
-        voucherDiscount: 0,
-        finalAmount: 420000,
-        venue: { id: "venue-1", name: "Padel Bali", city: "Bali" },
-        court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
-        host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
-      }),
-      update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }),
+      create: bookingCreate,
+      update: bookingUpdate,
     },
     refund: { create: jest.fn().mockResolvedValue({ id: "refund-1" }) },
-    $transaction: jest.fn(async (callback) => callback({
-      booking: { update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }) },
+    $transaction: overrides.$transaction ?? jest.fn(async (callback) => callback({
+      booking: { create: bookingCreate, update: bookingUpdate },
       refund: { create: jest.fn().mockResolvedValue({ id: "refund-1" }) },
+      voucher: { update: jest.fn(), updateMany: jest.fn() },
     })),
     ...overrides,
   };
@@ -217,6 +225,7 @@ describe("Booking creation API", () => {
       $transaction: jest.fn(async (callback) => callback({
         booking: { update: txBookingUpdate },
         refund: { create: txRefundCreate },
+        voucher: { updateMany: jest.fn() },
       })),
     });
     const service = new BookingsService(prisma as never, {} as never);
@@ -279,6 +288,7 @@ describe("Booking creation API", () => {
       $transaction: jest.fn(async (callback) => callback({
         booking: { update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }) },
         refund: { create: txRefundCreate },
+        voucher: { updateMany: jest.fn() },
       })),
     });
     const service = new BookingsService(prisma as never, {} as never);
@@ -301,6 +311,7 @@ describe("Booking creation API", () => {
       $transaction: jest.fn(async (callback) => callback({
         booking: { update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }) },
         refund: { create: txRefundCreate },
+        voucher: { updateMany: jest.fn() },
       })),
     });
     const service = new BookingsService(prisma as never, {} as never);

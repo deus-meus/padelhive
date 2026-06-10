@@ -18,7 +18,7 @@ export class BookingExpiryService {
         status: BookingStatus.PENDING_PAYMENT,
         expiresAt: { lte: now },
       },
-      select: { id: true },
+      select: { id: true, voucherId: true },
     });
 
     if (expiredBookings.length === 0) {
@@ -26,6 +26,13 @@ export class BookingExpiryService {
     }
 
     const bookingIds = expiredBookings.map((b) => b.id);
+
+    const voucherDecrements = new Map<string, number>();
+    for (const b of expiredBookings) {
+      if (b.voucherId) {
+        voucherDecrements.set(b.voucherId, (voucherDecrements.get(b.voucherId) ?? 0) + 1);
+      }
+    }
 
     await this.prisma.$transaction(async (tx) => {
       await tx.booking.updateMany({
@@ -47,6 +54,13 @@ export class BookingExpiryService {
           failedAt: now,
         },
       });
+
+      for (const [voucherId, count] of voucherDecrements) {
+        await tx.voucher.updateMany({
+          where: { id: voucherId, usedCount: { gte: count } },
+          data: { usedCount: { decrement: count } },
+        });
+      }
     });
 
     this.logger.log(`Expired ${bookingIds.length} stale pending-payment bookings.`);
