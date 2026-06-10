@@ -98,6 +98,9 @@ export default function PaymentPage({
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [markingPaid, setMarkingPaid] = useState(false);
   const [togglingShareId, setTogglingShareId] = useState<string | null>(null);
+  const [splitMode, setSplitMode] = useState<"equal" | "custom">("equal");
+  const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
+  const [customError, setCustomError] = useState<string | null>(null);
 
   const isDemoMode = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION !== "true";
   const snapScriptUrl = isDemoMode
@@ -145,6 +148,9 @@ export default function PaymentPage({
   const handleToggleSplit = () => {
     if (splitEnabled) {
       clearSplit();
+      setSplitMode("equal");
+      setCustomAmounts({});
+      setCustomError(null);
     } else {
       const participants = [];
       participants.push({
@@ -380,72 +386,212 @@ export default function PaymentPage({
 
               {splitEnabled && (
                 <div className="mt-4 space-y-3">
+                  <div className="flex rounded-lg border border-white/[0.06] bg-[#0C1B26] p-1">
+                    <button
+                      onClick={() => {
+                        if (splitMode === "custom") {
+                          const participants = splitData?.shares.map((share) => ({
+                            name: share.name,
+                            email: share.email ?? undefined,
+                            userId: share.userId ?? undefined,
+                            inviteId: share.inviteId ?? undefined,
+                          })) || [];
+                          setSplit({ mode: "equal", participants });
+                          setSplitMode("equal");
+                          setCustomError(null);
+                        }
+                      }}
+                      disabled={isSettingSplit}
+                      className={`flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
+                        splitMode === "equal" ? "bg-white/[0.06] text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
+                      } disabled:opacity-50`}
+                    >
+                      Equal
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (splitMode === "equal" && splitData) {
+                          const newAmounts: Record<string, string> = {};
+                          splitData.shares.forEach((share) => {
+                            newAmounts[share.id] = String(share.amount);
+                          });
+                          setCustomAmounts(newAmounts);
+                          setCustomError(null);
+                          setSplitMode("custom");
+                        }
+                      }}
+                      disabled={isSettingSplit}
+                      className={`flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
+                        splitMode === "custom" ? "bg-white/[0.06] text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
+                      } disabled:opacity-50`}
+                    >
+                      Custom
+                    </button>
+                  </div>
+
                   {isSplitLoading || isSplitToggling ? (
                     <div className="animate-pulse rounded-xl bg-white/[0.05] h-[80px]" />
                   ) : splitData && splitData.shares && splitData.shares.length > 0 ? (
                     <>
-                      <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-[#F7F7F7]/60">
-                            Price per player
-                          </span>
-                          <span className="text-sm font-semibold text-[#E6FA50]">
-                            Rp {Math.floor(splitData.totalAmount / splitData.shareCount).toLocaleString("id-ID")}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
-                          Total Rp {splitData.totalAmount.toLocaleString("id-ID")} ÷{" "}
-                          {splitData.shareCount} players
-                        </p>
-                      </div>
+                      {splitMode === "equal" ? (
+                        <>
+                          <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-[#F7F7F7]/60">
+                                Price per player
+                              </span>
+                              <span className="text-sm font-semibold text-[#E6FA50]">
+                                Rp {Math.floor(splitData.totalAmount / splitData.shareCount).toLocaleString("id-ID")}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
+                              Total Rp {splitData.totalAmount.toLocaleString("id-ID")} ÷{" "}
+                              {splitData.shareCount} players
+                            </p>
+                          </div>
 
-                      {splitData.shares.map((share) => {
-                        const config = SPLIT_STATUS_CONFIG[share.status];
-                        const StatusIcon = config.icon;
-                        const isToggling = togglingShareId === share.id;
+                          {splitData.shares.map((share) => {
+                            const config = SPLIT_STATUS_CONFIG[share.status];
+                            const StatusIcon = config.icon;
+                            const isToggling = togglingShareId === share.id;
 
-                        return (
-                          <div
-                            key={share.id}
-                            className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-[#F7F7F7]/60 text-xs font-semibold">
-                                {share.name.charAt(0).toUpperCase()}
+                            return (
+                              <div
+                                key={share.id}
+                                className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-[#F7F7F7]/60 text-xs font-semibold">
+                                    {share.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-[#F7F7F7]/80">
+                                      {share.name}
+                                    </p>
+                                    <p className="text-[11px] text-[#F7F7F7]/25">
+                                      Rp {share.amount.toLocaleString("id-ID")}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setTogglingShareId(share.id);
+                                    setShareStatus({ shareId: share.id, status: share.status === "PENDING" ? "PAID" : "PENDING" });
+                                  }}
+                                  disabled={isToggling}
+                                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${config.bg} hover:opacity-80 disabled:opacity-50`}
+                                >
+                                  {isToggling ? (
+                                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                                  ) : (
+                                    <StatusIcon
+                                      className={`h-3.5 w-3.5 ${config.color}`}
+                                    />
+                                  )}
+                                  <span
+                                    className={`text-[11px] font-medium ${config.color}`}
+                                  >
+                                    {config.label}
+                                  </span>
+                                </button>
                               </div>
-                              <div>
+                            );
+                          })}
+                        </>
+                      ) : (
+                        <>
+                          {(() => {
+                            const currentSum = Object.values(customAmounts).reduce((acc, val) => acc + (parseInt(val, 10) || 0), 0);
+                            const remaining = splitData.totalAmount - currentSum;
+                            return (
+                              <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-[#F7F7F7]/60">Allocated</span>
+                                  <span className="text-sm font-semibold text-[#F7F7F7]/80">
+                                    Rp {currentSum.toLocaleString("id-ID")} / Rp {splitData.totalAmount.toLocaleString("id-ID")}
+                                  </span>
+                                </div>
+                                <div className="mt-1 flex items-center justify-between">
+                                  <span className="text-sm text-[#F7F7F7]/60">Remaining</span>
+                                  <span className={`text-sm font-semibold ${remaining === 0 ? "text-green-400" : "text-red-400"}`}>
+                                    Rp {remaining.toLocaleString("id-ID")}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          {splitData.shares.map((share) => (
+                            <div
+                              key={share.id}
+                              className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-[#F7F7F7]/60 text-xs font-semibold">
+                                  {share.name.charAt(0).toUpperCase()}
+                                </div>
                                 <p className="text-sm font-medium text-[#F7F7F7]/80">
                                   {share.name}
                                 </p>
-                                <p className="text-[11px] text-[#F7F7F7]/25">
-                                  Rp {share.amount.toLocaleString("id-ID")}
-                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-[#F7F7F7]/40">Rp</span>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={customAmounts[share.id] ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, "");
+                                    setCustomAmounts((prev) => ({ ...prev, [share.id]: val }));
+                                    setCustomError(null);
+                                  }}
+                                  className="w-24 rounded-lg border border-white/[0.1] bg-[#06121A] px-3 py-1.5 text-right text-sm text-[#F7F7F7] focus:border-[#E6FA50] focus:outline-none"
+                                />
                               </div>
                             </div>
+                          ))}
+
+                          <div className="mt-2 space-y-2">
+                            {customError && <p className="text-[11px] text-red-400">{customError}</p>}
                             <button
+                              disabled={
+                                isSettingSplit ||
+                                Object.values(customAmounts).some((v) => v === "" || isNaN(parseInt(v, 10))) ||
+                                Object.values(customAmounts).reduce((acc, val) => acc + (parseInt(val, 10) || 0), 0) !== splitData.totalAmount
+                              }
                               onClick={() => {
-                                setTogglingShareId(share.id);
-                                setShareStatus({ shareId: share.id, status: share.status === "PENDING" ? "PAID" : "PENDING" });
+                                const parsedAmounts: Record<string, number> = {};
+                                let sum = 0;
+                                for (const shareId of Object.keys(customAmounts)) {
+                                  const val = parseInt(customAmounts[shareId] || "0", 10);
+                                  parsedAmounts[shareId] = val;
+                                  sum += val;
+                                }
+                                if (sum !== splitData.totalAmount) {
+                                  setCustomError("Couldn't save the custom split. Make sure the amounts add up to the total.");
+                                  return;
+                                }
+                                const participants = splitData.shares.map((share) => ({
+                                  name: share.name,
+                                  email: share.email ?? undefined,
+                                  userId: share.userId ?? undefined,
+                                  inviteId: share.inviteId ?? undefined,
+                                  amount: parsedAmounts[share.id],
+                                }));
+                                setSplit({ mode: "custom", participants }, {
+                                  onError: () => setCustomError("Couldn't save the custom split. Make sure the amounts add up to the total.")
+                                });
                               }}
-                              disabled={isToggling}
-                              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${config.bg} hover:opacity-80 disabled:opacity-50`}
+                              className="btn-lime flex w-full h-10 items-center justify-center rounded-xl text-xs font-semibold disabled:opacity-50"
                             >
-                              {isToggling ? (
-                                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                              ) : (
-                                <StatusIcon
-                                  className={`h-3.5 w-3.5 ${config.color}`}
-                                />
-                              )}
-                              <span
-                                className={`text-[11px] font-medium ${config.color}`}
-                              >
-                                {config.label}
-                              </span>
+                              {isSettingSplit ? "Saving..." : "Save custom split"}
                             </button>
+                            <p className="text-center text-[11px] text-[#F7F7F7]/25">
+                              Saving custom amounts resets everyone&apos;s paid status.
+                            </p>
                           </div>
-                        );
-                      })}
+                        </>
+                      )}
 
                       <div className="rounded-lg bg-white/[0.02] p-3">
                         <p className="text-[11px] text-[#F7F7F7]/25">
