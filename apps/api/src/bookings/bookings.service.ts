@@ -6,6 +6,7 @@ import { CreateBookingDto } from "./dto/create-booking.dto";
 import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
 import { RevenueDto } from "./dto/revenue.dto";
 import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc } from "../common/pricing.util";
+import { VouchersService } from "../vouchers/vouchers.service";
 import { 
   PENDING_PAYMENT_TTL_MS, 
   REFUND_WINDOW_MS, 
@@ -93,7 +94,7 @@ type ParsedBookingTime = {
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly vouchersService: VouchersService) {}
 
   async createBookingForUser(hostUserId: string, body: CreateBookingDto): Promise<BookingResponseDto> {
     const parsedTime = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt);
@@ -130,27 +131,42 @@ export class BookingsService {
 
     const courtAmount = this.calculateCourtAmount(court, parsedTime.startsAt, parsedTime.durationMinutes);
     const platformFee = Math.round(courtAmount * PLATFORM_FEE_RATE);
-    const voucherDiscount = 0;
-    const finalAmount = courtAmount + platformFee - voucherDiscount;
+    const subtotal = courtAmount + platformFee;
+
+    let voucherId: string | null = null;
+    let voucherDiscount = 0;
+    if (body.voucherCode) {
+      const priced = await this.vouchersService.priceVoucher(body.voucherCode, subtotal);
+      voucherId = priced.voucherId;
+      voucherDiscount = priced.discount;
+    }
+    const finalAmount = subtotal - voucherDiscount;
 
     try {
-      return await this.prisma.booking.create({
-        data: {
-          hostUserId,
-          venueId: body.venueId,
-          courtId: body.courtId,
-          bookingDate: parsedTime.bookingDate,
-          startsAt: parsedTime.startsAt,
-          endsAt: parsedTime.endsAt,
-          durationMinutes: parsedTime.durationMinutes,
-          status: BookingStatus.PENDING_PAYMENT,
-          expiresAt: new Date(Date.now() + PENDING_PAYMENT_TTL_MS),
-          courtAmount,
-          platformFee,
-          voucherDiscount,
-          finalAmount,
-        },
-        select: bookingSelect,
+      return await this.prisma.$transaction(async (tx) => {
+        const created = await tx.booking.create({
+          data: {
+            hostUserId,
+            venueId: body.venueId,
+            courtId: body.courtId,
+            voucherId,
+            bookingDate: parsedTime.bookingDate,
+            startsAt: parsedTime.startsAt,
+            endsAt: parsedTime.endsAt,
+            durationMinutes: parsedTime.durationMinutes,
+            status: BookingStatus.PENDING_PAYMENT,
+            expiresAt: new Date(Date.now() + PENDING_PAYMENT_TTL_MS),
+            courtAmount,
+            platformFee,
+            voucherDiscount,
+            finalAmount,
+          },
+          select: bookingSelect,
+        });
+        if (voucherId) {
+          await tx.voucher.update({ where: { id: voucherId }, data: { usedCount: { increment: 1 } } });
+        }
+        return created;
       });
     } catch (error) {
       const e = error as { message?: string; meta?: { message?: string; target?: unknown } };

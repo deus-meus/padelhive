@@ -71,7 +71,7 @@ describe("Booking Concurrency (Integration)", () => {
       },
     });
 
-    service = new BookingsService(prisma);
+    service = new BookingsService(prisma, {} as never);
   });
 
   afterAll(async () => {
