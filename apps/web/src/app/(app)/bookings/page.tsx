@@ -45,6 +45,7 @@ export default function BookingsPage() {
   const { data: bookings = [], isLoading, isError, error: queryError, refetch, isFetching } = useQuery({
     queryKey: queryKeys.bookings.user(activeTab === "refunds" ? "cancelled" : activeTab),
     queryFn: () => activeTab === "refunds" ? getUserBookings("cancelled") : getUserBookings(activeTab),
+    enabled: activeTab !== "refunds",
   });
 
   const { data: myRefunds = [] } = useQuery({
@@ -170,7 +171,7 @@ export default function BookingsPage() {
     refundMutation.mutate(refundReason.trim());
   }
 
-  if (isLoading) {
+  if (isLoading && activeTab !== "refunds") {
     return (
       <div className="min-h-screen pt-28">
         <section className="container pb-8">
