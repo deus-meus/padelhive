@@ -286,6 +286,7 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<
     throw new ApiRequestError(message, response.status, response.statusText);
   }
 
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
 
@@ -711,4 +712,34 @@ export interface AdminMetrics { totalGmv: number; totalCommission: number; total
 
 export async function getAdminMetrics(): Promise<AdminMetrics> {
   return apiFetch<AdminMetrics>("/admin/metrics");
+}
+
+export type SplitShareStatus = "PENDING" | "PAID";
+export type BookingSplitShare = { id: string; name: string; email: string | null; userId: string | null; inviteId: string | null; amount: number; status: SplitShareStatus; paidAt: string | null };
+export type BookingSplit = { bookingId: string; totalAmount: number; splitTotal: number; paidAmount: number; shareCount: number; shares: BookingSplitShare[] };
+export type SplitParticipantInput = { name: string; email?: string; userId?: string; inviteId?: string; amount?: number };
+export type SetBookingSplitInput = { mode: "equal" | "custom"; participants: SplitParticipantInput[] };
+
+export async function getBookingSplit(bookingId: string): Promise<BookingSplit> {
+  return apiFetch<BookingSplit>(`/bookings/${bookingId}/split`);
+}
+
+export async function setBookingSplit(bookingId: string, input: SetBookingSplitInput): Promise<BookingSplit> {
+  return apiFetch<BookingSplit>(`/bookings/${bookingId}/split`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function clearBookingSplit(bookingId: string): Promise<void> {
+  return apiFetch<void>(`/bookings/${bookingId}/split`, {
+    method: "DELETE",
+  });
+}
+
+export async function setSplitShareStatus(bookingId: string, shareId: string, status: SplitShareStatus): Promise<BookingSplit> {
+  return apiFetch<BookingSplit>(`/bookings/${bookingId}/split/${shareId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
 }
