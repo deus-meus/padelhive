@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -10,6 +10,7 @@ import {
   ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
 import { Roles } from "../auth/decorators/roles.decorator";
@@ -21,11 +22,18 @@ import { CreateBookingDto } from "./dto/create-booking.dto";
 import { BookingListItemDto } from "./dto/list-bookings.dto";
 import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
 import { RevenueDto } from "./dto/revenue.dto";
+import { BookingSplitService } from "./booking-split.service";
+import { SetBookingSplitDto } from "./dto/create-split.dto";
+import { UpdateSplitShareStatusDto } from "./dto/update-split-share.dto";
+import { BookingSplitDto } from "./dto/split-response.dto";
 
 @ApiTags("bookings")
 @Controller("bookings")
 export class BookingsController {
-  constructor(private readonly bookingsService: BookingsService) {}
+  constructor(
+    private readonly bookingsService: BookingsService,
+    private readonly bookingSplitService: BookingSplitService
+  ) {}
 
   @Post()
   @ApiBearerAuth()
@@ -91,5 +99,60 @@ export class BookingsController {
     @CurrentUser() user: RequestUser
   ) {
     return this.bookingsService.findBookingsForUser(user.id, filter);
+  }
+
+  @Get(":id/split")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get the settlement ledger for a booking" })
+  @ApiOkResponse({ type: BookingSplitDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiForbiddenResponse({ description: "Only the booking host can manage the split ledger" })
+  @ApiNotFoundResponse({ description: "Booking not found" })
+  getSplit(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<BookingSplitDto> {
+    return this.bookingSplitService.getSplit(id, user.id);
+  }
+
+  @Put(":id/split")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Replace the settlement ledger for a booking" })
+  @ApiOkResponse({ type: BookingSplitDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiForbiddenResponse({ description: "Only the booking host can manage the split ledger" })
+  @ApiBadRequestResponse({ description: "Invalid split request" })
+  @ApiNotFoundResponse({ description: "Booking not found" })
+  setSplit(
+    @Param("id") id: string,
+    @Body() body: SetBookingSplitDto,
+    @CurrentUser() user: RequestUser
+  ): Promise<BookingSplitDto> {
+    return this.bookingSplitService.setSplit(id, user.id, body);
+  }
+
+  @Delete(":id/split")
+  @ApiBearerAuth()
+  @HttpCode(204)
+  @ApiOperation({ summary: "Clear the settlement ledger for a booking" })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiForbiddenResponse({ description: "Only the booking host can manage the split ledger" })
+  @ApiNotFoundResponse({ description: "Booking not found" })
+  clearSplit(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<void> {
+    return this.bookingSplitService.clearSplit(id, user.id);
+  }
+
+  @Patch(":id/split/:shareId")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update the status of a specific split share" })
+  @ApiOkResponse({ type: BookingSplitDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiForbiddenResponse({ description: "Only the booking host can manage the split ledger" })
+  @ApiBadRequestResponse({ description: "Invalid status" })
+  @ApiNotFoundResponse({ description: "Booking or share not found" })
+  setShareStatus(
+    @Param("id") id: string,
+    @Param("shareId") shareId: string,
+    @Body() body: UpdateSplitShareStatusDto,
+    @CurrentUser() user: RequestUser
+  ): Promise<BookingSplitDto> {
+    return this.bookingSplitService.setShareStatus(id, shareId, user.id, body.status);
   }
 }

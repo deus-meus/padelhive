@@ -61,6 +61,11 @@ enum VoucherType {
   PERCENTAGE
 }
 
+enum SplitShareStatus {
+  PENDING
+  PAID
+}
+
 model User {
   id           String       @id @default(cuid())
   firebaseUid  String       @unique
@@ -177,6 +182,7 @@ model Booking {
   payment         Payment?
   invites         Invite[]
   refunds         Refund[]
+  splitShares     BookingSplitShare[]
 
   @@index([hostUserId])
   @@index([venueId])
@@ -287,4 +293,22 @@ model RefundEvent {
   @@index([refundId])
   @@index([actorUserId])
   @@index([createdAt])
+}
+
+model BookingSplitShare {
+  id        String           @id @default(cuid())
+  bookingId String
+  inviteId  String?
+  userId    String?
+  name      String
+  email     String?
+  amount    Int
+  status    SplitShareStatus @default(PENDING)
+  paidAt    DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  booking   Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
 }

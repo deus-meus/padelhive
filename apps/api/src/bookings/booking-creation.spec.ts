@@ -48,7 +48,7 @@ const cancellableBooking = {
   },
 };
 
-function createPrisma(overrides: Record<string, any> = {}) {
+function createPrisma(overrides: Record<string, unknown> = {}) {
   const defaultBookingCreate = jest.fn().mockResolvedValue({
     id: "booking-1",
     bookingDate: new Date("2099-06-01T00:00:00.000Z"),
@@ -66,8 +66,8 @@ function createPrisma(overrides: Record<string, any> = {}) {
   });
   const defaultBookingUpdate = jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED });
   
-  const bookingCreate = overrides.booking?.create ?? defaultBookingCreate;
-  const bookingUpdate = overrides.booking?.update ?? defaultBookingUpdate;
+  const bookingCreate = (overrides.booking as any)?.create ?? defaultBookingCreate;
+  const bookingUpdate = (overrides.booking as any)?.update ?? defaultBookingUpdate;
 
   return {
     venue: { findFirst: jest.fn().mockResolvedValue(approvedVenue) },
@@ -90,7 +90,7 @@ function createPrisma(overrides: Record<string, any> = {}) {
 describe("Booking creation API", () => {
   it("uses current user as booking host in controller", async () => {
     const service = { createBookingForUser: jest.fn().mockResolvedValue({ id: "booking-1" }) } as unknown as BookingsService;
-    const controller = new BookingsController(service);
+    const controller = new BookingsController(service, {} as never);
     const body = { venueId: "venue-1", courtId: "court-1", bookingDate: "2099-06-01", startsAt: "09:00", endsAt: "11:00" };
 
     await expect(controller.create(body, requestUser)).resolves.toEqual({ id: "booking-1" });
@@ -99,7 +99,7 @@ describe("Booking creation API", () => {
 
   it("uses current user when cancelling in controller", async () => {
     const service = { cancelBookingForUser: jest.fn().mockResolvedValue({ id: "booking-1", status: BookingStatus.CANCELLED }) } as unknown as BookingsService;
-    const controller = new BookingsController(service);
+    const controller = new BookingsController(service, {} as never);
 
     await expect(controller.cancel("booking-1", requestUser)).resolves.toEqual({ id: "booking-1", status: BookingStatus.CANCELLED });
     expect(service.cancelBookingForUser).toHaveBeenCalledWith("booking-1", "user-1");
