@@ -365,7 +365,7 @@ export default function InviteFriendsPage({
         </div>
 
         <p className="mt-4 text-center text-[11px] text-[#F7F7F7]/25">
-          Friends can RSVP from their invite link. Split payment backend is coming later.
+          Friends can RSVP from their invite link. Split the bill on the payment page after booking.
         </p>
       </div>
     </div>
