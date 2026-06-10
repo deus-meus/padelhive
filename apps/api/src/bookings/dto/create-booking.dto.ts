@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateBookingDto {
   @ApiProperty({ example: "venue-1" })
@@ -15,4 +15,7 @@ export class CreateBookingDto {
 
   @ApiProperty({ example: "11:00", description: "End time in HH:mm format" })
   endsAt!: string;
+
+  @ApiPropertyOptional({ example: "WELCOME10", description: "Optional voucher code to apply" })
+  voucherCode?: string;
 }

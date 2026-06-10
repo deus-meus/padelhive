@@ -15,7 +15,7 @@ describe("Booking timezone classification", () => {
         findMany: jest.fn().mockResolvedValue([]),
       },
     };
-    service = new BookingsService(prisma as never);
+    service = new BookingsService(prisma as never, {} as never);
   });
 
   describe("findBookingsForUser", () => {
