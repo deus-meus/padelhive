@@ -1,6 +1,6 @@
 import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
-import { getVenue, getVenueCourts } from "@/lib/api";
+import { getVenue, getVenueCourts, getVenues } from "@/lib/api";
 import VenueDetailClient from "./client";
 
 export const revalidate = 60;
@@ -18,6 +18,15 @@ export async function generateMetadata({ params }: { params: Params }) {
     return {
       title: "Venue | PadelHive",
     };
+  }
+}
+
+export async function generateStaticParams() {
+  try {
+    const venues = await getVenues();
+    return venues.map((venue) => ({ id: venue.id }));
+  } catch {
+    return [];
   }
 }
 
