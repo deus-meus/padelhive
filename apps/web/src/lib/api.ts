@@ -75,6 +75,7 @@ export type CreateBookingInput = {
   bookingDate: string;
   startsAt: string;
   endsAt: string;
+  voucherCode?: string;
 };
 
 export type BookingSummary = ApiBooking;
@@ -449,6 +450,20 @@ export async function updateCourt(venueId: string, courtId: string, input: Updat
 export async function getVouchers(): Promise<Voucher[]> {
   const vouchers = await apiFetch<ApiVoucher[]>("/vouchers");
   return vouchers.map(mapVoucher);
+}
+
+export type VoucherValidationResult = {
+  code: string;
+  type: "NOMINAL" | "PERCENTAGE";
+  discount: number;
+  finalAmount: number;
+};
+
+export async function validateVoucher(code: string, amount: number): Promise<VoucherValidationResult> {
+  return apiFetch<VoucherValidationResult>("/vouchers/validate", {
+    method: "POST",
+    body: JSON.stringify({ code, amount }),
+  });
 }
 
 export async function createBooking(
