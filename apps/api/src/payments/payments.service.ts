@@ -8,6 +8,7 @@ import { PAYMENT_GATEWAY_TOKEN, PaymentGateway } from "./gateways/payment-gatewa
 import * as crypto from "crypto";
 
 const SUPPORTED_METHODS = ["va", "ewallet", "card"];
+const SUPPORTED_PROVIDERS = ["internal", "midtrans"];
 
 const paymentSelect = {
   id: true,
@@ -77,6 +78,7 @@ export class PaymentsService {
 
   async createIntentForUser(userId: string, body: CreatePaymentIntentDto): Promise<PaymentResponseDto> {
     this.assertSupportedMethod(body.method);
+    this.assertSupportedProvider(body.provider);
 
     const booking = await this.prisma.booking.findFirst({
       where: { id: body.bookingId, hostUserId: userId },
@@ -281,6 +283,12 @@ export class PaymentsService {
   private assertSupportedMethod(method: string): void {
     if (!SUPPORTED_METHODS.includes(method)) {
       throw new BadRequestException("Unsupported payment method");
+    }
+  }
+
+  private assertSupportedProvider(provider: string): void {
+    if (!SUPPORTED_PROVIDERS.includes(provider)) {
+      throw new BadRequestException("Unsupported payment provider");
     }
   }
 
