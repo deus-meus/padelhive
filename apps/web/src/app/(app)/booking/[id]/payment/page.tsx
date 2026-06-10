@@ -159,12 +159,39 @@ export default function PaymentPage({
     return expected.every((val, idx) => val === actual[idx]);
   })();
 
+  const splitInviteIds = new Set((splitData?.shares ?? []).map((s) => s.inviteId));
+  const unsyncedInvites = (invites ?? []).filter((inv) => !splitInviteIds.has(inv.id));
+  const hasUnsyncedInvites = splitEnabled && unsyncedInvites.length > 0;
+
   useEffect(() => {
     if (!splitData || hasInitializedSplitMode.current) return;
     if ((splitData.shares?.length ?? 0) === 0) return;
     hasInitializedSplitMode.current = true;
     setSplitMode(isEqualSplit ? "equal" : "custom");
   }, [splitData, isEqualSplit]);
+
+  const handleResyncParticipants = () => {
+    const participants = [];
+    participants.push({
+      name: "You",
+      userId: booking?.host?.id,
+      email: booking?.host?.email,
+    });
+    if (invites) {
+      invites.forEach((invite) => {
+        participants.push({
+          name: invite.name,
+          email: invite.email,
+          userId: invite.userId ?? undefined,
+          inviteId: invite.id,
+        });
+      });
+    }
+    setSplit({ mode: "equal", participants });
+    setSplitMode("equal");
+    setCustomAmounts({});
+    setCustomError(null);
+  };
 
   const handleToggleSplit = () => {
     if (splitEnabled) {
@@ -450,6 +477,26 @@ export default function PaymentPage({
                       Custom
                     </button>
                   </div>
+
+                  {hasUnsyncedInvites && (
+                    <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[11px] text-[#F7F7F7]/60">
+                          {unsyncedInvites.length} new {unsyncedInvites.length === 1 ? "invitee isn't" : "invitees aren't"} in this split yet.
+                        </p>
+                        <button
+                          onClick={handleResyncParticipants}
+                          disabled={isSplitToggling}
+                          className="shrink-0 rounded-full border border-[#E6FA50]/30 px-3 py-1 text-[11px] font-medium text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/10 disabled:opacity-50"
+                        >
+                          Re-sync
+                        </button>
+                      </div>
+                      <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
+                        Re-syncing rebuilds an equal split for everyone and resets paid statuses.
+                      </p>
+                    </div>
+                  )}
 
                   {isSplitLoading || isSplitToggling ? (
                     <div className="animate-pulse rounded-xl bg-white/[0.05] h-[80px]" />
