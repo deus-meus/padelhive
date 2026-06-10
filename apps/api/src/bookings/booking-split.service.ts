@@ -8,6 +8,13 @@ import { BookingSplitDto, BookingSplitShareDto } from "./dto/split-response.dto"
 export class BookingSplitService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private identityKey(s: { inviteId: string | null; userId: string | null; email: string | null; name: string }): string {
+    if (s.inviteId) return `invite:${s.inviteId}`;
+    if (s.userId) return `user:${s.userId}`;
+    if (s.email) return `email:${s.email.toLowerCase()}`;
+    return `name:${s.name.trim().toLowerCase()}`;
+  }
+
   private async getValidBooking(bookingId: string, userId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
@@ -131,12 +138,34 @@ export class BookingSplitService {
     }
 
     const shares = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.bookingSplitShare.findMany({
+        where: { bookingId },
+      });
+
+      const statusByIdentity = new Map<string, { status: SplitShareStatus; paidAt: Date | null }>();
+      for (const s of existing) {
+        const key = this.identityKey(s);
+        if (!statusByIdentity.has(key)) {
+          statusByIdentity.set(key, { status: s.status, paidAt: s.paidAt });
+        }
+      }
+
+      const enriched = processedParticipants.map((p) => {
+        const key = this.identityKey(p);
+        const prior = statusByIdentity.get(key);
+        if (prior) {
+          statusByIdentity.delete(key);
+          return { ...p, status: prior.status, paidAt: prior.paidAt };
+        }
+        return p;
+      });
+
       await tx.bookingSplitShare.deleteMany({
         where: { bookingId },
       });
 
       await tx.bookingSplitShare.createMany({
-        data: processedParticipants,
+        data: enriched,
       });
 
       return tx.bookingSplitShare.findMany({
