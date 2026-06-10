@@ -9,11 +9,13 @@ describe("BookingExpiryService", () => {
   };
   let txBookingUpdateManyMock: jest.Mock;
   let txPaymentUpdateManyMock: jest.Mock;
+  let txVoucherUpdateManyMock: jest.Mock;
   let loggerLogSpy: jest.SpyInstance;
 
   beforeEach(() => {
     txBookingUpdateManyMock = jest.fn().mockResolvedValue({ count: 1 });
     txPaymentUpdateManyMock = jest.fn().mockResolvedValue({ count: 1 });
+    txVoucherUpdateManyMock = jest.fn().mockResolvedValue({ count: 0 });
 
     prisma = {
       booking: {
@@ -23,6 +25,7 @@ describe("BookingExpiryService", () => {
         return cb({
           booking: { updateMany: txBookingUpdateManyMock },
           payment: { updateMany: txPaymentUpdateManyMock },
+          voucher: { updateMany: txVoucherUpdateManyMock },
         });
       }),
     };
@@ -45,7 +48,7 @@ describe("BookingExpiryService", () => {
         status: BookingStatus.PENDING_PAYMENT,
         expiresAt: { lte: expect.any(Date) },
       },
-      select: { id: true },
+      select: { id: true, voucherId: true },
     });
 
     expect(prisma.$transaction).toHaveBeenCalled();

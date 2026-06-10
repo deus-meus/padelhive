@@ -39,6 +39,7 @@ const bookingSelect = {
 
 const cancellableBookingSelect = {
   ...bookingSelect,
+  voucherId: true,
   cancelledAt: true,
   payment: {
     select: {
@@ -60,6 +61,7 @@ type CancellableBooking = {
   platformFee: number;
   voucherDiscount: number;
   finalAmount: number;
+  voucherId: string | null;
   cancelledAt: Date | null;
   venue: { id: string; name: string; city: string };
   court: { id: string; name: string; type: CourtType };
@@ -241,6 +243,13 @@ export class BookingsService {
             reason: REFUND_ELIGIBLE_REASON,
             status: RefundStatus.PENDING,
           },
+        });
+      }
+
+      if (booking.voucherId) {
+        await tx.voucher.updateMany({
+          where: { id: booking.voucherId, usedCount: { gt: 0 } },
+          data: { usedCount: { decrement: 1 } },
         });
       }
 
