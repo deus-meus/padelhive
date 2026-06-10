@@ -493,7 +493,7 @@ export default function PaymentPage({
                         </button>
                       </div>
                       <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
-                        Re-syncing rebuilds an equal split for everyone and resets paid statuses.
+                        Re-syncing resets everyone to an equal split. Players who already paid keep their paid status.
                       </p>
                     </div>
                   )}
@@ -670,7 +670,7 @@ export default function PaymentPage({
                               {isSettingSplit ? "Saving..." : "Save custom split"}
                             </button>
                             <p className="text-center text-[11px] text-[#F7F7F7]/25">
-                              Saving custom amounts resets everyone&apos;s paid status.
+                              Saved amounts apply immediately. Players who already paid keep their paid status.
                             </p>
                           </div>
                         </>
