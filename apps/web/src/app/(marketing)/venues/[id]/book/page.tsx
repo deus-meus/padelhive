@@ -14,8 +14,10 @@ import {
   ChevronRight,
   Users,
   Info,
+  Tag,
+  X,
 } from "lucide-react";
-import { ApiRequestError, createBooking, getVenue, getVenueCourts, getVenueAvailability, ApiAvailabilitySlot } from "@/lib/api";
+import { ApiRequestError, createBooking, getVenue, getVenueCourts, getVenueAvailability, ApiAvailabilitySlot, validateVoucher, getApiErrorMessage } from "@/lib/api";
 import { Court, Venue } from "@/types";
 
 const DAYS_AHEAD = 14;
@@ -25,7 +27,8 @@ type BookingSubmitError =
   | "overlap"
   | "auth-required"
   | "backend-unavailable"
-  | "generic";
+  | "generic"
+  | "voucher-invalid";
 
 function generateDates() {
   const dates = [];
@@ -93,6 +96,11 @@ export default function BookingFlowPage({
   const [dateScrollStart, setDateScrollStart] = useState(0);
   const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState<BookingSubmitError | null>(null);
+
+  const [voucherInput, setVoucherInput] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<{ code: string; discount: number } | null>(null);
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [voucherChecking, setVoucherChecking] = useState(false);
   
   const dateStr = useMemo(() => formatBookingDate(selectedDate), [selectedDate]);
   
@@ -117,6 +125,8 @@ export default function BookingFlowPage({
     );
     setConfirmState("idle");
     setSubmitError(null);
+    setAppliedVoucher(null);
+    setVoucherError(null);
   }
 
   const totalPrice = useMemo(() => {
@@ -128,6 +138,36 @@ export default function BookingFlowPage({
   }, [selectedSlots, timeSlots]);
 
   const duration = selectedSlots.length;
+
+  const platformFee = Math.round(totalPrice * 0.05);
+  const subtotalWithFee = totalPrice + platformFee;
+  const discountedTotal = Math.max(0, subtotalWithFee - (appliedVoucher?.discount ?? 0));
+
+  async function handleApplyVoucher() {
+    const code = voucherInput.trim().toUpperCase();
+    if (!code || voucherChecking) return;
+    if (selectedSlots.length === 0) {
+      setVoucherError("Select your time slots first.");
+      return;
+    }
+    setVoucherChecking(true);
+    setVoucherError(null);
+    try {
+      const res = await validateVoucher(code, subtotalWithFee);
+      setAppliedVoucher({ code: res.code, discount: res.discount });
+    } catch (e) {
+      setAppliedVoucher(null);
+      setVoucherError(getApiErrorMessage(e));
+    } finally {
+      setVoucherChecking(false);
+    }
+  }
+
+  function clearVoucher() {
+    setAppliedVoucher(null);
+    setVoucherError(null);
+    setVoucherInput("");
+  }
 
   const sortedSlots = [...selectedSlots].sort();
   const startTime = sortedSlots[0] ?? "--:--";
@@ -183,6 +223,11 @@ export default function BookingFlowPage({
           return;
         }
 
+        if (error.status === 400) {
+          setSubmitError(appliedVoucher ? "voucher-invalid" : "generic");
+          return;
+        }
+
         setSubmitError("generic");
         return;
       }
@@ -220,6 +265,7 @@ export default function BookingFlowPage({
       bookingDate: formatBookingDate(selectedDate),
       startsAt: startTime,
       endsAt: endTime,
+      voucherCode: appliedVoucher?.code,
     });
   }
 
@@ -235,6 +281,8 @@ export default function BookingFlowPage({
         return "Booking service is unavailable. Please try again when the backend is running.";
       case "generic":
         return "Could not create this booking. Please review your selection and retry.";
+      case "voucher-invalid":
+        return "This voucher couldn't be applied. Remove it or try another code.";
       default:
         return null;
     }
@@ -292,6 +340,8 @@ export default function BookingFlowPage({
                       setSelectedSlots([]);
                       setSubmitError(null);
                       setConfirmState("idle");
+                      setAppliedVoucher(null);
+                      setVoucherError(null);
                     }}
                     className={`rounded-xl border px-5 py-3 transition-all ${
                       selectedCourt?.id === court.id
@@ -356,6 +406,8 @@ export default function BookingFlowPage({
                             setSelectedSlots([]);
                             setSubmitError(null);
                             setConfirmState("idle");
+                            setAppliedVoucher(null);
+                            setVoucherError(null);
                           }}
                           className={`${hiddenOnMobile} flex-col items-center rounded-xl border py-3 transition-all ${
                             isSelected
@@ -577,6 +629,63 @@ export default function BookingFlowPage({
                         : "—"}
                     </span>
                   </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  <h4 className="section-label flex items-center">
+                    <Tag className="mr-2 inline h-3.5 w-3.5" />
+                    Voucher
+                  </h4>
+                  {appliedVoucher ? (
+                    <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-3 flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-[#F7F7F7]/80 uppercase">{appliedVoucher.code}</span>
+                        <span className="text-[11px] text-[#E6FA50]">− Rp {appliedVoucher.discount.toLocaleString("id-ID")}</span>
+                      </div>
+                      <button onClick={clearVoucher} className="p-2 text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80 transition-colors">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={voucherInput}
+                        onChange={(e) => setVoucherInput(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleApplyVoucher()}
+                        placeholder="ENTER CODE"
+                        className="w-full uppercase rounded-xl border border-white/[0.06] bg-[#0C1B26] px-3 py-2 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none focus:border-white/[0.15]"
+                      />
+                      <button
+                        onClick={handleApplyVoucher}
+                        disabled={!voucherInput.trim() || voucherChecking}
+                        className="rounded-xl bg-white/[0.06] px-4 py-2 text-sm font-medium text-[#F7F7F7]/80 hover:bg-white/[0.1] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {voucherChecking ? "Checking…" : "Apply"}
+                      </button>
+                    </div>
+                  )}
+                  {voucherError && (
+                    <p className="text-[11px] text-red-400">
+                      {voucherError}
+                    </p>
+                  )}
+                  {appliedVoucher && (
+                    <div className="pt-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-[#F7F7F7]/40">Discount</span>
+                        <span className="text-sm text-[#E6FA50]">
+                          − Rp {appliedVoucher.discount.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between border-t border-white/[0.06] pt-2">
+                        <span className="text-sm font-medium text-[#F7F7F7]/60">Estimated total</span>
+                        <span className="price text-xl text-[#F7F7F7]">
+                          Rp {discountedTotal.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {selectedSlots.length === 0 && (

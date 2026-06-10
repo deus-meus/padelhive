@@ -527,6 +527,12 @@ export default function PaymentPage({
                       Rp {platformFee.toLocaleString("id-ID")}
                     </span>
                   </div>
+                  {booking && booking.voucherDiscount > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-[#F7F7F7]/40">Voucher discount</span>
+                      <span className="text-[#E6FA50]/80">- Rp {booking.voucherDiscount.toLocaleString("id-ID")}</span>
+                    </div>
+                  )}
                   {splitEnabled && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-[#F7F7F7]/40">
