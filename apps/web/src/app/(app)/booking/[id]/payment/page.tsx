@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import Script from "next/script";
 import Link from "next/link";
@@ -18,7 +18,17 @@ import {
   Shield,
   UserPlus,
 } from "lucide-react";
-import { ApiRequestError, createPaymentIntent, markPaymentPaid, getBookingById } from "@/lib/api";
+import {
+  ApiRequestError,
+  createPaymentIntent,
+  markPaymentPaid,
+  getBookingById,
+  getBookingSplit,
+  getBookingInvites,
+  setBookingSplit,
+  clearBookingSplit,
+  setSplitShareStatus,
+} from "@/lib/api";
 
 declare global {
   interface Window {
@@ -36,13 +46,7 @@ declare global {
   }
 }
 
-interface SplitPlayer {
-  id: string;
-  name: string;
-  avatar: string;
-  amount: number;
-  status: "paid" | "pending" | "unpaid";
-}
+// No SplitPlayer mock data
 
 const PAYMENT_METHODS = [
   {
@@ -65,55 +69,20 @@ const PAYMENT_METHODS = [
   },
 ];
 
-const SPLIT_PLAYERS: SplitPlayer[]= [
-  {
-    id: "p1",
-    name: "You",
-    avatar: "https://i.pravatar.cc/150?u=you",
-    amount: 0,
-    status: "pending",
-  },
-  {
-    id: "p2",
-    name: "Andi Saputra",
-    avatar: "https://i.pravatar.cc/150?u=andi",
-    amount: 0,
-    status: "paid",
-  },
-  {
-    id: "p3",
-    name: "Budi Rahmat",
-    avatar: "https://i.pravatar.cc/150?u=budi",
-    amount: 0,
-    status: "pending",
-  },
-  {
-    id: "p4",
-    name: "Clara Wijaya",
-    avatar: "https://i.pravatar.cc/150?u=clara",
-    amount: 0,
-    status: "unpaid",
-  },
-];
+// No SPLIT_PLAYERS mock data
 
 const SPLIT_STATUS_CONFIG = {
-  paid: {
+  PAID: {
     label: "Paid",
     icon: CheckCircle2,
     color: "text-green-400",
     bg: "bg-green-400/10",
   },
-  pending: {
+  PENDING: {
     label: "Pending",
     icon: Clock,
     color: "text-yellow-400",
     bg: "bg-yellow-400/10",
-  },
-  unpaid: {
-    label: "Not Paid",
-    icon: AlertCircle,
-    color: "text-red-400",
-    bg: "bg-red-400/10",
   },
 };
 
@@ -123,11 +92,12 @@ export default function PaymentPage({
   params: { id: string };
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [splitEnabled, setSplitEnabled] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [markingPaid, setMarkingPaid] = useState(false);
+  const [togglingShareId, setTogglingShareId] = useState<string | null>(null);
 
   const isDemoMode = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION !== "true";
   const snapScriptUrl = isDemoMode
@@ -140,6 +110,64 @@ export default function PaymentPage({
     queryFn: () => getBookingById(params.id),
   });
 
+  const { data: splitData, isLoading: isSplitLoading } = useQuery({
+    queryKey: queryKeys.bookings.split(params.id),
+    queryFn: () => getBookingSplit(params.id),
+    enabled: !!booking,
+  });
+
+  const { data: invites } = useQuery({
+    queryKey: queryKeys.bookings.invites(params.id),
+    queryFn: () => getBookingInvites(params.id),
+    enabled: !!booking,
+  });
+
+  const { mutate: setSplit, isPending: isSettingSplit } = useMutation({
+    mutationFn: (input: Parameters<typeof setBookingSplit>[1]) => setBookingSplit(params.id, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.bookings.split(params.id) }),
+  });
+
+  const { mutate: clearSplit, isPending: isClearingSplit } = useMutation({
+    mutationFn: () => clearBookingSplit(params.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.bookings.split(params.id) }),
+  });
+
+  const { mutate: setShareStatus } = useMutation({
+    mutationFn: ({ shareId, status }: { shareId: string; status: "PENDING" | "PAID" }) =>
+      setSplitShareStatus(params.id, shareId, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.bookings.split(params.id) }),
+    onSettled: () => setTogglingShareId(null),
+  });
+
+  const splitEnabled = (splitData?.shares?.length ?? 0) > 0;
+  const isSplitToggling = isSettingSplit || isClearingSplit;
+
+  const handleToggleSplit = () => {
+    if (splitEnabled) {
+      clearSplit();
+    } else {
+      const participants = [];
+      participants.push({
+        name: "You",
+        userId: booking?.host?.id,
+        email: booking?.host?.email,
+      });
+
+      if (invites) {
+        invites.forEach((invite) => {
+          participants.push({
+            name: invite.name,
+            email: invite.email,
+            userId: invite.userId ?? undefined,
+            inviteId: invite.id,
+          });
+        });
+      }
+
+      setSplit({ mode: "equal", participants });
+    }
+  };
+
   const venue = booking?.venue.name ?? "—";
   const court = booking?.court.name ?? "—";
   const date = booking?.bookingDate ?? "—";
@@ -151,18 +179,8 @@ export default function PaymentPage({
   const platformFee = booking?.platformFee ?? 0;
   const totalAmount = booking?.finalAmount ?? 0;
 
-  const playerCount = SPLIT_PLAYERS.length;
-  const perPlayer = Math.ceil(totalAmount / playerCount);
-
-  const players = SPLIT_PLAYERS.map((p) => ({
-    ...p,
-    amount: perPlayer,
-  }));
-
-  const paidAmount = players
-    .filter((p) => p.status === "paid")
-    .reduce((sum, p) => sum + p.amount, 0);
-  const yourShare = splitEnabled ? totalAmount - paidAmount : totalAmount;
+  const paidAmount = splitData?.paidAmount ?? 0;
+  const yourShare = splitEnabled ? Math.max(0, totalAmount - paidAmount) : totalAmount;
 
   const formattedDate = (() => {
     try {
@@ -343,10 +361,11 @@ export default function PaymentPage({
                   Split Payment
                 </h2>
                 <button
-                  onClick={() => setSplitEnabled(!splitEnabled)}
+                  onClick={handleToggleSplit}
+                  disabled={isSplitToggling}
                   className={`relative h-6 w-11 rounded-full transition-colors ${
                     splitEnabled ? "bg-[#E6FA50]" : "bg-white/[0.1]"
-                  }`}
+                  } disabled:opacity-50`}
                 >
                   <span
                     className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
@@ -361,66 +380,81 @@ export default function PaymentPage({
 
               {splitEnabled && (
                 <div className="mt-4 space-y-3">
-                  <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#F7F7F7]/60">
-                        Price per player
-                      </span>
-                      <span className="text-sm font-semibold text-[#E6FA50]">
-                        Rp {perPlayer.toLocaleString("id-ID")}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
-                      Total Rp {totalAmount.toLocaleString("id-ID")} ÷{" "}
-                      {playerCount} players
-                    </p>
-                  </div>
-
-                  {players.map((player) => {
-                    const config = SPLIT_STATUS_CONFIG[player.status];
-                    const StatusIcon = config.icon;
-                    return (
-                      <div
-                        key={player.id}
-                        className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4"
-                      >
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={player.avatar}
-                            alt={player.name}
-                            className="h-9 w-9 rounded-full object-cover"
-                          />
-                          <div>
-                            <p className="text-sm font-medium text-[#F7F7F7]/80">
-                              {player.name}
-                            </p>
-                            <p className="text-[11px] text-[#F7F7F7]/25">
-                              Rp {player.amount.toLocaleString("id-ID")}
-                            </p>
-                          </div>
-                        </div>
-                        <div
-                          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}
-                        >
-                          <StatusIcon
-                            className={`h-3.5 w-3.5 ${config.color}`}
-                          />
-                          <span
-                            className={`text-[11px] font-medium ${config.color}`}
-                          >
-                            {config.label}
+                  {isSplitLoading || isSplitToggling ? (
+                    <div className="animate-pulse rounded-xl bg-white/[0.05] h-[80px]" />
+                  ) : splitData && splitData.shares && splitData.shares.length > 0 ? (
+                    <>
+                      <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-[#F7F7F7]/60">
+                            Price per player
+                          </span>
+                          <span className="text-sm font-semibold text-[#E6FA50]">
+                            Rp {Math.floor(splitData.totalAmount / splitData.shareCount).toLocaleString("id-ID")}
                           </span>
                         </div>
+                        <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
+                          Total Rp {splitData.totalAmount.toLocaleString("id-ID")} ÷{" "}
+                          {splitData.shareCount} players
+                        </p>
                       </div>
-                    );
-                  })}
 
-                  <div className="rounded-lg bg-white/[0.02] p-3">
-                    <p className="text-[11px] text-[#F7F7F7]/25">
-                      You pay the remaining balance. Friends who haven&apos;t
-                      paid will be charged their share separately.
-                    </p>
-                  </div>
+                      {splitData.shares.map((share) => {
+                        const config = SPLIT_STATUS_CONFIG[share.status];
+                        const StatusIcon = config.icon;
+                        const isToggling = togglingShareId === share.id;
+
+                        return (
+                          <div
+                            key={share.id}
+                            className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-[#F7F7F7]/60 text-xs font-semibold">
+                                {share.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-[#F7F7F7]/80">
+                                  {share.name}
+                                </p>
+                                <p className="text-[11px] text-[#F7F7F7]/25">
+                                  Rp {share.amount.toLocaleString("id-ID")}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setTogglingShareId(share.id);
+                                setShareStatus({ shareId: share.id, status: share.status === "PENDING" ? "PAID" : "PENDING" });
+                              }}
+                              disabled={isToggling}
+                              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${config.bg} hover:opacity-80 disabled:opacity-50`}
+                            >
+                              {isToggling ? (
+                                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                              ) : (
+                                <StatusIcon
+                                  className={`h-3.5 w-3.5 ${config.color}`}
+                                />
+                              )}
+                              <span
+                                className={`text-[11px] font-medium ${config.color}`}
+                              >
+                                {config.label}
+                              </span>
+                            </button>
+                          </div>
+                        );
+                      })}
+
+                      <div className="rounded-lg bg-white/[0.02] p-3">
+                        <p className="text-[11px] text-[#F7F7F7]/25">
+                          You pay the remaining balance. Friends who haven&apos;t
+                          paid will be charged their share separately.
+                        </p>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               )}
             </div>

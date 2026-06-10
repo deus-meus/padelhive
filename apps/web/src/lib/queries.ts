@@ -12,6 +12,7 @@ export const queryKeys = {
     user: (tab: string) => ["bookings", "user", tab] as const,
     detail: (id: string) => ["bookings", id] as const,
     invites: (id: string) => ["bookings", id, "invites"] as const,
+    split: (id: string) => ["bookings", id, "split"] as const,
   },
   admin: {
     overview: () => ["admin", "overview"] as const,
