@@ -4,11 +4,12 @@ import { VouchersModule } from "../vouchers/vouchers.module";
 import { BookingsController } from "./bookings.controller";
 import { BookingsService } from "./bookings.service";
 import { BookingExpiryService } from "./booking-expiry.service";
+import { BookingSplitService } from "./booking-split.service";
 
 @Module({
   imports: [UsersModule, VouchersModule],
   controllers: [BookingsController],
-  providers: [BookingsService, BookingExpiryService],
+  providers: [BookingsService, BookingExpiryService, BookingSplitService],
   exports: [BookingsService],
 })
 export class BookingsModule {}

@@ -58,7 +58,7 @@ describe("Read-only bookings API", () => {
   it("returns current user's booking from controller", async () => {
     const booking = { id: "booking-1" };
     const service = { findBookingForUser: jest.fn().mockResolvedValue(booking) } as unknown as BookingsService;
-    const controller = new BookingsController(service);
+    const controller = new BookingsController(service, {} as never);
 
     await expect(controller.findOne("booking-1", requestUser)).resolves.toEqual(booking);
     expect(service.findBookingForUser).toHaveBeenCalledWith("booking-1", "user-1");
