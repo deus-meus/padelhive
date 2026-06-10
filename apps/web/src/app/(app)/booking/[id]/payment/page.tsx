@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import Script from "next/script";
@@ -101,6 +101,7 @@ export default function PaymentPage({
   const [splitMode, setSplitMode] = useState<"equal" | "custom">("equal");
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
   const [customError, setCustomError] = useState<string | null>(null);
+  const hasInitializedSplitMode = useRef(false);
 
   const isDemoMode = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION !== "true";
   const snapScriptUrl = isDemoMode
@@ -158,12 +159,20 @@ export default function PaymentPage({
     return expected.every((val, idx) => val === actual[idx]);
   })();
 
+  useEffect(() => {
+    if (!splitData || hasInitializedSplitMode.current) return;
+    if ((splitData.shares?.length ?? 0) === 0) return;
+    hasInitializedSplitMode.current = true;
+    setSplitMode(isEqualSplit ? "equal" : "custom");
+  }, [splitData, isEqualSplit]);
+
   const handleToggleSplit = () => {
     if (splitEnabled) {
       clearSplit();
       setSplitMode("equal");
       setCustomAmounts({});
       setCustomError(null);
+      hasInitializedSplitMode.current = false;
     } else {
       const participants = [];
       participants.push({
