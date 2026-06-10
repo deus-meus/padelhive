@@ -3,6 +3,7 @@ import { Reflector } from "@nestjs/core";
 import { UsersService } from "../../users/users.service";
 import { FirebaseAuthService } from "../firebase-auth.service";
 import { RequestUser } from "../types/request-user.type";
+import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
@@ -13,7 +14,7 @@ export class FirebaseAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>("isPublic", [
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
