@@ -145,6 +145,19 @@ export default function PaymentPage({
   const splitEnabled = (splitData?.shares?.length ?? 0) > 0;
   const isSplitToggling = isSettingSplit || isClearingSplit;
 
+  const isEqualSplit = (() => {
+    if (!splitData || !splitData.shares || splitData.shares.length === 0 || !splitData.shareCount || splitData.shareCount <= 0) {
+      return true;
+    }
+    const base = Math.floor(splitData.totalAmount / splitData.shareCount);
+    const remainder = splitData.totalAmount - base * splitData.shareCount;
+    const expected = [base + remainder, ...Array(splitData.shareCount - 1).fill(base)].sort((a, b) => b - a);
+    const actual = splitData.shares.map((s) => s.amount).sort((a, b) => b - a);
+
+    if (expected.length !== actual.length) return false;
+    return expected.every((val, idx) => val === actual[idx]);
+  })();
+
   const handleToggleSplit = () => {
     if (splitEnabled) {
       clearSplit();
@@ -435,20 +448,34 @@ export default function PaymentPage({
                     <>
                       {splitMode === "equal" ? (
                         <>
-                          <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-[#F7F7F7]/60">
-                                Price per player
-                              </span>
-                              <span className="text-sm font-semibold text-[#E6FA50]">
-                                Rp {Math.floor(splitData.totalAmount / splitData.shareCount).toLocaleString("id-ID")}
-                              </span>
+                          {isEqualSplit ? (
+                            <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-[#F7F7F7]/60">
+                                  Price per player
+                                </span>
+                                <span className="text-sm font-semibold text-[#E6FA50]">
+                                  Rp {Math.floor(splitData.totalAmount / splitData.shareCount).toLocaleString("id-ID")}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
+                                Total Rp {splitData.totalAmount.toLocaleString("id-ID")} ÷{" "}
+                                {splitData.shareCount} players
+                              </p>
                             </div>
-                            <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
-                              Total Rp {splitData.totalAmount.toLocaleString("id-ID")} ÷{" "}
-                              {splitData.shareCount} players
-                            </p>
-                          </div>
+                          ) : (
+                            <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-[#F7F7F7]/60">Custom split</span>
+                                <span className="text-sm font-semibold text-[#E6FA50]">
+                                  Rp {splitData.totalAmount.toLocaleString("id-ID")}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
+                                Custom amounts per player · {splitData.shareCount} players
+                              </p>
+                            </div>
+                          )}
 
                           {splitData.shares.map((share) => {
                             const config = SPLIT_STATUS_CONFIG[share.status];
