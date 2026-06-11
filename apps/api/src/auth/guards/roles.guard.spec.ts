@@ -9,7 +9,7 @@ describe("RolesGuard", () => {
   let guard: RolesGuard;
   let reflector: jest.Mocked<Reflector>;
   let executionContext: ExecutionContext;
-  let request: any;
+  let request: { user?: RequestUser };
 
   beforeEach(() => {
     reflector = {

@@ -66,8 +66,8 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
   });
   const defaultBookingUpdate = jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED });
   
-  const bookingCreate = (overrides.booking as any)?.create ?? defaultBookingCreate;
-  const bookingUpdate = (overrides.booking as any)?.update ?? defaultBookingUpdate;
+  const bookingCreate = (overrides.booking as Record<string, unknown>)?.create ?? defaultBookingCreate;
+  const bookingUpdate = (overrides.booking as Record<string, unknown>)?.update ?? defaultBookingUpdate;
 
   return {
     venue: { findFirst: jest.fn().mockResolvedValue(approvedVenue) },

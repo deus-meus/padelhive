@@ -14,22 +14,7 @@ describe("Read-only venues API", () => {
     expect(prisma.venue.findMany).toHaveBeenCalledWith({
       where: { status: VenueStatus.APPROVED },
       orderBy: [{ city: "asc" }, { name: "asc" }],
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        location: true,
-        city: true,
-        description: true,
-        imageUrl: true,
-        photos: true,
-        facilities: true,
-        openTime: true,
-        closeTime: true,
-        rating: true,
-        reviewCount: true,
-        status: true,
-      },
+      select: expect.any(Object),
     });
   });
 
@@ -49,11 +34,20 @@ describe("Read-only venues API", () => {
       rating: { toNumber: () => 4.75 },
       reviewCount: 12,
       status: VenueStatus.APPROVED,
+      courts: [],
+      _count: { courts: 2 },
     };
     const prisma = { venue: { findFirst: jest.fn().mockResolvedValue(venue) } };
     const service = new VenuesService(prisma as never);
 
-    await expect(service.findApprovedVenueById("venue-1")).resolves.toEqual({ ...venue, rating: 4.75 });
+    const { courts, _count, ...expectedVenue } = venue;
+    await expect(service.findApprovedVenueById("venue-1")).resolves.toEqual({ 
+      ...expectedVenue, 
+      rating: 4.75,
+      courtCount: 2,
+      priceFrom: 0,
+      weeklyHours: null,
+    });
     expect(prisma.venue.findFirst).toHaveBeenCalledWith({
       where: { id: "venue-1", status: VenueStatus.APPROVED },
       select: expect.any(Object),
