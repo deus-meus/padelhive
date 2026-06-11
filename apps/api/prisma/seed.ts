@@ -1,6 +1,6 @@
 import { 
   PrismaClient, UserRole, VenueStatus, CourtType, 
-  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType 
+  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus 
 } from "@prisma/client";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -36,7 +36,9 @@ try {
   console.warn("Firebase admin initialization failed, proceeding with local uids", error);
 }
 
-const ACCOUNTS = [
+type Account = { email: string; password: string; role: UserRole; name: string; phone: string };
+
+const ACCOUNTS: Account[] = [
   { email: "admin@padelhive.com", password: "Padel#Super1", role: UserRole.SUPER_ADMIN, name: "Admin Padelhive", phone: "+6281234567899" },
   { email: "budi.owner@padelhive.com", password: "Padel#Owner1", role: UserRole.VENUE_OWNER, name: "Budi Santoso", phone: "+6281234567892" },
   { email: "reza.owner@padelhive.com", password: "Padel#Owner2", role: UserRole.VENUE_OWNER, name: "Reza Hakim", phone: "+6281234567812" },
@@ -47,15 +49,15 @@ const ACCOUNTS = [
   { email: "budi.player@padelhive.com", password: "Padel#Player3", role: UserRole.PLAYER, name: "Budi Rahmat", phone: "+6281234567801" },
 ];
 
-async function resolveUid(account: any): Promise<string> {
+async function resolveUid(account: Account): Promise<string> {
   if (!firebaseEnabled) return "local-" + account.email;
   const auth = getAuth();
   try {
     const user = await auth.getUserByEmail(account.email);
     await auth.updateUser(user.uid, { password: account.password });
     return user.uid;
-  } catch (error: any) {
-    if (error.code === 'auth/user-not-found') {
+  } catch (error: unknown) {
+    if (typeof error === "object" && error !== null && (error as { code?: string }).code === 'auth/user-not-found') {
       const user = await auth.createUser({
         email: account.email,
         password: account.password,
@@ -100,7 +102,7 @@ async function main() {
   ]);
 
   console.log("Creating users...");
-  const usersRecord: Record<string, any> = {};
+  const usersRecord: Record<string, { id: string }> = {};
   for (const acc of ACCOUNTS) {
     const uid = await resolveUid(acc);
     const u = await prisma.user.create({
@@ -232,7 +234,7 @@ async function main() {
   });
 
   console.log("Creating payments...");
-  const pUpcoming = await prisma.payment.create({
+  await prisma.payment.create({
     data: { id: "payment-upcoming", bookingId: bUpcoming.id, status: PaymentStatus.PAID, provider: "midtrans", method: "ewallet", amount: 252000, paidAt: getWibTime(-1, 9, 0), providerReference: "MT-UPCOMING" }
   });
   const pCompleted = await prisma.payment.create({
@@ -269,10 +271,10 @@ async function main() {
 
   console.log("Creating split shares...");
   await prisma.bookingSplitShare.create({
-    data: { bookingId: bUpcoming.id, inviteId: iAndi.id, userId: usersRecord["andi@example.com"].id, name: "Andi Pratama", amount: 126000, status: PaymentStatus.PAID, paidAt: getWibTime(-1, 9, 0) }
+    data: { bookingId: bUpcoming.id, inviteId: iAndi.id, userId: usersRecord["andi@example.com"].id, name: "Andi Pratama", amount: 126000, status: SplitShareStatus.PAID, paidAt: getWibTime(-1, 9, 0) }
   });
   await prisma.bookingSplitShare.create({
-    data: { bookingId: bUpcoming.id, inviteId: iSari.id, userId: usersRecord["sari@example.com"].id, name: "Sari Dewi", amount: 126000, status: PaymentStatus.PENDING }
+    data: { bookingId: bUpcoming.id, inviteId: iSari.id, userId: usersRecord["sari@example.com"].id, name: "Sari Dewi", amount: 126000, status: SplitShareStatus.PENDING }
   });
 
   console.log("Seeding complete!");
