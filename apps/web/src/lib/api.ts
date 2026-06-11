@@ -290,6 +290,10 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<
   return response.json() as Promise<T>;
 }
 
+export async function getMe(): Promise<{ id: string; firebaseUid?: string; email: string; name: string; role: string; avatarUrl?: string }> {
+  return apiFetch("/auth/me");
+}
+
 function formatDate(value: string): string {
   return value.split("T")[0] ?? value;
 }
