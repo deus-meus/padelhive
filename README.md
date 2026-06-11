@@ -29,6 +29,14 @@ docker-compose.yml   # local PostgreSQL
 4. Apply migrations: `npm run prisma:migrate`
 5. (Optional) Seed data: `npm run prisma:seed`
 
+## Firebase auth (setup)
+1) create/select Firebase project (id padelhive)
+2) Authentication -> enable Email/Password + Google
+3) fill apps/web/.env (NEXT_PUBLIC_FIREBASE_*)
+4) fill apps/api/.env (PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY from service account JSON, never commit)
+5) npm run seed:test-auth to create the 4 test accounts
+6) login with admin@padelhive.com / Padel#Super1
+
 ## Running
 - **API:** `npm run api:dev`
 - **Web:** `npm run dev`
