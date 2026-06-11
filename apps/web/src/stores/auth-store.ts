@@ -1,46 +1,23 @@
 import { create } from "zustand";
-import { signOut as signOutFirebase } from "@/lib/auth-client";
-import type { User, UserRole } from "@/types";
+import { onAuthStateChanged } from "firebase/auth";
+import { firebaseAuth } from "@/lib/firebase";
+import {
+  signInWithGoogle as authSignInWithGoogle,
+  signInWithEmail as authSignInWithEmail,
+  signUpWithEmail as authSignUpWithEmail,
+  sendPasswordReset as authSendPasswordReset,
+  signOut as authSignOut,
+} from "@/lib/auth-client";
+import { getMe } from "@/lib/api";
+import type { UserRole } from "@/types";
 
-export type MockUser = User & { avatarUrl: string };
-
-const MOCK_USERS: Record<UserRole, MockUser> = {
-  player: {
-    id: "user-1",
-    role: "player",
-    name: "Andi Pratama",
-    email: "andi@example.com",
-    phone: "+6281234567890",
-    avatarUrl: "https://i.pravatar.cc/150?img=11",
-    createdAt: "2026-01-15T10:00:00Z",
-  },
-  venue_owner: {
-    id: "user-2",
-    role: "venue_owner",
-    name: "Wayan Sudira",
-    email: "wayan@padelbali.com",
-    phone: "+6281234567891",
-    avatarUrl: "https://i.pravatar.cc/150?img=33",
-    createdAt: "2026-02-01T10:00:00Z",
-  },
-  venue_admin: {
-    id: "user-3",
-    role: "venue_admin",
-    name: "Sari Dewi",
-    email: "sari@padelbali.com",
-    phone: "+6281234567892",
-    avatarUrl: "https://i.pravatar.cc/150?img=32",
-    createdAt: "2026-02-15T10:00:00Z",
-  },
-  super_admin: {
-    id: "user-4",
-    role: "super_admin",
-    name: "Admin Padelhive",
-    email: "admin@padelhive.com",
-    phone: "+6281234567893",
-    avatarUrl: "https://i.pravatar.cc/150?img=60",
-    createdAt: "2026-01-01T10:00:00Z",
-  },
+export type AuthUser = {
+  id: string;
+  firebaseUid?: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  avatarUrl?: string;
 };
 
 export const ROLE_REDIRECTS: Record<UserRole, string> = {
@@ -51,36 +28,97 @@ export const ROLE_REDIRECTS: Record<UserRole, string> = {
 };
 
 interface AuthState {
-  user: MockUser | null;
+  user: AuthUser | null;
   isLoading: boolean;
-  login: (role: UserRole) => Promise<void>;
-  loginWithFirebasePlayer: (firebaseUser: { uid: string; displayName: string | null; email: string | null; photoURL: string | null }) => void;
+  isInitialized: boolean;
+  initialize: () => void;
+  loginWithGoogle: () => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (name: string, email: string, password: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
   logout: () => Promise<void>;
+  login: (role: UserRole) => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
+  isInitialized: false,
+
   login: async (role: UserRole) => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    set({ user: MOCK_USERS[role], isLoading: false });
+    // Stub implementation to satisfy Phone OTP flow
+    console.warn("Mock login called via OTP flow");
   },
-  loginWithFirebasePlayer: (firebaseUser) => {
-    set({
-      user: {
-        ...MOCK_USERS.player,
-        id: firebaseUser.uid,
-        name: firebaseUser.displayName ?? MOCK_USERS.player.name,
-        email: firebaseUser.email ?? MOCK_USERS.player.email,
-        avatarUrl: firebaseUser.photoURL ?? MOCK_USERS.player.avatarUrl,
-      },
-      isLoading: false,
+
+  initialize: () => {
+    if (get().isInitialized) return;
+
+    onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const backendUser = await getMe();
+          set({
+            user: {
+              ...backendUser,
+              role: backendUser.role as UserRole,
+              avatarUrl: firebaseUser.photoURL || undefined,
+            },
+          });
+        } catch (error) {
+          console.error("Failed to fetch user from backend", error);
+          set({ user: null });
+        }
+      } else {
+        set({ user: null });
+      }
+      set({ isInitialized: true });
     });
   },
+
+  loginWithGoogle: async () => {
+    set({ isLoading: true });
+    try {
+      await authSignInWithGoogle();
+      // user state will be updated by onAuthStateChanged
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  loginWithEmail: async (email, password) => {
+    set({ isLoading: true });
+    try {
+      await authSignInWithEmail(email, password);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  registerWithEmail: async (name, email, password) => {
+    set({ isLoading: true });
+    try {
+      await authSignUpWithEmail(name, email, password);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  sendPasswordReset: async (email) => {
+    set({ isLoading: true });
+    try {
+      await authSendPasswordReset(email);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
   logout: async () => {
     set({ isLoading: true });
-    await signOutFirebase();
-    set({ user: null, isLoading: false });
+    try {
+      await authSignOut();
+      set({ user: null });
+    } finally {
+      set({ isLoading: false });
+    }
   },
 }));

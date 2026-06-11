@@ -4,9 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Phone, Mail, Loader2, ChevronRight } from "lucide-react";
-import { signInWithGoogle } from "@/lib/auth-client";
 import { useAuthStore, ROLE_REDIRECTS } from "@/stores/auth-store";
-import type { UserRole } from "@/types";
 
 export default function LoginPage() {
   return (
@@ -28,9 +26,10 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
-  const { login, loginWithFirebasePlayer, isLoading } = useAuthStore();
+  const { loginWithGoogle, loginWithEmail, user, isLoading } = useAuthStore();
   const [method, setMethod] = useState<"phone" | "email">("phone");
   const [input, setInput] = useState("");
+  const [password, setPassword] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,9 +42,10 @@ function LoginContent() {
     if (isLoading) return;
     setError(null);
     try {
-      const firebaseUser = await signInWithGoogle();
-      loginWithFirebasePlayer(firebaseUser);
-      router.push(nextPath || ROLE_REDIRECTS.player);
+      await loginWithGoogle();
+      // Role will be fetched via initialize(), but we can just redirect to default or wait.
+      // Wait for user state to populate or just redirect if user exists.
+      router.push(nextPath || "/venues"); // Defaulting, standard flow is to wait for redirect.
     } catch {
       setError("Could not sign in with Google. Please try again.");
     }
@@ -54,22 +54,29 @@ function LoginContent() {
   function handleOTPRequest() {
     setError(null);
     if (!input.trim()) {
-      const message = method === "phone" ? "Please enter your phone number" : "Please enter your email";
-      setError(message);
-      showToast(message);
+      setError("Please enter your phone number");
+      showToast("Please enter your phone number");
       return;
     }
-    router.push(`/auth/verify?method=${method}&contact=${encodeURIComponent(input)}`);
+    router.push(`/auth/verify?method=phone&contact=${encodeURIComponent(input)}`);
   }
 
-  async function handleDemoLogin(role: UserRole) {
+  async function handleEmailLogin(e: React.FormEvent) {
+    e.preventDefault();
     if (isLoading) return;
     setError(null);
+    if (!input.trim() || !password.trim()) {
+      setError("Please enter your email and password");
+      return;
+    }
     try {
-      await login(role);
-      router.push(ROLE_REDIRECTS[role]);
-    } catch {
-      setError(`Could not sign in as ${role.replace("_", " ")}. Please try again.`);
+      await loginWithEmail(input, password);
+      // We need to wait for store update to get role. Zustands aren't immediate in the same tick if fetching backend.
+      // Realistically, the layout or protected route handles redirects if we are on login. 
+      // Let's redirect to a safe default and let require-auth handle it, or we could subscribe.
+      router.push(nextPath || "/venues");
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password");
     }
   }
 
@@ -145,55 +152,81 @@ function LoginContent() {
             </button>
           </div>
 
-          {/* Input */}
-          <div className="relative mb-4">
-            {method === "phone" ? (
+          {/* Form */}
+          {method === "phone" ? (
+            <div className="relative mb-4">
               <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
-            ) : (
-              <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
-            )}
-            <input
-              type={method === "phone" ? "tel" : "email"}
-              placeholder={method === "phone" ? "+62 812 3456 7890" : "you@example.com"}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleOTPRequest(); }}
-              disabled={isLoading}
-              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
-
-          {/* Send OTP */}
-          <button
-            onClick={handleOTPRequest}
-            disabled={isLoading}
-            className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Send OTP Code <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Demo login */}
-        <div className="mt-6 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
-          <p className="section-label mb-3">Demo Login</p>
-          <p className="caption text-[#F7F7F7]/25 mb-3">Quick login as different roles for testing</p>
-          <div className="grid grid-cols-2 gap-2">
-            {([
-              { role: "player" as UserRole, label: "Player" },
-              { role: "venue_owner" as UserRole, label: "Venue Owner" },
-              { role: "venue_admin" as UserRole, label: "Venue Admin" },
-              { role: "super_admin" as UserRole, label: "Super Admin" },
-            ]).map(({ role, label }) => (
-              <button
-                key={role}
-                onClick={() => handleDemoLogin(role)}
+              <input
+                type="tel"
+                placeholder="+62 812 3456 7890"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleOTPRequest(); }}
                 disabled={isLoading}
-                className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-xs font-medium text-[#F7F7F7]/60 transition-all hover:border-[#E6FA50]/20 hover:text-[#E6FA50] disabled:opacity-50"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+          ) : (
+            <form onSubmit={handleEmailLogin} className="space-y-4 mb-4">
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              <div className="relative">
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 px-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            </form>
+          )}
+
+          {/* Action Button */}
+          {method === "phone" ? (
+            <button
+              onClick={handleOTPRequest}
+              disabled={isLoading}
+              className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Send OTP Code <ChevronRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={handleEmailLogin}
+              disabled={isLoading}
+              className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
+            </button>
+          )}
+
+          {/* Links for Email method */}
+          {method === "email" && (
+            <div className="mt-4 flex flex-col items-center gap-2 text-sm">
+              <Link href="/auth/forgot-password" className="text-[#F7F7F7]/60 hover:text-[#E6FA50] transition-colors">
+                Forgot password?
+              </Link>
+              <div className="text-[#F7F7F7]/40">
+                Don&apos;t have an account?{" "}
+                <Link href={`/auth/signup${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} className="text-[#F7F7F7]/80 hover:text-[#E6FA50] font-medium transition-colors">
+                  Sign up
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="mt-6 text-center caption text-[#F7F7F7]/25">

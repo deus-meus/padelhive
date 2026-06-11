@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogIn } from "lucide-react";
+import { LogIn, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import type { UserRole } from "@/types";
 
@@ -18,7 +18,15 @@ export function RequireAuth({
   children: React.ReactNode;
   allowedRoles?: UserRole[];
 }) {
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[#E6FA50]" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
