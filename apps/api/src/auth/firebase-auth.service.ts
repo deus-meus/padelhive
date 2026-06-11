@@ -27,9 +27,11 @@ export class FirebaseAuthService {
       };
     }
 
-    return {
-      credential: applicationDefault(),
-      projectId,
-    };
+    const missing = [];
+    if (!projectId) missing.push("FIREBASE_PROJECT_ID");
+    if (!clientEmail) missing.push("FIREBASE_CLIENT_EMAIL");
+    if (!privateKey) missing.push("FIREBASE_PRIVATE_KEY");
+
+    throw new Error(`Missing FIREBASE_* env vars: ${missing.join(", ")}`);
   }
 }
