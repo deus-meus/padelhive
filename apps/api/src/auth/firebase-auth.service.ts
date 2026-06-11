@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { App, applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
+import { App, cert, getApps, initializeApp } from "firebase-admin/app";
 import { Auth, DecodedIdToken, getAuth } from "firebase-admin/auth";
 
 @Injectable()

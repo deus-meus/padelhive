@@ -92,7 +92,16 @@ export class BookingSplitService {
       }
     }
 
-    const processedParticipants: any[] = [];
+    const processedParticipants: {
+      bookingId: string;
+      name: string;
+      email: string | null;
+      userId: string | null;
+      inviteId: string | null;
+      amount: number;
+      status: SplitShareStatus;
+      paidAt: Date | null;
+    }[] = [];
 
     if (dto.mode === "equal") {
       const baseAmount = Math.floor(booking.finalAmount / n);

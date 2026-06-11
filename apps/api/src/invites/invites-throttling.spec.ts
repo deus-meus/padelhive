@@ -3,6 +3,7 @@ import { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { AppModule } from "../app.module";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import { FirebaseAuthService } from "../auth/firebase-auth.service";
 
 describe("Invites Throttling (e2e)", () => {
   let app: INestApplication;
@@ -12,7 +13,10 @@ describe("Invites Throttling (e2e)", () => {
     // and verify that non-throttled routes are unaffected.
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(FirebaseAuthService)
+      .useValue({ verifyIdToken: jest.fn() })
+      .compile();
 
     app = moduleFixture.createNestApplication<NestExpressApplication>();
     app.getHttpAdapter().getInstance().set("trust proxy", 1); // Respect X-Forwarded-For

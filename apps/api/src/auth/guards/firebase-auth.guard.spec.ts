@@ -12,7 +12,7 @@ describe("FirebaseAuthGuard", () => {
   let usersService: jest.Mocked<UsersService>;
   let reflector: jest.Mocked<Reflector>;
   let executionContext: ExecutionContext;
-  let request: any;
+  let request: { headers: Record<string, string | undefined>; user?: RequestUser };
 
   beforeEach(() => {
     firebaseAuthService = {
@@ -86,8 +86,8 @@ describe("FirebaseAuthGuard", () => {
     const decodedToken = { uid: "123" };
     const mockUser = { id: "user1" } as RequestUser;
 
-    firebaseAuthService.verifyIdToken.mockResolvedValue(decodedToken as any);
-    usersService.findOrCreateFromFirebaseToken.mockResolvedValue(mockUser as any);
+    firebaseAuthService.verifyIdToken.mockResolvedValue(decodedToken as import("firebase-admin/auth").DecodedIdToken);
+    usersService.findOrCreateFromFirebaseToken.mockResolvedValue(mockUser);
 
     const result = await guard.canActivate(executionContext);
 
