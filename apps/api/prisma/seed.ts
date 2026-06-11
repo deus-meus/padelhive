@@ -1,504 +1,281 @@
-import { PrismaClient, UserRole, VenueStatus, CourtType, BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType } from "@prisma/client";
+import { 
+  PrismaClient, UserRole, VenueStatus, CourtType, 
+  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType 
+} from "@prisma/client";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+
+if (process.env.NODE_ENV === "production") {
+  console.error("Do not run this seed in production!");
+  process.exit(1);
+}
 
 const prisma = new PrismaClient();
 
+let firebaseEnabled = false;
+
+try {
+  if (!getApps().length) {
+    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+      initializeApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        })
+      });
+      firebaseEnabled = true;
+    } else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+      initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID || 'padelhive' });
+      firebaseEnabled = true;
+    }
+  } else {
+    firebaseEnabled = true;
+  }
+} catch (error) {
+  console.warn("Firebase admin initialization failed, proceeding with local uids", error);
+}
+
+const ACCOUNTS = [
+  { email: "admin@padelhive.com", password: "Padel#Super1", role: UserRole.SUPER_ADMIN, name: "Admin Padelhive", phone: "+6281234567899" },
+  { email: "budi.owner@padelhive.com", password: "Padel#Owner1", role: UserRole.VENUE_OWNER, name: "Budi Santoso", phone: "+6281234567892" },
+  { email: "reza.owner@padelhive.com", password: "Padel#Owner2", role: UserRole.VENUE_OWNER, name: "Reza Hakim", phone: "+6281234567812" },
+  { email: "maya.owner@padelhive.com", password: "Padel#Owner3", role: UserRole.VENUE_OWNER, name: "Maya Putri", phone: "+6281234567822" },
+  { email: "lisa.admin@padelhive.com", password: "Padel#Admin1", role: UserRole.VENUE_ADMIN, name: "Lisa Tanaka", phone: "+6281234567833" },
+  { email: "andi@example.com", password: "Padel#Player1", role: UserRole.PLAYER, name: "Andi Pratama", phone: "+6281234567890" },
+  { email: "sari@example.com", password: "Padel#Player2", role: UserRole.PLAYER, name: "Sari Dewi", phone: "+6281234567891" },
+  { email: "budi.player@padelhive.com", password: "Padel#Player3", role: UserRole.PLAYER, name: "Budi Rahmat", phone: "+6281234567801" },
+];
+
+async function resolveUid(account: any): Promise<string> {
+  if (!firebaseEnabled) return "local-" + account.email;
+  const auth = getAuth();
+  try {
+    const user = await auth.getUserByEmail(account.email);
+    await auth.updateUser(user.uid, { password: account.password });
+    return user.uid;
+  } catch (error: any) {
+    if (error.code === 'auth/user-not-found') {
+      const user = await auth.createUser({
+        email: account.email,
+        password: account.password,
+        displayName: account.name,
+        emailVerified: true
+      });
+      return user.uid;
+    }
+    throw error;
+  }
+}
+
+const now = new Date();
+
+function getWibMidnight(offsetDays: number): Date {
+  const d = new Date(now.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+  const wibDate = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+  return new Date(Date.UTC(wibDate.getUTCFullYear(), wibDate.getUTCMonth(), wibDate.getUTCDate()));
+}
+
+function getWibTime(offsetDays: number, hours: number, minutes: number = 0): Date {
+  const midnight = getWibMidnight(offsetDays);
+  return new Date(midnight.getTime() + (hours - 7) * 60 * 60 * 1000 + minutes * 60 * 1000);
+}
+
 async function main() {
-  const superAdmin = await prisma.user.upsert({
-    where: { email: "admin@padelhive.com" },
-    update: {},
-    create: {
-      firebaseUid: "firebase-admin-1",
-      role: UserRole.SUPER_ADMIN,
-      name: "Admin Padelhive",
-      email: "admin@padelhive.com",
-      phone: "+6281234567899",
-    },
-  });
+  console.log("Seeding with Firebase enabled:", firebaseEnabled);
 
-  const ownerBali = await prisma.user.upsert({
-    where: { email: "budi.owner@padelhive.com" },
-    update: {},
-    create: {
-      firebaseUid: "firebase-owner-1",
-      role: UserRole.VENUE_OWNER,
-      name: "Budi Santoso",
-      email: "budi.owner@padelhive.com",
-      phone: "+6281234567892",
-    },
-  });
-
-  const ownerJakarta = await prisma.user.upsert({
-    where: { email: "reza.owner@padelhive.com" },
-    update: {},
-    create: {
-      firebaseUid: "firebase-owner-2",
-      role: UserRole.VENUE_OWNER,
-      name: "Reza Hakim",
-      email: "reza.owner@padelhive.com",
-      phone: "+6281234567812",
-    },
-  });
-
-  const ownerSurabaya = await prisma.user.upsert({
-    where: { email: "maya.owner@padelhive.com" },
-    update: {},
-    create: {
-      firebaseUid: "firebase-owner-3",
-      role: UserRole.VENUE_OWNER,
-      name: "Maya Putri",
-      email: "maya.owner@padelhive.com",
-      phone: "+6281234567822",
-    },
-  });
-
-  const venueAdmin = await prisma.user.upsert({
-    where: { email: "lisa.admin@padelhive.com" },
-    update: {},
-    create: {
-      firebaseUid: "firebase-admin-venue-1",
-      role: UserRole.VENUE_ADMIN,
-      name: "Lisa Tanaka",
-      email: "lisa.admin@padelhive.com",
-      phone: "+6281234567833",
-    },
-  });
-
-  const players = await Promise.all([
-    prisma.user.upsert({
-      where: { email: "andi@example.com" },
-      update: {},
-      create: {
-        firebaseUid: "firebase-player-1",
-        role: UserRole.PLAYER,
-        name: "Andi Pratama",
-        email: "andi@example.com",
-        phone: "+6281234567890",
-      },
-    }),
-    prisma.user.upsert({
-      where: { email: "sari@example.com" },
-      update: {},
-      create: {
-        firebaseUid: "firebase-player-2",
-        role: UserRole.PLAYER,
-        name: "Sari Dewi",
-        email: "sari@example.com",
-        phone: "+6281234567891",
-      },
-    }),
-    prisma.user.upsert({
-      where: { email: "budi.player@padelhive.com" },
-      update: {},
-      create: {
-        firebaseUid: "firebase-player-3",
-        role: UserRole.PLAYER,
-        name: "Budi Rahmat",
-        email: "budi.player@padelhive.com",
-        phone: "+6281234567801",
-      },
-    }),
+  console.log("Wiping existing data...");
+  await prisma.$transaction([
+    prisma.refundEvent.deleteMany(),
+    prisma.refund.deleteMany(),
+    prisma.bookingSplitShare.deleteMany(),
+    prisma.payment.deleteMany(),
+    prisma.invite.deleteMany(),
+    prisma.booking.deleteMany(),
+    prisma.court.deleteMany(),
+    prisma.venueAdmin.deleteMany(),
+    prisma.venue.deleteMany(),
+    prisma.voucher.deleteMany(),
+    prisma.user.deleteMany(),
   ]);
 
-  const baliVenue = await prisma.venue.upsert({
-    where: { slug: "padel-bali-arena" },
-    update: {},
-    create: {
-      ownerId: ownerBali.id,
+  console.log("Creating users...");
+  const usersRecord: Record<string, any> = {};
+  for (const acc of ACCOUNTS) {
+    const uid = await resolveUid(acc);
+    const u = await prisma.user.create({
+      data: {
+        email: acc.email,
+        name: acc.name,
+        role: acc.role,
+        phone: acc.phone,
+        firebaseUid: uid,
+      }
+    });
+    usersRecord[acc.email] = u;
+  }
+
+  console.log("Creating venues & courts...");
+  const bali = await prisma.venue.create({
+    data: {
+      ownerId: usersRecord["budi.owner@padelhive.com"].id,
       status: VenueStatus.APPROVED,
       name: "Padel Bali Arena",
       slug: "padel-bali-arena",
       location: "Jl. Sunset Road No. 88, Seminyak",
       city: "Bali",
       description: "Premium padel courts in the heart of Seminyak with ocean breeze and clubhouse facilities.",
-      imageUrl: "/venues/bali-arena.jpg",
-      photos: ["/venues/bali-arena-1.jpg", "/venues/bali-arena-2.jpg", "/venues/bali-arena-3.jpg"],
+      imageUrl: "https://images.unsplash.com/photo-1622279457486-640ca4a4ea6b?auto=format&fit=crop&w=1200&q=80",
+      photos: ["https://images.unsplash.com/photo-1622279457486-640ca4a4ea6b?auto=format&fit=crop&w=1200&q=80"],
       facilities: ["Parking", "Shower", "Locker", "Pro Shop", "Cafe", "WiFi"],
       openTime: "06:00",
       closeTime: "22:00",
       rating: 4.8,
       reviewCount: 124,
       commissionRate: 10,
-    },
+    }
   });
 
-  const jakartaVenue = await prisma.venue.upsert({
-    where: { slug: "jakarta-padel-club" },
-    update: {},
-    create: {
-      ownerId: ownerJakarta.id,
+  const jakarta = await prisma.venue.create({
+    data: {
+      ownerId: usersRecord["reza.owner@padelhive.com"].id,
       status: VenueStatus.APPROVED,
       name: "Jakarta Padel Club",
       slug: "jakarta-padel-club",
       location: "Jl. Sudirman Kav. 52, SCBD",
       city: "Jakarta",
       description: "State-of-the-art indoor padel facility in Jakarta's business district.",
-      imageUrl: "/venues/jakarta-club.jpg",
-      photos: ["/venues/jakarta-club-1.jpg", "/venues/jakarta-club-2.jpg"],
+      imageUrl: "https://images.unsplash.com/photo-1554068865-24cecd4e34d8?auto=format&fit=crop&w=1200&q=80",
+      photos: ["https://images.unsplash.com/photo-1554068865-24cecd4e34d8?auto=format&fit=crop&w=1200&q=80"],
       facilities: ["Parking", "Shower", "Locker", "Cafe", "AC"],
       openTime: "07:00",
       closeTime: "23:00",
       rating: 4.6,
       reviewCount: 89,
       commissionRate: 12,
-    },
+    }
   });
 
-  const surabayaVenue = await prisma.venue.upsert({
-    where: { slug: "surabaya-padel-center" },
-    update: {},
-    create: {
-      ownerId: ownerSurabaya.id,
+  const surabaya = await prisma.venue.create({
+    data: {
+      ownerId: usersRecord["maya.owner@padelhive.com"].id,
       status: VenueStatus.PENDING,
       name: "Surabaya Padel Center",
       slug: "surabaya-padel-center",
       location: "Jl. Basuki Rahmat No. 100",
       city: "Surabaya",
       description: "East Java's first dedicated padel center with 6 courts and professional coaching.",
-      imageUrl: "/venues/surabaya-center.jpg",
-      photos: ["/venues/surabaya-center-1.jpg", "/venues/surabaya-center-2.jpg"],
+      imageUrl: "https://images.unsplash.com/photo-1530915534664-4ac6423816b7?auto=format&fit=crop&w=1200&q=80",
+      photos: ["https://images.unsplash.com/photo-1530915534664-4ac6423816b7?auto=format&fit=crop&w=1200&q=80"],
       facilities: ["Parking", "Shower", "Coaching", "Equipment Rental"],
       openTime: "06:00",
       closeTime: "21:00",
       rating: 4.5,
       reviewCount: 56,
       commissionRate: 9.5,
-    },
+    }
   });
 
-  await prisma.venueAdmin.upsert({
-    where: { venueId_userId: { venueId: baliVenue.id, userId: venueAdmin.id } },
-    update: {},
-    create: {
-      venueId: baliVenue.id,
-      userId: venueAdmin.id,
-    },
+  await prisma.venueAdmin.create({
+    data: {
+      venueId: bali.id,
+      userId: usersRecord["lisa.admin@padelhive.com"].id,
+    }
   });
 
-  const courts = await prisma.$transaction([
-    prisma.court.upsert({
-      where: { venueId_name: { venueId: baliVenue.id, name: "Court A" } },
-      update: {},
-      create: {
-        venueId: baliVenue.id,
-        name: "Court A",
-        type: CourtType.OUTDOOR,
-        weekdayPeak: 300000,
-        weekdayOffPeak: 200000,
-        weekendPeak: 400000,
-        weekendOffPeak: 250000,
-      },
-    }),
-    prisma.court.upsert({
-      where: { venueId_name: { venueId: baliVenue.id, name: "Court B" } },
-      update: {},
-      create: {
-        venueId: baliVenue.id,
-        name: "Court B",
-        type: CourtType.OUTDOOR,
-        weekdayPeak: 300000,
-        weekdayOffPeak: 200000,
-        weekendPeak: 400000,
-        weekendOffPeak: 250000,
-      },
-    }),
-    prisma.court.upsert({
-      where: { venueId_name: { venueId: jakartaVenue.id, name: "Court 1" } },
-      update: {},
-      create: {
-        venueId: jakartaVenue.id,
-        name: "Court 1",
-        type: CourtType.INDOOR,
-        weekdayPeak: 400000,
-        weekdayOffPeak: 280000,
-        weekendPeak: 500000,
-        weekendOffPeak: 350000,
-      },
-    }),
-    prisma.court.upsert({
-      where: { venueId_name: { venueId: jakartaVenue.id, name: "Court 2" } },
-      update: {},
-      create: {
-        venueId: jakartaVenue.id,
-        name: "Court 2",
-        type: CourtType.INDOOR,
-        weekdayPeak: 400000,
-        weekdayOffPeak: 280000,
-        weekendPeak: 500000,
-        weekendOffPeak: 350000,
-      },
-    }),
-    prisma.court.upsert({
-      where: { venueId_name: { venueId: surabayaVenue.id, name: "Court Utama" } },
-      update: {},
-      create: {
-        venueId: surabayaVenue.id,
-        name: "Court Utama",
-        type: CourtType.INDOOR,
-        weekdayPeak: 250000,
-        weekdayOffPeak: 180000,
-        weekendPeak: 350000,
-        weekendOffPeak: 220000,
-      },
-    }),
-    prisma.court.upsert({
-      where: { venueId_name: { venueId: surabayaVenue.id, name: "Court Latihan" } },
-      update: {},
-      create: {
-        venueId: surabayaVenue.id,
-        name: "Court Latihan",
-        type: CourtType.OUTDOOR,
-        weekdayPeak: 200000,
-        weekdayOffPeak: 150000,
-        weekendPeak: 280000,
-        weekendOffPeak: 180000,
-      },
-    }),
-  ]);
+  const courtA = await prisma.court.create({ data: { venueId: bali.id, name: "Court A", type: CourtType.OUTDOOR, weekdayPeak: 300000, weekdayOffPeak: 200000, weekendPeak: 400000, weekendOffPeak: 250000 } });
+  await prisma.court.create({ data: { venueId: bali.id, name: "Court B", type: CourtType.OUTDOOR, weekdayPeak: 300000, weekdayOffPeak: 200000, weekendPeak: 400000, weekendOffPeak: 250000 } });
+  const court1 = await prisma.court.create({ data: { venueId: jakarta.id, name: "Court 1", type: CourtType.INDOOR, weekdayPeak: 400000, weekdayOffPeak: 280000, weekendPeak: 500000, weekendOffPeak: 350000 } });
+  await prisma.court.create({ data: { venueId: jakarta.id, name: "Court 2", type: CourtType.INDOOR, weekdayPeak: 400000, weekdayOffPeak: 280000, weekendPeak: 500000, weekendOffPeak: 350000 } });
+  const courtUtama = await prisma.court.create({ data: { venueId: surabaya.id, name: "Court Utama", type: CourtType.INDOOR, weekdayPeak: 250000, weekdayOffPeak: 180000, weekendPeak: 350000, weekendOffPeak: 220000 } });
+  await prisma.court.create({ data: { venueId: surabaya.id, name: "Court Latihan", type: CourtType.OUTDOOR, weekdayPeak: 200000, weekdayOffPeak: 150000, weekendPeak: 280000, weekendOffPeak: 180000 } });
 
-  const [voucherWelcome, voucherPlayMore, voucherWeekend] = await Promise.all([
-    prisma.voucher.upsert({
-      where: { code: "WELCOME20" },
-      update: {},
-      create: {
-        code: "WELCOME20",
-        type: VoucherType.PERCENTAGE,
-        value: 20,
-        minPurchase: 200000,
-        maxDiscount: 100000,
-        usageLimit: 500,
-        usedCount: 342,
-        validFrom: new Date("2026-05-01T00:00:00Z"),
-        validUntil: new Date("2026-06-30T23:59:59Z"),
-        isActive: true,
-      },
-    }),
-    prisma.voucher.upsert({
-      where: { code: "PLAYMORE50" },
-      update: {},
-      create: {
-        code: "PLAYMORE50",
-        type: VoucherType.NOMINAL,
-        value: 50000,
-        minPurchase: 300000,
-        maxDiscount: 50000,
-        usageLimit: 200,
-        usedCount: 87,
-        validFrom: new Date("2026-05-15T00:00:00Z"),
-        validUntil: new Date("2026-07-15T23:59:59Z"),
-        isActive: true,
-      },
-    }),
-    prisma.voucher.upsert({
-      where: { code: "WEEKEND10" },
-      update: {},
-      create: {
-        code: "WEEKEND10",
-        type: VoucherType.PERCENTAGE,
-        value: 10,
-        minPurchase: 150000,
-        maxDiscount: 50000,
-        usageLimit: 1000,
-        usedCount: 621,
-        validFrom: new Date("2026-05-01T00:00:00Z"),
-        validUntil: new Date("2026-06-01T23:59:59Z"),
-        isActive: true,
-      },
-    }),
-  ]);
+  console.log("Creating vouchers...");
+  const v1 = await prisma.voucher.create({ data: { code: "WELCOME20", type: VoucherType.PERCENTAGE, value: 20, minPurchase: 200000, maxDiscount: 100000, usageLimit: 500, usedCount: 1, isActive: true, validFrom: getWibMidnight(-30), validUntil: getWibMidnight(30) } });
+  const v2 = await prisma.voucher.create({ data: { code: "PLAYMORE50", type: VoucherType.NOMINAL, value: 50000, minPurchase: 300000, maxDiscount: 50000, usageLimit: 200, usedCount: 1, isActive: true, validFrom: getWibMidnight(-30), validUntil: getWibMidnight(30) } });
+  const v3 = await prisma.voucher.create({ data: { code: "WEEKEND10", type: VoucherType.PERCENTAGE, value: 10, minPurchase: 150000, maxDiscount: 50000, usageLimit: 1000, usedCount: 0, isActive: true, validFrom: getWibMidnight(-30), validUntil: getWibMidnight(30) } });
 
-  const bookingUpcoming = await prisma.booking.upsert({
-    where: { id: "booking-upcoming" },
-    update: {},
-    create: {
+  console.log("Creating bookings...");
+  const bUpcoming = await prisma.booking.create({
+    data: {
       id: "booking-upcoming",
-      hostUserId: players[0].id,
-      venueId: baliVenue.id,
-      courtId: courts[0].id,
-      voucherId: voucherWelcome.id,
-      bookingDate: new Date("2026-06-02"),
-      startsAt: new Date("2026-06-02T09:00:00Z"),
-      endsAt: new Date("2026-06-02T10:00:00Z"),
-      durationMinutes: 60,
-      status: BookingStatus.CONFIRMED,
-      courtAmount: 300000,
-      platformFee: 15000,
-      voucherDiscount: 60000,
-      finalAmount: 255000,
-    },
+      hostUserId: usersRecord["andi@example.com"].id,
+      venueId: bali.id, courtId: courtA.id, voucherId: v1.id,
+      bookingDate: getWibMidnight(5), startsAt: getWibTime(5, 9, 0), endsAt: getWibTime(5, 10, 0),
+      durationMinutes: 60, status: BookingStatus.CONFIRMED,
+      courtAmount: 300000, platformFee: 15000, voucherDiscount: 63000, finalAmount: 252000
+    }
   });
 
-  const bookingCompleted = await prisma.booking.upsert({
-    where: { id: "booking-completed" },
-    update: {},
-    create: {
+  const bCompleted = await prisma.booking.create({
+    data: {
       id: "booking-completed",
-      hostUserId: players[1].id,
-      venueId: jakartaVenue.id,
-      courtId: courts[2].id,
-      voucherId: voucherPlayMore.id,
-      bookingDate: new Date("2026-05-25"),
-      startsAt: new Date("2026-05-25T18:00:00Z"),
-      endsAt: new Date("2026-05-25T19:30:00Z"),
-      durationMinutes: 90,
-      status: BookingStatus.COMPLETED,
-      courtAmount: 500000,
-      platformFee: 25000,
-      voucherDiscount: 50000,
-      finalAmount: 475000,
-      completedAt: new Date("2026-05-25T20:00:00Z"),
-    },
+      hostUserId: usersRecord["sari@example.com"].id,
+      venueId: jakarta.id, courtId: court1.id, voucherId: v2.id,
+      bookingDate: getWibMidnight(-14), startsAt: getWibTime(-14, 18, 0), endsAt: getWibTime(-14, 19, 30),
+      durationMinutes: 90, status: BookingStatus.COMPLETED,
+      courtAmount: 500000, platformFee: 25000, voucherDiscount: 50000, finalAmount: 475000,
+      completedAt: getWibTime(-14, 20, 0)
+    }
   });
 
-  const bookingCancelled = await prisma.booking.upsert({
-    where: { id: "booking-cancelled" },
-    update: {},
-    create: {
+  const bCancelled = await prisma.booking.create({
+    data: {
       id: "booking-cancelled",
-      hostUserId: players[2].id,
-      venueId: surabayaVenue.id,
-      courtId: courts[4].id,
-      voucherId: voucherWeekend.id,
-      bookingDate: new Date("2026-05-15"),
-      startsAt: new Date("2026-05-15T10:00:00Z"),
-      endsAt: new Date("2026-05-15T11:00:00Z"),
-      durationMinutes: 60,
-      status: BookingStatus.CANCELLED,
-      courtAmount: 250000,
-      platformFee: 12500,
-      voucherDiscount: 30000,
-      finalAmount: 232500,
-      cancelledAt: new Date("2026-05-14T08:00:00Z"),
-    },
+      hostUserId: usersRecord["budi.player@padelhive.com"].id,
+      venueId: surabaya.id, courtId: courtUtama.id, voucherId: v3.id,
+      bookingDate: getWibMidnight(-20), startsAt: getWibTime(-20, 10, 0), endsAt: getWibTime(-20, 11, 0),
+      durationMinutes: 60, status: BookingStatus.CANCELLED,
+      courtAmount: 250000, platformFee: 12500, voucherDiscount: 26250, finalAmount: 236250,
+      cancelledAt: getWibTime(-21, 10, 0)
+    }
   });
 
-  const paymentUpcoming = await prisma.payment.upsert({
-    where: { bookingId: bookingUpcoming.id },
-    update: {},
-    create: {
-      bookingId: bookingUpcoming.id,
-      amount: bookingUpcoming.finalAmount,
-      status: PaymentStatus.PAID,
-      provider: "midtrans",
-      method: "GoPay",
-      paidAt: new Date("2026-05-28T14:30:00Z"),
-      providerReference: "MT-20260528-0001",
-    },
+  console.log("Creating payments...");
+  const pUpcoming = await prisma.payment.create({
+    data: { id: "payment-upcoming", bookingId: bUpcoming.id, status: PaymentStatus.PAID, provider: "midtrans", method: "ewallet", amount: 252000, paidAt: getWibTime(-1, 9, 0), providerReference: "MT-UPCOMING" }
+  });
+  const pCompleted = await prisma.payment.create({
+    data: { id: "payment-completed", bookingId: bCompleted.id, status: PaymentStatus.PAID, provider: "midtrans", method: "va", amount: 475000, paidAt: getWibTime(-14, 17, 30), providerReference: "MT-COMPLETED" }
+  });
+  const pCancelled = await prisma.payment.create({
+    data: { id: "payment-cancelled", bookingId: bCancelled.id, status: PaymentStatus.PAID, provider: "midtrans", method: "ewallet", amount: 236250, paidAt: getWibTime(-21, 9, 0), providerReference: "MT-CANCELLED" }
   });
 
-  const paymentCompleted = await prisma.payment.upsert({
-    where: { bookingId: bookingCompleted.id },
-    update: {},
-    create: {
-      bookingId: bookingCompleted.id,
-      amount: bookingCompleted.finalAmount,
-      status: PaymentStatus.PAID,
-      provider: "xendit",
-      method: "BCA Virtual Account",
-      paidAt: new Date("2026-05-25T17:30:00Z"),
-      providerReference: "XEN-20260525-0451",
-    },
+  console.log("Creating invites...");
+  const iAndi = await prisma.invite.create({
+    data: { id: "invite-andi", bookingId: bUpcoming.id, status: InviteStatus.ACCEPTED, isHost: true, userId: usersRecord["andi@example.com"].id, email: "andi@example.com", name: "Andi Pratama", token: "invite-andi" }
+  });
+  const iSari = await prisma.invite.create({
+    data: { id: "invite-sari", bookingId: bUpcoming.id, status: InviteStatus.PENDING, isHost: false, userId: usersRecord["sari@example.com"].id, email: "sari@example.com", name: "Sari Dewi", token: "invite-sari" }
+  });
+  await prisma.invite.create({
+    data: { id: "invite-budi", bookingId: bUpcoming.id, status: InviteStatus.DECLINED, isHost: false, userId: usersRecord["budi.player@padelhive.com"].id, email: "budi.player@padelhive.com", name: "Budi Rahmat", token: "invite-budi" }
   });
 
-  const paymentCancelled = await prisma.payment.upsert({
-    where: { bookingId: bookingCancelled.id },
-    update: {},
-    create: {
-      bookingId: bookingCancelled.id,
-      amount: bookingCancelled.finalAmount,
-      status: PaymentStatus.REFUNDED,
-      provider: "midtrans",
-      method: "DANA",
-      paidAt: new Date("2026-05-13T08:00:00Z"),
-      providerReference: "MT-20260513-0099",
-      failedAt: new Date("2026-05-13T08:10:00Z"),
-    },
+  console.log("Creating refunds & events...");
+  const rPending = await prisma.refund.create({
+    data: { id: "refund-pending", bookingId: bCancelled.id, paymentId: pCancelled.id, amount: 236250, reason: "User cancelled within refund window", status: RefundStatus.PENDING, adminNotes: "Awaiting finance review" }
+  });
+  const rProcessed = await prisma.refund.create({
+    data: { id: "refund-processed", bookingId: bCompleted.id, paymentId: pCompleted.id, amount: 50000, reason: "Partial refund due to court maintenance", status: RefundStatus.PROCESSED, adminNotes: "Processed via manual transfer", processedAt: getWibTime(-13, 10, 0) }
   });
 
-  await prisma.invite.upsert({
-    where: { token: "invite-andi" },
-    update: {},
-    create: {
-      bookingId: bookingUpcoming.id,
-      email: "andi@example.com",
-      name: "Andi Pratama",
-      token: "invite-andi",
-      status: InviteStatus.ACCEPTED,
-      userId: players[0].id,
-      isHost: true,
-    },
+  await prisma.refundEvent.create({ data: { refundId: rPending.id, fromStatus: null, toStatus: RefundStatus.PENDING, actorUserId: usersRecord["budi.player@padelhive.com"].id, createdAt: getWibTime(-21, 10, 0) } });
+  
+  await prisma.refundEvent.create({ data: { refundId: rProcessed.id, fromStatus: null, toStatus: RefundStatus.PENDING, actorUserId: usersRecord["sari@example.com"].id, createdAt: getWibTime(-13, 9, 0) } });
+  await prisma.refundEvent.create({ data: { refundId: rProcessed.id, fromStatus: RefundStatus.PENDING, toStatus: RefundStatus.APPROVED, actorUserId: usersRecord["admin@padelhive.com"].id, createdAt: getWibTime(-13, 10, 0) } });
+  await prisma.refundEvent.create({ data: { refundId: rProcessed.id, fromStatus: RefundStatus.APPROVED, toStatus: RefundStatus.PROCESSED, actorUserId: usersRecord["admin@padelhive.com"].id, createdAt: getWibTime(-13, 10, 0) } });
+
+  console.log("Creating split shares...");
+  await prisma.bookingSplitShare.create({
+    data: { bookingId: bUpcoming.id, inviteId: iAndi.id, userId: usersRecord["andi@example.com"].id, name: "Andi Pratama", amount: 126000, status: PaymentStatus.PAID, paidAt: getWibTime(-1, 9, 0) }
+  });
+  await prisma.bookingSplitShare.create({
+    data: { bookingId: bUpcoming.id, inviteId: iSari.id, userId: usersRecord["sari@example.com"].id, name: "Sari Dewi", amount: 126000, status: PaymentStatus.PENDING }
   });
 
-  await prisma.invite.upsert({
-    where: { token: "invite-sari" },
-    update: {},
-    create: {
-      bookingId: bookingUpcoming.id,
-      email: "sari@example.com",
-      name: "Sari Dewi",
-      token: "invite-sari",
-      status: InviteStatus.PENDING,
-      userId: players[1].id,
-    },
-  });
-
-  await prisma.invite.upsert({
-    where: { token: "invite-budi" },
-    update: {},
-    create: {
-      bookingId: bookingUpcoming.id,
-      email: "budi.player@padelhive.com",
-      name: "Budi Rahmat",
-      token: "invite-budi",
-      status: InviteStatus.DECLINED,
-      userId: players[2].id,
-    },
-  });
-
-  await prisma.refund.upsert({
-    where: { id: "refund-pending" },
-    update: {},
-    create: {
-      id: "refund-pending",
-      bookingId: bookingCancelled.id,
-      paymentId: paymentCancelled.id,
-      amount: 232500,
-      reason: "User cancelled within refund window",
-      status: RefundStatus.PENDING,
-      adminNotes: "Awaiting finance review",
-    },
-  });
-
-  await prisma.refund.upsert({
-    where: { id: "refund-processed" },
-    update: {},
-    create: {
-      id: "refund-processed",
-      bookingId: bookingCompleted.id,
-      paymentId: paymentCompleted.id,
-      amount: 50000,
-      reason: "Partial refund due to court maintenance",
-      status: RefundStatus.PROCESSED,
-      adminNotes: "Processed via manual transfer",
-      processedAt: new Date("2026-05-26T10:00:00Z"),
-    },
-  });
-
-  await prisma.payment.update({
-    where: { id: paymentCompleted.id },
-    data: { refund: { connect: { id: "refund-processed" } } },
-  });
-
-  await prisma.payment.update({
-    where: { id: paymentCancelled.id },
-    data: { refund: { connect: { id: "refund-pending" } } },
-  });
-
-  await prisma.payment.update({
-    where: { id: paymentUpcoming.id },
-    data: {},
-  });
-
-  void superAdmin;
+  console.log("Seeding complete!");
 }
 
 main()
