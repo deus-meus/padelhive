@@ -23,6 +23,7 @@ import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
 import { getVenue, getVenueCourts } from "@/lib/api";
+import { EmptyState } from "@/components/ui/error-state";
 import { Court, Venue } from "@/types";
 
 const IMG = {
@@ -92,15 +93,39 @@ export default function VenueDetailPage({
   const minPrice = useMemo(() => (courts.length ? Math.min(...courts.map((c) => c.pricing.weekdayOffPeak)) : 0), [courts]);
   const maxPrice = useMemo(() => (courts.length ? Math.max(...courts.map((c) => c.pricing.weekendPeak)) : 0), [courts]);
 
+  if (isLoading && !venue) {
+    return (
+      <div className="min-h-screen pt-20">
+        <div className="container py-8">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:grid-rows-2">
+            <div className="col-span-2 md:row-span-2 h-[240px] md:h-full rounded-2xl animate-pulse bg-white/[0.04]" />
+            <div className="h-[116px] md:h-[200px] rounded-2xl animate-pulse bg-white/[0.04]" />
+            <div className="h-[116px] md:h-[200px] rounded-2xl animate-pulse bg-white/[0.04]" />
+            <div className="h-[116px] md:h-[200px] rounded-2xl animate-pulse bg-white/[0.04]" />
+          </div>
+          <div className="mt-8 space-y-4">
+            <div className="h-7 w-2/3 animate-pulse rounded-full bg-white/[0.04]" />
+            <div className="h-3 w-1/3 animate-pulse rounded-full bg-white/[0.04]" />
+            <div className="h-3 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+          </div>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5 space-y-3">
+                <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+                <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!venue) {
     return (
-      <div className="min-h-screen pt-28">
+      <div className="min-h-screen pt-20">
         <div className="container py-16 text-center">
-          <h1 className="heading-1 text-3xl text-[#F7F7F7]">Venue not found</h1>
-          <p className="mt-3 text-sm text-[#F7F7F7]/40">This venue is unavailable.</p>
-          <Link href="/venues" className="btn-lime mt-6 inline-flex rounded-full px-6 py-3 text-xs font-semibold uppercase tracking-[0.08em]">
-            Back to venues
-          </Link>
+          <EmptyState icon={MapPin} title="Venue not found" description="This venue is unavailable or no longer listed." actionLabel="Back to venues" actionHref="/venues" />
         </div>
       </div>
     );
