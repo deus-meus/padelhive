@@ -1,4 +1,7 @@
 import { Module } from "@nestjs/common";
+import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
+import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
+import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
 import { AdminModule } from "./admin/admin.module";
 import { AuthModule } from "./auth/auth.module";
 import { BookingsModule } from "./bookings/bookings.module";
@@ -28,6 +31,16 @@ import { ThrottlerModule } from "@nestjs/throttler";
     VouchersModule,
     RefundsModule,
     AdminModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
   ],
 })
 export class AppModule {}
