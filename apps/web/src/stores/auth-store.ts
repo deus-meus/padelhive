@@ -32,8 +32,8 @@ interface AuthState {
   isLoading: boolean;
   isInitialized: boolean;
   initialize: () => void;
-  loginWithGoogle: () => Promise<void>;
-  loginWithEmail: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<AuthUser>;
+  loginWithEmail: (email: string, password: string) => Promise<AuthUser>;
   registerWithEmail: (name: string, email: string, password: string) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -79,7 +79,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       await authSignInWithGoogle();
-      // user state will be updated by onAuthStateChanged
+      const backendUser = await getMe();
+      const authUser: AuthUser = {
+        ...backendUser,
+        role: backendUser.role as UserRole,
+        avatarUrl: firebaseAuth.currentUser?.photoURL || undefined,
+      };
+      set({ user: authUser });
+      return authUser;
     } finally {
       set({ isLoading: false });
     }
@@ -89,6 +96,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       await authSignInWithEmail(email, password);
+      const backendUser = await getMe();
+      const authUser: AuthUser = {
+        ...backendUser,
+        role: backendUser.role as UserRole,
+        avatarUrl: firebaseAuth.currentUser?.photoURL || undefined,
+      };
+      set({ user: authUser });
+      return authUser;
     } finally {
       set({ isLoading: false });
     }
