@@ -40,6 +40,7 @@ describe("Read-only venues API", () => {
     const prisma = { venue: { findFirst: jest.fn().mockResolvedValue(venue) } };
     const service = new VenuesService(prisma as never);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { courts, _count, ...expectedVenue } = venue;
     await expect(service.findApprovedVenueById("venue-1")).resolves.toEqual({ 
       ...expectedVenue, 
