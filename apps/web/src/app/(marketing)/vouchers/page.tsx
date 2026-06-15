@@ -15,6 +15,7 @@ import {
 import { mockVouchers } from "@/mock/vouchers";
 import { Voucher } from "@/types";
 import { getVouchers } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function VouchersPage() {
   const [filter, setFilter] = useState<"active" | "expired">("active");
@@ -66,11 +67,6 @@ export default function VouchersPage() {
         <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
           Use voucher codes to get discounts on your bookings.
         </p>
-        {shouldShowLoading && (
-          <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-[#F7F7F7]/40">
-            Loading live voucher data...
-          </div>
-        )}
         {shouldShowApiError && (
           <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
             {apiError} Showing demo voucher data.
@@ -107,7 +103,23 @@ export default function VouchersPage() {
 
       {/* Voucher Grid */}
       <section className="container">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {shouldShowLoading ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <Skeleton className="h-[26px] w-[72px] rounded-full" />
+                </div>
+                <Skeleton className="h-6 w-32 mb-3 rounded-md" />
+                <Skeleton className="h-4 w-48 mb-6 rounded-md" />
+                <div className="flex items-center justify-between pt-4 border-t border-white/[0.04]">
+                  <Skeleton className="h-3 w-32 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((voucher) => (
             <div
               key={voucher.id}
@@ -190,6 +202,7 @@ export default function VouchersPage() {
             </div>
           ))}
         </div>
+        )}
 
         {filtered.length === 0 && (
           <div className="py-16 text-center">

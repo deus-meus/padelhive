@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
+import { Skeleton } from "@/components/ui/skeleton";
 import Script from "next/script";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -373,7 +374,24 @@ export default function PaymentPage({
               </h3>
               <div className="mt-4 space-y-3">
                 {isBookingLoading ? (
-                  <div className="text-sm text-[#F7F7F7]/40">Loading booking details...</div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                      <Skeleton className="h-4 w-32 rounded-full" />
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                      <Skeleton className="h-4 w-20 rounded-full" />
+                    </div>
+                  </div>
                 ) : isBookingError ? (
                   <div className="text-sm text-red-400">Error loading booking details.</div>
                 ) : (

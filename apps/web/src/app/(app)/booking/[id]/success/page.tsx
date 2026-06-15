@@ -7,6 +7,7 @@ import { getBookingById, getPayment } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BookingSuccessPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
@@ -56,8 +57,25 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
 
   if (isBookingLoading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#E6FA50]" />
+      <div className="min-h-screen pt-20">
+        <div className="container max-w-2xl py-12">
+          <div className="rounded-3xl border border-white/[0.06] bg-[#0C1B26] p-6 text-center md:p-8">
+            <Skeleton className="mx-auto h-20 w-20 rounded-full" />
+            <Skeleton className="mx-auto mt-6 h-4 w-32 rounded-full" />
+            <Skeleton className="mx-auto mt-3 h-10 w-64 rounded-full" />
+            <Skeleton className="mx-auto mt-3 h-4 w-80 rounded-full" />
+            <div className="mt-8 rounded-2xl bg-white/[0.02] p-5 text-left">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex flex-col gap-1.5">
+                    <Skeleton className="h-3 w-16 rounded-full" />
+                    <Skeleton className="h-4 w-32 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

@@ -5,6 +5,7 @@ import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -290,8 +291,22 @@ export default function InviteFriendsPage({
 
           <div className="mt-4 space-y-3">
             {isLoading ? (
-              <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
-                <p className="text-sm text-[#F7F7F7]/60">Loading invites...</p>
+              <div className="space-y-3">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="flex flex-col gap-4 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                      <div className="min-w-0 space-y-1.5">
+                        <Skeleton className="h-4 w-32 rounded-full" />
+                        <Skeleton className="h-3 w-24 rounded-full" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 sm:justify-end">
+                      <Skeleton className="h-[26px] w-[72px] rounded-full" />
+                      <Skeleton className="h-9 w-[100px] rounded-full" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : invites.length === 0 ? (
               <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] p-6 text-center">
