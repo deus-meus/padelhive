@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import Link from "next/link";
@@ -90,17 +91,7 @@ export default function InviteFriendsPage({
   const firstInviteLink = invites[0] ? buildInviteLink(invites[0].token) : "Add a friend to generate an invite link";
   const acceptedCount = invites.filter((invite) => invite.status === "ACCEPTED").length;
 
-  const formattedDate = (() => {
-    try {
-      return new Date(date).toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return date;
-    }
-  })();
+  const formattedDate = formatBookingDate(date);
 
   function buildInviteLink(token: string) {
     if (typeof window === "undefined") return `/invites/${token}`;
@@ -191,7 +182,7 @@ export default function InviteFriendsPage({
             <span className="text-[#F7F7F7]/15">·</span>
             <span>{formattedDate}</span>
             <span className="text-[#F7F7F7]/15">·</span>
-            <span>{start} – {end}</span>
+            <span>{formatBookingTimeRange(start, end)}</span>
           </div>
         </div>
 

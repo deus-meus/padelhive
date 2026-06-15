@@ -1,4 +1,5 @@
 import { padelImg } from "@/lib/images";
+import { formatShortDate } from "@/lib/format";
 import { Court, Venue, Voucher } from "@/types";
 import { getIdToken } from "@/lib/auth-client";
 
@@ -295,9 +296,7 @@ export async function getMe(): Promise<{ id: string; firebaseUid?: string; email
   return { ...me, role: me.role.toLowerCase() };
 }
 
-function formatDate(value: string): string {
-  return value.split("T")[0] ?? value;
-}
+
 
 function mapVenue(venue: ApiVenue): Venue {
   return {
@@ -360,8 +359,8 @@ function mapVoucher(voucher: ApiVoucher): Voucher {
     maxDiscount: voucher.maxDiscount ?? undefined,
     usageLimit: voucher.usageLimit,
     usedCount: voucher.usedCount,
-    validFrom: formatDate(voucher.validFrom),
-    validUntil: formatDate(voucher.validUntil),
+    validFrom: formatShortDate(voucher.validFrom),
+    validUntil: formatShortDate(voucher.validUntil),
     isActive: voucher.isActive,
   };
 }

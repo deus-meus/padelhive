@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getAdminBookings } from "@/lib/api";
@@ -34,15 +35,7 @@ const PAYMENT_CONFIG: Record<string, { color: string }> = {
 };
 
 const formatIDR = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
-const formatBookingDate = (iso: string) => {
-  const datePart = iso.split("T")[0] ?? iso;
-  const d = new Date(`${datePart}T00:00:00`);
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-};
-const formatTimeRange = (startIso: string, endIso: string) => {
-  const fmt = (s: string) => new Date(s).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
-  return `${fmt(startIso)} – ${fmt(endIso)}`;
-};
+
 
 export default function AdminTransactionsPage() {
   const [activeStatus, setActiveStatus] = useState<string>("ALL");
@@ -131,7 +124,7 @@ export default function AdminTransactionsPage() {
                           <div className="text-xs text-[#F7F7F7]/40">{item.host.email}</div>
                         </td>
                         <td className="px-4 py-3 align-middle whitespace-nowrap text-[#F7F7F7]/80">
-                          <div>{formatTimeRange(item.startsAt, item.endsAt)}</div>
+                          <div>{formatBookingTimeRange(item.startsAt, item.endsAt)}</div>
                           <div className="text-xs text-[#F7F7F7]/40">{item.durationMinutes} min</div>
                         </td>
                         <td className="px-4 py-3 align-middle whitespace-nowrap text-[#F7F7F7]/80">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import Script from "next/script";
@@ -239,17 +240,7 @@ export default function PaymentPage({
   const paidAmount = splitData?.paidAmount ?? 0;
   const yourShare = splitEnabled ? Math.max(0, totalAmount - paidAmount) : totalAmount;
 
-  const formattedDate = (() => {
-    try {
-      return new Date(date).toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return date;
-    }
-  })();
+  const formattedDate = formatBookingDate(date);
 
   async function handlePay() {
     if (!selectedMethod || processing || !booking) return;
@@ -402,7 +393,7 @@ export default function PaymentPage({
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-[#F7F7F7]/40">Time</span>
                       <span className="text-[#F7F7F7]/80">
-                        {start} – {end}
+                        {formatBookingTimeRange(start, end)}
                       </span>
                     </div>
                   </>

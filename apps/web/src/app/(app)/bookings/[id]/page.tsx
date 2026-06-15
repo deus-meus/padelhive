@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatBookingDate, formatBookingTimeRange, formatShortDate, formatBookingDateTime } from "@/lib/format";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -171,10 +172,10 @@ export default function BookingDetailPage() {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <InfoCard icon={Ticket} label="Booking ID" value={currentBooking.id.toUpperCase()} />
                 <InfoCard icon={MapPin} label="Court" value={`${court?.name ?? "—"} · ${court?.type ?? ""}`} />
-                <InfoCard icon={CalendarDays} label="Date" value={currentBooking.bookingDate} />
-                <InfoCard icon={Clock} label="Time" value={`${currentBooking.startTime} – ${currentBooking.endTime}`} />
+                <InfoCard icon={CalendarDays} label="Date" value={formatBookingDate(currentBooking.bookingDate)} />
+                <InfoCard icon={Clock} label="Time" value={formatBookingTimeRange(currentBooking.startTime, currentBooking.endTime)} />
                 <InfoCard icon={Timer} label="Duration" value={`${currentBooking.duration} min`} />
-                <InfoCard icon={CalendarDays} label="Booked On" value={new Date(currentBooking.createdAt).toLocaleDateString()} />
+                <InfoCard icon={CalendarDays} label="Booked On" value={formatShortDate(currentBooking.createdAt)} />
               </div>
             </div>
 
@@ -259,7 +260,7 @@ export default function BookingDetailPage() {
                 {currentBooking.payment.paidAt && (
                   <div className="flex items-center justify-between">
                     <span className="caption text-[#F7F7F7]/25">Paid at</span>
-                    <span className="caption text-[#F7F7F7]/40">{new Date(currentBooking.payment.paidAt).toLocaleString()}</span>
+                    <span className="caption text-[#F7F7F7]/40">{formatBookingDateTime(currentBooking.payment.paidAt)}</span>
                   </div>
                 )}
                 {refundMessage && (
