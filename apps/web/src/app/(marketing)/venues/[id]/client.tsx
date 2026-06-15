@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatBookingDate } from "@/lib/format";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
@@ -317,11 +318,7 @@ export default function VenueDetailPage({
               </h2>
               <p className="caption mt-1 text-[#F7F7F7]/25">
                 {courts[0]?.name ?? "Court A"} ·{" "}
-                {new Date().toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "short",
-                  day: "numeric",
-                })}
+                {formatBookingDate(new Date())}
               </p>
               <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
                 {TIME_SLOTS.map((slot) => (

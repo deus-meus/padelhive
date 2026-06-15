@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -36,23 +37,7 @@ const STATUS_COPY: Record<RsvpStatus, { title: string; body: string; icon: typeo
   },
 };
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
-function formatTimeRange(startsAt: string, endsAt: string) {
-  const formatTime = (value: string) =>
-    new Date(value).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  return `${formatTime(startsAt)} – ${formatTime(endsAt)}`;
-}
 
 export default function InviteRsvpPage({ params }: { params: { token: string } }) {
   const [submittedStatus, setSubmittedStatus] = useState<RsvpStatus | null>(null);
@@ -185,13 +170,13 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
                 </div>
                 <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-[#F7F7F7]/25">Time</p>
-                  <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{formatTimeRange(invite.booking.startsAt, invite.booking.endsAt)}</p>
+                  <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{formatBookingTimeRange(invite.booking.startsAt, invite.booking.endsAt)}</p>
                 </div>
               </div>
               <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
                 <div className="flex items-center gap-2 text-[#F7F7F7]/80">
                   <Clock className="h-4 w-4 text-[#E6FA50]" />
-                  <span className="text-sm font-medium">{formatDate(invite.booking.bookingDate)}</span>
+                  <span className="text-sm font-medium">{formatBookingDate(invite.booking.bookingDate)}</span>
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { formatBookingDate, formatBookingTimeRange, formatShortWeekday, formatDayNumber } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import Link from "next/link";
@@ -46,7 +47,7 @@ function isWeekend(date: Date) {
   return date.getDay() === 0 || date.getDay() === 6;
 }
 
-function formatBookingDate(date: Date): string {
+function getIsoDateString(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -427,9 +428,7 @@ export default function BookingFlowPage({
                                   : "text-[#F7F7F7]/25"
                             }`}
                           >
-                            {date.toLocaleDateString("en-US", {
-                              weekday: "short",
-                            })}
+                            {formatShortWeekday(date)}
                           </span>
                           <span
                             className={`mt-1 text-lg font-medium ${
@@ -438,7 +437,7 @@ export default function BookingFlowPage({
                                 : "text-[#F7F7F7]/60"
                             }`}
                           >
-                            {date.getDate()}
+                            {formatDayNumber(date)}
                           </span>
                           {isToday && (
                             <span className="mt-0.5 text-[9px] text-[#50C8C8]">
@@ -575,18 +574,14 @@ export default function BookingFlowPage({
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[#F7F7F7]/40">Date</span>
                     <span className="text-sm font-medium text-[#F7F7F7]/80">
-                      {selectedDate.toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {formatBookingDate(selectedDate)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[#F7F7F7]/40">Time</span>
                     <span className="text-sm font-medium text-[#F7F7F7]/80">
                       {selectedSlots.length > 0
-                        ? `${startTime} – ${endTime}`
+                        ? formatBookingTimeRange(startTime, endTime)
                         : "Not selected"}
                     </span>
                   </div>

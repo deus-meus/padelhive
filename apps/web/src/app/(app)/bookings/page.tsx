@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { formatBookingDate, formatBookingTimeRange, formatShortDate } from "@/lib/format";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -247,7 +248,7 @@ export default function BookingsPage() {
                 <span className="inline-block rounded-full bg-[#E6FA50]/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-[#E6FA50]">
                   {nextBooking.status}
                 </span>
-                <span className="caption text-[#F7F7F7]/25">{nextBooking.bookingDate}</span>
+                <span className="caption text-[#F7F7F7]/25">{formatBookingDate(nextBooking.bookingDate)}</span>
               </div>
 
               <h2 className="heading-1 mt-4 text-2xl text-[#F7F7F7] md:text-3xl">
@@ -260,8 +261,8 @@ export default function BookingsPage() {
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <DetailChip icon={CalendarDays} label="Date" value={nextBooking.bookingDate} />
-                <DetailChip icon={Clock} label="Time" value={`${nextBooking.startsAt} – ${nextBooking.endsAt}`} />
+                <DetailChip icon={CalendarDays} label="Date" value={formatBookingDate(nextBooking.bookingDate)} />
+                <DetailChip icon={Clock} label="Time" value={formatBookingTimeRange(nextBooking.startsAt, nextBooking.endsAt)} />
                 <DetailChip icon={MapPin} label="Court" value={`${nextCourt.name} · ${nextCourt.type}`} />
                 <DetailChip icon={Timer} label="Price" value={`Rp ${(nextBooking.finalAmount / 1000).toFixed(0)}K`} />
               </div>
@@ -356,7 +357,7 @@ export default function BookingsPage() {
                         </span>
                       </div>
                       <p className="caption text-[#F7F7F7]/40 mt-2 italic">&ldquo;{refund.reason}&rdquo;</p>
-                      <p className="caption text-[#F7F7F7]/25 mt-2">Requested: {new Date(refund.createdAt).toLocaleDateString()}</p>
+                      <p className="caption text-[#F7F7F7]/25 mt-2">Requested: {formatShortDate(refund.createdAt)}</p>
                     </div>
                     <p className="price text-base text-[#F7F7F7]">Rp {(Number(refund.amount) / 1000).toFixed(0)}K</p>
                   </div>
@@ -550,8 +551,8 @@ function BookingRow({
         </div>
         <p className={`mt-1 flex flex-wrap items-center gap-3 caption ${muted ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]/40"}`}>
           <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{court?.name}</span>
-          <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{booking.bookingDate}</span>
-          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{booking.startsAt}–{booking.endsAt}</span>
+          <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{formatBookingDate(booking.bookingDate)}</span>
+          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatBookingTimeRange(booking.startsAt, booking.endsAt)}</span>
         </p>
       </div>
 

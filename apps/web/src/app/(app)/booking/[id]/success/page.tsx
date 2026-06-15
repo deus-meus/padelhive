@@ -6,34 +6,7 @@ import { CalendarDays, CheckCircle2, Clock, CreditCard, MapPin, Loader2, XCircle
 import { getBookingById, getPayment } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return "Confirmed booking";
-
-  try {
-    return new Date(value).toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch {
-    return value;
-  }
-}
-
-function formatTime(value: string | null | undefined): string {
-  if (!value) return "Confirmed time";
-
-  try {
-    return new Date(value).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return value;
-  }
-}
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 
 export default function BookingSuccessPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
@@ -167,7 +140,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
                   <CalendarDays className="h-3.5 w-3.5" />
                   Date
                 </div>
-                <p className="mt-2 text-sm font-medium text-[#F7F7F7]/80">{formatDate(date)}</p>
+                <p className="mt-2 text-sm font-medium text-[#F7F7F7]/80">{formatBookingDate(date)}</p>
               </div>
 
               <div className="rounded-xl bg-white/[0.03] p-4">
@@ -176,7 +149,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
                   Time
                 </div>
                 <p className="mt-2 text-sm font-medium text-[#F7F7F7]/80">
-                  {formatTime(start)} – {formatTime(end)}
+                  {formatBookingTimeRange(start, end)}
                 </p>
               </div>
 

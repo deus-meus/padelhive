@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatBookingDate, formatShortDate, formatBookingDateTime } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   RotateCcw,
@@ -21,11 +22,7 @@ import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
 const formatIDR = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
-const formatBookingDate = (iso?: string) => {
-  if (!iso) return "—";
-  const datePart = iso.split("T")[0] ?? iso;
-  return new Date(`${datePart}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-};
+
 
 export default function RefundsPage() {
   const queryClient = useQueryClient();
@@ -187,7 +184,7 @@ export default function RefundsPage() {
                           <Clock className="h-3 w-3" /> Booking: {formatBookingDate(refund.booking?.bookingDate)}
                         </span>
                         <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                          Requested: {new Date(refund.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                          Requested: {formatShortDate(refund.createdAt)}
                         </span>
                       </div>
                       <div className="mt-3">
@@ -356,14 +353,7 @@ function RefundHistoryTimeline({ refundId }: { refundId: string }) {
     <div className="space-y-4">
       {events.map((event) => {
         const actorName = event.actor?.name || event.actor?.email || "System";
-        const formattedTime = new Date(event.createdAt).toLocaleString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          timeZone: "Asia/Jakarta"
-        });
+        const formattedTime = formatBookingDateTime(event.createdAt);
 
         return (
           <div key={event.id} className="border-l-2 border-white/[0.06] pl-4 relative">
