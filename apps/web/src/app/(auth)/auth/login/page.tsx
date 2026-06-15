@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Phone, Mail, Loader2, ChevronRight } from "lucide-react";
+import { Phone, Mail, Lock, Loader2, ChevronRight } from "lucide-react";
 import { useAuthStore, ROLE_REDIRECTS } from "@/stores/auth-store";
 
 export default function LoginPage() {
@@ -181,6 +181,7 @@ function LoginContent() {
                 />
               </div>
               <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
                 <input
                   type="password"
                   placeholder="Password"
@@ -188,7 +189,7 @@ function LoginContent() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 px-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
             </form>
