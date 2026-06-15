@@ -141,11 +141,17 @@ export function Navbar() {
                 onClick={() => setAvatarOpen(!avatarOpen)}
                 className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-transparent transition-all hover:border-[#E6FA50]/30"
               >
-                <img
-                  src={user.avatarUrl}
-                  alt={user.name}
-                  className="h-full w-full rounded-full object-cover"
-                />
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-[#E6FA50]/10 text-sm font-semibold text-[#E6FA50]">
+                    {user.name?.trim().charAt(0).toUpperCase() || "?"}
+                  </span>
+                )}
               </button>
 
               {avatarOpen && (
