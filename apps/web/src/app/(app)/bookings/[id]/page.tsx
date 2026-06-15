@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { formatBookingDate, formatBookingTimeRange, formatShortDate, formatBookingDateTime } from "@/lib/format";
+import { useQuery } from "@tanstack/react-query";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   MapPin,
@@ -21,40 +22,67 @@ import {
   ArrowLeft,
   Copy,
 } from "lucide-react";
-import { enhancedBookings, type Participant } from "@/mock/enhanced-bookings";
-import { ApiRequestError, cancelBooking } from "@/lib/api";
+import { ApiRequestError, cancelBooking, getBookingById } from "@/lib/api";
+import { queryKeys } from "@/lib/queries";
 import { getUserFacingErrorMessage } from "@/lib/errors";
-import { mockVenues } from "@/mock/venues";
-import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
+import { ErrorState } from "@/components/ui/error-state";
 
 export default function BookingDetailPage() {
   const params = useParams();
   const bookingId = params.id as string;
-  const router = useRouter();
-  const booking = enhancedBookings.find((b) => b.id === bookingId);
   const [toast, setToast] = useState<string | null>(null);
   const [isCancelled, setIsCancelled] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [refundMessage, setRefundMessage] = useState<string | null>(null);
 
-  if (!booking) {
+  const { data: booking, isLoading, error, refetch } = useQuery({
+    queryKey: queryKeys.bookings.detail(bookingId),
+    queryFn: () => getBookingById(bookingId),
+  });
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen pt-28">
-        <div className="container py-16 text-center">
-          <p className="text-sm text-[#F7F7F7]/25">Booking not found.</p>
-          <Link href="/bookings" className="mt-4 inline-flex items-center gap-2 text-sm text-[#E6FA50] hover:underline">
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
-          </Link>
+      <div className="min-h-screen pt-28 pb-16">
+        <div className="container pb-8">
+          <div className="h-8 w-48 animate-pulse rounded-md bg-white/[0.04]"></div>
+          <div className="mt-4 h-4 w-32 animate-pulse rounded-md bg-white/[0.04]"></div>
+        </div>
+        <div className="container">
+          <div className="h-64 animate-pulse rounded-2xl bg-white/[0.02]"></div>
         </div>
       </div>
     );
   }
 
+  if (error) {
+    if (error instanceof ApiRequestError && error.status === 404) {
+      return (
+        <div className="min-h-screen pt-28">
+          <div className="container py-16 text-center">
+            <p className="text-sm text-[#F7F7F7]/25">Booking not found.</p>
+            <Link href="/bookings" className="mt-4 inline-flex items-center gap-2 text-sm text-[#E6FA50] hover:underline">
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
+            </Link>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="min-h-screen pt-28">
+        <ErrorState title="Failed to load booking" onRetry={refetch} />
+      </div>
+    );
+  }
+
+  if (!booking) {
+    return null;
+  }
+
   const currentBooking = booking;
-  const venue = mockVenues.find((v) => v.id === currentBooking.venueId);
-  const court = mockCourts.find((c) => c.id === currentBooking.courtId);
+  const venue = booking.venue;
+  const court = booking.court;
 
   function showToast(msg: string) {
     setToast(msg);
@@ -71,12 +99,12 @@ export default function BookingDetailPage() {
   }
 
   function getBookingStart(): Date {
-    return new Date(`${currentBooking.bookingDate}T${currentBooking.startTime}:00.000Z`);
+    return new Date(currentBooking.startsAt);
   }
 
   function getRefundNote(): string {
     const isEligible = getBookingStart().getTime() - Date.now() >= 24 * 60 * 60 * 1000;
-    if (isEligible && currentBooking.payment.status === "paid") {
+    if (isEligible && currentBooking.payment?.status === "PAID") {
       return "Full refund eligible. A pending refund request will be created after cancellation.";
     }
     if (isEligible) {
@@ -139,15 +167,15 @@ export default function BookingDetailPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <StatusBadge status={isCancelled ? "cancelled" : currentBooking.status} />
-              <PaymentBadge status={isCancelled ? "refunded" : currentBooking.payment.status} />
+              <StatusBadge status={isCancelled ? "cancelled" : currentBooking.status.toLowerCase()} />
+              {currentBooking.payment && <PaymentBadge status={isCancelled ? "refunded" : currentBooking.payment.status.toLowerCase()} />}
             </div>
             <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
               {venue?.name ?? "Unknown Venue"}
             </h1>
             <p className="mt-1 flex items-center gap-2 text-sm text-[#F7F7F7]/40">
               <MapPin className="h-3.5 w-3.5" />
-              {venue?.location} · {venue?.city}
+              {venue?.city}
             </p>
           </div>
           <div className="relative hidden h-20 w-32 overflow-hidden rounded-xl sm:block">
@@ -170,37 +198,17 @@ export default function BookingDetailPage() {
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Booking Information</p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <InfoCard icon={Ticket} label="Booking ID" value={currentBooking.id.toUpperCase()} />
+                <InfoCard icon={Ticket} label="Booking ID" value={currentBooking.id.toUpperCase().split("-")[0]} />
                 <InfoCard icon={MapPin} label="Court" value={`${court?.name ?? "—"} · ${court?.type ?? ""}`} />
                 <InfoCard icon={CalendarDays} label="Date" value={formatBookingDate(currentBooking.bookingDate)} />
-                <InfoCard icon={Clock} label="Time" value={formatBookingTimeRange(currentBooking.startTime, currentBooking.endTime)} />
-                <InfoCard icon={Timer} label="Duration" value={`${currentBooking.duration} min`} />
-                <InfoCard icon={CalendarDays} label="Booked On" value={formatShortDate(currentBooking.createdAt)} />
+                <InfoCard icon={Clock} label="Time" value={formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)} />
+                <InfoCard icon={Timer} label="Duration" value={`${currentBooking.durationMinutes} min`} />
+                {/* TODO: Add 'Booked On' if createdAt is available from API */}
               </div>
             </div>
 
             {/* Participants */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="section-label">Participants</p>
-                <span className="caption text-[#F7F7F7]/25">
-                  {currentBooking.participants.filter((p) => p.rsvp === "accepted").length}/{currentBooking.participants.length} confirmed
-                </span>
-              </div>
-              <div className="space-y-2">
-                {currentBooking.participants.map((participant) => (
-                  <ParticipantRow key={participant.id} participant={participant} />
-                ))}
-              </div>
-              {currentBooking.status === "confirmed" && (
-                <button
-                  onClick={handleShareInvite}
-                  className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-white/[0.06] py-2.5 text-xs font-medium text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
-                >
-                  <Users className="h-3.5 w-3.5" /> Invite More Friends
-                </button>
-              )}
-            </div>
+            {/* TODO: Replace with real participants from API once supported */}
 
             {/* Refund Policy */}
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
@@ -230,10 +238,10 @@ export default function BookingDetailPage() {
             <div id="payment" className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Payment</p>
               <div className="space-y-3 mb-4">
-                <PaymentRow label="Court fee" value={`Rp ${(currentBooking.totalAmount / 1000).toFixed(0)}K`} />
+                <PaymentRow label="Court fee" value={`Rp ${(currentBooking.courtAmount / 1000).toFixed(0)}K`} />
                 {currentBooking.voucherDiscount > 0 && (
                   <PaymentRow
-                    label={`Voucher (${currentBooking.voucherCode})`}
+                    label="Voucher"
                     value={`-Rp ${(currentBooking.voucherDiscount / 1000).toFixed(0)}K`}
                     highlight
                   />
@@ -246,23 +254,9 @@ export default function BookingDetailPage() {
 
               <div className="space-y-2 rounded-xl bg-white/[0.02] p-3">
                 <div className="flex items-center justify-between">
-                  <span className="caption text-[#F7F7F7]/25">Method</span>
-                  <span className="text-xs font-medium text-[#F7F7F7]/60">{currentBooking.payment.method}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="caption text-[#F7F7F7]/25">Provider</span>
-                  <span className="text-xs font-medium text-[#F7F7F7]/60 uppercase">{currentBooking.payment.provider}</span>
-                </div>
-                <div className="flex items-center justify-between">
                   <span className="caption text-[#F7F7F7]/25">Status</span>
-                  <PaymentBadge status={isCancelled ? "refunded" : currentBooking.payment.status} />
+                  <PaymentBadge status={isCancelled ? "refunded" : (currentBooking.payment?.status.toLowerCase() ?? "pending")} />
                 </div>
-                {currentBooking.payment.paidAt && (
-                  <div className="flex items-center justify-between">
-                    <span className="caption text-[#F7F7F7]/25">Paid at</span>
-                    <span className="caption text-[#F7F7F7]/40">{formatBookingDateTime(currentBooking.payment.paidAt)}</span>
-                  </div>
-                )}
                 {refundMessage && (
                   <div className="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-3">
                     <p className="text-xs leading-5 text-[#E6FA50]">{refundMessage}</p>
@@ -290,7 +284,7 @@ export default function BookingDetailPage() {
                   <CreditCard className="h-4 w-4 text-[#50C8C8]" />
                   View payment receipt
                 </Link>
-                {currentBooking.status === "confirmed" && !isCancelled && (
+                {currentBooking.status === "CONFIRMED" && !isCancelled && (
                   <button
                     onClick={handleCancel}
                     className="w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 text-sm text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
@@ -365,40 +359,7 @@ function InfoCard({
   );
 }
 
-function ParticipantRow({ participant }: { participant: Participant }) {
-  const rsvpStyles = {
-    accepted: { icon: CheckCircle2, color: "text-[#E6FA50]", label: "Accepted" },
-    pending: { icon: Clock, color: "text-amber-400", label: "Pending" },
-    declined: { icon: XCircle, color: "text-red-400", label: "Declined" },
-  };
-  const { icon: RsvpIcon, color, label } = rsvpStyles[participant.rsvp];
 
-  return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-3">
-      <div className="relative h-8 w-8 overflow-hidden rounded-full">
-        <Image
-          src={participant.avatarUrl}
-          alt={participant.name}
-          fill
-          sizes="32px"
-          className="object-cover"
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-[#F7F7F7]/60 truncate">{participant.name}</p>
-          {participant.isHost && (
-            <span className="rounded-full bg-[#E6FA50]/10 px-2 py-0.5 text-[9px] font-medium uppercase text-[#E6FA50]">Host</span>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <RsvpIcon className={`h-3.5 w-3.5 ${color}`} />
-        <span className={`caption ${color}`}>{label}</span>
-      </div>
-    </div>
-  );
-}
 
 function PaymentRow({ label, value, highlight, bold }: { label: string; value: string; highlight?: boolean; bold?: boolean }) {
   return (
