@@ -10,6 +10,7 @@ import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
 import { getVenues } from "@/lib/api";
+import { EmptyState } from "@/components/ui/error-state";
 
 const CITIES = ["All", "Bali", "Jakarta", "Surabaya"];
 
@@ -134,8 +135,17 @@ export default function VenuesPage() {
       <section className="py-section-sm">
         <div className="container">
           {shouldShowLoading && (
-            <div className="mb-6 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-[#F7F7F7]/40">
-              Loading live venue data...
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]">
+                  <div className="aspect-[16/10] w-full animate-pulse bg-white/[0.04]" />
+                  <div className="p-6 space-y-3">
+                    <div className="h-3 w-24 animate-pulse rounded-full bg-white/[0.04]" />
+                    <div className="h-4 w-3/4 animate-pulse rounded-full bg-white/[0.04]" />
+                    <div className="h-3 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
           {shouldShowApiError && (
@@ -149,52 +159,53 @@ export default function VenuesPage() {
             </div>
           )}
 
-          <p className="mb-6 caption text-[#F7F7F7]/40">
-            {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"}
-            {city !== "All" ? ` in ${city}` : ""}
-          </p>
+          {!shouldShowLoading && (
+            <>
+              <p className="mb-6 caption text-[#F7F7F7]/40">
+                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"}
+                {city !== "All" ? ` in ${city}` : ""}
+              </p>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {filteredVenues.map((venue, i) => {
-              const price = venue.priceFrom ?? 0;
-              const courtCount = venue.courtCount ?? 0;
-              const images = [IMG.venue1, IMG.venue2, IMG.venue3];
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {filteredVenues.map((venue, i) => {
+                  const price = venue.priceFrom ?? 0;
+                  const courtCount = venue.courtCount ?? 0;
+                  const images = [IMG.venue1, IMG.venue2, IMG.venue3];
 
-              return (
-                <Link key={venue.id} href={`/venues/${venue.id}`} className="group block">
-                  <article className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] transition-all duration-200 group-hover:border-[#E6FA50]/15">
-                    <div className="relative aspect-[16/10] overflow-hidden">
-                      <img src={images[i % images.length]} alt={venue.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
-                      {venue.isVerified && (
-                        <span className="absolute left-3 top-3 rounded-full bg-[#E6FA50] px-2.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#06121A]">Verified</span>
-                      )}
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
-                        <span className="label font-semibold text-[#E6FA50]">{venue.rating}</span>
-                        <span className="caption text-[#F7F7F7]/25">({venue.reviewCount})</span>
-                      </div>
-                      <h3 className="heading-3 mt-2 text-base text-[#F7F7F7]">{venue.name}</h3>
-                      <p className="mt-1 flex items-center gap-1.5 caption text-[#F7F7F7]/25">
-                        <MapPin className="h-3 w-3" />{venue.city}
-                      </p>
-                      <div className="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-3">
-                        <span className="price text-sm text-[#50C8C8]">{price > 0 ? `Rp ${(price / 1000).toFixed(0)}K/hr` : "Pricing soon"}</span>
-                        <span className="caption text-[#F7F7F7]/25">{courtCount} courts</span>
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              );
-            })}
-          </div>
+                  return (
+                    <Link key={venue.id} href={`/venues/${venue.id}`} className="group block">
+                      <article className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] transition-all duration-200 group-hover:border-[#E6FA50]/15">
+                        <div className="relative aspect-[16/10] overflow-hidden">
+                          <img src={images[i % images.length]} alt={venue.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                          {venue.isVerified && (
+                            <span className="absolute left-3 top-3 rounded-full bg-[#E6FA50] px-2.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#06121A]">Verified</span>
+                          )}
+                        </div>
+                        <div className="p-6">
+                          <div className="flex items-center gap-2">
+                            <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
+                            <span className="label font-semibold text-[#E6FA50]">{venue.rating}</span>
+                            <span className="caption text-[#F7F7F7]/25">({venue.reviewCount})</span>
+                          </div>
+                          <h3 className="heading-3 mt-2 text-base text-[#F7F7F7]">{venue.name}</h3>
+                          <p className="mt-1 flex items-center gap-1.5 caption text-[#F7F7F7]/25">
+                            <MapPin className="h-3 w-3" />{venue.city}
+                          </p>
+                          <div className="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-3">
+                            <span className="price text-sm text-[#50C8C8]">{price > 0 ? `Rp ${(price / 1000).toFixed(0)}K/hr` : "Pricing soon"}</span>
+                            <span className="caption text-[#F7F7F7]/25">{courtCount} courts</span>
+                          </div>
+                        </div>
+                      </article>
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           {filteredVenues.length === 0 && !shouldShowLoading && (
-            <div className="py-16 text-center">
-              <p className="text-sm text-[#F7F7F7]/25">No venues found.</p>
-              <button onClick={() => { setSearch(""); setCity("All"); }} className="mt-3 label font-semibold text-[#E6FA50]">Clear filters</button>
-            </div>
+            <EmptyState icon={Search} title="No venues found" description="Try adjusting your search or filters." actionLabel="Clear filters" onAction={() => { setSearch(""); setCity("All"); }} />
           )}
         </div>
       </section>
