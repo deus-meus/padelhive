@@ -268,36 +268,36 @@ export default function VenueDetailPage({
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                      <div className="rounded-lg bg-white/[0.02] px-3 py-2 text-center">
-                        <p className="text-[10px] text-[#F7F7F7]/25">
+                    <div className="mt-4 grid grid-cols-2 gap-2.5">
+                      <div className="flex flex-col justify-center rounded-lg bg-white/[0.02] px-4 py-3 text-center">
+                        <p className="whitespace-nowrap text-[11px] text-[#F7F7F7]/40">
                           Weekday Off-Peak
                         </p>
-                        <p className="mt-0.5 text-xs font-medium text-[#F7F7F7]/60">
+                        <p className="mt-1 text-xs font-medium text-[#F7F7F7]/70">
                           Rp {(court.pricing.weekdayOffPeak / 1000).toFixed(0)}K
                         </p>
                       </div>
-                      <div className="rounded-lg bg-white/[0.02] px-3 py-2 text-center">
-                        <p className="text-[10px] text-[#F7F7F7]/25">
+                      <div className="flex flex-col justify-center rounded-lg bg-white/[0.02] px-4 py-3 text-center">
+                        <p className="whitespace-nowrap text-[11px] text-[#F7F7F7]/40">
                           Weekday Peak
                         </p>
-                        <p className="mt-0.5 text-xs font-medium text-[#F7F7F7]/60">
+                        <p className="mt-1 text-xs font-medium text-[#F7F7F7]/70">
                           Rp {(court.pricing.weekdayPeak / 1000).toFixed(0)}K
                         </p>
                       </div>
-                      <div className="rounded-lg bg-white/[0.02] px-3 py-2 text-center">
-                        <p className="text-[10px] text-[#F7F7F7]/25">
+                      <div className="flex flex-col justify-center rounded-lg bg-white/[0.02] px-4 py-3 text-center">
+                        <p className="whitespace-nowrap text-[11px] text-[#F7F7F7]/40">
                           Weekend Off-Peak
                         </p>
-                        <p className="mt-0.5 text-xs font-medium text-[#F7F7F7]/60">
+                        <p className="mt-1 text-xs font-medium text-[#F7F7F7]/70">
                           Rp {(court.pricing.weekendOffPeak / 1000).toFixed(0)}K
                         </p>
                       </div>
-                      <div className="rounded-lg bg-[#E6FA50]/5 px-3 py-2 text-center">
-                        <p className="text-[10px] text-[#E6FA50]/50">
+                      <div className="flex flex-col justify-center rounded-lg bg-[#E6FA50]/5 px-4 py-3 text-center">
+                        <p className="whitespace-nowrap text-[11px] text-[#E6FA50]/60">
                           Weekend Peak
                         </p>
-                        <p className="mt-0.5 text-xs font-medium text-[#E6FA50]/80">
+                        <p className="mt-1 text-xs font-medium text-[#E6FA50]/80">
                           Rp {(court.pricing.weekendPeak / 1000).toFixed(0)}K
                         </p>
                       </div>
