@@ -9,12 +9,13 @@ import {
   ArrowLeft,
   CheckCircle2,
   Clock,
-  Loader2,
+
   MapPin,
   User,
   XCircle,
 } from "lucide-react";
 import { ApiRequestError, getInvite, rsvpInvite, type InviteDetails } from "@/lib/api";
+import { ErrorState } from "@/components/ui/error-state";
 
 type RsvpStatus = "ACCEPTED" | "DECLINED";
 
@@ -100,10 +101,27 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
   if (isLoading) {
     return (
       <div className="min-h-screen pt-20">
-        <div className="container flex min-h-[60vh] max-w-xl items-center justify-center py-12">
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 text-center">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#E6FA50]" />
-            <p className="mt-4 text-sm text-[#F7F7F7]/60">Loading invite...</p>
+        <div className="container max-w-2xl py-8">
+          <div className="rounded-3xl border border-white/[0.06] bg-[#0C1B26] p-6 md:p-8 space-y-6">
+            <div className="h-3 w-32 animate-pulse rounded-full bg-white/[0.04]" />
+            <div className="h-7 w-3/4 animate-pulse rounded-full bg-white/[0.04]" />
+            <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/[0.04]" />
+            <div className="h-3 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+            
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-3">
+              <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+              <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+            </div>
+            
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-3">
+              <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+              <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="h-12 rounded-full animate-pulse bg-white/[0.04]" />
+              <div className="h-12 rounded-full animate-pulse bg-white/[0.04]" />
+            </div>
           </div>
         </div>
       </div>
@@ -114,19 +132,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
     return (
       <div className="min-h-screen pt-20">
         <div className="container flex min-h-[60vh] max-w-xl items-center justify-center py-12">
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-8 text-center">
-            <AlertCircle className="mx-auto h-10 w-10 text-red-300" />
-            <h1 className="heading-1 mt-5 text-2xl text-[#F7F7F7]">Invite unavailable</h1>
-            <p className="mt-3 text-sm leading-relaxed text-red-100/70">
-              {errorMessage ?? "This invite link is invalid or no longer available."}
-            </p>
-            <button
-              onClick={() => refetch()}
-              className="mt-6 rounded-full border border-white/[0.08] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/60 hover:border-white/[0.15] hover:text-[#F7F7F7]"
-            >
-              Try Again
-            </button>
-          </div>
+          <ErrorState title="Invite unavailable" description={errorMessage ?? "This invite link is invalid or no longer available."} onRetry={() => refetch()} />
         </div>
       </div>
     );
