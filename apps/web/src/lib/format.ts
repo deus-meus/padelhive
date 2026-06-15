@@ -15,12 +15,10 @@ export function formatBookingDate(value: string | Date | undefined | null): stri
 
 export function formatBookingTime(value: string | Date | undefined | null): string {
   if (!value) return "";
-  const parseTime = (val: string | Date) => {
-    if (val instanceof Date) return val;
-    if (/^\d{2}:\d{2}$/.test(val)) return new Date(`1970-01-01T${val}:00Z`);
-    return new Date(val);
-  };
-  const d = parseTime(value);
+  if (typeof value === "string" && /^\d{2}:\d{2}$/.test(value)) {
+    return `${value} WIB`;
+  }
+  const d = typeof value === "string" ? new Date(value) : value;
   if (isNaN(d.getTime())) return typeof value === "string" ? value : "";
   return new Intl.DateTimeFormat("en-US", {
     timeZone: TIMEZONE,
@@ -33,23 +31,25 @@ export function formatBookingTime(value: string | Date | undefined | null): stri
 export function formatBookingTimeRange(start: string | Date | undefined | null, end: string | Date | undefined | null): string {
   if (!start || !end) return "";
   
-  const parseTime = (val: string | Date) => {
-    if (val instanceof Date) return val;
-    if (/^\d{2}:\d{2}$/.test(val)) return new Date(`1970-01-01T${val}:00Z`);
-    return new Date(val);
+  const formatSingle = (val: string | Date): string | null => {
+    if (typeof val === "string" && /^\d{2}:\d{2}$/.test(val)) {
+      return val;
+    }
+    const d = typeof val === "string" ? new Date(val) : val;
+    if (isNaN(d.getTime())) return null;
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: TIMEZONE,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(d);
   };
 
-  const s = parseTime(start);
-  const e = parseTime(end);
-  if (isNaN(s.getTime()) || isNaN(e.getTime())) return "";
+  const sStr = formatSingle(start);
+  const eStr = formatSingle(end);
+  if (!sStr || !eStr) return "";
 
-  const timeFmt = new Intl.DateTimeFormat("en-US", {
-    timeZone: TIMEZONE,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  return `${timeFmt.format(s)} – ${timeFmt.format(e)} WIB`;
+  return `${sStr} – ${eStr} WIB`;
 }
 
 export function formatBookingDateTime(value: string | Date | undefined | null): string {
