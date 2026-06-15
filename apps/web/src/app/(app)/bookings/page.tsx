@@ -212,14 +212,14 @@ export default function BookingsPage() {
             Manage your upcoming matches and booking history.
           </p>
         </section>
-        <div className="container py-16">
+        <section className="container pb-section-sm">
           <ErrorBanner
             title="Couldn't load bookings"
             error={queryError}
             onRetry={() => refetch()}
             isRetrying={isFetching}
           />
-        </div>
+        </section>
       </div>
     );
   }
