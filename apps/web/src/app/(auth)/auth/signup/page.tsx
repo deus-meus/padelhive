@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, User as UserIcon, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { getUserFacingErrorMessage } from "@/lib/errors";
 
 export default function SignupPage() {
   return (
@@ -41,8 +42,9 @@ function SignupContent() {
       await registerWithEmail(name, email, password);
       // Let the onAuthStateChanged handle redirect or user mapping
       router.push(nextPath || "/venues");
-    } catch (err: any) {
-      setError(err.message || "Could not sign up. Please try again.");
+    } catch (err: unknown) {
+      const msg = getUserFacingErrorMessage(err);
+      setError(msg || null);
     }
   }
 

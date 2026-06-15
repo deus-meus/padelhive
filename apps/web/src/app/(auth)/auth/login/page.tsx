@@ -3,8 +3,9 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Phone, Mail, Lock, Loader2, ChevronRight } from "lucide-react";
+import { Phone, Mail, Lock, Loader2, ChevronRight, ArrowRight } from "lucide-react";
 import { useAuthStore, ROLE_REDIRECTS } from "@/stores/auth-store";
+import { getUserFacingErrorMessage } from "@/lib/errors";
 
 export default function LoginPage() {
   return (
@@ -44,8 +45,9 @@ function LoginContent() {
     try {
       const loggedInUser = await loginWithGoogle();
       router.push(nextPath || ROLE_REDIRECTS[loggedInUser.role] || "/venues");
-    } catch {
-      setError("Could not sign in with Google. Please try again.");
+    } catch (err: unknown) {
+      const msg = getUserFacingErrorMessage(err);
+      setError(msg || null);
     }
   }
 
@@ -70,8 +72,9 @@ function LoginContent() {
     try {
       const loggedInUser = await loginWithEmail(input, password);
       router.push(nextPath || ROLE_REDIRECTS[loggedInUser.role] || "/venues");
-    } catch (err: any) {
-      setError(err.message || "Invalid email or password");
+    } catch (err: unknown) {
+      const msg = getUserFacingErrorMessage(err);
+      setError(msg || null);
     }
   }
 

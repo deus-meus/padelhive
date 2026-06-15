@@ -19,6 +19,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { ApiRequestError, createBookingInvite, getBookingInvites, type InviteSummary } from "@/lib/api";
+import { getUserFacingErrorMessage } from "@/lib/errors";
 
 const STATUS_CONFIG = {
   ACCEPTED: {
@@ -135,16 +136,16 @@ export default function InviteFriendsPage({
     onError: (error) => {
       if (error instanceof ApiRequestError) {
         if (error.status === 400) {
-          setSubmitError(error.message || "Enter a valid email for an invitable booking.");
+          setSubmitError(getUserFacingErrorMessage(error) || "Enter a valid email for an invitable booking.");
         } else if (error.status === 401 || error.status === 403) {
           setSubmitError("Sign in with the booking owner account to invite friends.");
         } else if (error.status === 404) {
           setSubmitError("Booking was not found or does not belong to this account.");
         } else {
-          setSubmitError("Could not create invite. Please try again.");
+          setSubmitError(getUserFacingErrorMessage(error));
         }
       } else {
-        setSubmitError("Could not create invite. Please try again.");
+        setSubmitError(getUserFacingErrorMessage(error));
       }
     }
   });

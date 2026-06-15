@@ -20,6 +20,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking, ApiRefund } from "@/lib/api";
+import { getUserFacingErrorMessage } from "@/lib/errors";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 import { padelImg } from "@/lib/images";
 
@@ -125,12 +126,12 @@ export default function BookingsPage() {
         if (error.status === 404) {
           showToast("Booking was not found for this account.");
         } else if (error.status === 400) {
-          showToast(error.message || "This booking cannot be cancelled.");
+          showToast(getUserFacingErrorMessage(error) || "This booking cannot be cancelled.");
         } else {
-          showToast("Could not cancel booking. Please try again.");
+          showToast(getUserFacingErrorMessage(error));
         }
       } else {
-        showToast("Could not cancel booking. Please try again.");
+        showToast(getUserFacingErrorMessage(error));
       }
     },
     onSettled: () => {
@@ -154,10 +155,10 @@ export default function BookingsPage() {
       showToast("Refund request submitted successfully.");
     },
     onError: (error) => {
-      if (error instanceof ApiRequestError) {
-        showToast(error.message || "Failed to submit refund request.");
+      if (error instanceof ApiRequestError && error.status === 400) {
+        showToast(getUserFacingErrorMessage(error) || "Failed to submit refund request.");
       } else {
-        showToast("Failed to submit refund request.");
+        showToast(getUserFacingErrorMessage(error));
       }
     },
   });
