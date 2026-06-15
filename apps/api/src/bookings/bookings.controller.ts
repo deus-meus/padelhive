@@ -67,6 +67,19 @@ export class BookingsController {
     return this.bookingsService.getRevenue(user.id, user.role === UserRole.SUPER_ADMIN);
   }
 
+  @Get("me")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "List current user's bookings" })
+  @ApiQuery({ name: "filter", enum: ["upcoming", "past", "cancelled"], required: false })
+  @ApiOkResponse({ type: BookingListItemDto, isArray: true })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  async findUserBookings(
+    @Query("filter") filter: "upcoming" | "past" | "cancelled" = "upcoming",
+    @CurrentUser() user: RequestUser
+  ) {
+    return this.bookingsService.findBookingsForUser(user.id, filter);
+  }
+
   @Get(":id")
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get current user's booking details" })
@@ -86,19 +99,6 @@ export class BookingsController {
   @ApiNotFoundResponse({ description: "Booking not found" })
   cancel(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<BookingResponseDto> {
     return this.bookingsService.cancelBookingForUser(id, user.id);
-  }
-
-  @Get("me")
-  @ApiBearerAuth()
-  @ApiOperation({ summary: "List current user's bookings" })
-  @ApiQuery({ name: "filter", enum: ["upcoming", "past", "cancelled"], required: false })
-  @ApiOkResponse({ type: BookingListItemDto, isArray: true })
-  @ApiUnauthorizedResponse({ description: "Authentication required" })
-  async findUserBookings(
-    @Query("filter") filter: "upcoming" | "past" | "cancelled" = "upcoming",
-    @CurrentUser() user: RequestUser
-  ) {
-    return this.bookingsService.findBookingsForUser(user.id, filter);
   }
 
   @Get(":id/split")
