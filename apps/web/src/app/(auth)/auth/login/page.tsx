@@ -42,10 +42,8 @@ function LoginContent() {
     if (isLoading) return;
     setError(null);
     try {
-      await loginWithGoogle();
-      // Role will be fetched via initialize(), but we can just redirect to default or wait.
-      // Wait for user state to populate or just redirect if user exists.
-      router.push(nextPath || "/venues"); // Defaulting, standard flow is to wait for redirect.
+      const loggedInUser = await loginWithGoogle();
+      router.push(nextPath || ROLE_REDIRECTS[loggedInUser.role] || "/venues");
     } catch {
       setError("Could not sign in with Google. Please try again.");
     }
@@ -70,11 +68,8 @@ function LoginContent() {
       return;
     }
     try {
-      await loginWithEmail(input, password);
-      // We need to wait for store update to get role. Zustands aren't immediate in the same tick if fetching backend.
-      // Realistically, the layout or protected route handles redirects if we are on login. 
-      // Let's redirect to a safe default and let require-auth handle it, or we could subscribe.
-      router.push(nextPath || "/venues");
+      const loggedInUser = await loginWithEmail(input, password);
+      router.push(nextPath || ROLE_REDIRECTS[loggedInUser.role] || "/venues");
     } catch (err: any) {
       setError(err.message || "Invalid email or password");
     }
