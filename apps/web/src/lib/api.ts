@@ -291,7 +291,8 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<
 }
 
 export async function getMe(): Promise<{ id: string; firebaseUid?: string; email: string; name: string; role: string; avatarUrl?: string }> {
-  return apiFetch("/auth/me");
+  const me = await apiFetch<{ id: string; firebaseUid?: string; email: string; name: string; role: string; avatarUrl?: string }>("/auth/me");
+  return { ...me, role: me.role.toLowerCase() };
 }
 
 function formatDate(value: string): string {
