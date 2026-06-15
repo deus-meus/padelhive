@@ -20,7 +20,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking, ApiRefund } from "@/lib/api";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -53,11 +53,7 @@ export default function BookingsPage() {
     queryFn: getMyRefunds,
   });
 
-  const error = isError
-    ? queryError instanceof ApiRequestError
-      ? queryError.message || "Failed to load bookings"
-      : "Failed to load bookings"
-    : null;
+
 
   const visibleBookings = bookings.map((booking) =>
     cancelledIds.includes(booking.id)
@@ -182,14 +178,30 @@ export default function BookingsPage() {
             Manage your upcoming matches and booking history.
           </p>
         </section>
-        <div className="container py-16 text-center">
-          <p className="text-sm text-[#F7F7F7]/25">Loading your bookings...</p>
-        </div>
+        <section className="container pb-10">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+            ))}
+          </div>
+        </section>
+        <section className="container pb-section-sm">
+          <div className="flex gap-1 border-b border-white/[0.06] mb-8 overflow-x-auto">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-9 w-24 animate-pulse rounded-full bg-white/[0.04]" />
+            ))}
+          </div>
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-28 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+            ))}
+          </div>
+        </section>
       </div>
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="min-h-screen pt-28">
         <section className="container pb-8">
@@ -201,9 +213,9 @@ export default function BookingsPage() {
           </p>
         </section>
         <div className="container py-16">
-          <ErrorState
+          <ErrorBanner
             title="Couldn't load bookings"
-            description={typeof error === 'string' ? error : "We couldn't reach the server. Check your connection and try again."}
+            error={queryError}
             onRetry={() => refetch()}
             isRetrying={isFetching}
           />
@@ -321,9 +333,11 @@ export default function BookingsPage() {
         <div className="space-y-3">
           {activeTab === "refunds" ? (
             myRefunds.length === 0 ? (
-              <div className="py-16 text-center">
-                <p className="text-sm text-[#F7F7F7]/25">No refund requests.</p>
-              </div>
+              <EmptyState
+                icon={RotateCcw}
+                title="No refund requests"
+                description="Refund requests you submit will appear here."
+              />
             ) : (
               myRefunds.map((refund) => (
                 <div key={refund.id} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
@@ -350,9 +364,13 @@ export default function BookingsPage() {
             )
           ) : (
             tabData[activeTab].length === 0 ? (
-              <div className="py-16 text-center">
-                <p className="text-sm text-[#F7F7F7]/25">No {activeTab} bookings.</p>
-              </div>
+              <EmptyState
+                icon={CalendarDays}
+                title={`No ${activeTab} bookings`}
+                description="When you book a court it'll show up here."
+                actionLabel="Browse venues"
+                actionHref="/venues"
+              />
             ) : (
               tabData[activeTab].map((booking, i) => (
                 <BookingRow
