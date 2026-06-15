@@ -1,8 +1,0 @@
-Add HTTP request logging and global exception filter to standardize API error responses and improve backend observability.
-
-**New files:**
-- `apps/api/src/common/interceptors/logging.interceptor.ts`: Logs HTTP request method, URL, status code, and duration using NestJS Logger.
-- `apps/api/src/common/filters/all-exceptions.filter.ts`: Catches all exceptions, normalizes the response envelope, and logs 500-level errors with stack traces while preserving standard NestJS HTTP exceptions.
-
-**Registration:**
-Both are registered globally in `apps/api/src/app.module.ts` using `APP_INTERCEPTOR` and `APP_FILTER` DI tokens.
