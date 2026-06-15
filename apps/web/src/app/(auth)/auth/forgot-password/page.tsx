@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { Mail, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { getUserFacingErrorMessage } from "@/lib/errors";
 
 export default function ForgotPasswordPage() {
   return (
@@ -37,8 +38,9 @@ function ForgotPasswordContent() {
     try {
       await sendPasswordReset(email);
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || "Could not send reset link. Please try again.");
+    } catch (err: unknown) {
+      const msg = getUserFacingErrorMessage(err);
+      setError(msg || null);
     }
   }
 

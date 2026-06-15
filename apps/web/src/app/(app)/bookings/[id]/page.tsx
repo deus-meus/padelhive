@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { enhancedBookings, type Participant } from "@/mock/enhanced-bookings";
 import { ApiRequestError, cancelBooking } from "@/lib/api";
+import { getUserFacingErrorMessage } from "@/lib/errors";
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
@@ -111,12 +112,12 @@ export default function BookingDetailPage() {
         if (error.status === 404) {
           showToast("Booking was not found for this account.");
         } else if (error.status === 400) {
-          showToast(error.message || "This booking cannot be cancelled.");
+          showToast(getUserFacingErrorMessage(error) || "This booking cannot be cancelled.");
         } else {
-          showToast("Could not cancel booking. Please try again.");
+          showToast(getUserFacingErrorMessage(error));
         }
       } else {
-        showToast("Could not cancel booking. Please try again.");
+        showToast(getUserFacingErrorMessage(error));
       }
     } finally {
       setIsCancelling(false);

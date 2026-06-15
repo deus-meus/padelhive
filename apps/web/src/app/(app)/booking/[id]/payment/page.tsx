@@ -28,7 +28,9 @@ import {
   setBookingSplit,
   clearBookingSplit,
   setSplitShareStatus,
+  type ApiBooking,
 } from "@/lib/api";
+import { getUserFacingErrorMessage } from "@/lib/errors";
 
 declare global {
   interface Window {
@@ -336,9 +338,9 @@ export default function PaymentPage({
       router.push(`/booking/${params.id}/success?paymentId=${paidPayment.id}`);
     } catch (error) {
       if (error instanceof ApiRequestError) {
-        setPaymentError(error.message || "Could not mark demo payment as paid.");
+        setPaymentError(getUserFacingErrorMessage(error) || "Could not mark demo payment as paid.");
       } else {
-        setPaymentError("Payment service is unavailable.");
+        setPaymentError(getUserFacingErrorMessage(error));
       }
     } finally {
       setMarkingPaid(false);
