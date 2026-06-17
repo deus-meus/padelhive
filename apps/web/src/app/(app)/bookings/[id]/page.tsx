@@ -284,7 +284,7 @@ export default function BookingDetailPage() {
               <div className="space-y-2">
                 <button
                   onClick={handleShareInvite}
-                  className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+                  className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 heading-3 text-[13px] text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
                 >
                   <Share2 className="h-4 w-4 text-[#50C8C8]" />
                   Share invite link
@@ -292,7 +292,7 @@ export default function BookingDetailPage() {
                 </button>
                 <Link
                   href={`/booking/${currentBooking.id}/payment`}
-                  className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+                  className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 heading-3 text-[13px] text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
                 >
                   <CreditCard className="h-4 w-4 text-[#50C8C8]" />
                   View payment receipt
@@ -302,7 +302,7 @@ export default function BookingDetailPage() {
                     <div className="my-1 border-t border-white/[0.04]" />
                     <button
                       onClick={handleCancel}
-                      className="w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 text-sm text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                      className="w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 heading-3 text-[13px] text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
                     >
                       <XCircle className="h-4 w-4" />
                       Cancel booking
