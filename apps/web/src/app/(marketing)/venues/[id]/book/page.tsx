@@ -265,17 +265,10 @@ export default function BookingFlowPage({
 
   const sortedSlots = [...selectedSlots].sort();
   const startTime = sortedSlots[0] ?? "--:--";
-  const [endTime, setEndTime] = useState(sortedSlots.length
-    ? `${sortedSlots[sortedSlots.length - 1].split(":")[0]}:00`
-    : "--:--");
-
-  useEffect(() => {
-    if (selectedSlots.length > 0) {
-      const lastSlot = sortedSlots[sortedSlots.length - 1];
-      const nextHour = parseInt(lastSlot.split(":")[0], 10) + 1;
-      setEndTime(`${nextHour.toString().padStart(2, "0")}:00`);
-    }
-  }, [selectedSlots, sortedSlots]);
+  const endTime = sortedSlots.length
+    ? `${(parseInt(sortedSlots[sortedSlots.length - 1].split(":")[0], 10) + 1)
+        .toString().padStart(2, "0")}:00`
+    : "--:--";
 
   const queryClient = useQueryClient();
 
@@ -640,7 +633,7 @@ export default function BookingFlowPage({
           </div>
 
           {/* Right — Booking Summary */}
-          <div className="lg:relative self-start">
+          <div className="lg:sticky lg:top-28 self-start">
             <div className="lg:sticky lg:top-28">
               <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
                 <h3 className="section-label">
