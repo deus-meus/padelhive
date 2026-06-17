@@ -196,42 +196,32 @@ export default function BookingDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Booking Details */}
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <p className="section-label mb-4">Booking Details</p>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Ticket className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    <span className="caption text-[#F7F7F7]/40">Booking ID</span>
-                  </div>
-                  <p className="text-sm font-medium text-[#F7F7F7]">{`#${currentBooking.id.slice(-6).toUpperCase()}`}</p>
+              <p className="section-label mb-4">Booking Information</p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="rounded-xl bg-white/[0.02] p-3">
+                  <Ticket className="h-3.5 w-3.5 text-[#50C8C8]" />
+                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{`#${currentBooking.id.slice(-6).toUpperCase()}`}</p>
+                  <p className="caption mt-0.5 text-[#F7F7F7]/25">Booking ID</p>
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    <span className="caption text-[#F7F7F7]/40">Court</span>
-                  </div>
-                  <p className="text-sm font-medium text-[#F7F7F7]">{`${court?.name ?? "—"} · ${court?.type ?? ""}`}</p>
+                <div className="rounded-xl bg-white/[0.02] p-3">
+                  <MapPin className="h-3.5 w-3.5 text-[#50C8C8]" />
+                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{`${court?.name ?? "—"} · ${court?.type ?? ""}`}</p>
+                  <p className="caption mt-0.5 text-[#F7F7F7]/25">Court</p>
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    <span className="caption text-[#F7F7F7]/40">Date</span>
-                  </div>
-                  <p className="text-sm font-medium text-[#F7F7F7]">{formatBookingDate(currentBooking.bookingDate)}</p>
+                <div className="rounded-xl bg-white/[0.02] p-3">
+                  <CalendarDays className="h-3.5 w-3.5 text-[#50C8C8]" />
+                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{formatBookingDate(currentBooking.bookingDate)}</p>
+                  <p className="caption mt-0.5 text-[#F7F7F7]/25">Date</p>
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    <span className="caption text-[#F7F7F7]/40">Time</span>
-                  </div>
-                  <p className="text-sm font-medium text-[#F7F7F7]">{formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)}</p>
+                <div className="rounded-xl bg-white/[0.02] p-3">
+                  <Clock className="h-3.5 w-3.5 text-[#50C8C8]" />
+                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)}</p>
+                  <p className="caption mt-0.5 text-[#F7F7F7]/25">Time</p>
                 </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Timer className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    <span className="caption text-[#F7F7F7]/40">Duration</span>
-                  </div>
-                  <p className="text-sm font-medium text-[#F7F7F7]">{`${currentBooking.durationMinutes} min`}</p>
+                <div className="rounded-xl bg-white/[0.02] p-3">
+                  <Timer className="h-3.5 w-3.5 text-[#50C8C8]" />
+                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{`${currentBooking.durationMinutes} min`}</p>
+                  <p className="caption mt-0.5 text-[#F7F7F7]/25">Duration</p>
                 </div>
               </div>
             </div>
