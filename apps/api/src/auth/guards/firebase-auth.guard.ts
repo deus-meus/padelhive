@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { UsersService } from "../../users/users.service";
 import { FirebaseAuthService } from "../firebase-auth.service";
@@ -7,6 +7,8 @@ import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
+  private readonly logger = new Logger(FirebaseAuthGuard.name);
+
   constructor(
     private readonly firebaseAuthService: FirebaseAuthService,
     private readonly usersService: UsersService,
@@ -37,6 +39,9 @@ export class FirebaseAuthGuard implements CanActivate {
       return true;
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error;
+      const code = (error as { code?: string })?.code;
+      const message = (error as { message?: string })?.message;
+      this.logger.warn(`Firebase token verification failed: ${code ?? "unknown"} - ${message ?? "no message"}`);
       throw new UnauthorizedException("Invalid bearer token");
     }
   }
