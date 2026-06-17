@@ -193,7 +193,7 @@ export default function BookingDetailPage() {
       <section className="container">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left column — main info */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className="lg:col-span-2 space-y-6">
             {/* Booking Information */}
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Booking Information</p>
@@ -211,9 +211,9 @@ export default function BookingDetailPage() {
             {/* TODO: Replace with real participants from API once supported */}
 
             {/* Refund Policy */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 flex-1 flex flex-col">
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Refund Policy</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 flex-1 auto-rows-fr">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="flex items-start gap-3 rounded-xl bg-white/[0.02] p-4">
                   <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#E6FA50]" />
                   <div className="space-y-1">
@@ -235,7 +235,7 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Right column — payment & actions */}
-          <div className="flex flex-col gap-6">
+          <div className="space-y-6">
             {/* Payment */}
             <div id="payment" className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Payment</p>
@@ -268,7 +268,7 @@ export default function BookingDetailPage() {
             </div>
 
             {/* Actions */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 flex-1">
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Actions</p>
               <div className="space-y-2">
                 <button
