@@ -211,9 +211,9 @@ export default function BookingDetailPage() {
             {/* TODO: Replace with real participants from API once supported */}
 
             {/* Refund Policy */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 flex-1">
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 flex-1 flex flex-col">
               <p className="section-label mb-4">Refund Policy</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 flex-1 auto-rows-fr">
                 <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-4">
                   <ShieldCheck className="h-5 w-5 shrink-0 text-[#E6FA50]" />
                   <div>
