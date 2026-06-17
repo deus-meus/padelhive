@@ -344,7 +344,7 @@ export default function PaymentPage({
   return (
     <div className="min-h-screen">
       <Script src={snapScriptUrl} data-client-key={clientKey} strategy="afterInteractive" />
-      <div className="container max-w-4xl pb-component pt-28 md:pt-32">
+      <div className="container max-w-7xl pb-component pt-28 md:pt-32">
         {/* Back */}
         <Link
           href={`/bookings/${params.id}`}
