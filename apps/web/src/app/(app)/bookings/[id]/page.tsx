@@ -197,43 +197,43 @@ export default function BookingDetailPage() {
             {/* Booking Details */}
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Booking Details</p>
-              <dl className="divide-y divide-white/[0.04]">
-                <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                  <dt className="flex items-center gap-2.5 text-sm text-[#F7F7F7]/40">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
                     <Ticket className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    Booking ID
-                  </dt>
-                  <dd className="text-right text-sm font-medium text-[#F7F7F7]">{currentBooking.id.toUpperCase().split("-")[0]}</dd>
+                    <span className="caption text-[#F7F7F7]/40">Booking ID</span>
+                  </div>
+                  <p className="text-sm font-medium text-[#F7F7F7]">{`#${currentBooking.id.slice(-6).toUpperCase()}`}</p>
                 </div>
-                <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                  <dt className="flex items-center gap-2.5 text-sm text-[#F7F7F7]/40">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    Court
-                  </dt>
-                  <dd className="text-right text-sm font-medium text-[#F7F7F7]">{`${court?.name ?? "—"} · ${court?.type ?? ""}`}</dd>
+                    <span className="caption text-[#F7F7F7]/40">Court</span>
+                  </div>
+                  <p className="text-sm font-medium text-[#F7F7F7]">{`${court?.name ?? "—"} · ${court?.type ?? ""}`}</p>
                 </div>
-                <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                  <dt className="flex items-center gap-2.5 text-sm text-[#F7F7F7]/40">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    Date
-                  </dt>
-                  <dd className="text-right text-sm font-medium text-[#F7F7F7]">{formatBookingDate(currentBooking.bookingDate)}</dd>
+                    <span className="caption text-[#F7F7F7]/40">Date</span>
+                  </div>
+                  <p className="text-sm font-medium text-[#F7F7F7]">{formatBookingDate(currentBooking.bookingDate)}</p>
                 </div>
-                <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                  <dt className="flex items-center gap-2.5 text-sm text-[#F7F7F7]/40">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    Time
-                  </dt>
-                  <dd className="text-right text-sm font-medium text-[#F7F7F7]">{formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)}</dd>
+                    <span className="caption text-[#F7F7F7]/40">Time</span>
+                  </div>
+                  <p className="text-sm font-medium text-[#F7F7F7]">{formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)}</p>
                 </div>
-                <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                  <dt className="flex items-center gap-2.5 text-sm text-[#F7F7F7]/40">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
                     <Timer className="h-4 w-4 shrink-0 text-[#50C8C8]" />
-                    Duration
-                  </dt>
-                  <dd className="text-right text-sm font-medium text-[#F7F7F7]">{`${currentBooking.durationMinutes} min`}</dd>
+                    <span className="caption text-[#F7F7F7]/40">Duration</span>
+                  </div>
+                  <p className="text-sm font-medium text-[#F7F7F7]">{`${currentBooking.durationMinutes} min`}</p>
                 </div>
-              </dl>
+              </div>
             </div>
 
             {/* Refund Policy */}
@@ -273,8 +273,9 @@ export default function BookingDetailPage() {
                   />
                 )}
                 <PaymentRow label="Platform fee" value={`Rp ${(currentBooking.platformFee / 1000).toFixed(0)}K`} />
-                <div className="border-t border-white/[0.04] pt-3">
-                  <PaymentRow label="Total" value={`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`} bold />
+                <div className="flex items-center justify-between border-t border-white/[0.04] pt-3">
+                  <span className="text-sm font-medium text-[#F7F7F7]/60">Total</span>
+                  <span className="text-lg font-semibold text-[#F7F7F7]">{`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`}</span>
                 </div>
               </div>
 
