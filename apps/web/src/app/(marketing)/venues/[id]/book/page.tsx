@@ -81,7 +81,7 @@ export default function BookingFlowPage({
     queryFn: () => getVenueCourts(params.id),
   });
 
-  const courts = apiCourts && apiCourts.length > 0 ? apiCourts : [];
+  const courts = useMemo(() => apiCourts && apiCourts.length > 0 ? apiCourts : [], [apiCourts]);
 
   const isLoadingApiData = isLoadingVenue || isLoadingCourts;
   const apiError = isVenueError || isCourtsError ? "Could not reach the live court API." : null;
@@ -91,11 +91,13 @@ export default function BookingFlowPage({
   const [selectedDate, setSelectedDate] = useState<Date>(dates[0]);
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(courts[0] ?? null);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
+  const [rangeError, setRangeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (courts.length > 0 && (!selectedCourt || !courts.some((c) => c.id === selectedCourt.id))) {
       setSelectedCourt(courts[0]);
       setSelectedSlots([]);
+      setRangeError(null);
     }
   }, [courts, selectedCourt]);
   const [dateScrollStart, setDateScrollStart] = useState(0);
@@ -131,13 +133,53 @@ export default function BookingFlowPage({
 
   function toggleSlot(time: string) {
     if (confirmState === "submitting") return;
-    setSelectedSlots((prev) =>
-      prev.includes(time) ? prev.filter((t) => t !== time) : [...prev, time]
-    );
+
     setConfirmState("idle");
     setSubmitError(null);
     setAppliedVoucher(null);
     setVoucherError(null);
+
+    setSelectedSlots((prev) => {
+      if (prev.length === 0) {
+        setRangeError(null);
+        return [time];
+      }
+
+      if (prev.length === 1) {
+        const anchor = prev[0];
+        if (anchor === time) {
+          setRangeError(null);
+          return [];
+        }
+
+        const anchorHour = parseInt(anchor.split(":")[0], 10);
+        const clickHour = parseInt(time.split(":")[0], 10);
+
+        const startHour = Math.min(anchorHour, clickHour);
+        const endHour = Math.max(anchorHour, clickHour);
+
+        const range: string[] = [];
+        for (let h = startHour; h <= endHour; h++) {
+          range.push(`${h.toString().padStart(2, "0")}:00`);
+        }
+
+        const allAvailable = range.every((h) => {
+          const slot = timeSlots.find((s) => s.startsAt === h);
+          return slot && slot.available;
+        });
+
+        if (allAvailable) {
+          setRangeError(null);
+          return range.sort();
+        } else {
+          setRangeError("That range includes a booked slot — pick a clear range.");
+          return [anchor];
+        }
+      }
+
+      setRangeError(null);
+      return [time];
+    });
   }
 
   const totalPrice = useMemo(() => {
@@ -301,7 +343,7 @@ export default function BookingFlowPage({
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-4xl pb-component pt-28 md:pt-32">
+      <div className="container max-w-7xl pb-component pt-28 md:pt-32">
         {apiError && (
           <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
             {apiError}
@@ -354,6 +396,7 @@ export default function BookingFlowPage({
                       onClick={() => {
                         setSelectedCourt(court);
                         setSelectedSlots([]);
+                        setRangeError(null);
                         setSubmitError(null);
                         setConfirmState("idle");
                         setAppliedVoucher(null);
@@ -426,6 +469,7 @@ export default function BookingFlowPage({
                             onClick={() => {
                               setSelectedDate(date);
                               setSelectedSlots([]);
+                              setRangeError(null);
                               setSubmitError(null);
                               setConfirmState("idle");
                               setAppliedVoucher(null);
@@ -501,7 +545,7 @@ export default function BookingFlowPage({
                 Select Time
               </h2>
               <p className="mt-1 text-[11px] text-[#F7F7F7]/25">
-                Select one or more consecutive hours.
+                Tap a start hour, then an end hour to select a range.
               </p>
               <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
                 {isLoadingApiData ? (
@@ -561,6 +605,11 @@ export default function BookingFlowPage({
                   );
                 }))}
               </div>
+              {rangeError && (
+                <p className="mt-2 text-[11px] text-red-400">
+                  {rangeError}
+                </p>
+              )}
               <div className="mt-3 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-white/[0.08] bg-[#0C1B26]" />
