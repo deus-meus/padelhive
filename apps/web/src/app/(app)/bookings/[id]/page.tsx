@@ -191,115 +191,109 @@ export default function BookingDetailPage() {
       </section>
 
       <section className="container">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left column — main info */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Booking Information */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <p className="section-label mb-4">Booking Information</p>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <InfoCard icon={Ticket} label="Booking ID" value={currentBooking.id.toUpperCase().split("-")[0]} />
-                <InfoCard icon={MapPin} label="Court" value={`${court?.name ?? "—"} · ${court?.type ?? ""}`} />
-                <InfoCard icon={CalendarDays} label="Date" value={formatBookingDate(currentBooking.bookingDate)} />
-                <InfoCard icon={Clock} label="Time" value={formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)} />
-                <InfoCard icon={Timer} label="Duration" value={`${currentBooking.durationMinutes} min`} />
-                {/* TODO: Add 'Booked On' if createdAt is available from API */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+          {/* Booking Information */}
+          <div className="lg:col-span-2 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <p className="section-label mb-4">Booking Information</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <InfoCard icon={Ticket} label="Booking ID" value={currentBooking.id.toUpperCase().split("-")[0]} />
+              <InfoCard icon={MapPin} label="Court" value={`${court?.name ?? "—"} · ${court?.type ?? ""}`} />
+              <InfoCard icon={CalendarDays} label="Date" value={formatBookingDate(currentBooking.bookingDate)} />
+              <InfoCard icon={Clock} label="Time" value={formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)} />
+              <InfoCard icon={Timer} label="Duration" value={`${currentBooking.durationMinutes} min`} />
+              {/* TODO: Add 'Booked On' if createdAt is available from API */}
+            </div>
+          </div>
+
+          {/* Payment */}
+          <div id="payment" className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <p className="section-label mb-4">Payment</p>
+            <div className="space-y-3 mb-4">
+              <PaymentRow label="Court fee" value={`Rp ${(currentBooking.courtAmount / 1000).toFixed(0)}K`} />
+              {currentBooking.voucherDiscount > 0 && (
+                <PaymentRow
+                  label="Voucher"
+                  value={`-Rp ${(currentBooking.voucherDiscount / 1000).toFixed(0)}K`}
+                  highlight
+                />
+              )}
+              <PaymentRow label="Platform fee" value={`Rp ${(currentBooking.platformFee / 1000).toFixed(0)}K`} />
+              <div className="border-t border-white/[0.04] pt-3">
+                <PaymentRow label="Total" value={`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`} bold />
               </div>
             </div>
 
-            {/* Participants */}
-            {/* TODO: Replace with real participants from API once supported */}
-
-            {/* Refund Policy */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <p className="section-label mb-4">Refund Policy</p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-xl bg-white/[0.02] p-4 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="h-5 w-5 shrink-0 text-[#E6FA50]" />
-                    <p className="text-sm font-medium text-[#F7F7F7]/60">Full refund before H-1</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="caption text-[#F7F7F7]/25">Cancel 24+ hours before your booking date.</p>
-                    <p className="caption text-[#F7F7F7]/25">The full amount is returned to your original payment method, no questions asked.</p>
-                  </div>
+            <div className="space-y-2 rounded-xl bg-white/[0.02] p-3">
+              <div className="flex items-center justify-between">
+                <span className="caption text-[#F7F7F7]/25">Status</span>
+                <PaymentBadge status={isCancelled ? "refunded" : (currentBooking.payment?.status.toLowerCase() ?? "pending")} />
+              </div>
+              {refundMessage && (
+                <div className="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-3">
+                  <p className="text-xs leading-5 text-[#E6FA50]">{refundMessage}</p>
                 </div>
-                <div className="rounded-xl bg-white/[0.02] p-4 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <ShieldX className="h-5 w-5 shrink-0 text-red-400" />
-                    <p className="text-sm font-medium text-[#F7F7F7]/60">Non-refundable after H-1</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="caption text-[#F7F7F7]/25">Cancelling less than 24 hours before the start time.</p>
-                    <p className="caption text-[#F7F7F7]/25">Cancellations made this close to the start time aren&apos;t eligible for a refund.</p>
-                  </div>
+              )}
+            </div>
+          </div>
+
+          {/* Participants */}
+          {/* TODO: Replace with real participants from API once supported */}
+
+          {/* Refund Policy */}
+          <div className="lg:col-span-2 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <p className="section-label mb-4">Refund Policy</p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-xl bg-white/[0.02] p-4 space-y-2">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="h-5 w-5 shrink-0 text-[#E6FA50]" />
+                  <p className="text-sm font-medium text-[#F7F7F7]/60">Full refund before H-1</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="caption text-[#F7F7F7]/25">Cancel 24+ hours before your booking date.</p>
+                  <p className="caption text-[#F7F7F7]/25">The full amount is returned to your original payment method, no questions asked.</p>
+                </div>
+              </div>
+              <div className="rounded-xl bg-white/[0.02] p-4 space-y-2">
+                <div className="flex items-center gap-3">
+                  <ShieldX className="h-5 w-5 shrink-0 text-red-400" />
+                  <p className="text-sm font-medium text-[#F7F7F7]/60">Non-refundable after H-1</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="caption text-[#F7F7F7]/25">Cancelling less than 24 hours before the start time.</p>
+                  <p className="caption text-[#F7F7F7]/25">Cancellations made this close to the start time aren&apos;t eligible for a refund.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right column — payment & actions */}
-          <div className="space-y-6">
-            {/* Payment */}
-            <div id="payment" className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <p className="section-label mb-4">Payment</p>
-              <div className="space-y-3 mb-4">
-                <PaymentRow label="Court fee" value={`Rp ${(currentBooking.courtAmount / 1000).toFixed(0)}K`} />
-                {currentBooking.voucherDiscount > 0 && (
-                  <PaymentRow
-                    label="Voucher"
-                    value={`-Rp ${(currentBooking.voucherDiscount / 1000).toFixed(0)}K`}
-                    highlight
-                  />
-                )}
-                <PaymentRow label="Platform fee" value={`Rp ${(currentBooking.platformFee / 1000).toFixed(0)}K`} />
-                <div className="border-t border-white/[0.04] pt-3">
-                  <PaymentRow label="Total" value={`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`} bold />
-                </div>
-              </div>
-
-              <div className="space-y-2 rounded-xl bg-white/[0.02] p-3">
-                <div className="flex items-center justify-between">
-                  <span className="caption text-[#F7F7F7]/25">Status</span>
-                  <PaymentBadge status={isCancelled ? "refunded" : (currentBooking.payment?.status.toLowerCase() ?? "pending")} />
-                </div>
-                {refundMessage && (
-                  <div className="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-3">
-                    <p className="text-xs leading-5 text-[#E6FA50]">{refundMessage}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <p className="section-label mb-4">Actions</p>
-              <div className="space-y-2">
+          {/* Actions */}
+          <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <p className="section-label mb-4">Actions</p>
+            <div className="space-y-2">
+              <button
+                onClick={handleShareInvite}
+                className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+              >
+                <Share2 className="h-4 w-4 text-[#50C8C8]" />
+                Share invite link
+                <Copy className="ml-auto h-3.5 w-3.5 text-[#F7F7F7]/25" />
+              </button>
+              <Link
+                href={`/booking/${currentBooking.id}/payment`}
+                className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+              >
+                <CreditCard className="h-4 w-4 text-[#50C8C8]" />
+                View payment receipt
+              </Link>
+              {currentBooking.status === "CONFIRMED" && !isCancelled && (
                 <button
-                  onClick={handleShareInvite}
-                  className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+                  onClick={handleCancel}
+                  className="w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 text-sm text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
                 >
-                  <Share2 className="h-4 w-4 text-[#50C8C8]" />
-                  Share invite link
-                  <Copy className="ml-auto h-3.5 w-3.5 text-[#F7F7F7]/25" />
+                  <XCircle className="h-4 w-4" />
+                  Cancel booking
                 </button>
-                <Link
-                  href={`/booking/${currentBooking.id}/payment`}
-                  className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
-                >
-                  <CreditCard className="h-4 w-4 text-[#50C8C8]" />
-                  View payment receipt
-                </Link>
-                {currentBooking.status === "CONFIRMED" && !isCancelled && (
-                  <button
-                    onClick={handleCancel}
-                    className="w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 text-sm text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
-                  >
-                    <XCircle className="h-4 w-4" />
-                    Cancel booking
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
