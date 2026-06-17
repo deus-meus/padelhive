@@ -374,7 +374,7 @@ export default function VenueDetailPage({
                 </div>
               </div>
               <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(venue.location + ", " + venue.city)}`}
+                href={`https://maps.google.com/?q=${encodeURIComponent(`${venue.location}, ${venue.city}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[#50C8C8] hover:text-[#50C8C8]/80"
