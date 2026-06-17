@@ -107,12 +107,18 @@ export default function BookingFlowPage({
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [voucherChecking, setVoucherChecking] = useState(false);
   
-  const dateStr = useMemo(() => formatBookingDate(selectedDate), [selectedDate]);
+  const apiDateStr = useMemo(() => getIsoDateString(selectedDate), [selectedDate]);
   
-  const { data: availabilityResponse, isError: isAvailabilityError } = useQuery({
-    queryKey: queryKeys.venues.availability(venue?.id ?? "", dateStr, selectedCourt?.id ?? ""),
-    queryFn: () => getVenueAvailability(venue!.id, dateStr, selectedCourt!.id),
-    enabled: !!(venue?.id && selectedCourt?.id && dateStr),
+  const { 
+    data: availabilityResponse, 
+    isError: isAvailabilityError,
+    isLoading: isAvailabilityLoading,
+    isFetching: isAvailabilityFetching,
+    refetch: refetchAvailability
+  } = useQuery({
+    queryKey: queryKeys.venues.availability(venue?.id ?? "", apiDateStr, selectedCourt?.id ?? ""),
+    queryFn: () => getVenueAvailability(venue!.id, apiDateStr, selectedCourt!.id),
+    enabled: !!(venue?.id && selectedCourt?.id && apiDateStr),
   });
 
   const timeSlots = useMemo(() => {
@@ -193,7 +199,7 @@ export default function BookingFlowPage({
   const bookingMutation = useMutation({
     mutationFn: (data: Parameters<typeof createBooking>[0]) => createBooking(data),
     onSuccess: (booking) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue!.id, formatBookingDate(selectedDate), selectedCourt!.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue!.id, getIsoDateString(selectedDate), selectedCourt!.id) });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
 
       const query = new URLSearchParams({
@@ -502,9 +508,24 @@ export default function BookingFlowPage({
                   [...Array(16)].map((_, i) => (
                     <Skeleton key={i} className="h-12 w-full rounded-xl" />
                   ))
+                ) : !selectedCourt ? (
+                  <div className="col-span-full py-8 text-center text-[11px] text-[#F7F7F7]/40 border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">
+                    Select a court and date to see availability.
+                  </div>
+                ) : isAvailabilityLoading || isAvailabilityFetching ? (
+                  [...Array(16)].map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full rounded-xl" />
+                  ))
+                ) : isAvailabilityError ? (
+                  <div className="col-span-full flex flex-col items-center justify-center py-8 text-center border border-dashed border-red-500/20 bg-red-500/10 rounded-xl">
+                    <p className="text-[11px] text-red-200/80 mb-3">Couldn&apos;t load availability. Please try again.</p>
+                    <button onClick={() => refetchAvailability()} className="rounded-xl bg-red-500/20 px-4 py-2 text-[11px] font-medium text-red-200 hover:bg-red-500/30 transition-colors">
+                      Retry
+                    </button>
+                  </div>
                 ) : timeSlots.length === 0 ? (
                   <div className="col-span-full py-8 text-center text-[11px] text-[#F7F7F7]/40 border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">
-                    {availabilityResponse ? "No slots available for this date." : "Select a court and date to see availability."}
+                    No slots available for this date.
                   </div>
                 ) : (
                   timeSlots.map((slot) => {
