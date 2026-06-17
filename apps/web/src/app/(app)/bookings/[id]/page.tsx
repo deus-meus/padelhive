@@ -261,7 +261,7 @@ export default function BookingDetailPage() {
                 <PaymentRow label="Platform fee" value={`Rp ${(currentBooking.platformFee / 1000).toFixed(0)}K`} />
                 <div className="flex items-center justify-between border-t border-white/[0.04] pt-3">
                   <span className="text-sm font-medium text-[#F7F7F7]/60">Total</span>
-                  <span className="text-lg font-semibold text-[#F7F7F7]">{`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`}</span>
+                  <span className="price text-lg text-[#F7F7F7]">{`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`}</span>
                 </div>
               </div>
 
@@ -364,8 +364,8 @@ export default function BookingDetailPage() {
 function PaymentRow({ label, value, highlight, bold }: { label: string; value: string; highlight?: boolean; bold?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={`text-sm ${bold ? "font-medium text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>{label}</span>
-      <span className={`text-sm ${highlight ? "text-[#E6FA50]" : bold ? "font-semibold text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
+      <span className={`caption ${bold ? "text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>{label}</span>
+      <span className={`heading-3 text-[13px] ${highlight ? "text-[#E6FA50]" : bold ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
     </div>
   );
 }
