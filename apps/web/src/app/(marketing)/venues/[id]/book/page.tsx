@@ -428,7 +428,7 @@ export default function BookingFlowPage({
                 </div>
                 <h2 className="section-label">Select Court</h2>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-2 gap-2.5">
                 {isLoadingApiData ? (
                   [...Array(2)].map((_, i) => (
                     <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
@@ -490,7 +490,7 @@ export default function BookingFlowPage({
                   </button>
                 </div>
               </div>
-              <div className="mt-4 flex overflow-x-auto gap-2 sm:grid sm:grid-cols-7 pb-2 sm:pb-0 scrollbar-none">
+              <div className="mt-4 flex overflow-x-auto gap-2.5 sm:grid sm:grid-cols-7 pb-2 sm:pb-0 scrollbar-none">
                   {isLoadingApiData ? (
                     [...Array(7)].map((_, i) => (
                       <Skeleton key={i} className="min-h-[64px] min-w-[72px] sm:min-w-0 flex-1 rounded-xl" />
@@ -509,7 +509,7 @@ export default function BookingFlowPage({
                               secondaryText={
                                 <>
                                   {formatShortWeekday(date).toUpperCase()}
-                                  {isToday && <span className="ml-1 text-[#50C8C8]">Tdy</span>}
+                                  {isToday && <span className="ml-1 text-[#50C8C8]">Today</span>}
                                 </>
                               }
                               onClick={() => {
@@ -567,12 +567,12 @@ export default function BookingFlowPage({
                       Select Time
                     </h2>
                   </div>
-                  <p className="mt-2 text-[11px] text-[#F7F7F7]/25 pl-9">
-                    Tap a start hour, then an end hour to select a range.
+                  <p className="mt-2 text-[11px] text-[#F7F7F7]/25">
+                    Each slot is 1 hour. Tap a slot to book that hour, or tap a start then an end slot to select a longer range.
                   </p>
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
+              <div className="mt-4 grid grid-cols-4 gap-2.5 sm:grid-cols-6 md:grid-cols-8">
                 {isLoadingApiData ? (
                   [...Array(16)].map((_, i) => (
                     <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
@@ -617,6 +617,11 @@ export default function BookingFlowPage({
                   {rangeError}
                 </p>
               )}
+              {selectedSlots.length > 0 && (
+                <p className="mt-3 text-[11px] text-[#E6FA50]">
+                  Booking {startTime} – {endTime} · {duration} hour{duration > 1 ? "s" : ""}
+                </p>
+              )}
               <div className="mt-3 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-white/[0.08] bg-[#0C1B26]" />
@@ -635,7 +640,7 @@ export default function BookingFlowPage({
           </div>
 
           {/* Right — Booking Summary */}
-          <div className="lg:relative">
+          <div className="lg:relative self-start">
             <div className="lg:sticky lg:top-28">
               <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
                 <h3 className="section-label">
