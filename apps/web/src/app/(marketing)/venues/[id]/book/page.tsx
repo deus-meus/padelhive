@@ -22,6 +22,47 @@ import {
 import { ApiRequestError, createBooking, getVenue, getVenueCourts, getVenueAvailability, ApiAvailabilitySlot, validateVoucher, getApiErrorMessage } from "@/lib/api";
 import { Court, Venue } from "@/types";
 
+function SelectionTile({
+  isSelected,
+  isDisabled,
+  primaryText,
+  secondaryText,
+  onClick,
+  className = "",
+}: {
+  isSelected: boolean;
+  isDisabled?: boolean;
+  primaryText: React.ReactNode;
+  secondaryText: React.ReactNode;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      disabled={isDisabled}
+      onClick={onClick}
+      className={`relative flex min-h-[64px] w-full flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
+        isDisabled
+          ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed"
+          : isSelected
+            ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]"
+            : "border-white/[0.08] bg-[#0C1B26] hover:border-[#50C8C8]/40"
+      } ${className}`}
+    >
+      <span className={`text-sm font-medium ${isDisabled ? "text-[#F7F7F7]/25" : isSelected ? "text-[#E6FA50]" : "text-[#F7F7F7]/80"}`}>
+        {primaryText}
+      </span>
+      <span
+        className={`mt-0.5 block text-[11px] ${
+          isSelected ? "text-[#E6FA50]/70" : isDisabled ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]/60"
+        }`}
+      >
+        {secondaryText}
+      </span>
+    </button>
+  );
+}
+
 const DAYS_AHEAD = 14;
 
 type BookingSubmitError =
@@ -376,23 +417,29 @@ export default function BookingFlowPage({
           )}
         </div>
 
-        <div className="mt-component grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
+        <div className="mt-component grid grid-cols-1 items-start gap-8 lg:grid-cols-[1fr_340px]">
           {/* Left — Selection */}
-          <div className="space-y-component">
+          <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5 md:p-6 space-y-8 divide-y divide-white/[0.06]">
             {/* Court Selector */}
-            <div>
-              <h2 className="section-label">
-                Select Court
-              </h2>
-              <div className="mt-3 flex flex-wrap gap-3">
+            <div className="pt-0">
+              <div className="flex items-center gap-3">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#50C8C8]/20 text-[11px] font-bold text-[#50C8C8]">
+                  1
+                </div>
+                <h2 className="section-label">Select Court</h2>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
                 {isLoadingApiData ? (
-                  [...Array(3)].map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-32 rounded-xl" />
+                  [...Array(2)].map((_, i) => (
+                    <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
                   ))
                 ) : (
                   courts.map((court) => (
-                    <button
+                    <SelectionTile
                       key={court.id}
+                      isSelected={selectedCourt?.id === court.id}
+                      primaryText={court.name}
+                      secondaryText={court.type}
                       onClick={() => {
                         setSelectedCourt(court);
                         setSelectedSlots([]);
@@ -402,29 +449,24 @@ export default function BookingFlowPage({
                         setAppliedVoucher(null);
                         setVoucherError(null);
                       }}
-                      className={`rounded-xl border px-5 py-3 transition-all ${
-                        selectedCourt?.id === court.id
-                          ? "border-[#E6FA50]/40 bg-[#E6FA50]/10 text-[#E6FA50]"
-                          : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-white/[0.12]"
-                      }`}
-                    >
-                      <p className="text-sm font-medium">{court.name}</p>
-                      <p className="mt-0.5 text-[10px] opacity-60">
-                        {court.type}
-                      </p>
-                    </button>
+                    />
                   ))
                 )}
               </div>
             </div>
 
             {/* Date Selector */}
-            <div>
+            <div className="pt-8">
               <div className="flex items-center justify-between">
-                <h2 className="section-label flex items-center">
-                  <Calendar className="mr-2 inline h-3.5 w-3.5" />
-                  Select Date
-                </h2>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#50C8C8]/20 text-[11px] font-bold text-[#50C8C8]">
+                    2
+                  </div>
+                  <h2 className="section-label flex items-center">
+                    <Calendar className="mr-2 inline h-3.5 w-3.5" />
+                    Select Date
+                  </h2>
+                </div>
                 <div className="hidden items-center gap-2 sm:flex">
                   <button
                     onClick={() =>
@@ -448,69 +490,43 @@ export default function BookingFlowPage({
                   </button>
                 </div>
               </div>
-              <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
+              <div className="mt-4 flex overflow-x-auto gap-2 sm:grid sm:grid-cols-7 pb-2 sm:pb-0 scrollbar-none">
                   {isLoadingApiData ? (
                     [...Array(7)].map((_, i) => (
-                      <Skeleton key={i} className={`h-[72px] w-full rounded-xl ${i >= 4 ? "hidden sm:block" : "block"}`} />
+                      <Skeleton key={i} className="min-h-[64px] min-w-[72px] sm:min-w-0 flex-1 rounded-xl" />
                     ))
                   ) : (
                     dates
                       .slice(dateScrollStart, dateScrollStart + 7)
-                      .map((date, idx) => {
-                        const isSelected =
-                          date.toDateString() === selectedDate.toDateString();
-                        const isToday =
-                          date.toDateString() === new Date().toDateString();
-                        const wknd = isWeekend(date);
-                        const hiddenOnMobile = idx >= 4 ? "hidden sm:flex" : "flex";
+                      .map((date) => {
+                        const isSelected = date.toDateString() === selectedDate.toDateString();
+                        const isToday = date.toDateString() === new Date().toDateString();
                         return (
-                          <button
-                            key={date.toISOString()}
-                            onClick={() => {
-                              setSelectedDate(date);
-                              setSelectedSlots([]);
-                              setRangeError(null);
-                              setSubmitError(null);
-                              setConfirmState("idle");
-                              setAppliedVoucher(null);
-                              setVoucherError(null);
-                            }}
-                            className={`${hiddenOnMobile} flex-col items-center rounded-xl border py-3 transition-all ${
-                              isSelected
-                                ? "border-[#E6FA50]/40 bg-[#E6FA50]/10"
-                                : "border-white/[0.06] bg-[#0C1B26] hover:border-white/[0.12]"
-                            }`}
-                          >
-                            <span
-                              className={`text-[10px] uppercase ${
-                                isSelected
-                                  ? "text-[#E6FA50]/70"
-                                  : wknd
-                                    ? "text-[#50C8C8]/50"
-                                    : "text-[#F7F7F7]/25"
-                              }`}
-                            >
-                              {formatShortWeekday(date)}
-                            </span>
-                            <span
-                              className={`mt-1 text-lg font-medium ${
-                                isSelected
-                                  ? "text-[#E6FA50]"
-                                  : "text-[#F7F7F7]/60"
-                              }`}
-                            >
-                              {formatDayNumber(date)}
-                            </span>
-                            {isToday && (
-                              <span className="mt-0.5 text-[9px] text-[#50C8C8]">
-                                Today
-                              </span>
-                            )}
-                          </button>
+                          <div key={date.toISOString()} className="min-w-[72px] sm:min-w-0 flex-1">
+                            <SelectionTile
+                              isSelected={isSelected}
+                              primaryText={formatDayNumber(date).toString()}
+                              secondaryText={
+                                <>
+                                  {formatShortWeekday(date).toUpperCase()}
+                                  {isToday && <span className="ml-1 text-[#50C8C8]">Tdy</span>}
+                                </>
+                              }
+                              onClick={() => {
+                                setSelectedDate(date);
+                                setSelectedSlots([]);
+                                setRangeError(null);
+                                setSubmitError(null);
+                                setConfirmState("idle");
+                                setAppliedVoucher(null);
+                                setVoucherError(null);
+                              }}
+                            />
+                          </div>
                         );
                       })
                   )}
-                </div>
+              </div>
               {/* Mobile pagination */}
               <div className="mt-2 flex items-center justify-between sm:hidden">
                 <button
@@ -539,18 +555,27 @@ export default function BookingFlowPage({
             </div>
 
             {/* Time Slot Selector */}
-            <div>
-              <h2 className="section-label flex items-center">
-                <Clock className="mr-2 inline h-3.5 w-3.5" />
-                Select Time
-              </h2>
-              <p className="mt-1 text-[11px] text-[#F7F7F7]/25">
-                Tap a start hour, then an end hour to select a range.
-              </p>
+            <div className="pt-8">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#50C8C8]/20 text-[11px] font-bold text-[#50C8C8]">
+                      3
+                    </div>
+                    <h2 className="section-label flex items-center">
+                      <Clock className="mr-2 inline h-3.5 w-3.5" />
+                      Select Time
+                    </h2>
+                  </div>
+                  <p className="mt-2 text-[11px] text-[#F7F7F7]/25 pl-9">
+                    Tap a start hour, then an end hour to select a range.
+                  </p>
+                </div>
+              </div>
               <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
                 {isLoadingApiData ? (
                   [...Array(16)].map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full rounded-xl" />
+                    <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
                   ))
                 ) : !selectedCourt ? (
                   <div className="col-span-full py-8 text-center text-[11px] text-[#F7F7F7]/40 border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">
@@ -558,7 +583,7 @@ export default function BookingFlowPage({
                   </div>
                 ) : isAvailabilityLoading || isAvailabilityFetching ? (
                   [...Array(16)].map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full rounded-xl" />
+                    <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
                   ))
                 ) : isAvailabilityError ? (
                   <div className="col-span-full flex flex-col items-center justify-center py-8 text-center border border-dashed border-red-500/20 bg-red-500/10 rounded-xl">
@@ -575,35 +600,17 @@ export default function BookingFlowPage({
                   timeSlots.map((slot) => {
                     const isSelected = selectedSlots.includes(slot.startsAt);
                     return (
-                    <button
-                      key={slot.startsAt}
-                      disabled={!slot.available}
-                      onClick={() => toggleSlot(slot.startsAt)}
-                      className={`relative rounded-xl border py-3 text-center transition-all ${
-                        !slot.available
-                          ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed"
-                          : isSelected
-                            ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]"
-                            : "border-white/[0.08] bg-[#0C1B26] text-[#F7F7F7]/80 hover:border-[#50C8C8]/40"
-                      }`}
-                    >
-                      <span className="text-xs font-medium">{slot.startsAt}</span>
-                      <span
-                        className={`mt-0.5 block text-[9px] ${
-                          isSelected
-                            ? "text-[#E6FA50]/70"
-                            : !slot.available
-                              ? "text-[#F7F7F7]/25"
-                              : "text-[#F7F7F7]/40"
-                        }`}
-                      >
-                        {!slot.available
-                          ? "Booked"
-                          : `${(slot.price / 1000).toFixed(0)}K`}
-                      </span>
-                    </button>
-                  );
-                }))}
+                      <SelectionTile
+                        key={slot.startsAt}
+                        isDisabled={!slot.available}
+                        isSelected={isSelected}
+                        primaryText={slot.startsAt}
+                        secondaryText={!slot.available ? "Booked" : `${(slot.price / 1000).toFixed(0)}K`}
+                        onClick={() => toggleSlot(slot.startsAt)}
+                      />
+                    );
+                  })
+                )}
               </div>
               {rangeError && (
                 <p className="mt-2 text-[11px] text-red-400">
