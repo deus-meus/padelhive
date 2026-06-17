@@ -24,7 +24,7 @@ import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
 import { getVenue, getVenueCourts, ApiRequestError } from "@/lib/api";
-import { EmptyState, ErrorState } from "@/components/ui/error-state";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { Court, Venue } from "@/types";
 
 const IMG = {
@@ -128,8 +128,8 @@ export default function VenueDetailPage({
   if (!venue && isVenueError && !venueNotFound) {
     return (
       <div className="min-h-screen pt-20">
-        <div className="container py-16">
-          <ErrorState
+        <div className="container py-12">
+          <ErrorBanner
             title="Couldn't load this venue"
             description="We couldn't reach the server. Check your connection and try again."
             onRetry={() => {
