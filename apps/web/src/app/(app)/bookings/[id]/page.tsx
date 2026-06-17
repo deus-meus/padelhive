@@ -214,18 +214,20 @@ export default function BookingDetailPage() {
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 flex-1 flex flex-col">
               <p className="section-label mb-4">Refund Policy</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 flex-1 auto-rows-fr">
-                <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-4">
-                  <ShieldCheck className="h-5 w-5 shrink-0 text-[#E6FA50]" />
-                  <div>
+                <div className="flex items-start gap-3 rounded-xl bg-white/[0.02] p-4">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#E6FA50]" />
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-[#F7F7F7]/60">Full refund before H-1</p>
-                    <p className="caption text-[#F7F7F7]/25">Cancel 24+ hours before booking date</p>
+                    <p className="caption text-[#F7F7F7]/25">Cancel 24+ hours before your booking date.</p>
+                    <p className="caption text-[#F7F7F7]/25">The full amount is returned to your original payment method, no questions asked.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-4">
-                  <ShieldX className="h-5 w-5 shrink-0 text-red-400" />
-                  <div>
+                <div className="flex items-start gap-3 rounded-xl bg-white/[0.02] p-4">
+                  <ShieldX className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-[#F7F7F7]/60">Non-refundable after H-1</p>
-                    <p className="caption text-[#F7F7F7]/25">Less than 24 hours before booking</p>
+                    <p className="caption text-[#F7F7F7]/25">Cancelling less than 24 hours before the start time.</p>
+                    <p className="caption text-[#F7F7F7]/25">Cancellations made this close to the start time aren&apos;t eligible for a refund.</p>
                   </div>
                 </div>
               </div>
