@@ -495,7 +495,7 @@ export default function BookingFlowPage({
                 Select Time
               </h2>
               <p className="mt-1 text-[11px] text-[#F7F7F7]/25">
-                Select one or more consecutive hours. Peak hours are highlighted.
+                Select one or more consecutive hours.
               </p>
               <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
                 {isLoadingApiData ? (
@@ -516,12 +516,10 @@ export default function BookingFlowPage({
                       onClick={() => toggleSlot(slot.startsAt)}
                       className={`relative rounded-xl border py-3 text-center transition-all ${
                         !slot.available
-                          ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/10 cursor-not-allowed"
+                          ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed"
                           : isSelected
                             ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]"
-                            : slot.isPeak
-                              ? "border-[#E6FA50]/15 bg-[#E6FA50]/[0.03] text-[#F7F7F7]/60 hover:border-[#E6FA50]/30"
-                              : "border-white/[0.06] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-white/[0.15]"
+                            : "border-white/[0.08] bg-[#0C1B26] text-[#F7F7F7]/80 hover:border-[#50C8C8]/40"
                       }`}
                     >
                       <span className="text-xs font-medium">{slot.startsAt}</span>
@@ -530,8 +528,8 @@ export default function BookingFlowPage({
                           isSelected
                             ? "text-[#E6FA50]/70"
                             : !slot.available
-                              ? "text-[#F7F7F7]/10"
-                              : "text-[#F7F7F7]/25"
+                              ? "text-[#F7F7F7]/25"
+                              : "text-[#F7F7F7]/40"
                         }`}
                       >
                         {!slot.available
@@ -544,24 +542,16 @@ export default function BookingFlowPage({
               </div>
               <div className="mt-3 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-sm border border-white/[0.06] bg-[#0C1B26]" />
-                  <span className="text-[10px] text-[#F7F7F7]/25">
-                    Off-Peak
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-sm border border-[#E6FA50]/15 bg-[#E6FA50]/[0.03]" />
-                  <span className="text-[10px] text-[#F7F7F7]/25">Peak</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-sm bg-white/[0.02]" />
-                  <span className="text-[10px] text-[#F7F7F7]/25">Booked</span>
+                  <div className="h-2.5 w-2.5 rounded-sm border border-white/[0.08] bg-[#0C1B26]" />
+                  <span className="text-[10px] leading-[11px] text-[#F7F7F7]/25">Available</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-[#E6FA50] bg-[#E6FA50]/15" />
-                  <span className="text-[10px] text-[#F7F7F7]/25">
-                    Selected
-                  </span>
+                  <span className="text-[10px] leading-[11px] text-[#F7F7F7]/25">Selected</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="h-2.5 w-2.5 rounded-sm border border-transparent bg-white/[0.02]" />
+                  <span className="text-[10px] leading-[11px] text-[#F7F7F7]/25">Booked</span>
                 </div>
               </div>
             </div>

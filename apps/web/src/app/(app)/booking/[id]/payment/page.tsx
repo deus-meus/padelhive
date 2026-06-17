@@ -342,12 +342,12 @@ export default function PaymentPage({
 
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen">
       <Script src={snapScriptUrl} data-client-key={clientKey} strategy="afterInteractive" />
-      <div className="container max-w-4xl py-8">
+      <div className="container max-w-4xl pb-component pt-28 md:pt-32">
         {/* Back */}
         <Link
-          href={`/venues/${venueId}/book`}
+          href={`/bookings/${params.id}`}
           className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -356,7 +356,7 @@ export default function PaymentPage({
 
         {/* Header */}
         <div className="mt-6">
-          <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+          <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
             Payment
           </h1>
           <p className="mt-2 text-sm text-[#F7F7F7]/40">
@@ -368,7 +368,7 @@ export default function PaymentPage({
           {/* Left — Payment options */}
           <div className="space-y-8">
             {/* Booking Summary Card */}
-            <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
               <h3 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
                 Booking Details
               </h3>
