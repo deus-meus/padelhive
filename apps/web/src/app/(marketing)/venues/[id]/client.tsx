@@ -23,8 +23,8 @@ import {
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
-import { getVenue, getVenueCourts } from "@/lib/api";
-import { EmptyState } from "@/components/ui/error-state";
+import { getVenue, getVenueCourts, ApiRequestError } from "@/lib/api";
+import { EmptyState, ErrorState } from "@/components/ui/error-state";
 import { Court, Venue } from "@/types";
 
 const IMG = {
@@ -73,12 +73,12 @@ export default function VenueDetailPage({
   params: { id: string };
 }) {
   const fallbackVenue = mockVenues.find((v) => v.id === params.id);
-  const { data: apiVenue, isLoading: isLoadingVenue, isError: isVenueError } = useQuery({
+  const { data: apiVenue, isLoading: isLoadingVenue, isError: isVenueError, error: venueError, refetch: refetchVenue, isFetching: isFetchingVenue } = useQuery({
     queryKey: queryKeys.venues.detail(params.id),
     queryFn: () => getVenue(params.id),
   });
 
-  const { data: apiCourts, isLoading: isLoadingCourts, isError: isCourtsError } = useQuery({
+  const { data: apiCourts, isLoading: isLoadingCourts, isError: isCourtsError, refetch: refetchCourts } = useQuery({
     queryKey: queryKeys.venues.courts(params.id),
     queryFn: () => getVenueCourts(params.id),
   });
@@ -117,6 +117,27 @@ export default function VenueDetailPage({
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  const venueNotFound =
+    venueError instanceof ApiRequestError && venueError.status === 404;
+
+  if (!venue && isVenueError && !venueNotFound) {
+    return (
+      <div className="min-h-screen pt-20">
+        <div className="container py-16">
+          <ErrorState
+            title="Couldn't load this venue"
+            description="We couldn't reach the server. Check your connection and try again."
+            onRetry={() => {
+              refetchVenue();
+              refetchCourts();
+            }}
+            isRetrying={isFetchingVenue}
+          />
         </div>
       </div>
     );
