@@ -229,22 +229,18 @@ export default function BookingDetailPage() {
             {/* Refund Policy */}
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
               <p className="section-label mb-4">Refund Policy</p>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#E6FA50]" />
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium text-[#F7F7F7]/60">Full refund before H-1</p>
-                    <p className="caption text-[#F7F7F7]/25">Cancel 24+ hours before your booking date — the full amount is returned to your original payment method.</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <ShieldX className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium text-[#F7F7F7]/60">Non-refundable after H-1</p>
-                    <p className="caption text-[#F7F7F7]/25">Cancelling less than 24 hours before the start time isn&apos;t eligible for a refund.</p>
-                  </div>
-                </li>
-              </ul>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-xl bg-white/[0.02] p-4">
+                  <ShieldCheck className="h-4 w-4 text-[#E6FA50]" />
+                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7]">Full refund before H-1</p>
+                  <p className="caption mt-1 text-[#F7F7F7]/25">Cancel 24+ hours before your booking date — the full amount is returned to your original payment method.</p>
+                </div>
+                <div className="rounded-xl bg-white/[0.02] p-4">
+                  <ShieldX className="h-4 w-4 text-red-400" />
+                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7]">Non-refundable after H-1</p>
+                  <p className="caption mt-1 text-[#F7F7F7]/25">Cancelling less than 24 hours before the start time isn&apos;t eligible for a refund.</p>
+                </div>
+              </div>
             </div>
           </div>
 
