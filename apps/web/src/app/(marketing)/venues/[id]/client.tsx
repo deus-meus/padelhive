@@ -23,8 +23,8 @@ import {
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
-import { getVenue, getVenueCourts } from "@/lib/api";
-import { EmptyState } from "@/components/ui/error-state";
+import { getVenue, getVenueCourts, getVenueReviews } from "@/lib/api";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { Court, Venue } from "@/types";
 
 const IMG = {
@@ -81,6 +81,11 @@ export default function VenueDetailPage({
   const { data: apiCourts, isLoading: isLoadingCourts, isError: isCourtsError } = useQuery({
     queryKey: queryKeys.venues.courts(params.id),
     queryFn: () => getVenueCourts(params.id),
+  });
+
+  const { data: reviews, isLoading: isLoadingReviews, isError: isReviewsError, refetch: refetchReviews, isFetching: isFetchingReviews } = useQuery({
+    queryKey: queryKeys.reviews.venue(params.id),
+    queryFn: () => getVenueReviews(params.id),
   });
 
   const venue = apiVenue ?? fallbackVenue ?? null;
@@ -424,58 +429,43 @@ export default function VenueDetailPage({
             {/* Reviews */}
             <div className="mt-10">
               <h2 className="heading-2 text-lg text-[#F7F7F7]">Reviews</h2>
-              <div className="mt-4 space-y-3">
-                {[
-                  {
-                    name: "Andi S.",
-                    rating: 5,
-                    text: "Best padel courts in Bali. Well maintained and great atmosphere.",
-                    date: "2 weeks ago",
-                  },
-                  {
-                    name: "Budi R.",
-                    rating: 4,
-                    text: "Good facilities, friendly staff. Courts are in excellent condition.",
-                    date: "1 month ago",
-                  },
-                  {
-                    name: "Clara W.",
-                    rating: 5,
-                    text: "Love playing here. The community is amazing and courts are top notch.",
-                    date: "1 month ago",
-                  },
-                ].map((review, i) => (
-                  <div
-                    key={i}
-                    className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#E6FA50]/30 to-[#50C8C8]/20" />
-                        <div>
-                          <p className="heading-3 text-sm text-[#F7F7F7]">
-                            {review.name}
-                          </p>
-                          <p className="caption text-[#F7F7F7]/25">
-                            {review.date}
-                          </p>
+              {isLoadingReviews ? (
+                <div className="mt-4 space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5 space-y-3">
+                      <div className="h-4 w-1/3 animate-pulse rounded-full bg-white/[0.04]" />
+                      <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/[0.04]" />
+                    </div>
+                  ))}
+                </div>
+              ) : isReviewsError ? (
+                <div className="mt-4">
+                  <ErrorBanner title="Couldn't load reviews" onRetry={() => refetchReviews()} isRetrying={isFetchingReviews} />
+                </div>
+              ) : !reviews || reviews.length === 0 ? (
+                <div className="mt-4">
+                  <EmptyState icon={Star} title="No reviews yet" description="Be the first to review this venue after your visit." />
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
+                      <div className="flex items-center justify-between">
+                        <p className="heading-3 text-sm text-[#F7F7F7]">{review.authorName}</p>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Star key={n} className={`h-3.5 w-3.5 ${n <= review.rating ? "fill-[#E6FA50] text-[#E6FA50]" : "text-[#F7F7F7]/15"}`} />
+                          ))}
                         </div>
                       </div>
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: review.rating }).map((_, j) => (
-                          <Star
-                            key={j}
-                            className="h-3 w-3 fill-[#E6FA50] text-[#E6FA50]"
-                          />
-                        ))}
-                      </div>
+                      {review.comment && (
+                        <p className="mt-2 text-sm font-light leading-relaxed text-[#F7F7F7]/60">{review.comment}</p>
+                      )}
+                      <p className="caption mt-2 text-[#F7F7F7]/25">{formatBookingDate(review.createdAt)}</p>
                     </div>
-                    <p className="mt-3 text-sm font-light text-[#F7F7F7]/40">
-                      {review.text}
-                    </p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
