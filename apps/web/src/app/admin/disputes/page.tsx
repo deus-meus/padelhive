@@ -10,6 +10,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { disputes, type Dispute } from "@/mock/admin";
+import { EmptyState } from "@/components/ui/error-state";
 
 const ISSUE_LABELS: Record<Dispute["issueType"], string> = {
   court_unavailable: "Court Unavailable",
@@ -90,9 +91,11 @@ export default function DisputesPage() {
       {/* Dispute list */}
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-            <p className="caption text-[#F7F7F7]/25">No disputes in this category</p>
-          </div>
+          <EmptyState
+            icon={AlertTriangle}
+            title="No disputes"
+            description={filter === "all" ? "There are no disputes right now." : `No ${filter} disputes in this category.`}
+          />
         )}
         {filtered.map((dispute) => (
           <div key={dispute.id} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
