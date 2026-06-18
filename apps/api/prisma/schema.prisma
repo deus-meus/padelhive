@@ -109,6 +109,7 @@ model User {
   disputesRaised   Dispute[]        @relation("DisputeRaisedBy")
   disputesAssigned Dispute[]        @relation("DisputeAssignedTo")
   disputeEvents    DisputeEvent[]   @relation("DisputeEventActor")
+  notifications    Notification[]
 
   @@index([role])
   @@index([isActive])
@@ -404,5 +405,38 @@ model DisputeEvent {
 
   @@index([disputeId])
   @@index([actorUserId])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  REFUND_REQUESTED
+  REFUND_APPROVED
+  REFUND_REJECTED
+  REFUND_PROCESSED
+  DISPUTE_CREATED
+  DISPUTE_ASSIGNED
+  DISPUTE_RESOLVED
+  DISPUTE_CLOSED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  linkUrl   String?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
   @@index([createdAt])
 }
