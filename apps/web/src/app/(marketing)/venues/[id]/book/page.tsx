@@ -265,17 +265,10 @@ export default function BookingFlowPage({
 
   const sortedSlots = [...selectedSlots].sort();
   const startTime = sortedSlots[0] ?? "--:--";
-  const [endTime, setEndTime] = useState(sortedSlots.length
-    ? `${sortedSlots[sortedSlots.length - 1].split(":")[0]}:00`
-    : "--:--");
-
-  useEffect(() => {
-    if (selectedSlots.length > 0) {
-      const lastSlot = sortedSlots[sortedSlots.length - 1];
-      const nextHour = parseInt(lastSlot.split(":")[0], 10) + 1;
-      setEndTime(`${nextHour.toString().padStart(2, "0")}:00`);
-    }
-  }, [selectedSlots, sortedSlots]);
+  const endTime = sortedSlots.length
+    ? `${(parseInt(sortedSlots[sortedSlots.length - 1].split(":")[0], 10) + 1)
+        .toString().padStart(2, "0")}:00`
+    : "--:--";
 
   const queryClient = useQueryClient();
 
@@ -417,7 +410,7 @@ export default function BookingFlowPage({
           )}
         </div>
 
-        <div className="mt-component grid grid-cols-1 items-start gap-8 lg:grid-cols-[1fr_340px]">
+        <div className="mt-component grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
           {/* Left — Selection */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5 md:p-6 space-y-8 divide-y divide-white/[0.06]">
             {/* Court Selector */}
@@ -428,7 +421,7 @@ export default function BookingFlowPage({
                 </div>
                 <h2 className="section-label">Select Court</h2>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2.5">
+              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-6 md:grid-cols-8">
                 {isLoadingApiData ? (
                   [...Array(2)].map((_, i) => (
                     <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
@@ -490,7 +483,7 @@ export default function BookingFlowPage({
                   </button>
                 </div>
               </div>
-              <div className="mt-4 flex overflow-x-auto gap-2.5 sm:grid sm:grid-cols-7 pb-2 sm:pb-0 scrollbar-none">
+              <div className="mt-4 flex overflow-x-auto gap-2.5 sm:grid sm:grid-cols-6 md:grid-cols-8 pb-2 sm:pb-0 scrollbar-none">
                   {isLoadingApiData ? (
                     [...Array(7)].map((_, i) => (
                       <Skeleton key={i} className="min-h-[64px] min-w-[72px] sm:min-w-0 flex-1 rounded-xl" />
@@ -640,9 +633,9 @@ export default function BookingFlowPage({
           </div>
 
           {/* Right — Booking Summary */}
-          <div className="lg:relative self-start">
-            <div className="lg:sticky lg:top-28">
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+          <div className="h-full">
+            <div className="h-full">
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 h-full flex flex-col">
                 <h3 className="section-label">
                   Booking Summary
                 </h3>
@@ -805,17 +798,19 @@ export default function BookingFlowPage({
                   {confirmState === "submitting" ? "Creating Booking..." : "Continue to Invite & Pay"}
                 </button>
 
-                <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/[0.02] p-3">
-                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F7F7F7]/25" />
-                  <p className="text-[11px] leading-relaxed text-[#F7F7F7]/25">
-                    Free cancellation up to 24 hours before your booking. After
-                    that, standard refund policy applies.
-                  </p>
-                </div>
+                <div className="mt-auto">
+                  <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/[0.02] p-3">
+                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F7F7F7]/25" />
+                    <p className="text-[11px] leading-relaxed text-[#F7F7F7]/25">
+                      Free cancellation up to 24 hours before your booking. After
+                      that, standard refund policy applies.
+                    </p>
+                  </div>
 
-                <div className="mt-3 flex items-center justify-center gap-2 text-[11px] text-[#F7F7F7]/25">
-                  <Users className="h-3 w-3" />
-                  <span>You can invite friends after booking</span>
+                  <div className="mt-3 flex items-center justify-center gap-2 text-[11px] text-[#F7F7F7]/25">
+                    <Users className="h-3 w-3" />
+                    <span>You can invite friends after booking</span>
+                  </div>
                 </div>
               </div>
             </div>
