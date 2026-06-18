@@ -26,7 +26,7 @@ import { ApiRequestError, cancelBooking, getBookingById } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
 import { getUserFacingErrorMessage } from "@/lib/errors";
 import { padelImg } from "@/lib/images";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorBanner } from "@/components/ui/error-state";
 
 export default function BookingDetailPage() {
   const params = useParams();
@@ -37,7 +37,7 @@ export default function BookingDetailPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [refundMessage, setRefundMessage] = useState<string | null>(null);
 
-  const { data: booking, isLoading, error, refetch } = useQuery({
+  const { data: booking, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: queryKeys.bookings.detail(bookingId),
     queryFn: () => getBookingById(bookingId),
   });
@@ -70,8 +70,15 @@ export default function BookingDetailPage() {
       );
     }
     return (
-      <div className="min-h-screen pt-28">
-        <ErrorState title="Failed to load booking" onRetry={refetch} />
+      <div className="min-h-screen pt-28 pb-16">
+        <section className="container pb-6">
+          <Link href="/bookings" className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
+          </Link>
+        </section>
+        <section className="container">
+          <ErrorBanner title="Couldn't load booking" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+        </section>
       </div>
     );
   }

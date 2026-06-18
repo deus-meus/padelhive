@@ -5,6 +5,7 @@ import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-state";
 import Script from "next/script";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -113,7 +114,7 @@ export default function PaymentPage({
     : "https://app.midtrans.com/snap/snap.js";
   const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
 
-  const { data: booking, isLoading: isBookingLoading, isError: isBookingError } = useQuery({
+  const { data: booking, isLoading: isBookingLoading, isError: isBookingError, error: bookingError, refetch: refetchBooking, isFetching: isFetchingBooking } = useQuery({
     queryKey: queryKeys.bookings.detail(params.id),
     queryFn: () => getBookingById(params.id),
   });
@@ -364,7 +365,12 @@ export default function PaymentPage({
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
+        {isBookingError ? (
+          <div className="mt-8">
+            <ErrorBanner title="Couldn't load payment details" error={bookingError} onRetry={() => refetchBooking()} isRetrying={isFetchingBooking} />
+          </div>
+        ) : (
+          <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
           {/* Left — Payment options */}
           <div className="space-y-8">
             {/* Booking Summary Card */}
@@ -392,8 +398,6 @@ export default function PaymentPage({
                       <Skeleton className="h-4 w-20 rounded-full" />
                     </div>
                   </div>
-                ) : isBookingError ? (
-                  <div className="text-sm text-red-400">Error loading booking details.</div>
                 ) : (
                   <>
                     <div className="flex items-center justify-between text-sm">
@@ -875,6 +879,7 @@ export default function PaymentPage({
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

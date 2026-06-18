@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-state";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -265,14 +266,8 @@ export default function InviteFriendsPage({
             </div>
           )}
           {errorMessage && !isLoading && (
-            <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
-              <div className="flex-1">
-                <p className="text-[11px] leading-relaxed text-red-200/80">{errorMessage}</p>
-                <button onClick={() => refetch()} className="mt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-100/80 hover:text-red-100">
-                  Retry
-                </button>
-              </div>
+            <div className="mt-3">
+              <ErrorBanner title="Couldn't load invites" description={errorMessage} onRetry={() => refetch()} />
             </div>
           )}
         </div>

@@ -8,12 +8,13 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-state";
 
 export default function BookingSuccessPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
   const paymentId = searchParams.get("paymentId");
 
-  const { data: booking, isLoading: isBookingLoading } = useQuery({
+  const { data: booking, isLoading: isBookingLoading, isError: isBookingError, error: bookingError, refetch: refetchBooking, isFetching: isFetchingBooking } = useQuery({
     queryKey: queryKeys.bookings.detail(params.id),
     queryFn: () => getBookingById(params.id),
   });
@@ -75,6 +76,16 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isBookingError) {
+    return (
+      <div className="min-h-screen pt-20">
+        <div className="container max-w-2xl py-12">
+          <ErrorBanner title="Couldn't load booking" error={bookingError} onRetry={() => refetchBooking()} isRetrying={isFetchingBooking} />
         </div>
       </div>
     );
