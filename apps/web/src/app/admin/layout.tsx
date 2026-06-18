@@ -12,6 +12,7 @@ import {
   BarChart3,
   Menu,
   X,
+  Ticket,
 } from "lucide-react";
 import { useState } from "react";
 import { RequireAuth } from "@/components/auth/require-auth";
@@ -20,6 +21,7 @@ import { Navbar } from "@/components/shared/navbar";
 const NAV_ITEMS = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/venues", label: "Venue Approval", icon: Building2 },
+  { href: "/admin/vouchers", label: "Vouchers", icon: Ticket },
   { href: "/admin/transactions", label: "Transactions", icon: Receipt },
   { href: "/admin/commission", label: "Commission", icon: Percent },
   { href: "/admin/refunds", label: "Refunds", icon: RotateCcw },
