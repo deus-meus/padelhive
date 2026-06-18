@@ -692,6 +692,19 @@ export async function closeDispute(id: string): Promise<ApiDispute> {
   return apiFetch<ApiDispute>(`/admin/disputes/${id}/close`, { method: "PATCH" });
 }
 
+export type CreatePlayerDisputeInput = {
+  bookingId: string;
+  issueType: DisputeIssueType;
+  description: string;
+  priority?: DisputePriority;
+};
+export async function createPlayerDispute(input: CreatePlayerDisputeInput): Promise<ApiDispute> {
+  return apiFetch<ApiDispute>("/disputes", { method: "POST", body: JSON.stringify(input) });
+}
+export async function getMyDisputes(): Promise<ApiDispute[]> {
+  return apiFetch<ApiDispute[]>("/disputes/me");
+}
+
 export type OwnerDashboard = {
   kpis: {
     weeklyRevenue: number;

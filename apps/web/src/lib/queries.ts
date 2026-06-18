@@ -48,4 +48,7 @@ export const queryKeys = {
     history: (id: string) => ["refunds", "detail", id, "history"] as const,
     me: ["refunds", "me"] as const,
   },
+  disputes: {
+    me: ["disputes", "me"] as const,
+  },
 };

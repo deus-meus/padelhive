@@ -19,8 +19,9 @@ import {
   CreditCard,
   XCircle,
   RotateCcw,
+  AlertTriangle,
 } from "lucide-react";
-import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking, ApiRefund } from "@/lib/api";
+import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking, ApiRefund, getMyDisputes, createPlayerDispute, type ApiDispute, type DisputeIssueType, type DisputePriority } from "@/lib/api";
 import { getUserFacingErrorMessage } from "@/lib/errors";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 import { padelImg } from "@/lib/images";
@@ -31,8 +32,22 @@ const IMG = {
   venue3: padelImg(600),
 };
 
-const TABS = ["upcoming", "past", "cancelled", "refunds"] as const;
+const TABS = ["upcoming", "past", "cancelled", "refunds", "disputes"] as const;
 type TabKey = typeof TABS[number];
+
+const DISPUTE_ISSUE_LABELS: Record<DisputeIssueType, string> = {
+  COURT_UNAVAILABLE: "Court Unavailable",
+  FACILITY_MISMATCH: "Facility Mismatch",
+  PAYMENT_ISSUE: "Payment Issue",
+  SAFETY_CONCERN: "Safety Concern",
+  STAFF_BEHAVIOR: "Staff Behavior",
+};
+const DISPUTE_STATUS_STYLES: Record<ApiDispute["status"], string> = {
+  OPEN: "bg-red-500/10 text-red-400",
+  INVESTIGATING: "bg-[#50C8C8]/10 text-[#50C8C8]",
+  RESOLVED: "bg-[#E6FA50]/10 text-[#E6FA50]",
+  CLOSED: "bg-[#F7F7F7]/5 text-[#F7F7F7]/25",
+};
 
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
@@ -46,8 +61,8 @@ export default function BookingsPage() {
 
   const { data: bookings = [], isLoading, isError, error: queryError, refetch, isFetching } = useQuery({
     queryKey: queryKeys.bookings.user(activeTab === "refunds" ? "cancelled" : activeTab),
-    queryFn: () => activeTab === "refunds" ? getUserBookings("cancelled") : getUserBookings(activeTab),
-    enabled: activeTab !== "refunds",
+    queryFn: () => activeTab === "refunds" || activeTab === "disputes" ? getUserBookings("cancelled") : getUserBookings(activeTab as "upcoming" | "past" | "cancelled"),
+    enabled: activeTab !== "refunds" && activeTab !== "disputes",
   });
 
   const { data: myRefunds = [] } = useQuery({
@@ -55,6 +70,15 @@ export default function BookingsPage() {
     queryFn: getMyRefunds,
   });
 
+  const { data: myDisputes = [] } = useQuery({
+    queryKey: queryKeys.disputes.me,
+    queryFn: getMyDisputes,
+  });
+
+  const [bookingToDispute, setBookingToDispute] = useState<ApiBooking | null>(null);
+  const [disputeIssueType, setDisputeIssueType] = useState<DisputeIssueType>("COURT_UNAVAILABLE");
+  const [disputeDescription, setDisputeDescription] = useState("");
+  const [disputePriority, setDisputePriority] = useState<DisputePriority>("MEDIUM");
 
 
   const visibleBookings = bookings.map((booking) =>
@@ -169,7 +193,26 @@ export default function BookingsPage() {
     refundMutation.mutate(refundReason.trim());
   }
 
-  if (isLoading && activeTab !== "refunds") {
+  const disputeMutation = useMutation({
+    mutationFn: (input: { issueType: DisputeIssueType; description: string; priority: DisputePriority }) =>
+      createPlayerDispute({ bookingId: bookingToDispute!.id, ...input }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes.me });
+      setBookingToDispute(null);
+      setDisputeDescription("");
+      setDisputeIssueType("COURT_UNAVAILABLE");
+      setDisputePriority("MEDIUM");
+      showToast("Dispute submitted successfully.");
+    },
+    onError: (error) => showToast(getUserFacingErrorMessage(error)),
+  });
+
+  function confirmDispute() {
+    if (!bookingToDispute || disputeMutation.isPending || !disputeDescription.trim()) return;
+    disputeMutation.mutate({ issueType: disputeIssueType, description: disputeDescription.trim(), priority: disputePriority });
+  }
+
+  if (isLoading && activeTab !== "refunds" && activeTab !== "disputes") {
     return (
       <div className="min-h-screen pt-28">
         <section className="container pb-8">
@@ -312,7 +355,7 @@ export default function BookingsPage() {
       <section className="container pb-section-sm">
         <div className="flex gap-1 border-b border-white/[0.06] mb-8 overflow-x-auto">
           {TABS.map((tab) => {
-            const count = tab === "refunds" ? myRefunds.length : tabData[tab as "upcoming" | "past" | "cancelled"].length;
+            const count = tab === "refunds" ? myRefunds.length : tab === "disputes" ? myDisputes.length : tabData[tab as "upcoming" | "past" | "cancelled"].length;
             return (
               <button
                 key={tab}
@@ -364,6 +407,26 @@ export default function BookingsPage() {
                 </div>
               ))
             )
+          ) : activeTab === "disputes" ? (
+            myDisputes.length === 0 ? (
+              <EmptyState icon={AlertTriangle} title="No disputes" description="Issues you report will appear here." />
+            ) : (
+              myDisputes.map((dispute) => (
+                <div key={dispute.id} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-[#F7F7F7]">{dispute.venue.name}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${DISPUTE_STATUS_STYLES[dispute.status]}`}>{dispute.status}</span>
+                        <span className="rounded-full bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-[#F7F7F7]/40">{DISPUTE_ISSUE_LABELS[dispute.issueType]}</span>
+                      </div>
+                      <p className="caption text-[#F7F7F7]/40 mt-2 italic">&ldquo;{dispute.description}&rdquo;</p>
+                      <p className="caption text-[#F7F7F7]/25 mt-2">Reported: {formatShortDate(dispute.createdAt)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )
           ) : (
             tabData[activeTab].length === 0 ? (
               <EmptyState
@@ -382,12 +445,14 @@ export default function BookingsPage() {
                   muted={activeTab !== "upcoming"}
                   onCancel={() => handleCancel(booking)}
                   onRequestRefund={() => setBookingToRefund(booking)}
+                  onReportIssue={() => setBookingToDispute(booking)}
                   myRefunds={myRefunds}
                 />
               ))
             )
           )}
         </div>
+
       </section>
 
       {bookingToCancel && (
@@ -460,6 +525,74 @@ export default function BookingsPage() {
         </div>
       )}
 
+      {bookingToDispute && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
+            <p className="section-label">Report an Issue</p>
+            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">What went wrong?</h2>
+            
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#F7F7F7]/60 mb-1.5">Issue type</label>
+                <select
+                  value={disputeIssueType}
+                  onChange={(e) => setDisputeIssueType(e.target.value as DisputeIssueType)}
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  disabled={disputeMutation.isPending}
+                >
+                  {Object.entries(DISPUTE_ISSUE_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#F7F7F7]/60 mb-1.5">Priority</label>
+                <select
+                  value={disputePriority}
+                  onChange={(e) => setDisputePriority(e.target.value as DisputePriority)}
+                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  disabled={disputeMutation.isPending}
+                >
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="CRITICAL">Critical</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#F7F7F7]/60 mb-1.5">Description</label>
+                <textarea
+                  value={disputeDescription}
+                  onChange={(e) => setDisputeDescription(e.target.value)}
+                  placeholder="Describe the issue you experienced..."
+                  className="w-full h-24 resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                  disabled={disputeMutation.isPending}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                onClick={() => { setBookingToDispute(null); setDisputeDescription(""); }}
+                disabled={disputeMutation.isPending}
+                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDispute}
+                disabled={disputeMutation.isPending || !disputeDescription.trim()}
+                className="btn-lime rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-40"
+              >
+                {disputeMutation.isPending ? "Submitting..." : "Submit Report"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
@@ -512,6 +645,7 @@ function BookingRow({
   muted = false,
   onCancel,
   onRequestRefund,
+  onReportIssue,
   myRefunds = [],
 }: {
   booking: ApiBooking;
@@ -519,6 +653,7 @@ function BookingRow({
   muted?: boolean;
   onCancel: () => void;
   onRequestRefund: () => void;
+  onReportIssue: () => void;
   myRefunds?: ApiRefund[];
 }) {
   const court = booking.court;
@@ -617,6 +752,14 @@ function BookingRow({
               {existingRefund.status}
             </span>
           )}
+          <button
+            onClick={onReportIssue}
+            aria-label={`Report an issue for booking at ${venue?.name ?? "venue"}`}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/60 focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
+            title="Report an issue"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </div>
