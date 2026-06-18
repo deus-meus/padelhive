@@ -173,7 +173,7 @@ describe("me controllers", () => {
   });
 
   it("returns current user from admin me", () => {
-    expect(new AdminController(undefined as unknown as AdminService, undefined as unknown as ConstructorParameters<typeof AdminController>[1]).me(adminUser)).toEqual(adminUser);
+    expect(new AdminController(undefined as unknown as AdminService, undefined as unknown as ConstructorParameters<typeof AdminController>[1], undefined as unknown as ConstructorParameters<typeof AdminController>[2]).me(adminUser)).toEqual(adminUser);
   });
 
   it("declares SUPER_ADMIN metadata on admin me", () => {
