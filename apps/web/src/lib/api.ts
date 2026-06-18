@@ -659,6 +659,39 @@ export async function processRefund(id: string): Promise<ApiRefund> {
   return apiFetch<ApiRefund>(`/refunds/${id}/process`, { method: "PATCH" });
 }
 
+export type DisputeStatus = "OPEN" | "INVESTIGATING" | "RESOLVED" | "CLOSED";
+export type DisputeIssueType = "COURT_UNAVAILABLE" | "FACILITY_MISMATCH" | "PAYMENT_ISSUE" | "SAFETY_CONCERN" | "STAFF_BEHAVIOR";
+export type DisputePriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+export type ApiDispute = {
+  id: string;
+  bookingId: string | null;
+  issueType: DisputeIssueType;
+  description: string;
+  status: DisputeStatus;
+  priority: DisputePriority;
+  resolutionNotes: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  user: { id: string; name: string };
+  venue: { id: string; name: string };
+  assignedTo: { id: string; name: string } | null;
+};
+
+export async function getAdminDisputes(status?: DisputeStatus): Promise<ApiDispute[]> {
+  const query = status ? `?status=${status}` : "";
+  return apiFetch<ApiDispute[]>(`/admin/disputes${query}`);
+}
+export async function assignDispute(id: string): Promise<ApiDispute> {
+  return apiFetch<ApiDispute>(`/admin/disputes/${id}/assign`, { method: "PATCH" });
+}
+export async function resolveDispute(id: string, resolutionNotes?: string): Promise<ApiDispute> {
+  return apiFetch<ApiDispute>(`/admin/disputes/${id}/resolve`, { method: "PATCH", body: JSON.stringify({ resolutionNotes }) });
+}
+export async function closeDispute(id: string): Promise<ApiDispute> {
+  return apiFetch<ApiDispute>(`/admin/disputes/${id}/close`, { method: "PATCH" });
+}
+
 export type OwnerDashboard = {
   kpis: {
     weeklyRevenue: number;
