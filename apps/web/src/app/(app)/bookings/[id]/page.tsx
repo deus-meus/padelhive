@@ -21,8 +21,9 @@ import {
   Ticket,
   ArrowLeft,
   Copy,
+  Star,
 } from "lucide-react";
-import { ApiRequestError, cancelBooking, getBookingById } from "@/lib/api";
+import { ApiRequestError, cancelBooking, getBookingById, createReview } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
 import { getUserFacingErrorMessage } from "@/lib/errors";
 import { padelImg } from "@/lib/images";
@@ -36,6 +37,12 @@ export default function BookingDetailPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [refundMessage, setRefundMessage] = useState<string | null>(null);
+
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   const { data: booking, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: queryKeys.bookings.detail(bookingId),
@@ -160,6 +167,26 @@ export default function BookingDetailPage() {
     }
   }
 
+  async function submitReview() {
+    if (isSubmittingReview || reviewRating < 1) return;
+    setIsSubmittingReview(true);
+    setReviewError(null);
+    try {
+      await createReview({ bookingId, rating: reviewRating, comment: reviewComment.trim() || undefined });
+      setReviewSubmitted(true);
+      showToast("Thanks for your review!");
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 409) {
+        setReviewSubmitted(true);
+        setReviewError("You've already reviewed this booking.");
+      } else {
+        setReviewError(getUserFacingErrorMessage(error));
+      }
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  }
+
   return (
     <div className="min-h-screen pt-28 pb-16">
       {/* Back nav */}
@@ -249,6 +276,47 @@ export default function BookingDetailPage() {
                 </div>
               </div>
             </div>
+
+            {currentBooking.status === "COMPLETED" && (
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+                <p className="section-label mb-4">Leave a Review</p>
+                {reviewSubmitted ? (
+                  <div className="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-4">
+                    <p className="text-sm text-[#E6FA50]">{reviewError ?? "Thanks! Your review has been submitted."}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-1.5">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button key={n} type="button" onClick={() => setReviewRating(n)} className="transition-transform hover:scale-110">
+                          <Star className={`h-6 w-6 ${n <= reviewRating ? "fill-[#E6FA50] text-[#E6FA50]" : "text-[#F7F7F7]/20"}`} />
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      maxLength={1000}
+                      rows={4}
+                      placeholder="Share your experience (optional)"
+                      className="w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none"
+                    />
+                    {reviewError && (
+                      <div className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3">
+                        <p className="text-xs text-amber-300/80">{reviewError}</p>
+                      </div>
+                    )}
+                    <button
+                      onClick={submitReview}
+                      disabled={isSubmittingReview || reviewRating < 1}
+                      className="rounded-full bg-[#E6FA50] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#06121A] transition-colors hover:bg-[#E6FA50]/90 disabled:opacity-40"
+                    >
+                      {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Summary sidebar (sticky) */}

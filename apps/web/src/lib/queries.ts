@@ -8,6 +8,9 @@ export const queryKeys = {
     availability: (venueId: string, date: string, courtId: string) => 
       ["venues", venueId, "availability", date, courtId] as const,
   },
+  reviews: {
+    venue: (venueId: string) => ["reviews", venueId] as const,
+  },
   bookings: {
     user: (tab: string) => ["bookings", "user", tab] as const,
     detail: (id: string) => ["bookings", id] as const,

@@ -498,6 +498,37 @@ export async function getBookingById(id: string): Promise<BookingSummary> {
   return apiFetch<ApiBooking>(`/bookings/${id}`);
 }
 
+export type ApiReview = {
+  id: string;
+  venueId: string;
+  bookingId: string;
+  rating: number;
+  comment: string | null;
+  authorId: string;
+  authorName: string;
+  authorAvatarUrl: string | null;
+  createdAt: string;
+};
+
+export type ReviewSummary = ApiReview;
+
+export type CreateReviewInput = {
+  bookingId: string;
+  rating: number;
+  comment?: string;
+};
+
+export async function getVenueReviews(venueId: string): Promise<ReviewSummary[]> {
+  return apiFetch<ApiReview[]>(`/reviews?venueId=${encodeURIComponent(venueId)}`);
+}
+
+export async function createReview(input: CreateReviewInput): Promise<ReviewSummary> {
+  return apiFetch<ApiReview>("/reviews", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 export async function getVenueAvailability(
   venueId: string,
   date: string,
