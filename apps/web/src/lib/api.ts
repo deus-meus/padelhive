@@ -471,6 +471,48 @@ export async function validateVoucher(code: string, amount: number): Promise<Vou
   });
 }
 
+export type AdminVoucher = {
+  id: string;
+  code: string;
+  type: "NOMINAL" | "PERCENTAGE";
+  value: number;
+  minPurchase: number | null;
+  maxDiscount: number | null;
+  usageLimit: number;
+  usedCount: number;
+  validFrom: string;
+  validUntil: string;
+  isActive: boolean;
+};
+
+export type AdminVoucherInput = {
+  code: string;
+  type: "NOMINAL" | "PERCENTAGE";
+  value: number;
+  minPurchase?: number | null;
+  maxDiscount?: number | null;
+  usageLimit: number;
+  validFrom: string;
+  validUntil: string;
+  isActive?: boolean;
+};
+
+export async function getAdminVouchers(): Promise<AdminVoucher[]> {
+  return apiFetch<AdminVoucher[]>("/admin/vouchers");
+}
+
+export async function createAdminVoucher(input: AdminVoucherInput): Promise<AdminVoucher> {
+  return apiFetch<AdminVoucher>("/admin/vouchers", { method: "POST", body: JSON.stringify(input) });
+}
+
+export async function updateAdminVoucher(id: string, input: Partial<AdminVoucherInput>): Promise<AdminVoucher> {
+  return apiFetch<AdminVoucher>(`/admin/vouchers/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+}
+
+export async function deleteAdminVoucher(id: string): Promise<{ id: string }> {
+  return apiFetch<{ id: string }>(`/admin/vouchers/${id}`, { method: "DELETE" });
+}
+
 export async function createBooking(
   input: CreateBookingInput
 ): Promise<BookingSummary> {
