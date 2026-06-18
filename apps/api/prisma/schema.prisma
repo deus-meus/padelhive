@@ -83,6 +83,7 @@ model User {
   bookings     Booking[]    @relation("BookingHost")
   invites      Invite[]     @relation("InviteUser")
   refundEvents RefundEvent[]
+  reviews      Review[]     @relation("ReviewAuthor")
 
   @@index([role])
   @@index([isActive])
@@ -113,6 +114,7 @@ model Venue {
   admins         VenueAdmin[]
   courts         Court[]
   bookings       Booking[]
+  reviews        Review[]
 
   @@index([ownerId])
   @@index([city])
@@ -183,6 +185,7 @@ model Booking {
   invites         Invite[]
   refunds         Refund[]
   splitShares     BookingSplitShare[]
+  review          Review?
 
   @@index([hostUserId])
   @@index([venueId])
@@ -311,4 +314,22 @@ model BookingSplitShare {
   booking   Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  venueId   String
+  bookingId String   @unique
+  authorId  String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  venue     Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  author    User    @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([venueId])
+  @@index([authorId])
 }

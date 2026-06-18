@@ -13,6 +13,7 @@ import { RefundsModule } from "./refunds/refunds.module";
 import { UsersModule } from "./users/users.module";
 import { VenuesModule } from "./venues/venues.module";
 import { VouchersModule } from "./vouchers/vouchers.module";
+import { ReviewsModule } from "./reviews/reviews.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerModule } from "@nestjs/throttler";
 
@@ -29,6 +30,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
     PaymentsModule,
     InvitesModule,
     VouchersModule,
+    ReviewsModule,
     RefundsModule,
     AdminModule,
   ],
