@@ -23,7 +23,7 @@ import {
 import { mockVenues } from "@/mock/venues";
 import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
-import { getVenue, getVenueCourts, getVenueReviews } from "@/lib/api";
+import { getVenue, getVenueCourts, getVenueReviews, ApiRequestError } from "@/lib/api";
 import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { Court, Venue } from "@/types";
 
@@ -128,7 +128,7 @@ export default function VenueDetailPage({
   }
 
   const venueNotFound =
-    venueError instanceof ApiRequestError && venueError.status === 404;
+    venueError && venueError instanceof ApiRequestError && venueError.status === 404;
 
   if (!venue && isVenueError && !venueNotFound) {
     return (
