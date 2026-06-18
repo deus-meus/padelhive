@@ -38,6 +38,9 @@ export class DisputesService {
   };
 
   async createDispute(userId: string, dto: CreateDisputeDto): Promise<DisputeResponseDto> {
+    if (!dto.bookingId || dto.bookingId.trim() === "") {
+      throw new BadRequestException("bookingId is required");
+    }
     if (!dto.description || dto.description.trim() === "") {
       throw new BadRequestException("Description is required");
     }
