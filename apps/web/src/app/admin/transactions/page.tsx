@@ -53,7 +53,7 @@ export default function AdminTransactionsPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
+    <div className="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8">
       {/* Header */}
       <div className="mb-8">
         <p className="caption text-[#E6FA50]">Marketplace Admin</p>

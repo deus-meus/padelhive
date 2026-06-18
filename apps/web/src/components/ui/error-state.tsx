@@ -96,7 +96,7 @@ export function EmptyState({
   const actionClass =
     "mt-6 inline-flex h-10 items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]";
   return (
-    <div className="flex min-h-[60vh] w-full flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center">
+    <div className="flex min-h-[360px] w-full flex-1 flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/[0.04]">
         <Icon className="h-6 w-6 text-[#F7F7F7]/40" />
       </div>

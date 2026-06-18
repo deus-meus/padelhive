@@ -84,7 +84,7 @@ export default function AdminVouchersPage() {
   }
 
   return (
-    <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
+    <div className="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8">
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="caption text-[#E6FA50]">Marketplace Admin</p>
@@ -100,7 +100,7 @@ export default function AdminVouchersPage() {
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex flex-1 flex-col space-y-4">
         {isLoading ? (
           <>
             {[...Array(3)].map((_, i) => (
