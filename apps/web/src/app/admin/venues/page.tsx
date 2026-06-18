@@ -66,7 +66,7 @@ export default function AdminVenuesPage() {
   }
 
   return (
-    <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
+    <div className="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8">
       {/* Header */}
       <div className="mb-8">
         <p className="caption text-[#E6FA50]">Marketplace Admin</p>
@@ -93,7 +93,7 @@ export default function AdminVenuesPage() {
       </div>
 
       {/* Venue List */}
-      <div className="space-y-4">
+      <div className="flex flex-1 flex-col space-y-4">
         {isLoading ? (
           <>
             {[...Array(3)].map((_, i) => (

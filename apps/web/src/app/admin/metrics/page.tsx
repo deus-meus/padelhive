@@ -55,7 +55,7 @@ export default function AdminMetricsPage() {
 
   if (data && data.totalBookings === 0) {
     return (
-      <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
+      <div className="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8">
         <div className="mb-8">
           <p className="caption text-[#E6FA50]">Platform</p>
           <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] sm:text-4xl">

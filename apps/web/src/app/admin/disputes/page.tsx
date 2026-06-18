@@ -63,7 +63,7 @@ export default function DisputesPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="flex flex-1 flex-col p-6 lg:p-8">
       <div className="mb-8">
         <p className="caption text-[#F7F7F7]/25">Support</p>
         <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
@@ -89,7 +89,7 @@ export default function DisputesPage() {
       </div>
 
       {/* Dispute list */}
-      <div className="space-y-3">
+      <div className="flex flex-1 flex-col space-y-3">
         {filtered.length === 0 && (
           <EmptyState
             icon={AlertTriangle}

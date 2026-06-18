@@ -40,8 +40,8 @@ export default function AdminLayout({
   return (
     <RequireAuth allowedRoles={["super_admin"]}>
       <Navbar />
-      <div className="min-h-screen pt-20">
-      <div className="flex">
+      <div className="flex min-h-screen flex-col pt-20">
+      <div className="flex flex-1">
         <aside className="hidden lg:flex lg:w-[240px] lg:shrink-0 lg:flex-col lg:border-r lg:border-white/[0.04]">
           <nav className="sticky top-20 flex flex-col gap-1 p-5">
             <p className="section-label mb-4">Super Admin</p>
@@ -111,7 +111,7 @@ export default function AdminLayout({
           </div>
         )}
 
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex flex-1 flex-col min-w-0">{children}</main>
       </div>
     </div>
     </RequireAuth>
