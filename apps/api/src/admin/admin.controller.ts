@@ -1,5 +1,5 @@
-import { Controller, Get, Query, Param, Patch, Body } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags, ApiOkResponse, ApiQuery } from "@nestjs/swagger";
+import { Controller, Get, Query, Param, Patch, Body, Post, Delete } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags, ApiOkResponse, ApiQuery, ApiCreatedResponse } from "@nestjs/swagger";
 import { UserRole, VenueStatus } from "@prisma/client";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { Roles } from "../auth/decorators/roles.decorator";
@@ -13,6 +13,10 @@ import { AdminMetricsDto } from "./dto/admin-metrics.dto";
 import { VenuesService } from "../venues/venues.service";
 import { VenueResponseDto } from "../venues/dto/venue-response.dto";
 import { UpdateVenueStatusDto } from "./dto/update-venue-status.dto";
+import { VouchersService } from "../vouchers/vouchers.service";
+import { VoucherResponseDto } from "../vouchers/dto/voucher-response.dto";
+import { CreateVoucherDto } from "../vouchers/dto/create-voucher.dto";
+import { UpdateVoucherDto } from "../vouchers/dto/update-voucher.dto";
 
 @ApiTags("admin")
 @ApiBearerAuth()
@@ -20,7 +24,8 @@ import { UpdateVenueStatusDto } from "./dto/update-venue-status.dto";
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
-    private readonly venuesService: VenuesService
+    private readonly venuesService: VenuesService,
+    private readonly vouchersService: VouchersService
   ) {}
 
   @Get("me")
@@ -73,5 +78,36 @@ export class AdminController {
   @ApiOkResponse({ type: AdminMetricsDto })
   getMetrics() {
     return this.adminService.getMetrics();
+  }
+
+  @Get("vouchers")
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: "List all vouchers (admin)" })
+  @ApiOkResponse({ type: VoucherResponseDto, isArray: true })
+  listVouchers(): Promise<VoucherResponseDto[]> {
+    return this.vouchersService.findAllForAdmin();
+  }
+
+  @Post("vouchers")
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: "Create a voucher (admin)" })
+  @ApiCreatedResponse({ type: VoucherResponseDto })
+  createVoucher(@Body() body: CreateVoucherDto): Promise<VoucherResponseDto> {
+    return this.vouchersService.createVoucher(body);
+  }
+
+  @Patch("vouchers/:id")
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: "Update a voucher (admin)" })
+  @ApiOkResponse({ type: VoucherResponseDto })
+  updateVoucher(@Param("id") id: string, @Body() body: UpdateVoucherDto): Promise<VoucherResponseDto> {
+    return this.vouchersService.updateVoucher(id, body);
+  }
+
+  @Delete("vouchers/:id")
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: "Delete a voucher (admin)" })
+  deleteVoucher(@Param("id") id: string): Promise<{ id: string }> {
+    return this.vouchersService.deleteVoucher(id);
   }
 }
