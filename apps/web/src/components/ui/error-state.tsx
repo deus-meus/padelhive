@@ -94,18 +94,16 @@ export function EmptyState({
   actionHref?: string;
 }) {
   const actionClass =
-    "inline-flex h-9 shrink-0 items-center gap-2 self-start rounded-full border border-white/[0.1] bg-white/[0.04] px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7] sm:self-auto";
+    "mt-6 inline-flex h-10 items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]";
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0C1B26] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-start gap-3">
-        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[#F7F7F7]/40" />
-        <div>
-          <p className="text-sm font-medium text-[#F7F7F7]">{title}</p>
-          {description ? (
-            <p className="mt-0.5 text-xs leading-5 text-[#F7F7F7]/40">{description}</p>
-          ) : null}
-        </div>
+    <div className="flex min-h-[60vh] w-full flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/[0.04]">
+        <Icon className="h-6 w-6 text-[#F7F7F7]/40" />
       </div>
+      <p className="mt-5 text-base font-medium text-[#F7F7F7]">{title}</p>
+      {description ? (
+        <p className="mt-1.5 max-w-sm text-sm leading-6 text-[#F7F7F7]/40">{description}</p>
+      ) : null}
       {actionLabel ? (
         actionHref ? (
           <Link href={actionHref} className={actionClass}>{actionLabel}</Link>
