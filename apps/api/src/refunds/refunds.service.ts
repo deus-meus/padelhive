@@ -64,6 +64,15 @@ export class RefundsService {
   async findMyRefunds(userId: string) {
     return this.prisma.refund.findMany({
       where: { booking: { hostUserId: userId } },
+      include: {
+        booking: {
+          include: {
+            venue: { select: { id: true, name: true } },
+            court: { select: { id: true, name: true, type: true } },
+            host: { select: { id: true, name: true, email: true } },
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
   }
@@ -99,6 +108,15 @@ export class RefundsService {
         ...(isSuperAdmin ? {} : {
           booking: { venue: { OR: [ { ownerId: userId }, { admins: { some: { userId } } } ] } }
         })
+      },
+      include: {
+        booking: {
+          include: {
+            venue: { select: { id: true, name: true } },
+            court: { select: { id: true, name: true, type: true } },
+            host: { select: { id: true, name: true, email: true } },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
