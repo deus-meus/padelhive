@@ -65,4 +65,24 @@ export class BookingExpiryService {
 
     this.logger.log(`Expired ${bookingIds.length} stale pending-payment bookings.`);
   }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  public async sweepCompletedBookings(): Promise<void> {
+    const now = new Date();
+
+    const { count } = await this.prisma.booking.updateMany({
+      where: {
+        status: BookingStatus.CONFIRMED,
+        endsAt: { lte: now },
+      },
+      data: {
+        status: BookingStatus.COMPLETED,
+        completedAt: now,
+      },
+    });
+
+    if (count > 0) {
+      this.logger.log(`Auto-completed ${count} finished bookings.`);
+    }
+  }
 }
