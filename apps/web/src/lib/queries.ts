@@ -21,6 +21,7 @@ export const queryKeys = {
     overview: () => ["admin", "overview"] as const,
     vouchers: () => ["admin", "vouchers"] as const,
     venues: (status?: string) => ["admin", "venues", status ?? "all"] as const,
+    disputes: (status?: string) => ["admin", "disputes", status ?? "all"] as const,
     bookings: (params: { status?: string; page?: number }) =>
       ["admin", "bookings", params.status ?? "all", params.page ?? 1] as const,
     commission: (params?: { fromDate?: string; toDate?: string }) => 
