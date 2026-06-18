@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Param, Patch, Body, Post, Delete } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags, ApiOkResponse, ApiQuery, ApiCreatedResponse } from "@nestjs/swagger";
-import { UserRole, VenueStatus } from "@prisma/client";
+import { UserRole, VenueStatus, DisputeStatus } from "@prisma/client";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { Roles } from "../auth/decorators/roles.decorator";
 import { RequestUser } from "../auth/types/request-user.type";
@@ -17,6 +17,8 @@ import { VouchersService } from "../vouchers/vouchers.service";
 import { VoucherResponseDto } from "../vouchers/dto/voucher-response.dto";
 import { CreateVoucherDto } from "../vouchers/dto/create-voucher.dto";
 import { UpdateVoucherDto } from "../vouchers/dto/update-voucher.dto";
+import { DisputesService } from "../disputes/disputes.service";
+import { ResolveDisputeDto } from "../disputes/dto/resolve-dispute.dto";
 
 @ApiTags("admin")
 @ApiBearerAuth()
@@ -25,7 +27,8 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly venuesService: VenuesService,
-    private readonly vouchersService: VouchersService
+    private readonly vouchersService: VouchersService,
+    private readonly disputesService: DisputesService
   ) {}
 
   @Get("me")
@@ -109,5 +112,30 @@ export class AdminController {
   @ApiOperation({ summary: "Delete a voucher (admin)" })
   deleteVoucher(@Param("id") id: string): Promise<{ id: string }> {
     return this.vouchersService.deleteVoucher(id);
+  }
+
+  @Get("disputes")
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiQuery({ name: "status", enum: DisputeStatus, required: false })
+  listDisputes(@Query("status") status?: DisputeStatus) {
+    return this.disputesService.findAllForAdmin(status);
+  }
+
+  @Patch("disputes/:id/assign")
+  @Roles(UserRole.SUPER_ADMIN)
+  assignDispute(@Param("id") id: string, @CurrentUser() user: RequestUser) {
+    return this.disputesService.assignDispute(id, user.id);
+  }
+
+  @Patch("disputes/:id/resolve")
+  @Roles(UserRole.SUPER_ADMIN)
+  resolveDispute(@Param("id") id: string, @CurrentUser() user: RequestUser, @Body() dto: ResolveDisputeDto) {
+    return this.disputesService.resolveDispute(id, user.id, dto.resolutionNotes);
+  }
+
+  @Patch("disputes/:id/close")
+  @Roles(UserRole.SUPER_ADMIN)
+  closeDispute(@Param("id") id: string, @CurrentUser() user: RequestUser) {
+    return this.disputesService.closeDispute(id, user.id);
   }
 }
