@@ -15,6 +15,7 @@ import { VenuesModule } from "./venues/venues.module";
 import { VouchersModule } from "./vouchers/vouchers.module";
 import { ReviewsModule } from "./reviews/reviews.module";
 import { DisputesModule } from "./disputes/disputes.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerModule } from "@nestjs/throttler";
 
@@ -34,6 +35,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
     ReviewsModule,
     RefundsModule,
     DisputesModule,
+    NotificationsModule,
     AdminModule,
   ],
   providers: [
