@@ -66,6 +66,28 @@ enum SplitShareStatus {
   PAID
 }
 
+enum DisputeStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
+enum DisputeIssueType {
+  COURT_UNAVAILABLE
+  FACILITY_MISMATCH
+  PAYMENT_ISSUE
+  SAFETY_CONCERN
+  STAFF_BEHAVIOR
+}
+
+enum DisputePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model User {
   id           String       @id @default(cuid())
   firebaseUid  String       @unique
@@ -82,8 +104,11 @@ model User {
   venueAdmins  VenueAdmin[]
   bookings     Booking[]    @relation("BookingHost")
   invites      Invite[]     @relation("InviteUser")
-  refundEvents RefundEvent[]
-  reviews      Review[]     @relation("ReviewAuthor")
+  refundEvents     RefundEvent[]
+  reviews          Review[]         @relation("ReviewAuthor")
+  disputesRaised   Dispute[]        @relation("DisputeRaisedBy")
+  disputesAssigned Dispute[]        @relation("DisputeAssignedTo")
+  disputeEvents    DisputeEvent[]   @relation("DisputeEventActor")
 
   @@index([role])
   @@index([isActive])
@@ -115,6 +140,7 @@ model Venue {
   courts         Court[]
   bookings       Booking[]
   reviews        Review[]
+  disputes       Dispute[]
 
   @@index([ownerId])
   @@index([city])
@@ -186,6 +212,7 @@ model Booking {
   refunds         Refund[]
   splitShares     BookingSplitShare[]
   review          Review?
+  disputes        Dispute[]
 
   @@index([hostUserId])
   @@index([venueId])
@@ -332,4 +359,50 @@ model Review {
 
   @@index([venueId])
   @@index([authorId])
+}
+
+model Dispute {
+  id               String           @id @default(cuid())
+  bookingId        String?
+  venueId          String
+  raisedByUserId   String
+  assignedToUserId String?
+  issueType        DisputeIssueType
+  description      String
+  status           DisputeStatus    @default(OPEN)
+  priority         DisputePriority  @default(MEDIUM)
+  resolutionNotes  String?
+  resolvedAt       DateTime?
+  closedAt         DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  booking    Booking?       @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  venue      Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  raisedBy   User           @relation("DisputeRaisedBy", fields: [raisedByUserId], references: [id], onDelete: Cascade)
+  assignedTo User?          @relation("DisputeAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  events     DisputeEvent[]
+
+  @@index([venueId])
+  @@index([status])
+  @@index([raisedByUserId])
+  @@index([assignedToUserId])
+  @@index([createdAt])
+}
+
+model DisputeEvent {
+  id          String         @id @default(cuid())
+  disputeId   String
+  fromStatus  DisputeStatus?
+  toStatus    DisputeStatus
+  actorUserId String
+  notes       String?
+  createdAt   DateTime       @default(now())
+
+  dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  actor   User    @relation("DisputeEventActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([disputeId])
+  @@index([actorUserId])
+  @@index([createdAt])
 }
