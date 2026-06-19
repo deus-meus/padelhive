@@ -365,9 +365,30 @@ function mapVoucher(voucher: ApiVoucher): Voucher {
   };
 }
 
-export async function getVenues(opts?: { revalidate?: number; [key: string]: any }): Promise<Venue[]> {
-  const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
-  const venues = await apiFetch<ApiVenue[]>("/venues", options);
+export async function getVenues(params?: {
+  q?: string;
+  city?: string;
+  priceMin?: number;
+  priceMax?: number;
+  rating?: number;
+  type?: "INDOOR" | "OUTDOOR";
+  facilities?: string[];
+  revalidate?: number;
+}): Promise<Venue[]> {
+  const options = typeof params?.revalidate === "number" ? { next: { revalidate: params.revalidate } } : {};
+  const query = new URLSearchParams();
+
+  if (params?.q) query.set("q", params.q);
+  if (params?.city && params.city !== "All") query.set("city", params.city);
+  if (params?.priceMin !== undefined && params.priceMin !== null) query.set("priceMin", params.priceMin.toString());
+  if (params?.priceMax !== undefined && params.priceMax !== null) query.set("priceMax", params.priceMax.toString());
+  if (params?.rating !== undefined && params.rating !== null) query.set("rating", params.rating.toString());
+  if (params?.type) query.set("type", params.type);
+  if (params?.facilities && params.facilities.length > 0) query.set("facilities", params.facilities.join(","));
+
+  const qs = query.toString();
+  const endpoint = qs ? `/venues?${qs}` : "/venues";
+  const venues = await apiFetch<ApiVenue[]>(endpoint, options);
   return venues.map(mapVenue);
 }
 

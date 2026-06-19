@@ -49,8 +49,16 @@ export class VenuesController {
   @Public()
   @ApiOperation({ summary: "List approved venues" })
   @ApiOkResponse({ type: VenueResponseDto, isArray: true })
-  findAll(): Promise<VenueResponseDto[]> {
-    return this.venuesService.findApprovedVenues();
+  findAll(
+    @Query("q") q?: string,
+    @Query("city") city?: string,
+    @Query("priceMin") priceMin?: string,
+    @Query("priceMax") priceMax?: string,
+    @Query("rating") rating?: string,
+    @Query("facilities") facilities?: string,
+    @Query("type") type?: string
+  ): Promise<VenueResponseDto[]> {
+    return this.venuesService.findApprovedVenues({ q, city, priceMin, priceMax, rating, facilities, type });
   }
 
   @Post()

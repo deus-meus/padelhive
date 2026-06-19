@@ -1,6 +1,6 @@
-import { 
-  PrismaClient, UserRole, VenueStatus, CourtType, 
-  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus 
+import {
+  PrismaClient, UserRole, VenueStatus, CourtType,
+  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus
 } from "@prisma/client";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
@@ -264,7 +264,7 @@ async function main() {
   });
 
   await prisma.refundEvent.create({ data: { refundId: rPending.id, fromStatus: null, toStatus: RefundStatus.PENDING, actorUserId: usersRecord["budi.player@padelhive.com"].id, createdAt: getWibTime(-21, 10, 0) } });
-  
+
   await prisma.refundEvent.create({ data: { refundId: rProcessed.id, fromStatus: null, toStatus: RefundStatus.PENDING, actorUserId: usersRecord["sari@example.com"].id, createdAt: getWibTime(-13, 9, 0) } });
   await prisma.refundEvent.create({ data: { refundId: rProcessed.id, fromStatus: RefundStatus.PENDING, toStatus: RefundStatus.APPROVED, actorUserId: usersRecord["admin@padelhive.com"].id, createdAt: getWibTime(-13, 10, 0) } });
   await prisma.refundEvent.create({ data: { refundId: rProcessed.id, fromStatus: RefundStatus.APPROVED, toStatus: RefundStatus.PROCESSED, actorUserId: usersRecord["admin@padelhive.com"].id, createdAt: getWibTime(-13, 10, 0) } });

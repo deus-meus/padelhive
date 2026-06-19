@@ -32,7 +32,7 @@ export default function CourtsPage() {
 
   const { data: venues = [], isLoading: isVenuesLoading, isError: isVenuesError, error: venuesError, refetch: refetchVenues, isFetching: isVenuesFetching } = useQuery({
     queryKey: queryKeys.venues.all(),
-    queryFn: getVenues,
+    queryFn: () => getVenues(),
   });
 
   const activeVenueId = selectedVenueId || (venues.length > 0 ? venues[0].id : null);
