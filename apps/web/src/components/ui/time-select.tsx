@@ -248,11 +248,11 @@ export function TimeSelect({
             />
           </div>
 
-          <div className="mt-4 flex w-full rounded-lg bg-white/[0.04] p-1">
+          <div className="mt-4 self-center inline-flex rounded-lg bg-white/[0.04] p-1">
             <button
               type="button"
               onClick={() => setStagedAmpm("AM")}
-              className={`flex-1 rounded-md px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+              className={`rounded-md px-6 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
                 stagedAmpm === "AM"
                   ? "bg-[#E6FA50] text-[#06121A]"
                   : "text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
@@ -263,7 +263,7 @@ export function TimeSelect({
             <button
               type="button"
               onClick={() => setStagedAmpm("PM")}
-              className={`flex-1 rounded-md px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+              className={`rounded-md px-6 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
                 stagedAmpm === "PM"
                   ? "bg-[#E6FA50] text-[#06121A]"
                   : "text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
