@@ -135,17 +135,22 @@ export function TimeSelect({
         <div
           role="dialog"
           aria-label="Select time"
-          className={`absolute z-50 bg-[#0C1B26] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 p-4 w-64 flex flex-col ${
+          className={`absolute z-50 bg-[#0C1B26] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 p-5 w-72 flex flex-col ${
             openUpwards ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"
           }`}
         >
-          <h3 className="text-sm font-medium text-[#F7F7F7]">Select Time</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-[#F7F7F7]/80">Select Time</h3>
+            <span className="text-sm font-semibold text-[#E6FA50]">
+              {stagedHour}:{stagedMinute} {stagedAmpm}
+            </span>
+          </div>
 
-          <div className="flex items-center gap-2 mt-4">
+          <div className="mt-5 flex items-center justify-center gap-3">
             <select
               value={stagedHour}
               onChange={(e) => setStagedHour(Number(e.target.value))}
-              className="bg-[#06121A] border border-white/[0.08] rounded-lg px-2 py-1.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none [color-scheme:dark]"
+              className="w-16 text-center bg-[#06121A] border border-white/[0.08] rounded-lg py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none [color-scheme:dark]"
             >
               {hourOptions.map((h) => (
                 <option key={h} value={h}>
@@ -157,7 +162,7 @@ export function TimeSelect({
             <select
               value={stagedMinute}
               onChange={(e) => setStagedMinute(e.target.value)}
-              className="bg-[#06121A] border border-white/[0.08] rounded-lg px-2 py-1.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none [color-scheme:dark]"
+              className="w-16 text-center bg-[#06121A] border border-white/[0.08] rounded-lg py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none [color-scheme:dark]"
             >
               {minuteOptions.map((m) => (
                 <option key={m} value={m}>
@@ -165,45 +170,45 @@ export function TimeSelect({
                 </option>
               ))}
             </select>
-
-            <div className="flex gap-1 ml-auto">
-              <button
-                type="button"
-                onClick={() => setStagedAmpm("AM")}
-                className={`rounded-lg px-3 py-1.5 text-xs uppercase transition-colors ${
-                  stagedAmpm === "AM"
-                    ? "bg-[#E6FA50] text-[#06121A] font-semibold"
-                    : "bg-white/[0.04] text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
-                }`}
-              >
-                AM
-              </button>
-              <button
-                type="button"
-                onClick={() => setStagedAmpm("PM")}
-                className={`rounded-lg px-3 py-1.5 text-xs uppercase transition-colors ${
-                  stagedAmpm === "PM"
-                    ? "bg-[#E6FA50] text-[#06121A] font-semibold"
-                    : "bg-white/[0.04] text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
-                }`}
-              >
-                PM
-              </button>
-            </div>
           </div>
 
-          <div className="flex justify-end gap-2 mt-5">
+          <div className="mt-4 flex w-full rounded-lg bg-white/[0.04] p-1">
+            <button
+              type="button"
+              onClick={() => setStagedAmpm("AM")}
+              className={`flex-1 rounded-md px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                stagedAmpm === "AM"
+                  ? "bg-[#E6FA50] text-[#06121A]"
+                  : "text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
+              }`}
+            >
+              AM
+            </button>
+            <button
+              type="button"
+              onClick={() => setStagedAmpm("PM")}
+              className={`flex-1 rounded-md px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                stagedAmpm === "PM"
+                  ? "bg-[#E6FA50] text-[#06121A]"
+                  : "text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
+              }`}
+            >
+              PM
+            </button>
+          </div>
+
+          <div className="mt-5 flex justify-end gap-3 border-t border-white/[0.06] pt-4">
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-sm text-[#F7F7F7]/60 hover:text-[#F7F7F7] px-3 py-1.5 transition-colors font-medium"
+              className="text-sm text-[#F7F7F7]/60 hover:text-[#F7F7F7] px-3 py-1.5 font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleApply}
-              className="btn-lime rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] bg-[#E6FA50] text-[#06121A]"
+              className="btn-lime rounded-full px-5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] bg-[#E6FA50] text-[#06121A]"
             >
               Apply
             </button>
