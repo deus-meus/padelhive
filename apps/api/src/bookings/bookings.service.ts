@@ -1,5 +1,5 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus } from "@prisma/client";
+import { BadRequestException, ConflictException, Injectable, NotFoundException, Logger } from "@nestjs/common";
+import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus, NotificationType } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
@@ -7,6 +7,7 @@ import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
 import { RevenueDto } from "./dto/revenue.dto";
 import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc } from "../common/pricing.util";
 import { VouchersService } from "../vouchers/vouchers.service";
+import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
 import { 
   PENDING_PAYMENT_TTL_MS, 
   REFUND_WINDOW_MS, 
@@ -95,8 +96,23 @@ type ParsedBookingTime = {
 };
 
 @Injectable()
+@Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService, private readonly vouchersService: VouchersService) {}
+  private readonly logger = new Logger(BookingsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService, 
+    private readonly vouchersService: VouchersService,
+    private readonly notifications: NotificationsService
+  ) {}
+
+  private async safeNotify(input: CreateNotificationInput) {
+    try {
+      await this.notifications.createNotification(input);
+    } catch (err) {
+      this.logger.warn(`Failed to emit notification: ${String(err)}`);
+    }
+  }
 
   async createBookingForUser(hostUserId: string, body: CreateBookingDto): Promise<BookingResponseDto> {
     const parsedTime = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt);
@@ -254,6 +270,14 @@ export class BookingsService {
       }
 
       return updatedBooking;
+    });
+
+    await this.safeNotify({
+      userId: hostUserId,
+      type: NotificationType.BOOKING_CANCELLED,
+      title: "Booking cancelled",
+      body: "Your booking has been cancelled.",
+      linkUrl: `/bookings/${booking.id}`,
     });
 
     return this.withRefundDecision(cancelledBooking, refundDecision);

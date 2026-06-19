@@ -1,12 +1,26 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateDisputeDto } from "./dto/create-dispute.dto";
 import { DisputeResponseDto } from "./dto/dispute-response.dto";
-import { DisputeStatus, DisputeIssueType, DisputePriority, Dispute } from "@prisma/client";
+import { DisputeStatus, DisputeIssueType, DisputePriority, Dispute, NotificationType } from "@prisma/client";
+import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
 
 @Injectable()
 export class DisputesService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(DisputesService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private readonly notifications: NotificationsService
+  ) {}
+
+  private async safeNotify(input: CreateNotificationInput) {
+    try {
+      await this.notifications.createNotification(input);
+    } catch (err) {
+      this.logger.warn(`Failed to emit notification: ${String(err)}`);
+    }
+  }
 
   private toResponse(
     dispute: Dispute & {
@@ -77,6 +91,14 @@ export class DisputesService {
       include: this.include,
     });
 
+    await this.safeNotify({
+      userId: userId,
+      type: NotificationType.DISPUTE_CREATED,
+      title: "Dispute submitted",
+      body: "We received your report and will look into it.",
+      linkUrl: `/bookings?tab=disputes`
+    });
+
     return this.toResponse(dispute);
   }
 
@@ -122,6 +144,14 @@ export class DisputesService {
       include: this.include,
     });
 
+    await this.safeNotify({
+      userId: dispute.raisedByUserId,
+      type: NotificationType.DISPUTE_ASSIGNED,
+      title: "Dispute under investigation",
+      body: "Your report is now being investigated.",
+      linkUrl: `/bookings?tab=disputes`
+    });
+
     return this.toResponse(dispute);
   }
 
@@ -151,6 +181,14 @@ export class DisputesService {
       include: this.include,
     });
 
+    await this.safeNotify({
+      userId: dispute.raisedByUserId,
+      type: NotificationType.DISPUTE_RESOLVED,
+      title: "Dispute resolved",
+      body: "Your report has been resolved.",
+      linkUrl: `/bookings?tab=disputes`
+    });
+
     return this.toResponse(dispute);
   }
 
@@ -176,6 +214,14 @@ export class DisputesService {
         },
       },
       include: this.include,
+    });
+
+    await this.safeNotify({
+      userId: dispute.raisedByUserId,
+      type: NotificationType.DISPUTE_CLOSED,
+      title: "Dispute closed",
+      body: "Your report has been closed.",
+      linkUrl: `/bookings?tab=disputes`
     });
 
     return this.toResponse(dispute);

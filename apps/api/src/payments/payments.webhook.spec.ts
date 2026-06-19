@@ -60,7 +60,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
       }),
     };
 
-    const service = new PaymentsService(prisma as never, gateway as never);
+    const service = new PaymentsService(prisma as never, gateway as never, { createNotification: jest.fn() } as never);
     await service.createIntentForUser("user-1", { bookingId: "booking-1", provider: "midtrans", method: "va" });
 
     expect(gateway.createTransaction).toHaveBeenCalledWith({
@@ -83,7 +83,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
       createTransaction: jest.fn().mockRejectedValue(new Error("Gateway down")),
     };
 
-    const service = new PaymentsService(prisma as never, gateway as never);
+    const service = new PaymentsService(prisma as never, gateway as never, { createNotification: jest.fn() } as never);
     await expect(service.createIntentForUser("user-1", { bookingId: "booking-1", provider: "midtrans", method: "va" })).rejects.toThrow("Gateway down");
 
     expect(prisma.payment.create).toHaveBeenCalled();
@@ -92,7 +92,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
   });
 
   it("rejects invalid signature length", async () => {
-    const service = new PaymentsService(createPrismaMock() as never, {} as never);
+    const service = new PaymentsService(createPrismaMock() as never, {} as never, { createNotification: jest.fn() } as never);
     const payload = {
       order_id: "order-1",
       status_code: "200",
@@ -104,7 +104,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
   });
 
   it("rejects invalid signature content", async () => {
-    const service = new PaymentsService(createPrismaMock() as never, {} as never);
+    const service = new PaymentsService(createPrismaMock() as never, {} as never, { createNotification: jest.fn() } as never);
     const fakeHash = "a".repeat(128);
     const payload = {
       order_id: "order-1",
@@ -118,7 +118,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
 
   it("returns successfully (ignores) if payment not found (unknown order_id)", async () => {
     const prisma = createPrismaMock(null);
-    const service = new PaymentsService(prisma as never, {} as never);
+    const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
     
     const signature_key = generateSignature("unknown-order", "200", "10000.00");
     const payload = {
@@ -136,7 +136,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
   it("idempotency: returns successfully without updates if payment is already PAID", async () => {
     const payment = { id: "payment-1", status: PaymentStatus.PAID, booking: { status: BookingStatus.CONFIRMED } };
     const prisma = createPrismaMock(payment);
-    const service = new PaymentsService(prisma as never, {} as never);
+    const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
     
     const signature_key = generateSignature("payment-1", "200", "10000.00");
     const payload = {
@@ -163,7 +163,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
       await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock } });
     });
 
-    const service = new PaymentsService(prisma as never, {} as never);
+    const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
     
     const signature_key = generateSignature("payment-1", "200", "10000.00");
     const payload = {
@@ -198,7 +198,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
       await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock } });
     });
 
-    const service = new PaymentsService(prisma as never, {} as never);
+    const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
     const warnMock = jest.spyOn((service as unknown as { logger: { warn: jest.Mock } }).logger, "warn").mockImplementation();
     
     const signature_key = generateSignature("payment-1", "200", "10000.00");
@@ -235,7 +235,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
       await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock } });
     });
 
-    const service = new PaymentsService(prisma as never, {} as never);
+    const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
     
     const signature_key = generateSignature("payment-1", "202", "10000.00");
     const payload = {
