@@ -398,13 +398,7 @@ export default function VenueDetailPage({
                   <button
                     key={slot.time}
                     disabled={!slot.available}
-                    className={`caption rounded-lg py-2.5 text-center transition-all ${
-                      !slot.available
-                        ? "bg-white/[0.02] text-[#F7F7F7]/15 cursor-not-allowed"
-                        : slot.peak
-                          ? "border border-[#E6FA50]/20 bg-[#E6FA50]/5 text-[#E6FA50]/70 hover:border-[#E6FA50]/40 hover:text-[#E6FA50]"
-                          : "border border-white/[0.08] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-[#50C8C8]/30 hover:text-[#50C8C8]"
-                    }`}
+                    className={`caption rounded-lg py-2.5 text-center transition-all ${ !slot.available ? "bg-white/[0.02] text-[#F7F7F7]/15 cursor-not-allowed" : slot.peak ? "border border-[#E6FA50]/20 bg-[#E6FA50]/5 text-[#E6FA50]/70 hover:border-[#E6FA50]/40 hover:text-[#E6FA50]" : "border border-white/[0.08] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-[#50C8C8]/30 hover:text-[#50C8C8]" }`}
                   >
                     {slot.time}
                   </button>
@@ -590,7 +584,7 @@ export default function VenueDetailPage({
 
                 <Link
                   href={`/venues/${venue.id}/book`}
-                  className="label btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full uppercase"
+                  className="label btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full"
                 >
                   Book Court
                 </Link>

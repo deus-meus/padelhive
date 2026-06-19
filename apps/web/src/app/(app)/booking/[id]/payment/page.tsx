@@ -433,9 +433,7 @@ export default function PaymentPage({
                 <button
                   onClick={handleToggleSplit}
                   disabled={isSplitToggling}
-                  className={`relative h-6 w-11 rounded-full transition-colors ${
-                    splitEnabled ? "bg-[#E6FA50]" : "bg-white/[0.1]"
-                  } disabled:opacity-50`}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${ splitEnabled ? "bg-[#E6FA50]" : "bg-white/[0.1]" } disabled:opacity-50`}
                 >
                   <span
                     className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
@@ -843,7 +841,7 @@ export default function PaymentPage({
                 <button
                   onClick={handlePay}
                   disabled={!selectedMethod || processing || !booking || !clientKey}
-                  className="btn-lime label mt-6 flex h-12 w-full items-center justify-center rounded-full uppercase disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="btn-lime label mt-6 flex h-12 w-full items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {processing ? "Processing..." : "Pay with Midtrans"}
                 </button>
@@ -858,7 +856,7 @@ export default function PaymentPage({
                   <button
                     onClick={handleMarkPaid}
                     disabled={markingPaid || processing || !booking}
-                    className="label mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] uppercase text-[#F7F7F7]/60 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="label mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] text-[#F7F7F7]/60 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {markingPaid ? "Marking Paid..." : "Mark as Paid (Demo)"}
                   </button>

@@ -206,7 +206,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
               <button
                 onClick={() => handleRsvp("ACCEPTED")}
                 disabled={rsvpMutation.isPending}
-                className="label btn-lime flex h-12 items-center justify-center rounded-full uppercase disabled:cursor-not-allowed disabled:opacity-40"
+                className="label btn-lime flex h-12 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {rsvpMutation.isPending && rsvpMutation.variables === "ACCEPTED" ? "Saving..." : "Accept Invite"}
               </button>

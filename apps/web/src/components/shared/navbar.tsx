@@ -191,7 +191,7 @@ export function Navbar() {
           ) : (
             <Link
               href="/auth/login"
-              className="btn-lime hidden h-10 items-center gap-2 rounded-full px-6 label uppercase md:inline-flex"
+              className="btn-lime hidden h-10 items-center gap-2 rounded-full px-6 label md:inline-flex"
             >
               <LogIn className="h-4 w-4" /> Sign In
             </Link>
@@ -224,7 +224,7 @@ export function Navbar() {
             <Link
               href="/auth/login"
               onClick={() => setMobileOpen(false)}
-              className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full label uppercase"
+              className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full label"
             >
               <LogIn className="h-4 w-4" /> Sign In
             </Link>

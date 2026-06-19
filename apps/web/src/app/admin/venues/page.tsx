@@ -166,7 +166,7 @@ export default function AdminVenuesPage() {
                       <button
                         onClick={() => updateMutation.mutate({ id: venue.id, status: "SUSPENDED" })}
                         disabled={isUpdating}
-                        className="flex h-9 items-center justify-center rounded-full border border-orange-500/50 px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-orange-400 transition-colors hover:bg-orange-500/10 disabled:opacity-50"
+                        className="flex h-9 items-center justify-center rounded-full border border-orange-500/50 px-5 text-[11px] font-semibold text-orange-400 transition-colors hover:bg-orange-500/10 disabled:opacity-50"
                       >
                         {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Suspend"}
                       </button>
@@ -175,7 +175,7 @@ export default function AdminVenuesPage() {
                       <button
                         onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
                         disabled={isUpdating}
-                        className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
+                        className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold tracking-[0.08em] disabled:opacity-50"
                       >
                         {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Approve"}
                       </button>
@@ -184,7 +184,7 @@ export default function AdminVenuesPage() {
                       <button
                         onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
                         disabled={isUpdating}
-                        className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
+                        className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold tracking-[0.08em] disabled:opacity-50"
                       >
                         {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Reactivate"}
                       </button>

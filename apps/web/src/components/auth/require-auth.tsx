@@ -41,7 +41,7 @@ export function RequireAuth({
           </p>
           <Link
             href="/auth/login"
-            className="btn-lime inline-flex h-11 items-center gap-2 rounded-full px-8 label uppercase"
+            className="btn-lime inline-flex h-11 items-center gap-2 rounded-full px-8 label"
           >
             <LogIn className="h-3.5 w-3.5" />
             Sign In to Continue
@@ -63,7 +63,7 @@ export function RequireAuth({
           </p>
           <Link
             href={destination.href}
-            className="btn-outline-white inline-flex h-11 items-center rounded-full px-8 label uppercase"
+            className="btn-outline-white inline-flex h-11 items-center rounded-full px-8 label"
           >
             {destination.label}
           </Link>

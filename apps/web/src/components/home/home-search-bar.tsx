@@ -61,7 +61,7 @@ export function HomeSearchBar() {
         <button
           type="button"
           onClick={handleSearch}
-          className="btn-lime flex h-[46px] items-center justify-center rounded-xl px-6 label uppercase"
+          className="btn-lime flex h-[46px] items-center justify-center rounded-xl px-6 label"
         >
           Search
         </button>

@@ -94,7 +94,7 @@ export default function AdminVouchersPage() {
         </div>
         <button
           onClick={openCreate}
-          className="btn-lime label flex h-10 shrink-0 items-center gap-2 rounded-full px-5 uppercase"
+          className="btn-lime label flex h-10 shrink-0 items-center gap-2 rounded-full px-5"
         >
           <Plus className="h-4 w-4" /> New Voucher
         </button>
@@ -136,13 +136,13 @@ export default function AdminVouchersPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => openEdit(v)}
-                      className="label flex h-9 items-center gap-1.5 rounded-full border border-white/[0.1] px-4 uppercase text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]"
+                      className="label flex h-9 items-center gap-1.5 rounded-full border border-white/[0.1] px-4 text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]"
                     >
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
                     <button
                       onClick={() => setDeleteTarget(v)}
-                      className="label flex h-9 items-center gap-1.5 rounded-full border border-red-500/40 px-4 uppercase text-red-400 transition-colors hover:bg-red-500/10"
+                      className="label flex h-9 items-center gap-1.5 rounded-full border border-red-500/40 px-4 text-red-400 transition-colors hover:bg-red-500/10"
                     >
                       <Trash2 className="h-3.5 w-3.5" /> Delete
                     </button>
@@ -175,14 +175,14 @@ export default function AdminVouchersPage() {
               <button
                 onClick={() => setDeleteTarget(null)}
                 disabled={deleteMutation.isPending}
-                className="label rounded-full border border-white/[0.08] px-5 py-2.5 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40"
+                className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40"
               >
                 Cancel
               </button>
               <button
                 onClick={() => deleteMutation.mutate(deleteTarget.id)}
                 disabled={deleteMutation.isPending}
-                className="label rounded-full bg-red-500/15 px-5 py-2.5 uppercase text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
+                className="label rounded-full bg-red-500/15 px-5 py-2.5 text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
               >
                 {deleteMutation.isPending ? "Deleting..." : "Delete"}
               </button>
@@ -298,10 +298,10 @@ function VoucherFormModal({
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <button onClick={onClose} disabled={isSaving} className="label rounded-full border border-white/[0.08] px-5 py-2.5 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40">
+          <button onClick={onClose} disabled={isSaving} className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40">
             Cancel
           </button>
-          <button onClick={handleSubmit} disabled={!canSubmit} className="btn-lime label flex items-center justify-center gap-2 rounded-full px-5 py-2.5 uppercase disabled:opacity-40">
+          <button onClick={handleSubmit} disabled={!canSubmit} className="btn-lime label flex items-center justify-center gap-2 rounded-full px-5 py-2.5 disabled:opacity-40">
             {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : voucher ? "Save Changes" : "Create Voucher"}
           </button>
         </div>

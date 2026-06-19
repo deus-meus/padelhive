@@ -167,7 +167,7 @@ export default function RevenuePage() {
             <div className="flex gap-1">
               <button
                 onClick={() => setPeriod("weekly")}
-                className={`label rounded-lg px-3 py-1.5 uppercase transition-all ${
+                className={`label rounded-lg px-3 py-1.5 transition-all ${
                   period === "weekly"
                     ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                     : "bg-white/[0.03] text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
@@ -177,7 +177,7 @@ export default function RevenuePage() {
               </button>
               <button
                 onClick={() => setPeriod("monthly")}
-                className={`label rounded-lg px-3 py-1.5 uppercase transition-all ${
+                className={`label rounded-lg px-3 py-1.5 transition-all ${
                   period === "monthly"
                     ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                     : "bg-white/[0.03] text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"

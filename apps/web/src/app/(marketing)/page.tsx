@@ -67,13 +67,13 @@ export default async function HomePage() {
             <div className="flex gap-3">
               <Link
                 href="/venues"
-                className="label btn-lime inline-flex h-12 items-center rounded-full px-8 uppercase"
+                className="label btn-lime inline-flex h-12 items-center rounded-full px-8"
               >
                 Book a Court
               </Link>
               <Link
                 href="#community"
-                className="label btn-outline-white inline-flex h-12 items-center rounded-full px-8 uppercase"
+                className="label btn-outline-white inline-flex h-12 items-center rounded-full px-8"
               >
                 Join a Match
               </Link>
@@ -96,7 +96,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ─── SEARCH ─── */}
+      {/* ─── Search ─── */}
       <section className="pt-10 pb-12 md:pt-12 md:pb-16 border-b border-white/[0.04]">
         <div className="container">
           <HomeSearchBar />
@@ -124,7 +124,7 @@ export default async function HomePage() {
               <p className="body mt-2 max-w-sm text-[#F7F7F7]/40">
                 We&apos;re curating the best courts in Indonesia. Check back soon or explore everything available now.
               </p>
-              <Link href="/venues" className="label btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6 uppercase">
+              <Link href="/venues" className="label btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6">
                 Browse All Venues
               </Link>
             </div>
@@ -290,7 +290,7 @@ export default async function HomePage() {
 
               <Link
                 href="/venues"
-                className="label btn-lime mt-12 inline-flex h-12 w-fit items-center gap-2 rounded-full px-8 uppercase"
+                className="label btn-lime mt-12 inline-flex h-12 w-fit items-center gap-2 rounded-full px-8"
               >
                 Join the Community
                 <ArrowRight className="h-4 w-4" />
@@ -346,7 +346,7 @@ export default async function HomePage() {
                 <p className="body mt-2 max-w-sm text-[#F7F7F7]/40">
                   New courts are being added across Indonesia. Browse the full directory to see what&apos;s live.
                 </p>
-                <Link href="/venues" className="label btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6 uppercase">
+                <Link href="/venues" className="label btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6">
                   Browse All Venues
                 </Link>
               </div>

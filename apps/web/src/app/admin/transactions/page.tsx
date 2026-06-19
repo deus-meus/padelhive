@@ -167,7 +167,7 @@ export default function AdminTransactionsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="label flex items-center gap-1 rounded-full border border-white/[0.08] px-4 py-2 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:cursor-not-allowed disabled:opacity-40"
+                className="label flex items-center gap-1 rounded-full border border-white/[0.08] px-4 py-2 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
                 Prev
@@ -175,7 +175,7 @@ export default function AdminTransactionsPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="label flex items-center gap-1 rounded-full border border-white/[0.08] px-4 py-2 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:cursor-not-allowed disabled:opacity-40"
+                className="label flex items-center gap-1 rounded-full border border-white/[0.08] px-4 py-2 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
                 <ChevronRight className="h-3.5 w-3.5" />
