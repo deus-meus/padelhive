@@ -66,7 +66,7 @@ export default async function HomePage() {
               </p>
             </div>
 
-            <div className="flex shrink-0 flex-col gap-3 md:items-stretch">
+            <div className="flex shrink-0 flex-wrap gap-3">
               <Link
                 href="/venues"
                 className="label btn-lime inline-flex h-12 items-center justify-center rounded-full px-8"
