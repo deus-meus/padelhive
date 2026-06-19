@@ -1,15 +1,27 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { BookingStatus, PaymentStatus, RefundStatus, Prisma } from "@prisma/client";
+import { BookingStatus, PaymentStatus, RefundStatus, Prisma, NotificationType } from "@prisma/client";
 import { CreateRefundDto } from "./dto/create-refund.dto";
 import { PAYMENT_GATEWAY_TOKEN, PaymentGateway } from "../payments/gateways/payment-gateway.interface";
+import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
 
 @Injectable()
 export class RefundsService {
+  private readonly logger = new Logger(RefundsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(PAYMENT_GATEWAY_TOKEN) private readonly paymentGateway: PaymentGateway
+    @Inject(PAYMENT_GATEWAY_TOKEN) private readonly paymentGateway: PaymentGateway,
+    private readonly notifications: NotificationsService
   ) {}
+
+  private async safeNotify(input: CreateNotificationInput) {
+    try {
+      await this.notifications.createNotification(input);
+    } catch (err) {
+      this.logger.warn(`Failed to emit notification: ${String(err)}`);
+    }
+  }
 
   async createRefund(userId: string, dto: CreateRefundDto) {
     if (!dto.reason || dto.reason.trim() === "") {
@@ -38,7 +50,7 @@ export class RefundsService {
     }
 
     try {
-      return await this.prisma.refund.create({
+      const refund = await this.prisma.refund.create({
         data: {
           bookingId: booking.id,
           paymentId: booking.payment.id,
@@ -53,6 +65,16 @@ export class RefundsService {
           },
         },
       });
+
+      await this.safeNotify({
+        userId: userId,
+        type: NotificationType.REFUND_REQUESTED,
+        title: "Refund requested",
+        body: "We received your refund request and it's under review.",
+        linkUrl: `/bookings?tab=refunds`
+      });
+
+      return refund;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
         throw new ConflictException("A refund request already exists for this payment");
@@ -152,7 +174,7 @@ export class RefundsService {
       throw new BadRequestException(`Cannot approve refund in status ${refund.status}`);
     }
 
-    return this.prisma.refund.update({
+    const updatedRefund = await this.prisma.refund.update({
       where: { id },
       data: {
         status: RefundStatus.APPROVED,
@@ -167,6 +189,16 @@ export class RefundsService {
         },
       },
     });
+
+    await this.safeNotify({
+      userId: refund.booking.hostUserId,
+      type: NotificationType.REFUND_APPROVED,
+      title: "Refund approved",
+      body: "Your refund was approved and will be processed shortly.",
+      linkUrl: `/bookings?tab=refunds`
+    });
+
+    return updatedRefund;
   }
 
   async rejectRefund(id: string, adminUserId: string, isSuperAdmin: boolean, adminNotes: string) {
@@ -195,7 +227,7 @@ export class RefundsService {
       throw new BadRequestException(`Cannot reject refund in status ${refund.status}`);
     }
 
-    return this.prisma.refund.update({
+    const updatedRefund = await this.prisma.refund.update({
       where: { id },
       data: {
         status: RefundStatus.REJECTED,
@@ -210,6 +242,16 @@ export class RefundsService {
         },
       },
     });
+
+    await this.safeNotify({
+      userId: refund.booking.hostUserId,
+      type: NotificationType.REFUND_REJECTED,
+      title: "Refund rejected",
+      body: "Your refund request was rejected.",
+      linkUrl: `/bookings?tab=refunds`
+    });
+
+    return updatedRefund;
   }
 
   async processRefund(id: string, adminUserId: string, isSuperAdmin: boolean) {
@@ -275,6 +317,14 @@ export class RefundsService {
           },
         });
       }
+    });
+
+    await this.safeNotify({
+      userId: refund.booking.hostUserId,
+      type: NotificationType.REFUND_PROCESSED,
+      title: "Refund processed",
+      body: "Your refund has been processed.",
+      linkUrl: `/bookings?tab=refunds`
     });
 
     return this.prisma.refund.findUniqueOrThrow({ where: { id } });

@@ -1,11 +1,12 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException, Logger } from "@nestjs/common";
-import { BookingStatus, CourtType, PaymentStatus } from "@prisma/client";
+import { BookingStatus, CourtType, PaymentStatus, NotificationType } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreatePaymentIntentDto } from "./dto/create-payment-intent.dto";
 import { PaymentResponseDto } from "./dto/payment-response.dto";
 import { MidtransWebhookDto } from "./dto/midtrans-webhook.dto";
 import { PAYMENT_GATEWAY_TOKEN, PaymentGateway } from "./gateways/payment-gateway.interface";
 import * as crypto from "crypto";
+import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
 
 const SUPPORTED_METHODS = ["va", "ewallet", "card"];
 const SUPPORTED_PROVIDERS = ["internal", "midtrans"];
@@ -73,8 +74,17 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(PAYMENT_GATEWAY_TOKEN)
-    private readonly paymentGateway: PaymentGateway
+    private readonly paymentGateway: PaymentGateway,
+    private readonly notifications: NotificationsService
   ) {}
+
+  private async safeNotify(input: CreateNotificationInput) {
+    try {
+      await this.notifications.createNotification(input);
+    } catch (err) {
+      this.logger.warn(`Failed to emit notification: ${String(err)}`);
+    }
+  }
 
   async createIntentForUser(userId: string, body: CreatePaymentIntentDto): Promise<PaymentResponseDto> {
     this.assertSupportedMethod(body.method);
@@ -201,6 +211,9 @@ export class PaymentsService {
       });
     });
 
+    await this.safeNotify({ userId: payment.booking.hostUserId, type: NotificationType.PAYMENT_SUCCESS, title: "Payment successful", body: "Your payment was received and your booking is confirmed.", linkUrl: `/bookings/${payment.bookingId}` });
+    await this.safeNotify({ userId: payment.booking.hostUserId, type: NotificationType.BOOKING_CONFIRMED, title: "Booking confirmed", body: "Your court booking is confirmed.", linkUrl: `/bookings/${payment.bookingId}` });
+
     return this.stripHostUserId(paidPayment);
   }
 
@@ -278,6 +291,15 @@ export class PaymentsService {
         });
       }
     });
+
+    if (targetPaymentStatus === PaymentStatus.PAID) {
+      await this.safeNotify({ userId: payment.booking.hostUserId, type: NotificationType.PAYMENT_SUCCESS, title: "Payment successful", body: "Your payment was received.", linkUrl: `/bookings/${payment.bookingId}` });
+      if (targetBookingStatus === BookingStatus.CONFIRMED && payment.booking.status === BookingStatus.PENDING_PAYMENT) {
+        await this.safeNotify({ userId: payment.booking.hostUserId, type: NotificationType.BOOKING_CONFIRMED, title: "Booking confirmed", body: "Your court booking is confirmed.", linkUrl: `/bookings/${payment.bookingId}` });
+      }
+    } else if (targetPaymentStatus === PaymentStatus.FAILED) {
+      await this.safeNotify({ userId: payment.booking.hostUserId, type: NotificationType.PAYMENT_FAILED, title: "Payment failed", body: "Your payment could not be completed.", linkUrl: `/bookings/${payment.bookingId}` });
+    }
   }
 
   private assertSupportedMethod(method: string): void {

@@ -107,7 +107,7 @@ describe("Booking creation API", () => {
 
   it("creates a pending-payment booking with server-side pricing", async () => {
     const prisma = createPrisma();
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     await service.createBookingForUser("user-1", {
       venueId: "venue-1",
@@ -145,7 +145,7 @@ describe("Booking creation API", () => {
 
   it("rejects missing or non-approved venue", async () => {
     const prisma = createPrisma({ venue: { findFirst: jest.fn().mockResolvedValue(null) } });
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.createBookingForUser("user-1", {
       venueId: "venue-pending",
@@ -158,7 +158,7 @@ describe("Booking creation API", () => {
 
   it("rejects inactive or wrong-venue court", async () => {
     const prisma = createPrisma({ court: { findFirst: jest.fn().mockResolvedValue(null) } });
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.createBookingForUser("user-1", {
       venueId: "venue-1",
@@ -170,7 +170,7 @@ describe("Booking creation API", () => {
   });
 
   it("rejects invalid dates and non-whole-hour times", async () => {
-    const service = new BookingsService(createPrisma() as never, {} as never);
+    const service = new BookingsService(createPrisma() as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.createBookingForUser("user-1", { venueId: "venue-1", courtId: "court-1", bookingDate: "2099-02-31", startsAt: "09:00", endsAt: "10:00" })).rejects.toThrow(BadRequestException);
     await expect(service.createBookingForUser("user-1", { venueId: "venue-1", courtId: "court-1", bookingDate: "2099-06-01", startsAt: "09:30", endsAt: "10:00" })).rejects.toThrow(BadRequestException);
@@ -178,7 +178,7 @@ describe("Booking creation API", () => {
   });
 
   it("rejects past booking starts", async () => {
-    const service = new BookingsService(createPrisma() as never, {} as never);
+    const service = new BookingsService(createPrisma() as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.createBookingForUser("user-1", {
       venueId: "venue-1",
@@ -191,7 +191,7 @@ describe("Booking creation API", () => {
 
   it("rejects overlapping pending-payment or confirmed bookings", async () => {
     const prisma = createPrisma({ booking: { findFirst: jest.fn().mockResolvedValue({ id: "booking-existing" }), create: jest.fn() } });
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.createBookingForUser("user-1", {
       venueId: "venue-1",
@@ -228,7 +228,7 @@ describe("Booking creation API", () => {
         voucher: { updateMany: jest.fn() },
       })),
     });
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
     const now = new Date("2099-05-31T02:00:00.000Z");
 
     const result = await service.cancelBookingForUser("booking-1", "user-1", now);
@@ -260,7 +260,7 @@ describe("Booking creation API", () => {
   it("rejects cancel for missing or non-owned bookings", async () => {
     const service = new BookingsService(createPrisma({
       booking: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn(), update: jest.fn() },
-    }) as never, {} as never);
+    }) as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.cancelBookingForUser("booking-1", "user-2", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(NotFoundException);
   });
@@ -268,7 +268,7 @@ describe("Booking creation API", () => {
   it("rejects completed bookings", async () => {
     const service = new BookingsService(createPrisma({
       booking: { findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.COMPLETED }), create: jest.fn(), update: jest.fn() },
-    }) as never, {} as never);
+    }) as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(BadRequestException);
   });
@@ -276,7 +276,7 @@ describe("Booking creation API", () => {
   it("rejects already cancelled bookings", async () => {
     const service = new BookingsService(createPrisma({
       booking: { findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }), create: jest.fn(), update: jest.fn() },
-    }) as never, {} as never);
+    }) as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(BadRequestException);
   });
@@ -291,7 +291,7 @@ describe("Booking creation API", () => {
         voucher: { updateMany: jest.fn() },
       })),
     });
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:01.000Z"));
 
@@ -314,7 +314,7 @@ describe("Booking creation API", () => {
         voucher: { updateMany: jest.fn() },
       })),
     });
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"));
 
@@ -325,7 +325,7 @@ describe("Booking creation API", () => {
 
   it("prices correctly near weekend boundary and does not shift bookingDate off WIB day", async () => {
     const prisma = createPrisma();
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     await service.createBookingForUser("user-1", {
       venueId: "venue-1",
@@ -358,7 +358,7 @@ describe("Booking creation API", () => {
         }),
       },
     });
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.createBookingForUser("user-1", {
       venueId: "venue-1",
@@ -377,7 +377,7 @@ describe("Booking creation API", () => {
         create: jest.fn().mockRejectedValue(new Error("Database connection lost")),
       },
     });
-    const service = new BookingsService(prisma as never, {} as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
 
     await expect(service.createBookingForUser("user-1", {
       venueId: "venue-1",
