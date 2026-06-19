@@ -51,4 +51,8 @@ export const queryKeys = {
   disputes: {
     me: ["disputes", "me"] as const,
   },
+  notifications: {
+    list: () => ["notifications", "list"] as const,
+    unreadCount: () => ["notifications", "unread-count"] as const,
+  },
 };

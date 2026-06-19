@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getUserBookings, getVouchers } from "@/lib/api";
 import { mockVouchers } from "@/mock/vouchers";
+import { NotificationBell } from "./notification-bell";
 import { useAuthStore } from "@/stores/auth-store";
 
 export function Navbar() {
@@ -135,6 +136,7 @@ export function Navbar() {
               </Link>
             </div>
           )}
+          {user && <NotificationBell enabled={!!user} />}
           {user ? (
             <div ref={avatarRef} className="relative">
               <button
