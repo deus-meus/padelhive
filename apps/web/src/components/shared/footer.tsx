@@ -68,18 +68,16 @@ export function Footer() {
             </ul>
           </div>
         </div>
+      </div>
 
-        {/* Wordmark section */}
-        <div className="border-t border-white/[0.04] pt-20 pb-12 md:pt-24 md:pb-14">
-          <div className="w-screen max-w-none mx-[calc(50%-50vw)] overflow-hidden">
-            <p
-              className="wordmark select-none text-center uppercase text-[#F7F7F7]/[0.1]"
-            >
-              PADELHIVE
-            </p>
-          </div>
-        </div>
+      {/* Wordmark section */}
+      <div className="border-t border-white/[0.04] overflow-hidden pt-20 pb-12 md:pt-24 md:pb-14">
+        <p className="wordmark select-none text-center uppercase text-[#F7F7F7]/[0.1]">
+          PADELHIVE
+        </p>
+      </div>
 
+      <div className="container">
         {/* Bottom bar */}
         <div className="flex flex-col items-center justify-between gap-4 border-t border-white/[0.04] py-6 md:flex-row">
           <p className="caption text-[#F7F7F7]/25">
