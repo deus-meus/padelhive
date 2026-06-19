@@ -221,7 +221,7 @@ export function TimeSelect({
         <div
           role="dialog"
           aria-label="Select time"
-          className={`absolute z-50 bg-[#0C1B26] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 p-5 w-72 flex flex-col ${
+          className={`absolute z-50 bg-[#0C1B26] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 p-5 w-56 flex flex-col ${
             openUpwards ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"
           }`}
         >
