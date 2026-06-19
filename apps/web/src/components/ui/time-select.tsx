@@ -63,7 +63,7 @@ function ThemedSelect({
         aria-expanded={open}
         aria-label={ariaLabel}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-20 items-center justify-between gap-2 rounded-lg border border-white/[0.08] bg-[#06121A] px-3 py-2 text-sm text-[#F7F7F7] transition-colors hover:border-white/[0.15] focus:border-[#E6FA50]/40 focus:outline-none"
+        className="flex w-16 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-[#06121A] px-3 py-2 text-sm text-[#F7F7F7] transition-colors hover:border-white/[0.15] focus:border-[#E6FA50]/40 focus:outline-none"
       >
         <span>{value}</span>
         <ChevronDown
