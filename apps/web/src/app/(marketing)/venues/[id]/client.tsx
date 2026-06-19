@@ -158,6 +158,18 @@ export default function VenueDetailPage({
     );
   }
 
+  const wibShort = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "Asia/Jakarta" }).format(new Date()).toLowerCase();
+  const weekDays = [
+    { key: "mon", label: "Monday" },
+    { key: "tue", label: "Tuesday" },
+    { key: "wed", label: "Wednesday" },
+    { key: "thu", label: "Thursday" },
+    { key: "fri", label: "Friday" },
+    { key: "sat", label: "Saturday" },
+    { key: "sun", label: "Sunday" },
+  ] as const;
+  const hasWeeklyHours = venue.weeklyHours && Object.keys(venue.weeklyHours).length > 0;
+
   return (
     <div className="min-h-screen pt-20">
       {(isLoading || isUsingFallback || apiError) && (
@@ -239,11 +251,46 @@ export default function VenueDetailPage({
             </p>
 
             {/* Operating hours */}
-            <div className="mt-6 flex items-center gap-2 caption text-[#F7F7F7]/40">
-              <Clock className="h-3.5 w-3.5" />
-              Open daily {venue.operatingHours.open} –{" "}
-              {venue.operatingHours.close}
-            </div>
+            {!hasWeeklyHours ? (
+              <div className="mt-6 flex items-center gap-2 caption text-[#F7F7F7]/40">
+                <Clock className="h-3.5 w-3.5" />
+                Open daily {venue.operatingHours.open} – {venue.operatingHours.close}
+              </div>
+            ) : (
+              <div className="mt-10">
+                <h2 className="heading-2 flex items-center gap-2 text-lg text-[#F7F7F7]">
+                  <Clock className="h-5 w-5" />
+                  Operating Hours
+                </h2>
+                <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
+                  <div className="divide-y divide-white/[0.04]">
+                    {weekDays.map(({ key, label }) => {
+                      const day = venue.weeklyHours?.[key] || {
+                        open: venue.operatingHours.open,
+                        close: venue.operatingHours.close,
+                      };
+                      const isToday = key === wibShort;
+                      return (
+                        <div key={key} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+                          <span className="caption text-[#F7F7F7]/60">{label}</span>
+                          <span
+                            className={`caption ${
+                              isToday
+                                ? "text-[#E6FA50]"
+                                : day.closed
+                                  ? "text-[#F7F7F7]/25"
+                                  : "text-[#F7F7F7]/60"
+                            }`}
+                          >
+                            {day.closed ? "Closed" : `${day.open} – ${day.close}`}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Facilities */}
             <div className="mt-10">
