@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { Prisma, VenueStatus } from "@prisma/client";
+import { Prisma, VenueStatus, CourtType } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { VenueResponseDto } from "./dto/venue-response.dto";
 import { CreateVenueDto } from "./dto/create-venue.dto";
@@ -41,14 +41,58 @@ type SelectedVenue = Omit<VenueResponseDto, "rating" | "courtCount" | "priceFrom
 export class VenuesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findApprovedVenues(): Promise<VenueResponseDto[]> {
+  async findApprovedVenues(filters?: { q?: string; city?: string; priceMin?: string; priceMax?: string; rating?: string; facilities?: string; type?: string }): Promise<VenueResponseDto[]> {
+    const where: Prisma.VenueWhereInput = { status: VenueStatus.APPROVED };
+
+    if (filters?.q && filters.q.trim()) {
+      where.name = { contains: filters.q.trim(), mode: "insensitive" };
+    }
+
+    if (filters?.city && filters.city.trim() && filters.city.trim() !== "All") {
+      where.city = { equals: filters.city.trim(), mode: "insensitive" };
+    }
+
+    if (filters?.rating) {
+      const ratingValue = parseFloat(filters.rating);
+      if (Number.isFinite(ratingValue) && ratingValue > 0) {
+        where.rating = { gte: ratingValue };
+      }
+    }
+
+    if (filters?.facilities) {
+      const list = filters.facilities.split(",").map(f => f.trim()).filter(f => f.length > 0);
+      if (list.length > 0) {
+        where.facilities = { hasEvery: list };
+      }
+    }
+
+    if (filters?.type === "INDOOR" || filters?.type === "OUTDOOR") {
+      where.courts = { some: { isActive: true, type: filters.type as CourtType } };
+    }
+
     const venues = await this.prisma.venue.findMany({
-      where: { status: VenueStatus.APPROVED },
+      where,
       orderBy: [{ city: "asc" }, { name: "asc" }],
       select: venueSelect,
     });
 
-    return venues.map((venue) => this.toVenueResponse(venue));
+    let mapped = venues.map((venue) => this.toVenueResponse(venue));
+
+    if (filters?.priceMin || filters?.priceMax) {
+      const pMin = filters.priceMin ? parseInt(filters.priceMin, 10) : null;
+      const pMax = filters.priceMax ? parseInt(filters.priceMax, 10) : null;
+      
+      const validPMin = pMin !== null && Number.isFinite(pMin) && !isNaN(pMin) ? pMin : null;
+      const validPMax = pMax !== null && Number.isFinite(pMax) && !isNaN(pMax) ? pMax : null;
+
+      mapped = mapped.filter(v => {
+        const passMin = validPMin === null || v.priceFrom >= validPMin;
+        const passMax = validPMax === null || v.priceFrom <= validPMax;
+        return passMin && passMax;
+      });
+    }
+
+    return mapped;
   }
 
   async findApprovedVenueById(id: string): Promise<VenueResponseDto> {
