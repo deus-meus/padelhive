@@ -11,7 +11,7 @@ import { getVenues } from "@/lib/api";
 import { EmptyState } from "@/components/ui/error-state";
 
 const CITIES = ["All", "Bali", "Jakarta", "Surabaya"];
-const FACILITIES = ["Parking","Showers","Locker Room","Cafe","Pro Shop","Equipment Rental","Wi-Fi","Air Conditioning"];
+const FACILITIES = ["Parking", "Shower", "Locker", "Pro Shop", "Cafe", "WiFi", "AC", "Coaching", "Equipment Rental"];
 
 type SortKey = "recommended" | "rating" | "price";
 const SORTS: { value: SortKey; label: string }[] = [

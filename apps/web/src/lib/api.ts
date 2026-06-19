@@ -374,7 +374,6 @@ export async function getVenues(params?: {
   type?: "INDOOR" | "OUTDOOR";
   facilities?: string[];
   revalidate?: number;
-  [key: string]: any;
 }): Promise<Venue[]> {
   const options = typeof params?.revalidate === "number" ? { next: { revalidate: params.revalidate } } : {};
   const query = new URLSearchParams();
