@@ -705,6 +705,37 @@ export async function getMyDisputes(): Promise<ApiDispute[]> {
   return apiFetch<ApiDispute[]>("/disputes/me");
 }
 
+export type NotificationType =
+  | "BOOKING_CONFIRMED" | "BOOKING_CANCELLED"
+  | "PAYMENT_SUCCESS" | "PAYMENT_FAILED"
+  | "REFUND_REQUESTED" | "REFUND_APPROVED" | "REFUND_REJECTED" | "REFUND_PROCESSED"
+  | "DISPUTE_CREATED" | "DISPUTE_ASSIGNED" | "DISPUTE_RESOLVED" | "DISPUTE_CLOSED";
+
+export type ApiNotification = {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  linkUrl: string | null;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export async function getNotifications(): Promise<ApiNotification[]> {
+  return apiFetch<ApiNotification[]>("/notifications");
+}
+export async function getUnreadNotificationCount(): Promise<number> {
+  const res = await apiFetch<{ count: number }>("/notifications/unread-count");
+  return res.count;
+}
+export async function markNotificationRead(id: string): Promise<ApiNotification> {
+  return apiFetch<ApiNotification>(`/notifications/${id}/read`, { method: "PATCH" });
+}
+export async function markAllNotificationsRead(): Promise<{ updated: number }> {
+  return apiFetch<{ updated: number }>("/notifications/read-all", { method: "PATCH" });
+}
+
 export type OwnerDashboard = {
   kpis: {
     weeklyRevenue: number;
