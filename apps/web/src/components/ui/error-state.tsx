@@ -21,14 +21,14 @@ export function ErrorState({
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
         <AlertTriangle className="h-6 w-6 text-[#E6FA50]" />
       </div>
-      <h2 className="heading-3 mt-6 text-lg text-[#F7F7F7]">{title}</h2>
-      <p className="mt-2 max-w-sm text-sm font-light text-[#F7F7F7]/40">{description}</p>
+      <h2 className="heading-3 mt-6 text-[#F7F7F7]">{title}</h2>
+      <p className="mt-2 max-w-sm body text-[#F7F7F7]/40">{description}</p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
           disabled={isRetrying}
-          className="btn-lime mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-xl px-6 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-60"
+          className="btn-lime mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-xl px-6 label uppercase disabled:opacity-60"
         >
           <RotateCw className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`} />
           {isRetrying ? "Retrying..." : "Try again"}
@@ -58,9 +58,9 @@ export function ErrorBanner({
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
         <div>
-          <p className="text-sm font-medium text-[#F7F7F7]">{title}</p>
+          <p className="heading-3 text-[#F7F7F7]">{title}</p>
           {resolvedDescription ? (
-            <p className="mt-0.5 text-xs leading-5 text-[#F7F7F7]/40">{resolvedDescription}</p>
+            <p className="mt-0.5 body-sm text-[#F7F7F7]/40">{resolvedDescription}</p>
           ) : null}
         </div>
       </div>
@@ -68,7 +68,7 @@ export function ErrorBanner({
         <button
           onClick={onRetry}
           disabled={isRetrying}
-          className="inline-flex h-9 shrink-0 items-center gap-2 self-start rounded-full border border-amber-400/30 bg-amber-400/10 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-300 transition-colors hover:bg-amber-400/20 disabled:opacity-50 sm:self-auto"
+          className="inline-flex h-9 shrink-0 items-center gap-2 self-start rounded-full border border-amber-400/30 bg-amber-400/10 px-4 label uppercase text-amber-300 transition-colors hover:bg-amber-400/20 disabled:opacity-50 sm:self-auto"
         >
           <RotateCw className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`} />
           {isRetrying ? "Retrying" : "Try again"}
@@ -94,15 +94,15 @@ export function EmptyState({
   actionHref?: string;
 }) {
   const actionClass =
-    "mt-6 inline-flex h-10 items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]";
+    "mt-6 inline-flex h-10 items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-5 label uppercase text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]";
   return (
     <div className="flex min-h-[360px] w-full flex-1 flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/[0.04]">
         <Icon className="h-6 w-6 text-[#F7F7F7]/40" />
       </div>
-      <p className="mt-5 text-base font-medium text-[#F7F7F7]">{title}</p>
+      <p className="mt-5 heading-3 text-[#F7F7F7]">{title}</p>
       {description ? (
-        <p className="mt-1.5 max-w-sm text-sm leading-6 text-[#F7F7F7]/40">{description}</p>
+        <p className="mt-1.5 max-w-sm body text-[#F7F7F7]/40">{description}</p>
       ) : null}
       {actionLabel ? (
         actionHref ? (

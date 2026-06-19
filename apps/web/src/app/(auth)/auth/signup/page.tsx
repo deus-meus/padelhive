@@ -57,17 +57,17 @@ function SignupContent() {
               Padel<span className="text-[#E6FA50]">hive</span>
             </span>
           </Link>
-          <p className="mt-3 text-sm font-light text-[#F7F7F7]/40">
+          <p className="body-lg mt-3 text-[#F7F7F7]/40">
             Create an account to start booking courts.
           </p>
         </div>
 
         <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8">
-          <h1 className="heading-2 text-xl text-[#F7F7F7] text-center mb-6">Sign Up</h1>
+          <h1 className="heading-2 text-[#F7F7F7] text-center mb-6">Sign Up</h1>
 
           {error && (
             <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
-              <p className="text-sm text-red-100/80">{error}</p>
+              <p className="body text-red-100/80">{error}</p>
             </div>
           )}
 
@@ -81,7 +81,7 @@ function SignupContent() {
                 onChange={(e) => setName(e.target.value)}
                 disabled={isLoading}
                 required
-                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <div className="relative">
@@ -93,7 +93,7 @@ function SignupContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <div className="relative">
@@ -105,23 +105,23 @@ function SignupContent() {
                 disabled={isLoading}
                 required
                 minLength={6}
-                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 px-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 px-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 mt-2"
+              className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign Up"}
             </button>
           </form>
 
-          <div className="mt-4 flex flex-col items-center gap-2 text-sm">
+          <div className="body mt-4 flex flex-col items-center gap-2">
             <div className="text-[#F7F7F7]/40">
               Already have an account?{" "}
-              <Link href={`/auth/login${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} className="text-[#F7F7F7]/80 hover:text-[#E6FA50] font-medium transition-colors">
+              <Link href={`/auth/login${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} className="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">
                 Sign in
               </Link>
             </div>

@@ -88,13 +88,13 @@ export default function AdminVouchersPage() {
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="caption text-[#E6FA50]">Marketplace Admin</p>
-          <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] sm:text-4xl">
+          <h1 className="heading-1 mt-2 text-[#F7F7F7]">
             Voucher <span className="text-[#E6FA50]">Management</span>
           </h1>
         </div>
         <button
           onClick={openCreate}
-          className="btn-lime flex h-10 shrink-0 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em]"
+          className="btn-lime label flex h-10 shrink-0 items-center gap-2 rounded-full px-5 uppercase"
         >
           <Plus className="h-4 w-4" /> New Voucher
         </button>
@@ -119,12 +119,12 @@ export default function AdminVouchersPage() {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <h3 className="heading-2 text-lg text-[#F7F7F7] font-mono tracking-wide">{v.code}</h3>
-                      <div className={`rounded-full px-2 py-0.5 ${status.bg}`}>
-                        <span className={`text-[9px] font-medium uppercase tracking-[0.1em] ${status.color}`}>{status.label}</span>
-                      </div>
+                      <h3 className="heading-2 font-mono tracking-wide text-[#F7F7F7]">{v.code}</h3>
+                      {status && (
+                        <span className={`caption uppercase ${status.color}`}>{status.label}</span>
+                      )}
                     </div>
-                    <p className="mt-2 text-sm text-[#F7F7F7]/60">
+                    <p className="body-sm mt-2 text-[#F7F7F7]/60">
                       {v.type === "PERCENTAGE" ? `${v.value}% off` : `${formatIDR(v.value)} off`}
                       {v.minPurchase != null && ` · min ${formatIDR(v.minPurchase)}`}
                       {v.type === "PERCENTAGE" && v.maxDiscount != null && ` · max ${formatIDR(v.maxDiscount)}`}
@@ -136,13 +136,13 @@ export default function AdminVouchersPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => openEdit(v)}
-                      className="flex h-9 items-center gap-1.5 rounded-full border border-white/[0.1] px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]"
+                      className="label flex h-9 items-center gap-1.5 rounded-full border border-white/[0.1] px-4 uppercase text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]"
                     >
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
                     <button
                       onClick={() => setDeleteTarget(v)}
-                      className="flex h-9 items-center gap-1.5 rounded-full border border-red-500/40 px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-400 transition-colors hover:bg-red-500/10"
+                      className="label flex h-9 items-center gap-1.5 rounded-full border border-red-500/40 px-4 uppercase text-red-400 transition-colors hover:bg-red-500/10"
                     >
                       <Trash2 className="h-3.5 w-3.5" /> Delete
                     </button>
@@ -167,22 +167,22 @@ export default function AdminVouchersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
             <p className="section-label">Delete Voucher</p>
-            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Delete {deleteTarget.code}?</h2>
-            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/40">
+            <h2 className="heading-2 mt-3 text-[#F7F7F7]">Delete {deleteTarget.code}?</h2>
+            <p className="body-sm mt-2 text-[#F7F7F7]/40">
               This permanently removes the voucher. If it has already been used on bookings, the server will block deletion — deactivate it instead by editing and turning off &quot;Active&quot;.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setDeleteTarget(null)}
                 disabled={deleteMutation.isPending}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40"
+                className="label rounded-full border border-white/[0.08] px-5 py-2.5 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40"
               >
                 Cancel
               </button>
               <button
                 onClick={() => deleteMutation.mutate(deleteTarget.id)}
                 disabled={deleteMutation.isPending}
-                className="rounded-full bg-red-500/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
+                className="label rounded-full bg-red-500/15 px-5 py-2.5 uppercase text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
               >
                 {deleteMutation.isPending ? "Deleting..." : "Delete"}
               </button>
@@ -193,7 +193,7 @@ export default function AdminVouchersPage() {
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40">
-          <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
+          <p className="body-sm text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>
@@ -238,7 +238,7 @@ function VoucherFormModal({
     });
   }
 
-  const inputClass = "w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none";
+  const inputClass = "body w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none";
   const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40";
 
   return (
@@ -291,17 +291,17 @@ function VoucherFormModal({
               <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className={inputClass} />
             </div>
           </div>
-          <label className="flex items-center gap-2.5 text-sm text-[#F7F7F7]/60">
+          <label className="label flex items-center gap-2.5 text-[#F7F7F7]/60">
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-4 w-4 rounded border-white/20 bg-transparent" />
             Active
           </label>
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <button onClick={onClose} disabled={isSaving} className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40">
+          <button onClick={onClose} disabled={isSaving} className="label rounded-full border border-white/[0.08] px-5 py-2.5 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40">
             Cancel
           </button>
-          <button onClick={handleSubmit} disabled={!canSubmit} className="btn-lime flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-40">
+          <button onClick={handleSubmit} disabled={!canSubmit} className="btn-lime label flex items-center justify-center gap-2 rounded-full px-5 py-2.5 uppercase disabled:opacity-40">
             {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : voucher ? "Save Changes" : "Create Voucher"}
           </button>
         </div>

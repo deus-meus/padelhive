@@ -50,7 +50,7 @@ export default async function HomePage() {
         </div>
 
         <div className="container relative z-10 flex flex-1 flex-col justify-center pt-28 pb-20 md:pt-32 md:pb-24">
-          <h1 className="display-xl text-[clamp(2.75rem,8vw,7.5rem)] leading-[0.92] text-[#F7F7F7]">
+          <h1 className="display-xl text-[#F7F7F7]">
             BOOK.
             <br />
             <span className="text-[#E6FA50]">PLAY.</span>
@@ -67,13 +67,13 @@ export default async function HomePage() {
             <div className="flex gap-3">
               <Link
                 href="/venues"
-                className="btn-lime inline-flex h-12 items-center rounded-full px-8 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                className="label btn-lime inline-flex h-12 items-center rounded-full px-8 uppercase"
               >
                 Book a Court
               </Link>
               <Link
                 href="#community"
-                className="btn-outline-white inline-flex h-12 items-center rounded-full px-8 text-[11px] font-medium uppercase tracking-[0.08em]"
+                className="label btn-outline-white inline-flex h-12 items-center rounded-full px-8 uppercase"
               >
                 Join a Match
               </Link>
@@ -108,7 +108,7 @@ export default async function HomePage() {
         <div className="container">
           <div className="mb-subsection max-w-xl">
             <span className="section-label">Featured</span>
-            <h2 className="heading-1 mt-4 text-4xl text-[#F7F7F7] md:text-5xl">
+            <h2 className="heading-2 mt-4 text-[#F7F7F7]">
               This Week&apos;s
               <br />
               <span className="text-[#E6FA50]">Top Venue</span>
@@ -120,11 +120,11 @@ export default async function HomePage() {
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
                 <Star className="h-6 w-6 text-[#E6FA50]" />
               </div>
-              <h3 className="heading-3 mt-6 text-lg text-[#F7F7F7]">Featured venues coming soon</h3>
-              <p className="mt-2 max-w-sm text-sm font-light text-[#F7F7F7]/40">
+              <h3 className="heading-3 mt-6 text-[#F7F7F7]">Featured venues coming soon</h3>
+              <p className="body mt-2 max-w-sm text-[#F7F7F7]/40">
                 We&apos;re curating the best courts in Indonesia. Check back soon or explore everything available now.
               </p>
-              <Link href="/venues" className="btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6 text-[11px] font-semibold uppercase tracking-[0.08em]">
+              <Link href="/venues" className="label btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6 uppercase">
                 Browse All Venues
               </Link>
             </div>
@@ -144,11 +144,11 @@ export default async function HomePage() {
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 fill-[#E6FA50] text-[#E6FA50]" />
-                    <span className="label font-semibold text-[#E6FA50]">{featuredVenue.rating}</span>
+                    <span className="label text-[#E6FA50]">{featuredVenue.rating}</span>
                     <span className="caption text-[#F7F7F7]/25">· {featuredVenue.reviewCount} reviews</span>
                   </div>
 
-                  <h3 className="heading-2 mt-4 text-2xl text-[#F7F7F7] md:text-3xl">
+                  <h3 className="heading-2 mt-4 text-[#F7F7F7]">
                     {featuredVenue.name}
                   </h3>
 
@@ -157,17 +157,17 @@ export default async function HomePage() {
                     {featuredVenue.location} · {featuredVenue.city}
                   </p>
 
-                  <p className="mt-5 text-sm font-light leading-relaxed text-[#F7F7F7]/25">
+                  <p className="body mt-5 text-[#F7F7F7]/25">
                     {featuredVenue.description}
                   </p>
 
                   <div className="mt-8">
-                    <p className="text-sm font-medium text-[#50C8C8]">
+                    <p className="body-sm text-[#50C8C8]">
                       See availability for pricing
                     </p>
                   </div>
 
-                  <div className="mt-8 inline-flex items-center gap-2 label font-semibold text-[#E6FA50] transition-all group-hover:gap-3">
+                  <div className="label mt-8 inline-flex items-center gap-2 text-[#E6FA50] transition-all group-hover:gap-3">
                     View Availability
                     <ArrowRight className="h-4 w-4" />
                   </div>
@@ -182,7 +182,7 @@ export default async function HomePage() {
       <section className="py-section">
         <div className="container">
           <div className="mb-subsection">
-            <h2 className="display-lg text-[clamp(3rem,8vw,7rem)] text-[#F7F7F7]">
+            <h2 className="display-lg text-[#F7F7F7]">
               WHERE
               <br />
               WILL YOU
@@ -226,7 +226,7 @@ export default async function HomePage() {
       <section id="community" className="py-section">
         <div className="container">
           <div className="mb-subsection text-center">
-            <h2 className="display-xl text-[clamp(2.5rem,8vw,7rem)] text-[#F7F7F7]">
+            <h2 className="display-xl text-[#F7F7F7]">
               FIND PLAYERS.
               <br />
               <span className="text-[#E6FA50]">NOT JUST COURTS.</span>
@@ -269,28 +269,28 @@ export default async function HomePage() {
                   showCount={false}
                 />
                 <p className="caption mt-3 text-[#F7F7F7]/25">
-                  <span className="font-medium text-[#F7F7F7]/60">+2,847</span> joined this month
+                  <span className="text-[#F7F7F7]/60">+2,847</span> joined this month
                 </p>
               </div>
 
               <div className="mt-12 grid grid-cols-3 gap-6">
                 <div>
-                  <p className="metric text-3xl text-[#E6FA50] md:text-4xl">10K+</p>
+                  <p className="metric text-[#E6FA50]">10K+</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
                 <div>
-                  <p className="metric text-3xl text-[#F7F7F7] md:text-4xl">2K+</p>
+                  <p className="metric text-[#F7F7F7]">2K+</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Matches/mo</p>
                 </div>
                 <div>
-                  <p className="metric text-3xl text-[#F7F7F7] md:text-4xl">95%</p>
+                  <p className="metric text-[#F7F7F7]">95%</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Match rate</p>
                 </div>
               </div>
 
               <Link
                 href="/venues"
-                className="btn-lime mt-12 inline-flex h-12 w-fit items-center gap-2 rounded-full px-8 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                className="label btn-lime mt-12 inline-flex h-12 w-fit items-center gap-2 rounded-full px-8 uppercase"
               >
                 Join the Community
                 <ArrowRight className="h-4 w-4" />
@@ -304,7 +304,7 @@ export default async function HomePage() {
       <section id="how-it-works" className="py-section border-t border-white/[0.04]">
         <div className="container">
           <div className="mb-subsection text-center">
-            <h2 className="display-xl text-[clamp(3rem,8vw,7rem)] text-[#F7F7F7]">
+            <h2 className="display-xl text-[#F7F7F7]">
               BOOK. SPLIT.
               <br />
               <span className="text-[#E6FA50]">PLAY.</span>
@@ -324,7 +324,7 @@ export default async function HomePage() {
       <section id="venues" className="py-section border-t border-white/[0.04]">
         <div className="container">
           <div className="mb-subsection flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <h2 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+            <h2 className="heading-2 text-[#F7F7F7]">
               All <span className="text-[#E6FA50]">Venues</span>
             </h2>
             <Link
@@ -342,11 +342,11 @@ export default async function HomePage() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
                   <MapPin className="h-6 w-6 text-[#E6FA50]" />
                 </div>
-                <h3 className="heading-3 mt-6 text-lg text-[#F7F7F7]">No venues yet</h3>
-                <p className="mt-2 max-w-sm text-sm font-light text-[#F7F7F7]/40">
+                <h3 className="heading-3 mt-6 text-[#F7F7F7]">No venues yet</h3>
+                <p className="body mt-2 max-w-sm text-[#F7F7F7]/40">
                   New courts are being added across Indonesia. Browse the full directory to see what&apos;s live.
                 </p>
-                <Link href="/venues" className="btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6 text-[11px] font-semibold uppercase tracking-[0.08em]">
+                <Link href="/venues" className="label btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6 uppercase">
                   Browse All Venues
                 </Link>
               </div>
@@ -364,7 +364,7 @@ export default async function HomePage() {
                           className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
                         />
                         {venue.isVerified && (
-                          <span className="absolute left-4 top-4 rounded-full bg-[#E6FA50] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-[#06121A]">
+                          <span className="caption absolute left-4 top-4 rounded-full bg-[#E6FA50] px-3 py-1 uppercase text-[#06121A]">
                             Verified
                           </span>
                         )}
@@ -372,10 +372,10 @@ export default async function HomePage() {
                       <div className="flex flex-col justify-center p-8 md:p-10">
                         <div className="flex items-center gap-2">
                           <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
-                          <span className="label font-semibold text-[#E6FA50]">{venue.rating}</span>
+                          <span className="label text-[#E6FA50]">{venue.rating}</span>
                           <span className="caption text-[#F7F7F7]/25">· {venue.reviewCount} reviews</span>
                         </div>
-                        <h3 className="heading-2 mt-3 text-xl text-[#F7F7F7] md:text-2xl">
+                        <h3 className="heading-3 mt-3 text-[#F7F7F7]">
                           {venue.name}
                         </h3>
                         <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/25">
@@ -383,11 +383,11 @@ export default async function HomePage() {
                           {venue.location} · {venue.city}
                         </p>
                         <div className="mt-6">
-                          <p className="text-sm font-medium text-[#50C8C8]">
+                          <p className="body-sm text-[#50C8C8]">
                             See availability for pricing
                           </p>
                         </div>
-                        <span className="mt-6 inline-flex items-center gap-2 label font-semibold text-[#E6FA50] opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:gap-3">
+                        <span className="label mt-6 inline-flex items-center gap-2 text-[#E6FA50] opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:gap-3">
                           View Availability <ArrowRight className="h-4 w-4" />
                         </span>
                       </div>
@@ -406,8 +406,8 @@ export default async function HomePage() {
 function StatInline({ value, label, className = "" }: { value: string; label: string; className?: string }) {
   return (
     <div className={`flex items-baseline gap-2 ${className}`}>
-      <span className="font-heading text-base font-semibold text-[#E6FA50] tracking-[-0.02em] md:text-lg">{value}</span>
-      <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#F7F7F7]/25">{label}</span>
+      <span className="metric text-[#E6FA50]">{value}</span>
+      <span className="caption uppercase text-[#F7F7F7]/25">{label}</span>
     </div>
   );
 }
@@ -438,8 +438,8 @@ function CityBlock({
         <div className="absolute inset-0 bg-gradient-to-t from-[#06121A]/80 via-[#06121A]/20 to-transparent" />
         <div className="absolute bottom-0 left-0 p-8 md:p-10">
           <p className="section-label">{venues} venues</p>
-          <h3 className="display-lg mt-2 text-4xl text-[#F7F7F7] md:text-6xl">{name}</h3>
-          <p className="mt-2 max-w-xs text-sm font-light text-[#F7F7F7]/40">{tagline}</p>
+          <h3 className="display-lg mt-2 text-[#F7F7F7]">{name}</h3>
+          <p className="body mt-2 max-w-xs text-[#F7F7F7]/40">{tagline}</p>
         </div>
         <div className="absolute bottom-8 right-8 flex h-11 w-11 items-center justify-center rounded-full bg-[#E6FA50] opacity-0 transition-all duration-300 group-hover:opacity-100 md:bottom-10 md:right-10">
           <ArrowRight className="h-4 w-4 text-[#06121A]" />
@@ -452,14 +452,14 @@ function CityBlock({
 function Step({ number, title, description }: { number: string; title: string; description: string }) {
   return (
     <div className="group flex gap-8 py-8 md:gap-12 md:py-10">
-      <span className="font-heading text-5xl font-bold text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20 md:text-6xl tracking-[-0.04em]">
+      <span className="display-lg text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20">
         {number}
       </span>
       <div className="flex flex-col justify-center">
-        <h3 className="heading-2 text-lg text-[#F7F7F7] transition-colors duration-300 group-hover:text-[#E6FA50] md:text-xl">
+        <h3 className="heading-3 text-[#F7F7F7] transition-colors duration-300 group-hover:text-[#E6FA50]">
           {title}
         </h3>
-        <p className="mt-2 max-w-md text-sm text-[#F7F7F7]/40 font-light leading-relaxed">{description}</p>
+        <p className="body mt-2 max-w-md text-[#F7F7F7]/40">{description}</p>
       </div>
     </div>
   );

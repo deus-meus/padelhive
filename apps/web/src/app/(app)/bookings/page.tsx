@@ -216,10 +216,10 @@ export default function BookingsPage() {
     return (
       <div className="min-h-screen pt-28">
         <section className="container pb-8">
-          <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+          <h1 className="heading-1 text-[#F7F7F7]">
             <span className="text-[#E6FA50]">Bookings</span>
           </h1>
-          <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
+          <p className="body-lg mt-2 text-[#F7F7F7]/40">
             Manage your upcoming matches and booking history.
           </p>
         </section>
@@ -250,10 +250,10 @@ export default function BookingsPage() {
     return (
       <div className="min-h-screen pt-28">
         <section className="container pb-8">
-          <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+          <h1 className="heading-1 text-[#F7F7F7]">
             <span className="text-[#E6FA50]">Bookings</span>
           </h1>
-          <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
+          <p className="body-lg mt-2 text-[#F7F7F7]/40">
             Manage your upcoming matches and booking history.
           </p>
         </section>
@@ -273,10 +273,10 @@ export default function BookingsPage() {
     <div className="min-h-screen pt-28">
       {/* Header */}
       <section className="container pb-8">
-        <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+        <h1 className="heading-1 text-[#F7F7F7]">
           <span className="text-[#E6FA50]">Bookings</span>
         </h1>
-        <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
+        <p className="body-lg mt-2 text-[#F7F7F7]/40">
           Manage your upcoming matches and booking history.
         </p>
       </section>
@@ -288,17 +288,17 @@ export default function BookingsPage() {
           <div className="mt-5 grid grid-cols-1 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] lg:grid-cols-[1.85fr_1fr]">
             <div className="flex flex-col justify-center p-7 md:p-9">
               <div className="flex items-center gap-3">
-                <span className="inline-block rounded-full bg-[#E6FA50]/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-[#E6FA50]">
+                <span className="caption inline-block rounded-full bg-[#E6FA50]/10 px-3 py-1 text-[#E6FA50]">
                   {nextBooking.status}
                 </span>
                 <span className="caption text-[#F7F7F7]/25">{formatBookingDate(nextBooking.bookingDate)}</span>
               </div>
 
-              <h2 className="heading-1 mt-4 text-2xl text-[#F7F7F7] md:text-3xl">
+              <h2 className="heading-1 mt-4 text-[#F7F7F7]">
                 {nextVenue.name}
               </h2>
 
-              <p className="mt-2 flex items-center gap-2 text-sm text-[#F7F7F7]/40">
+              <p className="body mt-2 flex items-center gap-2 text-[#F7F7F7]/40">
                 <MapPin className="h-3.5 w-3.5" />
                 {nextVenue.city}
               </p>
@@ -313,14 +313,14 @@ export default function BookingsPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href={`/bookings/${nextBooking.id}`}
-                  className="btn-lime inline-flex h-10 items-center gap-2 rounded-full px-6 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                  className="label btn-lime inline-flex h-10 items-center gap-2 rounded-full px-6"
                 >
                   <Eye className="h-3.5 w-3.5" />
                   View Details
                 </Link>
                 <button
                   onClick={() => handleShare(nextBooking.id)}
-                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/20 hover:text-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
+                  className="label inline-flex h-10 items-center gap-2 rounded-full border border-white/10 px-6 text-[#F7F7F7]/60 transition-colors hover:border-white/20 hover:text-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-[#E6FA50]/40"
                 >
                   <Share2 className="h-3.5 w-3.5" />
                   Share
@@ -360,7 +360,7 @@ export default function BookingsPage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative px-5 py-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors whitespace-nowrap ${
+                className={`label relative px-5 py-3 transition-colors whitespace-nowrap ${
                   activeTab === tab
                     ? "text-[#E6FA50]"
                     : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
@@ -389,8 +389,8 @@ export default function BookingsPage() {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-medium text-[#F7F7F7]">{refund.booking?.venue?.name || refund.bookingId}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${
+                        <span className="body text-[#F7F7F7]">{refund.booking?.venue?.name || refund.bookingId}</span>
+                        <span className={`caption rounded-full px-2 py-0.5 ${
                           refund.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
                           refund.status === 'APPROVED' ? 'bg-[#E6FA50]/10 text-[#E6FA50]' :
                           refund.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
@@ -416,9 +416,9 @@ export default function BookingsPage() {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-medium text-[#F7F7F7]">{dispute.venue.name}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${DISPUTE_STATUS_STYLES[dispute.status]}`}>{dispute.status}</span>
-                        <span className="rounded-full bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-[#F7F7F7]/40">{DISPUTE_ISSUE_LABELS[dispute.issueType]}</span>
+                        <span className="body text-[#F7F7F7]">{dispute.venue.name}</span>
+                        <span className={`caption rounded-full px-2 py-0.5 ${DISPUTE_STATUS_STYLES[dispute.status]}`}>{dispute.status}</span>
+                        <span className="caption rounded-full bg-white/[0.04] px-2 py-0.5 text-[#F7F7F7]/40">{DISPUTE_ISSUE_LABELS[dispute.issueType]}</span>
                       </div>
                       <p className="caption text-[#F7F7F7]/40 mt-2 italic">&ldquo;{dispute.description}&rdquo;</p>
                       <p className="caption text-[#F7F7F7]/25 mt-2">Reported: {formatShortDate(dispute.createdAt)}</p>
@@ -459,26 +459,26 @@ export default function BookingsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
             <p className="section-label">Cancel Booking</p>
-            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Cancel this booking?</h2>
-            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/40">
+            <h2 className="heading-2 mt-3 text-[#F7F7F7]">Cancel this booking?</h2>
+            <p className="body mt-2 text-[#F7F7F7]/40">
               This will cancel your booking and release the court time.
             </p>
             <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
-              <p className="text-sm font-medium text-[#F7F7F7]/60">Refund eligibility</p>
-              <p className="mt-1 text-xs leading-5 text-[#F7F7F7]/40">{getRefundNote(bookingToCancel)}</p>
+              <p className="body text-[#F7F7F7]/60">Refund eligibility</p>
+              <p className="body-sm mt-1 text-[#F7F7F7]/40">{getRefundNote(bookingToCancel)}</p>
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setBookingToCancel(null)}
                 disabled={isCancelling}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
+                className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
               >
                 Keep Booking
               </button>
               <button
                 onClick={confirmCancel}
                 disabled={isCancelling}
-                className="rounded-full bg-red-500/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
+                className="label rounded-full bg-red-500/15 px-5 py-2.5 text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
               >
                 {isCancelling ? "Cancelling..." : "Cancel Booking"}
               </button>
@@ -491,17 +491,17 @@ export default function BookingsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
             <p className="section-label">Request Refund</p>
-            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Why are you requesting a refund?</h2>
+            <h2 className="heading-2 mt-3 text-[#F7F7F7]">Why are you requesting a refund?</h2>
             <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#50C8C8]/5 p-4">
-              <p className="text-sm font-medium text-[#50C8C8]">Eligible Amount: Rp {(Number(bookingToRefund.refundAmount ?? 0) / 1000).toFixed(0)}K</p>
-              <p className="mt-1 text-xs leading-5 text-[#50C8C8]/70">{bookingToRefund.refundPolicyReason}</p>
+              <p className="body text-[#50C8C8]">Eligible Amount: Rp {(Number(bookingToRefund.refundAmount ?? 0) / 1000).toFixed(0)}K</p>
+              <p className="body-sm mt-1 text-[#50C8C8]/70">{bookingToRefund.refundPolicyReason}</p>
             </div>
             <div className="mt-4">
               <textarea
                 value={refundReason}
                 onChange={(e) => setRefundReason(e.target.value)}
                 placeholder="Please describe why you are requesting a refund..."
-                className="w-full h-24 resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                className="body w-full h-24 resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                 disabled={refundMutation.isPending}
               />
             </div>
@@ -509,14 +509,14 @@ export default function BookingsPage() {
               <button
                 onClick={() => { setBookingToRefund(null); setRefundReason(""); }}
                 disabled={refundMutation.isPending}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
+                className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmRefund}
                 disabled={refundMutation.isPending || !refundReason.trim()}
-                className="btn-lime rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-40"
+                className="label btn-lime rounded-full px-5 py-2.5 disabled:opacity-40"
               >
                 {refundMutation.isPending ? "Submitting..." : "Submit Request"}
               </button>
@@ -529,15 +529,15 @@ export default function BookingsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
             <p className="section-label">Report an Issue</p>
-            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">What went wrong?</h2>
+            <h2 className="heading-2 mt-3 text-[#F7F7F7]">What went wrong?</h2>
             
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#F7F7F7]/60 mb-1.5">Issue type</label>
+                <label className="label block text-[#F7F7F7]/60 mb-1.5">Issue type</label>
                 <select
                   value={disputeIssueType}
                   onChange={(e) => setDisputeIssueType(e.target.value as DisputeIssueType)}
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
                   disabled={disputeMutation.isPending}
                 >
                   {Object.entries(DISPUTE_ISSUE_LABELS).map(([key, label]) => (
@@ -547,11 +547,11 @@ export default function BookingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#F7F7F7]/60 mb-1.5">Priority</label>
+                <label className="label block text-[#F7F7F7]/60 mb-1.5">Priority</label>
                 <select
                   value={disputePriority}
                   onChange={(e) => setDisputePriority(e.target.value as DisputePriority)}
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
                   disabled={disputeMutation.isPending}
                 >
                   <option value="LOW">Low</option>
@@ -562,12 +562,12 @@ export default function BookingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#F7F7F7]/60 mb-1.5">Description</label>
+                <label className="label block text-[#F7F7F7]/60 mb-1.5">Description</label>
                 <textarea
                   value={disputeDescription}
                   onChange={(e) => setDisputeDescription(e.target.value)}
                   placeholder="Describe the issue you experienced..."
-                  className="w-full h-24 resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body w-full h-24 resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                   disabled={disputeMutation.isPending}
                 />
               </div>
@@ -577,14 +577,14 @@ export default function BookingsPage() {
               <button
                 onClick={() => { setBookingToDispute(null); setDisputeDescription(""); }}
                 disabled={disputeMutation.isPending}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
+                className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDispute}
                 disabled={disputeMutation.isPending || !disputeDescription.trim()}
-                className="btn-lime rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-40"
+                className="label btn-lime rounded-full px-5 py-2.5 disabled:opacity-40"
               >
                 {disputeMutation.isPending ? "Submitting..." : "Submit Report"}
               </button>
@@ -615,7 +615,7 @@ function DetailChip({
   return (
     <div className="rounded-xl bg-white/[0.03] p-3">
       <Icon className="h-3.5 w-3.5 text-[#50C8C8]" />
-      <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7]">{value}</p>
+      <p className="heading-3 mt-1.5 text-[#F7F7F7]">{value}</p>
       <p className="caption mt-0.5 text-[#F7F7F7]/25">{label}</p>
     </div>
   );
@@ -633,7 +633,7 @@ function StatCard({
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
       <Icon className="h-4 w-4 text-[#50C8C8]" />
-      <p className="metric mt-3 text-2xl text-[#E6FA50]">{value}</p>
+      <p className="metric mt-3 text-[#E6FA50]">{value}</p>
       <p className="caption mt-1 text-[#F7F7F7]/25">{label}</p>
     </div>
   );
@@ -679,7 +679,7 @@ function BookingRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h3 className={`heading-3 truncate text-sm ${muted ? "text-[#F7F7F7]/40" : "text-[#F7F7F7]"}`}>
+          <h3 className={`heading-3 truncate ${muted ? "text-[#F7F7F7]/40" : "text-[#F7F7F7]"}`}>
             {venue?.name ?? "Unknown Venue"}
           </h3>
           <StatusPill status={booking.status} />
@@ -692,7 +692,7 @@ function BookingRow({
       </div>
 
       <div className="flex items-center gap-2 sm:shrink-0">
-        <p className={`price text-base ${muted ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]"}`}>
+        <p className={`price ${muted ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]"}`}>
           Rp {(booking.finalAmount / 1000).toFixed(0)}K
         </p>
         <div className="flex gap-1.5">
@@ -743,7 +743,7 @@ function BookingRow({
             </button>
           )}
           {existingRefund && (
-            <span className={`flex h-8 items-center justify-center rounded-lg px-2 text-[10px] font-medium uppercase tracking-[0.1em] ${
+            <span className={`caption flex h-8 items-center justify-center rounded-lg px-2 ${
                 existingRefund.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
                 existingRefund.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
                 existingRefund.status === 'PROCESSED' ? 'bg-blue-500/10 text-blue-400' :
@@ -775,7 +775,7 @@ function StatusPill({ status }: { status: string }) {
     EXPIRED: "bg-white/[0.04] text-[#F7F7F7]/25",
   };
   return (
-    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/25"}`}>
+    <span className={`caption shrink-0 rounded-full px-2 py-0.5 ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/25"}`}>
       {status}
     </span>
   );

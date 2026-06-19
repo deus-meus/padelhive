@@ -88,12 +88,12 @@ export function VoucherApply({
           <div className="flex items-center gap-3">
             <CheckCircle2 className="h-4 w-4 text-[#E6FA50]" />
             <div>
-              <p className="text-sm font-medium text-[#E6FA50]">{result.code}</p>
+              <p className="label text-[#E6FA50]">{result.code}</p>
               <p className="caption text-[#E6FA50]/60">{result.message}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-[#E6FA50]">
+            <span className="price text-[#E6FA50]">
               -Rp {(result.discount / 1000).toFixed(0)}K
             </span>
             <button
@@ -119,13 +119,13 @@ export function VoucherApply({
             value={code}
             onChange={(e) => { setCode(e.target.value.toUpperCase()); setResult(null); }}
             onKeyDown={(e) => { if (e.key === "Enter") validateVoucher(); }}
-            className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-2.5 pl-10 pr-4 text-sm font-medium tracking-wider text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 placeholder:tracking-normal placeholder:font-normal focus:border-[#E6FA50]/30 focus:outline-none"
+            className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-2.5 pl-10 pr-4 body text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
           />
         </div>
         <button
           onClick={validateVoucher}
           disabled={!code.trim() || loading}
-          className="btn-lime flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn-lime flex items-center gap-2 rounded-xl px-5 py-2.5 label disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
         </button>

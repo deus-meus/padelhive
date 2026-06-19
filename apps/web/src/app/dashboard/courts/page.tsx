@@ -121,17 +121,17 @@ export default function CourtsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+            <h1 className="heading-1 text-[#F7F7F7]">
               Courts & Pricing
             </h1>
-            <p className="mt-1 text-sm text-[#F7F7F7]/40">
+            <p className="body mt-1 text-[#F7F7F7]/40">
               Manage courts and dynamic pricing
             </p>
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
             disabled={!activeVenueId}
-            className="btn-lime flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="label btn-lime flex h-10 items-center gap-2 rounded-full px-5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Court
@@ -189,7 +189,7 @@ export default function CourtsPage() {
                 setEditingCourtId(null);
                 setEditingPrices(null);
               }}
-              className={`whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
+              className={`label whitespace-nowrap rounded-full px-4 py-2 transition-all ${
                 activeVenueId === v.id
                   ? "bg-[#E6FA50] text-[#06121A]"
                   : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
@@ -212,18 +212,18 @@ export default function CourtsPage() {
                 {/* Court header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <h3 className="heading-2 text-lg text-[#F7F7F7]">
+                    <h3 className="heading-2 text-[#F7F7F7]">
                       {court.name}
                     </h3>
-                    <span className="rounded-full bg-white/[0.04] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-[#F7F7F7]/40">
+                    <span className="caption rounded-full bg-white/[0.04] px-3 py-1 text-[#F7F7F7]/40">
                       {court.type}
                     </span>
                     {court.isActive ? (
-                      <span className="flex items-center gap-1 text-[11px] text-green-400">
+                      <span className="caption flex items-center gap-1 text-green-400">
                         <CheckCircle2 className="h-3 w-3" /> Active
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-[11px] text-red-400">
+                      <span className="caption flex items-center gap-1 text-red-400">
                         <XCircle className="h-3 w-3" /> Inactive
                       </span>
                     )}
@@ -232,7 +232,7 @@ export default function CourtsPage() {
                     <button
                       onClick={() => handleToggleActive(court)}
                       disabled={updateMutation.isPending}
-                      className="flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-3 text-[11px] font-medium text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60 disabled:opacity-50"
+                      className="label flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-3 text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60 disabled:opacity-50"
                     >
                       {court.isActive ? "Deactivate" : "Activate"}
                     </button>
@@ -240,7 +240,7 @@ export default function CourtsPage() {
                       <button
                         onClick={() => handleSavePricing(court.id)}
                         disabled={updateMutation.isPending}
-                        className="flex h-9 items-center gap-2 rounded-lg border border-[#E6FA50]/30 bg-[#E6FA50]/10 px-4 text-[11px] font-medium text-[#E6FA50] transition-all hover:bg-[#E6FA50]/20 disabled:opacity-50"
+                        className="label flex h-9 items-center gap-2 rounded-lg border border-[#E6FA50]/30 bg-[#E6FA50]/10 px-4 text-[#E6FA50] transition-all hover:bg-[#E6FA50]/20 disabled:opacity-50"
                       >
                         {updateMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Edit3 className="h-3 w-3" />}
                         Save
@@ -248,7 +248,7 @@ export default function CourtsPage() {
                     ) : (
                       <button
                         onClick={() => handleEditClick(court)}
-                        className="flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-4 text-[11px] font-medium text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+                        className="label flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-4 text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
                       >
                         <Edit3 className="h-3 w-3" />
                         Edit Pricing
@@ -258,7 +258,7 @@ export default function CourtsPage() {
                       <button
                         onClick={() => handleEditClick(court)}
                         disabled={updateMutation.isPending}
-                        className="flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-3 text-[11px] font-medium text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60 disabled:opacity-50"
+                        className="label flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-3 text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60 disabled:opacity-50"
                       >
                         Cancel
                       </button>
@@ -302,10 +302,10 @@ export default function CourtsPage() {
 
                 {/* Peak hours info */}
                 <div className="mt-4 flex items-center gap-4 border-t border-white/[0.04] pt-4">
-                  <span className="text-[11px] text-[#F7F7F7]/25">
+                  <span className="caption text-[#F7F7F7]/25">
                     Peak hours: 09:00–11:00 & 16:00–21:00
                   </span>
-                  <span className="text-[11px] text-[#F7F7F7]/25">
+                  <span className="caption text-[#F7F7F7]/25">
                     Venue: {venue?.name}
                   </span>
                 </div>
@@ -314,10 +314,10 @@ export default function CourtsPage() {
           })}
           {courts.length === 0 && activeVenueId && (
             <div className="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
-              <p className="text-sm text-[#F7F7F7]/25">No courts for this venue yet.</p>
+              <p className="body text-[#F7F7F7]/25">No courts for this venue yet.</p>
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="btn-lime mt-4 rounded-full px-6 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                className="label btn-lime mt-4 rounded-full px-6 py-2.5"
               >
                 Add First Court
               </button>
@@ -330,7 +330,7 @@ export default function CourtsPage() {
         {/* Toast */}
         {toast && (
           <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40">
-            <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
+            <p className="body text-[#F7F7F7]/60">{toast}</p>
           </div>
         )}
 
@@ -376,18 +376,18 @@ function PricingCard({
         <Icon
           className={`h-3 w-3 ${highlight ? "text-[#E6FA50]/60" : "text-[#F7F7F7]/25"}`}
         />
-        <span className="text-[10px] text-[#F7F7F7]/25">{label}</span>
+        <span className="caption text-[#F7F7F7]/25">{label}</span>
       </div>
       {editing ? (
         <input
           type="text"
           value={displayPrice}
           onChange={(e) => onChange?.(e.target.value)}
-          className="mt-2 w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-sm font-medium text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+          className="body mt-2 w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
         />
       ) : (
         <p
-          className={`mt-2 text-base font-semibold ${
+          className={`price mt-2 ${
             highlight ? "text-[#E6FA50]/80" : "text-[#F7F7F7]/60"
           }`}
         >
@@ -395,7 +395,7 @@ function PricingCard({
         </p>
       )}
       {editing && (
-        <p className="mt-1 text-[9px] text-[#F7F7F7]/25">× 1,000 IDR</p>
+        <p className="caption mt-1 text-[#F7F7F7]/25">× 1,000 IDR</p>
       )}
     </div>
   );
@@ -440,7 +440,7 @@ function AddCourtModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
       <div className="w-full max-w-lg rounded-2xl border border-white/[0.06] bg-[#0C1B26] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/[0.06] p-6">
-          <h2 className="text-lg font-semibold text-[#F7F7F7]">Add New Court</h2>
+          <h2 className="heading-3 text-[#F7F7F7]">Add New Court</h2>
           <button onClick={onClose} className="text-[#F7F7F7]/40 hover:text-[#F7F7F7]">
             <XCircle className="h-5 w-5" />
           </button>
@@ -448,22 +448,22 @@ function AddCourtModal({
         <form onSubmit={handleSubmit} className="p-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[#F7F7F7]/60">Court Name</label>
+              <label className="label block text-[#F7F7F7]/60">Court Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Court A"
-                className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                className="body mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#F7F7F7]/60">Type</label>
+              <label className="label block text-[#F7F7F7]/60">Type</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as "INDOOR" | "OUTDOOR")}
-                className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [&>option]:bg-[#0C1B26]"
+                className="body mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [&>option]:bg-[#0C1B26]"
               >
                 <option value="INDOOR">Indoor</option>
                 <option value="OUTDOOR">Outdoor</option>
@@ -472,49 +472,49 @@ function AddCourtModal({
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-[#F7F7F7]/60">Weekday Off-Peak (K)</label>
+                <label className="label block text-[#F7F7F7]/60">Weekday Off-Peak (K)</label>
                 <input
                   type="text"
                   value={weekdayOffPeak}
                   onChange={(e) => setWeekdayOffPeak(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#F7F7F7]/60">Weekday Peak (K)</label>
+                <label className="label block text-[#F7F7F7]/60">Weekday Peak (K)</label>
                 <input
                   type="text"
                   value={weekdayPeak}
                   onChange={(e) => setWeekdayPeak(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#F7F7F7]/60">Weekend Off-Peak (K)</label>
+                <label className="label block text-[#F7F7F7]/60">Weekend Off-Peak (K)</label>
                 <input
                   type="text"
                   value={weekendOffPeak}
                   onChange={(e) => setWeekendOffPeak(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#F7F7F7]/60">Weekend Peak (K)</label>
+                <label className="label block text-[#F7F7F7]/60">Weekend Peak (K)</label>
                 <input
                   type="text"
                   value={weekendPeak}
                   onChange={(e) => setWeekendPeak(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body mt-1.5 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none"
                   required
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-3 pt-2">
-              <label className="text-xs font-medium text-[#F7F7F7]/60">Status:</label>
+              <label className="label text-[#F7F7F7]/60">Status:</label>
               <button
                 type="button"
                 onClick={() => setIsActive(!isActive)}
@@ -528,7 +528,7 @@ function AddCourtModal({
                   }`}
                 />
               </button>
-              <span className="text-sm text-[#F7F7F7]">
+              <span className="body text-[#F7F7F7]">
                 {isActive ? "Active" : "Inactive"}
               </span>
             </div>
@@ -539,14 +539,14 @@ function AddCourtModal({
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="rounded-full px-5 py-2 text-sm font-medium text-[#F7F7F7]/60 hover:bg-white/[0.04] hover:text-[#F7F7F7] disabled:opacity-50"
+              className="label rounded-full px-5 py-2 text-[#F7F7F7]/60 hover:bg-white/[0.04] hover:text-[#F7F7F7] disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="btn-lime flex items-center justify-center gap-2 rounded-full px-6 py-2 text-sm font-semibold disabled:opacity-50"
+              className="label btn-lime flex items-center justify-center gap-2 rounded-full px-6 py-2 disabled:opacity-50"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Create Court

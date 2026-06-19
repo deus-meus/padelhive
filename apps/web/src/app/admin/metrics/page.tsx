@@ -20,7 +20,7 @@ export default function AdminMetricsPage() {
       <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
         <div className="mb-8">
           <p className="caption text-[#E6FA50]">Platform</p>
-          <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] sm:text-4xl">
+          <h1 className="heading-1 mt-2 text-[#F7F7F7]">
             Metrics <span className="text-[#E6FA50]">Report</span>
           </h1>
         </div>
@@ -85,19 +85,19 @@ export default function AdminMetricsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
             <p className="caption text-[#F7F7F7]/40">Total GMV</p>
-            <p className="price text-2xl text-[#F7F7F7] mt-2">{formatIDR(data.totalGmv)}</p>
+            <p className="price mt-2 text-[#F7F7F7]">{formatIDR(data.totalGmv)}</p>
           </div>
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
             <p className="caption text-[#F7F7F7]/40">Total Commission</p>
-            <p className="price text-2xl text-[#E6FA50] mt-2">{formatIDR(data.totalCommission)}</p>
+            <p className="price mt-2 text-[#E6FA50]">{formatIDR(data.totalCommission)}</p>
           </div>
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
             <p className="caption text-[#F7F7F7]/40">Total Bookings</p>
-            <p className="price text-2xl text-[#F7F7F7] mt-2">{data.totalBookings}</p>
+            <p className="price mt-2 text-[#F7F7F7]">{data.totalBookings}</p>
           </div>
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
             <p className="caption text-[#F7F7F7]/40">Avg Monthly GMV</p>
-            <p className="price text-2xl text-[#F7F7F7] mt-2">{formatIDR(data.avgMonthlyGmv)}</p>
+            <p className="price mt-2 text-[#F7F7F7]">{formatIDR(data.avgMonthlyGmv)}</p>
           </div>
         </div>
 
@@ -117,7 +117,7 @@ export default function AdminMetricsPage() {
                     <p className="caption mt-3 text-[#F7F7F7]/40">{monthName}</p>
                     
                     {/* Tooltip */}
-                    <div className="absolute -top-12 hidden whitespace-nowrap rounded-lg bg-white/[0.1] px-3 py-1.5 text-xs text-[#F7F7F7] backdrop-blur-md group-hover:block z-10">
+                    <div className="caption absolute -top-12 hidden whitespace-nowrap rounded-lg bg-white/[0.1] px-3 py-1.5 text-[#F7F7F7] backdrop-blur-md group-hover:block z-10">
                       {formatIDR(m.gmv)}
                     </div>
                   </div>
@@ -135,7 +135,7 @@ export default function AdminMetricsPage() {
                   <div key={s.status}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="caption text-[#F7F7F7]/60">{s.status}</span>
-                      <span className="text-sm font-medium text-[#F7F7F7]">{s.count}</span>
+                      <span className="body-sm text-[#F7F7F7]">{s.count}</span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.04]">
                       <div className="h-full bg-[#E6FA50] transition-all" style={{ width: `${pct}%` }} />

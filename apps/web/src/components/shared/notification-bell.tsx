@@ -108,7 +108,7 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
       >
         <Bell className="h-[18px] w-[18px]" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E6FA50] px-1 text-[10px] font-semibold leading-none text-[#06121A]">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E6FA50] px-1 caption text-[#06121A]">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -117,11 +117,11 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
       {open && (
         <div className="absolute right-0 top-12 w-80 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-2 shadow-2xl z-50">
           <div className="flex items-center justify-between px-3 py-2">
-            <h3 className="text-sm font-medium text-[#F7F7F7]">Notifications</h3>
+            <h3 className="heading-3 text-[#F7F7F7]">Notifications</h3>
             <button
               onClick={handleMarkAllRead}
               disabled={unreadCount === 0 || markAllReadMutation.isPending}
-              className="text-xs text-[#F7F7F7]/60 hover:text-[#F7F7F7] disabled:opacity-50 disabled:hover:text-[#F7F7F7]/60 transition-colors"
+              className="label text-[#F7F7F7]/60 hover:text-[#F7F7F7] disabled:opacity-50 disabled:hover:text-[#F7F7F7]/60 transition-colors"
             >
               Mark all read
             </button>
@@ -130,7 +130,7 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
 
           <div className="max-h-96 overflow-y-auto">
             {isLoading ? (
-              <div className="px-3 py-6 text-center text-sm text-[#F7F7F7]/40">
+              <div className="px-3 py-6 text-center body text-[#F7F7F7]/40">
                 Loading…
               </div>
             ) : notifications && notifications.length > 0 ? (
@@ -145,11 +145,11 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
                       <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#E6FA50]" />
                     )}
                     <div className={n.isRead ? "ml-5" : "ml-0"}>
-                      <p className="text-sm font-medium text-[#F7F7F7]">{n.title}</p>
-                      <p className="caption text-[#F7F7F7]/40 mt-0.5 leading-snug">
+                      <p className="label text-[#F7F7F7]">{n.title}</p>
+                      <p className="caption text-[#F7F7F7]/40 mt-0.5">
                         {n.body}
                       </p>
-                      <p className="text-[10px] text-[#F7F7F7]/30 mt-1">
+                      <p className="caption text-[#F7F7F7]/30 mt-1">
                         {formatRelativeTime(n.createdAt)}
                       </p>
                     </div>
@@ -157,7 +157,7 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
                 ))}
               </div>
             ) : (
-              <div className="px-3 py-6 text-center text-sm text-[#F7F7F7]/40">
+              <div className="px-3 py-6 text-center body text-[#F7F7F7]/40">
                 No notifications yet.
               </div>
             )}

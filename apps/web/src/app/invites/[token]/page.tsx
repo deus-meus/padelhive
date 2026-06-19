@@ -131,7 +131,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
       <div className="container max-w-2xl py-8">
         <Link
           href="/venues"
-          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 transition-colors hover:text-[#F7F7F7]/60"
+          className="label inline-flex items-center gap-2 text-[#F7F7F7]/40 transition-colors hover:text-[#F7F7F7]/60"
         >
           <ArrowLeft className="h-4 w-4" />
           Browse venues
@@ -140,57 +140,57 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
         <div className="mt-8 rounded-3xl border border-white/[0.06] bg-[#0C1B26] p-6 shadow-2xl shadow-black/20 md:p-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#50C8C8]">Padelhive Invite</p>
-              <h1 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-3xl">
+              <p className="section-label text-[#50C8C8]">Padelhive Invite</p>
+              <h1 className="heading-1 mt-3 text-[#F7F7F7]">
                 Join {invite.booking.host.name ?? "your host"} for padel
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-[#F7F7F7]/40">
+              <p className="body mt-2 text-[#F7F7F7]/40">
                 RSVP for this court booking. No login or payment required.
               </p>
             </div>
-            <div className="rounded-full bg-[#E6FA50]/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#E6FA50]">
+            <div className="caption rounded-full bg-[#E6FA50]/10 px-3 py-1.5 uppercase text-[#E6FA50]">
               {invite.status}
             </div>
           </div>
 
           <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
-            <h2 className="heading-3 text-sm uppercase tracking-wider text-[#F7F7F7]/60">Booking Details</h2>
+            <h2 className="heading-3 uppercase text-[#F7F7F7]/60">Booking Details</h2>
             <div className="mt-4 space-y-4">
               <div className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 text-[#50C8C8]" />
                 <div>
-                  <p className="text-sm font-medium text-[#F7F7F7]/80">{invite.booking.venue.name}</p>
-                  <p className="text-[11px] text-[#F7F7F7]/40">{invite.booking.venue.city}</p>
+                  <p className="body text-[#F7F7F7]/80">{invite.booking.venue.name}</p>
+                  <p className="caption text-[#F7F7F7]/40">{invite.booking.venue.city}</p>
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#F7F7F7]/25">Court</p>
-                  <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{invite.booking.court.name}</p>
+                  <p className="caption uppercase text-[#F7F7F7]/25">Court</p>
+                  <p className="body mt-1 text-[#F7F7F7]/80">{invite.booking.court.name}</p>
                 </div>
                 <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.08em] text-[#F7F7F7]/25">Time</p>
-                  <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{formatBookingTimeRange(invite.booking.startsAt, invite.booking.endsAt)}</p>
+                  <p className="caption uppercase text-[#F7F7F7]/25">Time</p>
+                  <p className="body mt-1 text-[#F7F7F7]/80">{formatBookingTimeRange(invite.booking.startsAt, invite.booking.endsAt)}</p>
                 </div>
               </div>
               <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
                 <div className="flex items-center gap-2 text-[#F7F7F7]/80">
                   <Clock className="h-4 w-4 text-[#E6FA50]" />
-                  <span className="text-sm font-medium">{formatBookingDate(invite.booking.bookingDate)}</span>
+                  <span className="body">{formatBookingDate(invite.booking.bookingDate)}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="mt-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
-            <h2 className="heading-3 text-sm uppercase tracking-wider text-[#F7F7F7]/60">Invite</h2>
+            <h2 className="heading-3 uppercase text-[#F7F7F7]/60">Invite</h2>
             <div className="mt-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#50C8C8]/10 text-[#50C8C8]">
                 <User className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[#F7F7F7]/80">{invite.name}</p>
-                <p className="text-[11px] text-[#F7F7F7]/40">{invite.email}</p>
+                <p className="body text-[#F7F7F7]/80">{invite.name}</p>
+                <p className="body-sm text-[#F7F7F7]/40">{invite.email}</p>
               </div>
             </div>
           </div>
@@ -198,22 +198,22 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
           {resultCopy && ResultIcon ? (
             <div className={`mt-6 rounded-2xl border border-white/[0.06] ${resultCopy.bg} p-5 text-center`}>
               <ResultIcon className={`mx-auto h-10 w-10 ${resultCopy.color}`} />
-              <h2 className="heading-2 mt-4 text-xl text-[#F7F7F7]">{resultCopy.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-[#F7F7F7]/60">{resultCopy.body}</p>
+              <h2 className="heading-2 mt-4 text-[#F7F7F7]">{resultCopy.title}</h2>
+              <p className="body mt-2 text-[#F7F7F7]/60">{resultCopy.body}</p>
             </div>
           ) : (
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button
                 onClick={() => handleRsvp("ACCEPTED")}
                 disabled={rsvpMutation.isPending}
-                className="btn-lime flex h-12 items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-40"
+                className="label btn-lime flex h-12 items-center justify-center rounded-full uppercase disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {rsvpMutation.isPending && rsvpMutation.variables === "ACCEPTED" ? "Saving..." : "Accept Invite"}
               </button>
               <button
                 onClick={() => handleRsvp("DECLINED")}
                 disabled={rsvpMutation.isPending}
-                className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-red-300/30 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-40"
+                className="label flex h-12 items-center justify-center rounded-full border border-white/[0.08] uppercase text-[#F7F7F7]/60 transition-colors hover:border-red-300/30 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {rsvpMutation.isPending && rsvpMutation.variables === "DECLINED" ? "Saving..." : "Decline"}
               </button>
@@ -223,7 +223,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
           {submitError && invite && (
             <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
-              <p className="text-[11px] leading-relaxed text-red-200/80">{submitError}</p>
+              <p className="caption text-red-200/80">{submitError}</p>
             </div>
           )}
         </div>

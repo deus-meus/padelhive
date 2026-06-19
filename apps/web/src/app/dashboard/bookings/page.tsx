@@ -155,10 +155,10 @@ export default function BookingsManagementPage() {
       <section className="container">
         {/* Header */}
         <div>
-          <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+          <h1 className="heading-1 text-[#F7F7F7]">
             Bookings
           </h1>
-          <p className="mt-1 text-sm text-[#F7F7F7]/40">
+          <p className="body mt-1 text-[#F7F7F7]/40">
             Manage all court reservations
           </p>
         </div>
@@ -169,15 +169,15 @@ export default function BookingsManagementPage() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all ${
+              className={`label flex items-center gap-2 rounded-lg px-4 py-2.5 transition-all ${
                 activeTab === tab.key
-                  ? "bg-[#E6FA50]/10 font-medium text-[#E6FA50]"
+                  ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                   : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60"
               }`}
             >
               {tab.label}
               <span
-                className={`rounded-full px-2 py-0.5 text-[10px] ${
+                className={`caption rounded-full px-2 py-0.5 ${
                   activeTab === tab.key
                     ? "bg-[#E6FA50]/20 text-[#E6FA50]"
                     : "bg-white/[0.04] text-[#F7F7F7]/25"
@@ -197,7 +197,7 @@ export default function BookingsManagementPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by player, court, or venue..."
-            className="w-full bg-transparent text-sm font-light text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25"
+            className="body w-full bg-transparent text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25"
           />
         </div>
 
@@ -218,12 +218,12 @@ export default function BookingsManagementPage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="heading-3 text-sm text-[#F7F7F7]">
+                      <p className="heading-3 text-[#F7F7F7]">
                         {player}
                       </p>
                       <div className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 ${config.bg}`}>
                         <StatusIcon className={`h-3 w-3 ${config.color}`} />
-                        <span className={`text-[10px] font-medium ${config.color}`}>
+                        <span className={`caption ${config.color}`}>
                           {config.label}
                         </span>
                       </div>
@@ -231,13 +231,13 @@ export default function BookingsManagementPage() {
                         const payStatus = PAYMENT_STATUS[booking.id] ?? "pending";
                         const payConfig = PAYMENT_CONFIG[payStatus];
                         return (
-                          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${payConfig.bg} ${payConfig.color}`}>
+                          <span className={`caption rounded-full px-2.5 py-0.5 ${payConfig.bg} ${payConfig.color}`}>
                             {payConfig.label}
                           </span>
                         );
                       })()}
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#F7F7F7]/25">
+                    <div className="caption mt-2 flex flex-wrap items-center gap-3 text-[#F7F7F7]/25">
                       <span>{venue?.name}</span>
                       <span className="text-[#F7F7F7]/10">·</span>
                       <span>{court?.name}</span>
@@ -250,7 +250,7 @@ export default function BookingsManagementPage() {
                       <span>{booking.startTime} – {booking.endTime}</span>
                     </div>
                   </div>
-                  <p className="price shrink-0 text-base text-[#F7F7F7]/60">
+                  <p className="price shrink-0 text-[#F7F7F7]/60">
                     Rp {(booking.totalAmount / 1000).toFixed(0)}K
                   </p>
                 </div>
@@ -260,7 +260,7 @@ export default function BookingsManagementPage() {
 
           {filteredBookings.length === 0 && (
             <div className="rounded-xl border border-dashed border-white/[0.08] p-12 text-center">
-              <p className="text-sm text-[#F7F7F7]/25">
+              <p className="body text-[#F7F7F7]/25">
                 No {activeTab} bookings found.
               </p>
             </div>

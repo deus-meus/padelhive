@@ -88,18 +88,18 @@ function LoginContent() {
               Padel<span className="text-[#E6FA50]">hive</span>
             </span>
           </Link>
-          <p className="mt-3 text-sm font-light text-[#F7F7F7]/40">
+          <p className="body-lg mt-3 text-[#F7F7F7]/40">
             Book padel courts in seconds. Play more, wait less.
           </p>
         </div>
 
         {/* Login Card */}
         <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8">
-          <h1 className="heading-2 text-xl text-[#F7F7F7] text-center mb-6">Sign In</h1>
+          <h1 className="heading-2 text-[#F7F7F7] text-center mb-6">Sign In</h1>
 
           {error && (
             <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
-              <p className="text-sm text-red-100/80">{error}</p>
+              <p className="body text-red-100/80">{error}</p>
             </div>
           )}
 
@@ -107,7 +107,7 @@ function LoginContent() {
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.02] py-3.5 text-sm font-medium text-[#F7F7F7] transition-all hover:border-white/[0.15] hover:bg-white/[0.04] disabled:opacity-50"
+            className="label w-full flex items-center justify-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.02] py-3.5 text-[#F7F7F7] transition-all hover:border-white/[0.15] hover:bg-white/[0.04] disabled:opacity-50"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -129,7 +129,7 @@ function LoginContent() {
             <button
               onClick={() => setMethod("phone")}
               disabled={isLoading}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`label flex-1 flex items-center justify-center gap-2 rounded-lg py-2 transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === "phone"
                   ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                   : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
@@ -140,7 +140,7 @@ function LoginContent() {
             <button
               onClick={() => setMethod("email")}
               disabled={isLoading}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`label flex-1 flex items-center justify-center gap-2 rounded-lg py-2 transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                 method === "email"
                   ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                   : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
@@ -161,7 +161,7 @@ function LoginContent() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleOTPRequest(); }}
                 disabled={isLoading}
-                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
           ) : (
@@ -175,7 +175,7 @@ function LoginContent() {
                   onChange={(e) => setInput(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div className="relative">
@@ -187,7 +187,7 @@ function LoginContent() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
             </form>
@@ -198,7 +198,7 @@ function LoginContent() {
             <button
               onClick={handleOTPRequest}
               disabled={isLoading}
-              className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Send OTP Code <ChevronRight className="h-4 w-4" />
             </button>
@@ -206,7 +206,7 @@ function LoginContent() {
             <button
               onClick={handleEmailLogin}
               disabled={isLoading}
-              className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
             </button>
@@ -214,13 +214,13 @@ function LoginContent() {
 
           {/* Links for Email method */}
           {method === "email" && (
-            <div className="mt-4 flex flex-col items-center gap-2 text-sm">
+            <div className="body mt-4 flex flex-col items-center gap-2">
               <Link href="/auth/forgot-password" className="text-[#F7F7F7]/60 hover:text-[#E6FA50] transition-colors">
                 Forgot password?
               </Link>
               <div className="text-[#F7F7F7]/40">
                 Don&apos;t have an account?{" "}
-                <Link href={`/auth/signup${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} className="text-[#F7F7F7]/80 hover:text-[#E6FA50] font-medium transition-colors">
+                <Link href={`/auth/signup${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} className="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">
                   Sign up
                 </Link>
               </div>

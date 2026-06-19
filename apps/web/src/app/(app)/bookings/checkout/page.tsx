@@ -81,16 +81,16 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen pt-28 pb-16">
       <section className="container pb-6">
-        <Link href="/venues" className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
+        <Link href="/venues" className="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </Link>
       </section>
 
       <section className="container pb-8">
-        <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+        <h1 className="heading-1 text-[#F7F7F7]">
           Checkout
         </h1>
-        <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
+        <p className="body-lg mt-2 text-[#F7F7F7]/40">
           Review your booking and complete payment.
         </p>
       </section>
@@ -113,7 +113,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div>
-                  <h2 className="heading-3 text-lg text-[#F7F7F7]">{venue?.name}</h2>
+                  <h2 className="heading-3 text-[#F7F7F7]">{venue?.name}</h2>
                   <p className="mt-1 flex items-center gap-2 caption text-[#F7F7F7]/25">
                     <MapPin className="h-3 w-3" /> {venue?.location} · {venue?.city}
                   </p>
@@ -161,7 +161,7 @@ export default function CheckoutPage() {
                   >
                     <CreditCard className={`h-4 w-4 ${paymentMethod === method.id ? "text-[#E6FA50]" : "text-[#F7F7F7]/25"}`} />
                     <div className="flex-1">
-                      <p className={`text-sm ${paymentMethod === method.id ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>
+                      <p className={`body ${paymentMethod === method.id ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>
                         {method.label}
                       </p>
                       <p className="caption text-[#F7F7F7]/25">{method.provider}</p>
@@ -221,7 +221,7 @@ export default function CheckoutPage() {
               <button
                 onClick={handlePay}
                 disabled={paymentStatus === "processing" || paymentStatus === "success"}
-                className="btn-lime w-full rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                className="label btn-lime w-full rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {paymentStatus === "processing" ? "Processing..." : paymentStatus === "success" ? "Payment Authorized" : `Pay Rp ${(total / 1000).toFixed(0)}K`}
               </button>
@@ -247,8 +247,8 @@ export default function CheckoutPage() {
 function SummaryRow({ label, value, highlight, bold }: { label: string; value: string; highlight?: boolean; bold?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className={`text-sm ${bold ? "font-medium text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>{label}</span>
-      <span className={`text-sm ${highlight ? "text-[#E6FA50]" : bold ? "font-semibold text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
+      <span className={`body-sm ${bold ? "text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>{label}</span>
+      <span className={`price ${highlight ? "text-[#E6FA50]" : bold ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
     </div>
   );
 }

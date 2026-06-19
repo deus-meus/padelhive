@@ -61,19 +61,19 @@ export default function VouchersPage() {
     <div className="min-h-screen py-section-sm space-y-subsection">
       <section className="container">
         <span className="section-label block mb-4">Rewards</span>
-        <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+        <h1 className="heading-1 text-[#F7F7F7]">
           Promo & <span className="text-[#E6FA50]">Vouchers</span>
         </h1>
-        <p className="mt-2 text-sm font-light text-[#F7F7F7]/40">
+        <p className="body mt-2 text-[#F7F7F7]/40">
           Use voucher codes to get discounts on your bookings.
         </p>
         {shouldShowApiError && (
-          <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
+          <div className="body-sm mt-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-200/80">
             {apiError} Showing demo voucher data.
           </div>
         )}
         {shouldShowFallback && (
-          <div className="mt-5 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-sm text-[#E6FA50]/70">
+          <div className="body-sm mt-5 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-[#E6FA50]/70">
             Live API unavailable. Showing demo voucher data.
           </div>
         )}
@@ -86,7 +86,7 @@ export default function VouchersPage() {
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`relative px-5 py-3 text-[11px] font-medium uppercase tracking-[0.1em] transition-colors ${
+              className={`label relative px-5 py-3 uppercase transition-colors ${
                 filter === tab
                   ? "text-[#E6FA50]"
                   : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
@@ -140,7 +140,7 @@ export default function VouchersPage() {
                     ? <Percent className="h-3.5 w-3.5" />
                     : <DollarSign className="h-3.5 w-3.5" />
                   }
-                  <span className="text-xs font-semibold">{formatDiscount(voucher)}</span>
+                  <span className="label">{formatDiscount(voucher)}</span>
                 </div>
                 {voucher.isActive && (
                   <span className="h-2 w-2 rounded-full bg-[#E6FA50] animate-pulse" />
@@ -149,7 +149,7 @@ export default function VouchersPage() {
 
               {/* Code */}
               <div className="flex items-center gap-2 mb-3">
-                <code className="heading-3 text-lg text-[#F7F7F7] tracking-wider">{voucher.code}</code>
+                <code className="heading-3 text-[#F7F7F7]">{voucher.code}</code>
                 {voucher.isActive && (
                   <button
                     onClick={() => copyCode(voucher.code)}
@@ -195,7 +195,7 @@ export default function VouchersPage() {
               {/* View details */}
               <button
                 onClick={() => setSelectedVoucher(voucher)}
-                className="mt-4 w-full rounded-xl border border-white/[0.06] py-2 text-xs font-medium text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+                className="label mt-4 w-full rounded-xl border border-white/[0.06] py-2 text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
               >
                 View Details
               </button>
@@ -207,7 +207,7 @@ export default function VouchersPage() {
         {filtered.length === 0 && (
           <div className="py-16 text-center">
             <Ticket className="mx-auto h-8 w-8 text-[#F7F7F7]/10 mb-3" />
-            <p className="text-sm text-[#F7F7F7]/25">No {filter} vouchers available.</p>
+            <p className="body text-[#F7F7F7]/25">No {filter} vouchers available.</p>
           </div>
         )}
       </section>
@@ -233,10 +233,10 @@ export default function VouchersPage() {
                 ? <Percent className="h-3.5 w-3.5" />
                 : <DollarSign className="h-3.5 w-3.5" />
               }
-              <span className="text-xs font-semibold">{formatDiscount(selectedVoucher)}</span>
+              <span className="label">{formatDiscount(selectedVoucher)}</span>
             </div>
 
-            <h2 className="heading-2 text-xl text-[#F7F7F7] tracking-wider mb-1">{selectedVoucher.code}</h2>
+            <h2 className="heading-2 text-[#F7F7F7] mb-1">{selectedVoucher.code}</h2>
             <p className="caption text-[#F7F7F7]/25 mb-5">
               {selectedVoucher.type === "percentage" ? "Percentage discount" : "Fixed amount discount"}
             </p>
@@ -258,7 +258,7 @@ export default function VouchersPage() {
             {selectedVoucher.isActive && (
               <button
                 onClick={() => { copyCode(selectedVoucher.code); setSelectedVoucher(null); }}
-                className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm"
+                className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3"
               >
                 <Copy className="h-4 w-4" /> Copy Code
               </button>
@@ -284,7 +284,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2.5">
       <span className="caption text-[#F7F7F7]/25">{label}</span>
-      <span className="text-sm font-medium text-[#F7F7F7]/60">{value}</span>
+      <span className="label text-[#F7F7F7]/60">{value}</span>
     </div>
   );
 }

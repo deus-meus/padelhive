@@ -70,8 +70,8 @@ export default function AdminVenuesPage() {
       {/* Header */}
       <div className="mb-8">
         <p className="caption text-[#E6FA50]">Marketplace Admin</p>
-        <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] sm:text-4xl">
-          Venue <span className="text-[#E6FA50]">Approval</span>
+        <h1 className="heading-1 mt-2 text-[#F7F7F7]">
+          Venue <span className="text-[#E6FA50]">Approvals</span>
         </h1>
       </div>
 
@@ -81,10 +81,10 @@ export default function AdminVenuesPage() {
           <button
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
-            className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`label shrink-0 rounded-lg px-4 py-2 transition-all ${
               activeTab === tab.value
-                ? "border-[#E6FA50] text-[#F7F7F7]"
-                : "border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
+                ? "bg-[#E6FA50]/10 text-[#E6FA50]"
+                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
             }`}
           >
             {tab.label}
@@ -132,7 +132,7 @@ export default function AdminVenuesPage() {
                       </h3>
                       <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${config.bg}`}>
                         <StatusIcon className={`h-3 w-3 ${config.color}`} />
-                        <span className={`text-[9px] font-medium uppercase tracking-[0.1em] ${config.color}`}>
+                        <span className={`caption rounded-full px-2.5 py-0.5 uppercase tracking-[0.1em] ${config.color}`}>
                           {config.label}
                         </span>
                       </div>
@@ -149,14 +149,14 @@ export default function AdminVenuesPage() {
                         <button
                           onClick={() => updateMutation.mutate({ id: venue.id, status: "REJECTED" })}
                           disabled={isUpdating}
-                          className="flex h-9 items-center justify-center rounded-full border border-red-500/50 px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+                          className="label flex h-9 items-center justify-center rounded-lg border border-red-500/50 px-5 text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
                         >
                           {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Reject"}
                         </button>
                         <button
                           onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
                           disabled={isUpdating}
-                          className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
+                          className="label btn-lime flex h-9 items-center justify-center rounded-lg px-5 disabled:opacity-50"
                         >
                           {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Approve"}
                         </button>

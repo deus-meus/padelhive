@@ -25,7 +25,7 @@ export default function AdminOverviewPage() {
       <div className="px-6 pb-6 pt-element lg:px-8 lg:pb-8">
         <div className="mb-8">
           <p className="caption text-[#F7F7F7]/25">Marketplace Admin</p>
-          <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
+          <h1 className="heading-1 mt-2 text-[#F7F7F7]">
             Operations <span className="text-[#E6FA50]">Overview</span>
           </h1>
         </div>
@@ -143,7 +143,7 @@ function KPI({
       <div className="flex items-center justify-between">
         <Icon className={`h-4 w-4 ${iconColor}`} />
       </div>
-      <p className="metric mt-3 text-2xl text-[#F7F7F7]">{value}</p>
+      <p className="metric mt-3 text-[#F7F7F7]">{value}</p>
       <p className="caption mt-1 text-[#F7F7F7]/25">{label}</p>
     </div>
   );
@@ -152,8 +152,8 @@ function KPI({
 function QuickStat({ label, value, description }: { label: string; value: string; description: string }) {
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 text-center">
-      <p className="metric text-3xl text-[#E6FA50]">{value}</p>
-      <p className="heading-3 mt-2 text-sm text-[#F7F7F7]">{label}</p>
+      <p className="metric text-[#E6FA50]">{value}</p>
+      <p className="heading-3 mt-2 text-[#F7F7F7]">{label}</p>
       <p className="caption mt-1 text-[#F7F7F7]/25">{description}</p>
     </div>
   );

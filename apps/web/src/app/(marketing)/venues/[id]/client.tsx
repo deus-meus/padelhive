@@ -174,7 +174,7 @@ export default function VenueDetailPage({
     <div className="min-h-screen pt-20">
       {(isLoading || isUsingFallback || apiError) && (
         <section className="container pt-6">
-          <div className={`rounded-xl border px-4 py-3 text-sm ${apiError && !isLoading ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
+          <div className={`body-sm rounded-xl border px-4 py-3 ${apiError && !isLoading ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
             {isLoading ? "Loading live venue data..." : apiError ? `${apiError} Showing demo venue data.` : "Live API unavailable. Showing demo venue data."}
           </div>
         </section>
@@ -191,7 +191,7 @@ export default function VenueDetailPage({
               />
             </div>
             <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
-              <span className="text-[11px] font-medium text-white/90">
+              <span className="caption text-white/90">
                 1 / {IMG.gallery.length}
               </span>
             </div>
@@ -219,11 +219,11 @@ export default function VenueDetailPage({
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+                  <h1 className="heading-1 text-[#F7F7F7]">
                     {venue.name}
                   </h1>
                   {venue.isVerified && (
-                    <span className="flex items-center gap-1 rounded-full bg-[#E6FA50] px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-[#06121A]">
+                    <span className="caption flex items-center gap-1 rounded-full bg-[#E6FA50] px-2.5 py-0.5 uppercase text-[#06121A]">
                       <Shield className="h-2.5 w-2.5" />
                       Verified
                     </span>
@@ -236,7 +236,7 @@ export default function VenueDetailPage({
               </div>
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 fill-[#E6FA50] text-[#E6FA50]" />
-                <span className="label font-semibold text-[#E6FA50]">
+                <span className="label text-[#E6FA50]">
                   {venue.rating}
                 </span>
                 <span className="caption text-[#F7F7F7]/25">
@@ -246,7 +246,7 @@ export default function VenueDetailPage({
             </div>
 
             {/* Description */}
-            <p className="mt-6 text-sm font-light leading-relaxed text-[#F7F7F7]/60">
+            <p className="body mt-6 text-[#F7F7F7]/60">
               {venue.description}
             </p>
 
@@ -258,7 +258,7 @@ export default function VenueDetailPage({
               </div>
             ) : (
               <div className="mt-10">
-                <h2 className="heading-2 flex items-center gap-2 text-lg text-[#F7F7F7]">
+                <h2 className="heading-2 flex items-center gap-2 text-[#F7F7F7]">
                   <Clock className="h-5 w-5" />
                   Operating Hours
                 </h2>
@@ -294,7 +294,7 @@ export default function VenueDetailPage({
 
             {/* Facilities */}
             <div className="mt-10">
-              <h2 className="heading-2 text-lg text-[#F7F7F7]">Facilities</h2>
+              <h2 className="heading-2 text-[#F7F7F7]">Facilities</h2>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {venue.facilities.map((facility) => (
                   <div
@@ -316,7 +316,7 @@ export default function VenueDetailPage({
 
             {/* Courts & Pricing */}
             <div className="mt-10">
-              <h2 className="heading-2 text-lg text-[#F7F7F7]">
+              <h2 className="heading-2 text-[#F7F7F7]">
                 Courts & Pricing
               </h2>
               <div className="mt-4 space-y-3">
@@ -327,7 +327,7 @@ export default function VenueDetailPage({
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="heading-3 text-sm text-[#F7F7F7]">
+                        <p className="heading-3 text-[#F7F7F7]">
                           {court.name}
                         </p>
                         <p className="caption mt-0.5 text-[#F7F7F7]/25">
@@ -335,7 +335,7 @@ export default function VenueDetailPage({
                         </p>
                       </div>
                       <div className="rounded-lg bg-[#50C8C8]/10 px-3 py-1">
-                        <p className="text-[11px] font-medium text-[#50C8C8]">
+                        <p className="caption text-[#50C8C8]">
                           From Rp{" "}
                           {(court.pricing.weekdayOffPeak / 1000).toFixed(0)}K/hr
                         </p>
@@ -343,34 +343,34 @@ export default function VenueDetailPage({
                     </div>
                     <div className="mt-4 grid grid-cols-2 gap-2.5">
                       <div className="flex flex-col justify-center rounded-lg bg-white/[0.02] px-4 py-3 text-center">
-                        <p className="whitespace-nowrap text-[11px] text-[#F7F7F7]/40">
+                        <p className="caption whitespace-nowrap text-[#F7F7F7]/40">
                           Weekday Off-Peak
                         </p>
-                        <p className="mt-1 text-xs font-medium text-[#F7F7F7]/70">
+                        <p className="label mt-1 text-[#F7F7F7]/70">
                           Rp {(court.pricing.weekdayOffPeak / 1000).toFixed(0)}K
                         </p>
                       </div>
                       <div className="flex flex-col justify-center rounded-lg bg-white/[0.02] px-4 py-3 text-center">
-                        <p className="whitespace-nowrap text-[11px] text-[#F7F7F7]/40">
+                        <p className="caption whitespace-nowrap text-[#F7F7F7]/40">
                           Weekday Peak
                         </p>
-                        <p className="mt-1 text-xs font-medium text-[#F7F7F7]/70">
+                        <p className="label mt-1 text-[#F7F7F7]/70">
                           Rp {(court.pricing.weekdayPeak / 1000).toFixed(0)}K
                         </p>
                       </div>
                       <div className="flex flex-col justify-center rounded-lg bg-white/[0.02] px-4 py-3 text-center">
-                        <p className="whitespace-nowrap text-[11px] text-[#F7F7F7]/40">
+                        <p className="caption whitespace-nowrap text-[#F7F7F7]/40">
                           Weekend Off-Peak
                         </p>
-                        <p className="mt-1 text-xs font-medium text-[#F7F7F7]/70">
+                        <p className="label mt-1 text-[#F7F7F7]/70">
                           Rp {(court.pricing.weekendOffPeak / 1000).toFixed(0)}K
                         </p>
                       </div>
                       <div className="flex flex-col justify-center rounded-lg bg-[#E6FA50]/5 px-4 py-3 text-center">
-                        <p className="whitespace-nowrap text-[11px] text-[#E6FA50]/60">
+                        <p className="caption whitespace-nowrap text-[#E6FA50]/60">
                           Weekend Peak
                         </p>
-                        <p className="mt-1 text-xs font-medium text-[#E6FA50]/80">
+                        <p className="label mt-1 text-[#E6FA50]/80">
                           Rp {(court.pricing.weekendPeak / 1000).toFixed(0)}K
                         </p>
                       </div>
@@ -378,7 +378,7 @@ export default function VenueDetailPage({
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-[11px] text-[#F7F7F7]/25">
+              <p className="caption mt-3 text-[#F7F7F7]/25">
                 Peak hours: 09:00–11:00 & 16:00–21:00. Prices include court
                 rental only.
               </p>
@@ -386,7 +386,7 @@ export default function VenueDetailPage({
 
             {/* Availability */}
             <div className="mt-10">
-              <h2 className="heading-2 text-lg text-[#F7F7F7]">
+              <h2 className="heading-2 text-[#F7F7F7]">
                 Today&apos;s Availability
               </h2>
               <p className="caption mt-1 text-[#F7F7F7]/25">
@@ -398,7 +398,7 @@ export default function VenueDetailPage({
                   <button
                     key={slot.time}
                     disabled={!slot.available}
-                    className={`rounded-lg py-2.5 text-center text-[11px] font-medium transition-all ${
+                    className={`caption rounded-lg py-2.5 text-center transition-all ${
                       !slot.available
                         ? "bg-white/[0.02] text-[#F7F7F7]/15 cursor-not-allowed"
                         : slot.peak
@@ -413,34 +413,34 @@ export default function VenueDetailPage({
               <div className="mt-3 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-white/[0.08] bg-[#0C1B26]" />
-                  <span className="text-[10px] text-[#F7F7F7]/25">
+                  <span className="caption text-[#F7F7F7]/25">
                     Available
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-[#E6FA50]/20 bg-[#E6FA50]/5" />
-                  <span className="text-[10px] text-[#F7F7F7]/25">
+                  <span className="caption text-[#F7F7F7]/25">
                     Peak Hour
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm bg-white/[0.02]" />
-                  <span className="text-[10px] text-[#F7F7F7]/25">Booked</span>
+                  <span className="caption text-[#F7F7F7]/25">Booked</span>
                 </div>
               </div>
             </div>
 
             {/* Location */}
             <div className="mt-10">
-              <h2 className="heading-2 text-lg text-[#F7F7F7]">Location</h2>
+              <h2 className="heading-2 text-[#F7F7F7]">Location</h2>
               <div className="mt-4 overflow-hidden rounded-xl border border-white/[0.06]">
                 <div className="flex h-[200px] items-center justify-center bg-[#0C1B26]">
                   <div className="text-center">
                     <Navigation className="mx-auto h-8 w-8 text-[#50C8C8]/40" />
-                    <p className="mt-3 text-sm text-[#F7F7F7]/40">
+                    <p className="body-sm mt-3 text-[#F7F7F7]/40">
                       {venue.location}
                     </p>
-                    <p className="mt-1 text-xs text-[#F7F7F7]/25">
+                    <p className="caption mt-1 text-[#F7F7F7]/25">
                       {venue.city}, Indonesia
                     </p>
                   </div>
@@ -450,7 +450,7 @@ export default function VenueDetailPage({
                 href={`https://maps.google.com/?q=${encodeURIComponent(`${venue.location}, ${venue.city}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[#50C8C8] hover:text-[#50C8C8]/80"
+                className="label mt-3 inline-flex items-center gap-1.5 text-[#50C8C8] hover:text-[#50C8C8]/80"
               >
                 <MapPin className="h-3 w-3" />
                 Open in Google Maps
@@ -459,7 +459,7 @@ export default function VenueDetailPage({
 
             {/* Refund Policy */}
             <div className="mt-10">
-              <h2 className="heading-2 text-lg text-[#F7F7F7]">
+              <h2 className="heading-2 text-[#F7F7F7]">
                 Refund Policy
               </h2>
               <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
@@ -467,7 +467,7 @@ export default function VenueDetailPage({
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 h-2 w-2 rounded-full bg-green-400" />
                     <div>
-                      <p className="text-sm text-[#F7F7F7]/60">
+                      <p className="body-sm text-[#F7F7F7]/60">
                         Full refund if cancelled more than 24 hours before
                         booking
                       </p>
@@ -476,7 +476,7 @@ export default function VenueDetailPage({
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 h-2 w-2 rounded-full bg-yellow-400" />
                     <div>
-                      <p className="text-sm text-[#F7F7F7]/60">
+                      <p className="body-sm text-[#F7F7F7]/60">
                         50% refund if cancelled 12–24 hours before booking
                       </p>
                     </div>
@@ -484,7 +484,7 @@ export default function VenueDetailPage({
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 h-2 w-2 rounded-full bg-red-400" />
                     <div>
-                      <p className="text-sm text-[#F7F7F7]/60">
+                      <p className="body-sm text-[#F7F7F7]/60">
                         Non-refundable if cancelled less than 12 hours before
                         booking
                       </p>
@@ -496,7 +496,7 @@ export default function VenueDetailPage({
 
             {/* Reviews */}
             <div className="mt-10">
-              <h2 className="heading-2 text-lg text-[#F7F7F7]">Reviews</h2>
+              <h2 className="heading-2 text-[#F7F7F7]">Reviews</h2>
               {isLoadingReviews ? (
                 <div className="mt-4 space-y-3">
                   {[...Array(3)].map((_, i) => (
@@ -519,7 +519,7 @@ export default function VenueDetailPage({
                   {reviews.map((review) => (
                     <div key={review.id} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
                       <div className="flex items-center justify-between">
-                        <p className="heading-3 text-sm text-[#F7F7F7]">{review.authorName}</p>
+                        <p className="heading-3 text-[#F7F7F7]">{review.authorName}</p>
                         <div className="flex items-center gap-1">
                           {[1, 2, 3, 4, 5].map((n) => (
                             <Star key={n} className={`h-3.5 w-3.5 ${n <= review.rating ? "fill-[#E6FA50] text-[#E6FA50]" : "text-[#F7F7F7]/15"}`} />
@@ -527,7 +527,7 @@ export default function VenueDetailPage({
                         </div>
                       </div>
                       {review.comment && (
-                        <p className="mt-2 text-sm font-light leading-relaxed text-[#F7F7F7]/60">{review.comment}</p>
+                        <p className="body mt-2 text-[#F7F7F7]/60">{review.comment}</p>
                       )}
                       <p className="caption mt-2 text-[#F7F7F7]/25">{formatBookingDate(review.createdAt)}</p>
                     </div>
@@ -543,7 +543,7 @@ export default function VenueDetailPage({
               <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <p className="price text-2xl text-[#F7F7F7]">
+                    <p className="price text-[#F7F7F7]">
                       {minPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K` : "Pricing soon"}
                     </p>
                     <p className="caption mt-0.5 text-[#F7F7F7]/25">
@@ -555,27 +555,27 @@ export default function VenueDetailPage({
                 <div className="mt-6 space-y-3">
                   <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                     <p className="caption text-[#F7F7F7]/25">Date</p>
-                    <p className="heading-3 mt-1 text-sm text-[#F7F7F7]">
+                    <p className="heading-3 mt-1 text-[#F7F7F7]">
                       Today
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                       <p className="caption text-[#F7F7F7]/25">Start</p>
-                      <p className="heading-3 mt-1 text-sm text-[#F7F7F7]">
+                      <p className="heading-3 mt-1 text-[#F7F7F7]">
                         10:00
                       </p>
                     </div>
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                       <p className="caption text-[#F7F7F7]/25">End</p>
-                      <p className="heading-3 mt-1 text-sm text-[#F7F7F7]">
+                      <p className="heading-3 mt-1 text-[#F7F7F7]">
                         11:00
                       </p>
                     </div>
                   </div>
                   <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                     <p className="caption text-[#F7F7F7]/25">Court</p>
-                    <p className="heading-3 mt-1 text-sm text-[#F7F7F7]">
+                    <p className="heading-3 mt-1 text-[#F7F7F7]">
                       {courts[0]?.name ?? "Court A"}
                     </p>
                   </div>
@@ -583,14 +583,14 @@ export default function VenueDetailPage({
 
                 <div className="mt-6 flex items-center justify-between border-t border-white/[0.06] pt-4">
                   <p className="caption text-[#F7F7F7]/40">Total</p>
-                  <p className="price text-xl text-[#F7F7F7]">
+                  <p className="price text-[#F7F7F7]">
                     {minPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K` : "Pricing soon"}
                   </p>
                 </div>
 
                 <Link
                   href={`/venues/${venue.id}/book`}
-                  className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]"
+                  className="label btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full uppercase"
                 >
                   Book Court
                 </Link>

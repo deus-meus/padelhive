@@ -125,15 +125,15 @@ function VerifyContent() {
           {/* Back button */}
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60 mb-6"
+            className="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60 mb-6"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Edit {method}
           </Link>
 
-          <h1 className="heading-2 text-xl text-[#F7F7F7] mb-2">Verify OTP</h1>
-          <p className="text-sm text-[#F7F7F7]/40 mb-6">
+          <h1 className="heading-2 text-[#F7F7F7] mb-2">Verify OTP</h1>
+          <p className="body text-[#F7F7F7]/40 mb-6">
             We sent a 6-digit code to{" "}
-            <span className="text-[#F7F7F7]/60 font-medium">{decodeURIComponent(contact) || "your device"}</span>
+            <span className="text-[#F7F7F7]/60">{decodeURIComponent(contact) || "your device"}</span>
           </p>
 
           {/* OTP Input */}
@@ -148,7 +148,7 @@ function VerifyContent() {
                 value={digit}
                 onChange={(e) => handleChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
-                className={`h-14 w-11 rounded-xl border text-center text-lg font-semibold transition-all focus:outline-none ${
+                className={`heading-2 h-14 w-11 rounded-xl border text-center transition-all focus:outline-none ${
                   success
                     ? "border-[#E6FA50]/30 bg-[#E6FA50]/5 text-[#E6FA50]"
                     : error
@@ -179,7 +179,7 @@ function VerifyContent() {
           <button
             onClick={handleVerify}
             disabled={isLoading || success}
-            className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:opacity-50"
+            className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 disabled:opacity-50"
           >
             {isLoading || success ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -207,7 +207,7 @@ function VerifyContent() {
           {/* Demo hint */}
           <div className="mt-6 rounded-lg bg-white/[0.02] px-3 py-2 text-center">
             <p className="caption text-[#F7F7F7]/25">
-              Demo OTP: <span className="text-[#50C8C8] font-medium">123456</span>
+              Demo OTP: <span className="text-[#50C8C8]">123456</span>
             </p>
           </div>
         </div>
