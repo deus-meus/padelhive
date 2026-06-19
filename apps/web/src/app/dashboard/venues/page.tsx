@@ -86,7 +86,7 @@ export default function VenueManagementPage() {
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="label btn-lime flex h-10 items-center gap-2 rounded-full px-5 uppercase"
+            className="label btn-lime flex h-10 items-center gap-2 rounded-full px-5"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Venue
@@ -355,7 +355,7 @@ function VenueFormModal({
                 <button
                   type="button"
                   onClick={handleAddPhoto}
-                  className="label btn-lime shrink-0 rounded-xl px-4 uppercase"
+                  className="label btn-lime shrink-0 rounded-xl px-4"
                 >
                   Add
                 </button>
@@ -410,7 +410,7 @@ function VenueFormModal({
                 <button
                   type="button"
                   onClick={handleAddFacility}
-                  className="label btn-lime shrink-0 rounded-xl px-4 uppercase"
+                  className="label btn-lime shrink-0 rounded-xl px-4"
                 >
                   Add
                 </button>
@@ -456,14 +456,14 @@ function VenueFormModal({
                 type="button"
                 onClick={onClose}
                 disabled={isPending}
-                className="label flex-1 rounded-full border border-white/[0.08] py-3 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
+                className="label flex-1 rounded-full border border-white/[0.08] py-3 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="label btn-lime flex flex-1 items-center justify-center gap-2 rounded-full py-3 uppercase disabled:opacity-50"
+                className="label btn-lime flex flex-1 items-center justify-center gap-2 rounded-full py-3 disabled:opacity-50"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {mode === "add" ? "Submit for Approval" : "Save Changes"}

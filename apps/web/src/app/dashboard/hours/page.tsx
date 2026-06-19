@@ -183,11 +183,7 @@ export default function OperatingHoursPage() {
             <button
               onClick={handleSave}
               disabled={isPending || isLoading || isVenuesError || venues.length === 0 || !isDirty}
-              className={`label flex h-10 items-center gap-2 rounded-full px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                isSuccess
-                  ? "bg-green-400/10 text-green-400 border border-green-400/30"
-                  : "btn-lime"
-              }`}
+              className={`label flex h-10 items-center gap-2 rounded-full px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${ isSuccess ? "bg-green-400/10 text-green-400 border border-green-400/30" : "btn-lime" }`}
             >
               {isPending ? (
                 <>

@@ -246,7 +246,7 @@ export default function InviteFriendsPage({
             <button
               onClick={handleAddFriend}
               disabled={!emailInput.trim() || inviteMutation.isPending}
-              className="btn-lime label flex h-[46px] items-center gap-2 rounded-xl px-5 uppercase disabled:opacity-30 disabled:cursor-not-allowed"
+              className="btn-lime label flex h-[46px] items-center gap-2 rounded-xl px-5 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {inviteMutation.isPending ? "Inviting..." : "Invite"}
             </button>
@@ -360,7 +360,7 @@ export default function InviteFriendsPage({
         <div className="mt-10">
           <Link
             href={`/booking/${params.id}/payment?venue=${encodeURIComponent(venue)}&court=${encodeURIComponent(court)}&date=${date}&start=${start}&end=${end}&amount=${amount}&venueId=${venueId}`}
-            className="btn-lime label flex h-12 w-full items-center justify-center rounded-full uppercase"
+            className="btn-lime label flex h-12 w-full items-center justify-center rounded-full"
           >
             Continue to Payment
           </Link>

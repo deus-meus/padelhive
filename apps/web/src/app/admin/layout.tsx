@@ -55,11 +55,7 @@ export default function AdminLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`label flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-150 ${
-                    isActive
-                      ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                      : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
-                  }`}
+                  className={`label flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-150 ${ isActive ? "bg-[#E6FA50]/10 text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60" }`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}

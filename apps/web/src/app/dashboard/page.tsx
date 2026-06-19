@@ -149,10 +149,10 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="flex gap-1">
-                <button className="label rounded-lg bg-[#E6FA50]/10 px-3 py-1.5 uppercase text-[#E6FA50]">
+                <button className="label rounded-lg bg-[#E6FA50]/10 px-3 py-1.5 text-[#E6FA50]">
                   Weekly
                 </button>
-                <button className="label rounded-lg bg-white/[0.03] px-3 py-1.5 uppercase text-[#F7F7F7]/25">
+                <button className="label rounded-lg bg-white/[0.03] px-3 py-1.5 text-[#F7F7F7]/25">
                   Monthly
                 </button>
               </div>

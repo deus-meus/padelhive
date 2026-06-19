@@ -27,7 +27,7 @@ export function Footer() {
                   placeholder="Your email"
                   className="h-10 flex-1 min-w-0 rounded-l-lg border border-white/[0.08] bg-white/[0.03] px-4 body text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30"
                 />
-                <button className="h-10 shrink-0 rounded-r-lg bg-[#E6FA50] px-4 label uppercase text-[#06121A] transition-colors hover:bg-[#d4e845]">
+                <button className="h-10 shrink-0 rounded-r-lg bg-[#E6FA50] px-4 label text-[#06121A] transition-colors hover:bg-[#d4e845]">
                   Join
                 </button>
               </div>

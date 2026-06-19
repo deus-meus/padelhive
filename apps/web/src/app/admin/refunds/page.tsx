@@ -283,7 +283,7 @@ export default function RefundsPage() {
                 type="button"
                 onClick={() => setRejectTarget(null)}
                 disabled={rejectMutation.isPending}
-                className="label flex-1 rounded-xl border border-white/[0.08] py-2.5 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
+                className="label flex-1 rounded-xl border border-white/[0.08] py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -291,7 +291,7 @@ export default function RefundsPage() {
                 type="button"
                 onClick={() => rejectMutation.mutate({ id: rejectTarget, notes: rejectReason.trim() })}
                 disabled={!rejectReason.trim() || rejectMutation.isPending}
-                className="label flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/10 py-2.5 uppercase text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                className="label flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/10 py-2.5 text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
               >
                 {rejectMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 Confirm Reject

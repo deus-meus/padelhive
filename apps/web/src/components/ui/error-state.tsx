@@ -28,7 +28,7 @@ export function ErrorState({
           type="button"
           onClick={onRetry}
           disabled={isRetrying}
-          className="btn-lime mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-xl px-6 label uppercase disabled:opacity-60"
+          className="btn-lime mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-xl px-6 label disabled:opacity-60"
         >
           <RotateCw className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`} />
           {isRetrying ? "Retrying..." : "Try again"}
@@ -68,7 +68,7 @@ export function ErrorBanner({
         <button
           onClick={onRetry}
           disabled={isRetrying}
-          className="inline-flex h-9 shrink-0 items-center gap-2 self-start rounded-full border border-amber-400/30 bg-amber-400/10 px-4 label uppercase text-amber-300 transition-colors hover:bg-amber-400/20 disabled:opacity-50 sm:self-auto"
+          className="inline-flex h-9 shrink-0 items-center gap-2 self-start rounded-full border border-amber-400/30 bg-amber-400/10 px-4 label text-amber-300 transition-colors hover:bg-amber-400/20 disabled:opacity-50 sm:self-auto"
         >
           <RotateCw className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`} />
           {isRetrying ? "Retrying" : "Try again"}

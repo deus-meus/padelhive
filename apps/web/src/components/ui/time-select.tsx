@@ -252,7 +252,7 @@ export function TimeSelect({
             <button
               type="button"
               onClick={handleApply}
-              className="btn-lime rounded-full px-5 py-1.5 label uppercase bg-[#E6FA50] text-[#06121A]"
+              className="btn-lime rounded-full px-5 py-1.5 label bg-[#E6FA50] text-[#06121A]"
             >
               Apply
             </button>

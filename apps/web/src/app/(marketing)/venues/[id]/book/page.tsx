@@ -41,13 +41,7 @@ function SelectionTile({
     <button
       disabled={isDisabled}
       onClick={onClick}
-      className={`relative flex min-h-[64px] w-full flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${
-        isDisabled
-          ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed"
-          : isSelected
-            ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]"
-            : "border-white/[0.08] bg-[#0C1B26] hover:border-[#50C8C8]/40"
-      } ${className}`}
+      className={`relative flex min-h-[64px] w-full flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${ isDisabled ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed" : isSelected ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]" : "border-white/[0.08] bg-[#0C1B26] hover:border-[#50C8C8]/40" } ${className}`}
     >
       <span className={`label ${isDisabled ? "text-[#F7F7F7]/25" : isSelected ? "text-[#E6FA50]" : "text-[#F7F7F7]/80"}`}>
         {primaryText}
@@ -793,7 +787,7 @@ export default function BookingFlowPage({
                 <button
                   onClick={handleConfirm}
                   disabled={courts.length === 0 || selectedSlots.length === 0 || confirmState === "submitting"}
-                  className="label btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full uppercase disabled:cursor-not-allowed disabled:opacity-30"
+                  className="label btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   {confirmState === "submitting" ? "Creating Booking..." : "Continue to Invite & Pay"}
                 </button>
