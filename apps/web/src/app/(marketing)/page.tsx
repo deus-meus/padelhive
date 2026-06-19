@@ -50,7 +50,7 @@ export default async function HomePage() {
         </div>
 
         <div className="container relative z-10 flex flex-1 flex-col justify-center pt-28 pb-20 md:pt-32 md:pb-24">
-          <h1 className="display-xl text-[#F7F7F7]">
+          <h1 className="display-hero text-[#F7F7F7]">
             BOOK.
             <br />
             <span className="text-[#E6FA50]">PLAY.</span>

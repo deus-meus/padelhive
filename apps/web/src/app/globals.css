@@ -117,6 +117,16 @@
 
   /* ─── TYPOGRAPHY SYSTEM ─── */
 
+  /* Display — custom super-sized hero */
+  .display-hero {
+    @apply font-heading font-bold uppercase tracking-[-0.02em] leading-[0.92] text-6xl md:text-8xl lg:text-9xl;
+  }
+
+  /* Display — custom scalable wordmark */
+  .wordmark {
+    @apply font-heading font-bold uppercase tracking-[-0.02em] leading-none text-[clamp(2.5rem,13vw,11rem)];
+  }
+
   /* Display — hero headlines, massive impact */
   .display-xl {
     @apply font-heading font-bold uppercase tracking-[-0.03em] leading-[0.78] text-5xl md:text-7xl;

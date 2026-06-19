@@ -72,7 +72,7 @@ export function Footer() {
         {/* Wordmark section */}
         <div className="border-t border-white/[0.04] pt-20 pb-12 md:pt-24 md:pb-14">
           <p
-            className="select-none text-center display-xl uppercase text-[#F7F7F7]/[0.1]"
+            className="wordmark select-none text-center uppercase text-[#F7F7F7]/[0.1]"
           >
             PADELHIVE
           </p>
