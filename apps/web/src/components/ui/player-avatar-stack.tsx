@@ -60,7 +60,7 @@ export function PlayerAvatarStack({
               />
             ) : null}
             <span
-              className={`absolute inset-0 flex items-center justify-center text-[10px] font-medium text-[#F7F7F7]/60 ${
+              className={`absolute inset-0 flex items-center justify-center caption text-[#F7F7F7]/60 ${
                 player.avatarUrl ? "hidden" : ""
               }`}
               style={{ fontSize: size * 0.3 }}
@@ -80,7 +80,7 @@ export function PlayerAvatarStack({
               zIndex: 0,
             }}
           >
-            <span className="text-[10px] font-medium text-[#F7F7F7]/60">
+            <span className="caption text-[#F7F7F7]/60">
               +{remaining}
             </span>
           </div>
@@ -88,8 +88,8 @@ export function PlayerAvatarStack({
       </div>
 
       {showCount && (
-        <p className="text-xs text-[#F7F7F7]/25">
-          <span className="font-medium text-[#F7F7F7]/60">{players.length}</span>
+        <p className="caption text-[#F7F7F7]/25">
+          <span className="text-[#F7F7F7]/60">{players.length}</span>
           {totalSpots ? ` / ${totalSpots} joined` : " joined"}
           {spotsLeft > 0 && (
             <span> · {spotsLeft} spots left</span>

@@ -65,10 +65,10 @@ export default function RevenuePage() {
         <section className="container">
           {/* Header */}
           <div>
-            <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+            <h1 className="heading-1 text-[#F7F7F7]">
               Revenue
             </h1>
-            <p className="mt-1 text-sm text-[#F7F7F7]/40">
+            <p className="body mt-1 text-[#F7F7F7]/40">
               Financial overview and booking statistics
             </p>
           </div>
@@ -91,10 +91,10 @@ export default function RevenuePage() {
         <section className="container">
           {/* Header */}
           <div>
-            <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+            <h1 className="heading-1 text-[#F7F7F7]">
               Revenue
             </h1>
-            <p className="mt-1 text-sm text-[#F7F7F7]/40">
+            <p className="body mt-1 text-[#F7F7F7]/40">
               Financial overview and booking statistics
             </p>
           </div>
@@ -120,10 +120,10 @@ export default function RevenuePage() {
       <section className="container">
         {/* Header */}
         <div>
-          <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+          <h1 className="heading-1 text-[#F7F7F7]">
             Revenue
           </h1>
-          <p className="mt-1 text-sm text-[#F7F7F7]/40">
+          <p className="body mt-1 text-[#F7F7F7]/40">
             Financial overview and booking statistics
           </p>
         </div>
@@ -157,17 +157,17 @@ export default function RevenuePage() {
           <div className="flex items-start justify-between">
             <div>
               <p className="section-label">Revenue Overview</p>
-              <p className="metric mt-3 text-3xl text-[#F7F7F7]">
+              <p className="metric mt-3 text-[#F7F7F7]">
                 Rp {(totalRevenuePeriod / 1000000).toFixed(1)}M
               </p>
-              <p className="mt-1 text-xs text-[#F7F7F7]/25">
+              <p className="body-sm mt-1 text-[#F7F7F7]/25">
                 {period === "monthly" ? "This year" : "This week"}
               </p>
             </div>
             <div className="flex gap-1">
               <button
                 onClick={() => setPeriod("weekly")}
-                className={`rounded-lg px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.1em] transition-all ${
+                className={`label rounded-lg px-3 py-1.5 uppercase transition-all ${
                   period === "weekly"
                     ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                     : "bg-white/[0.03] text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
@@ -177,7 +177,7 @@ export default function RevenuePage() {
               </button>
               <button
                 onClick={() => setPeriod("monthly")}
-                className={`rounded-lg px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.1em] transition-all ${
+                className={`label rounded-lg px-3 py-1.5 uppercase transition-all ${
                   period === "monthly"
                     ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                     : "bg-white/[0.03] text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
@@ -199,7 +199,7 @@ export default function RevenuePage() {
                       className="w-full rounded-md bg-[#E6FA50]/15 transition-all duration-200 hover:bg-[#E6FA50]/30"
                       style={{ height: `${(d.value / maxValue) * 180}px` }}
                     />
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-[#0C1B26] border border-white/[0.08] px-2 py-1 text-[9px] text-[#E6FA50] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                    <div className="caption absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-[#0C1B26] border border-white/[0.08] px-2 py-1 text-[#E6FA50] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                       Rp {(d.value / 1000000).toFixed(1)}M
                     </div>
                   </div>
@@ -231,17 +231,17 @@ export default function RevenuePage() {
                   key={court.courtId}
                   className="flex items-center gap-4 border-b border-white/[0.03] py-4 last:border-0"
                 >
-                  <span className="metric w-6 text-center text-sm text-[#F7F7F7]/25">
+                  <span className="metric w-6 text-center text-[#F7F7F7]/25">
                     {i + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="heading-3 text-sm text-[#F7F7F7]">
+                    <p className="heading-3 text-[#F7F7F7]">
                       {court.name}
                     </p>
                     <p className="caption text-[#F7F7F7]/25">{court.venue}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-[#F7F7F7]/60">
+                    <p className="body-sm text-[#F7F7F7]/60">
                       {court.bookings} bookings
                     </p>
                     <p className="caption text-[#50C8C8]">
@@ -272,7 +272,7 @@ function RevenueCard({
       <div className="flex items-center justify-between">
         <Icon className="h-4 w-4 text-[#50C8C8]" />
       </div>
-      <p className="metric mt-3 text-xl text-[#F7F7F7] md:text-2xl">{value}</p>
+      <p className="metric mt-3 text-[#F7F7F7]">{value}</p>
       <p className="caption mt-1 text-[#F7F7F7]/25">{label}</p>
     </div>
   );
@@ -282,7 +282,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
       <p className="caption text-[#F7F7F7]/25">{label}</p>
-      <p className="metric mt-2 text-xl text-[#F7F7F7]">{value}</p>
+      <p className="metric mt-2 text-[#F7F7F7]">{value}</p>
     </div>
   );
 }

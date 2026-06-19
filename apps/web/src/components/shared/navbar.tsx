@@ -86,7 +86,7 @@ export function Navbar() {
     >
       <div className="container flex h-20 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <span className="font-heading text-xl font-semibold tracking-[-0.02em] text-[#F7F7F7]">
+          <span className="heading-3 text-[#F7F7F7]">
             Padel<span className="text-[#E6FA50]">hive</span>
           </span>
         </Link>
@@ -129,7 +129,7 @@ export function Navbar() {
               >
                 <Ticket className="h-[18px] w-[18px]" />
                 {activeVoucherCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E6FA50] px-1 text-[10px] font-semibold leading-none text-[#06121A]">
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E6FA50] px-1 caption text-[#06121A]">
                     {activeVoucherCount}
                   </span>
                 )}
@@ -150,7 +150,7 @@ export function Navbar() {
                     className="h-full w-full rounded-full object-cover"
                   />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center rounded-full bg-[#E6FA50]/10 text-sm font-semibold text-[#E6FA50]">
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-[#E6FA50]/10 label text-[#E6FA50]">
                     {user.name?.trim().charAt(0).toUpperCase() || "?"}
                   </span>
                 )}
@@ -159,9 +159,9 @@ export function Navbar() {
               {avatarOpen && (
                 <div className="absolute right-0 top-12 w-56 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-2 shadow-2xl">
                   <div className="px-3 py-2 mb-1">
-                    <p className="text-sm font-medium text-[#F7F7F7]">{user.name}</p>
+                    <p className="label text-[#F7F7F7]">{user.name}</p>
                     <p className="caption text-[#F7F7F7]/25">{user.email}</p>
-                    <span className="mt-1 inline-block rounded-full bg-[#E6FA50]/10 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#E6FA50]">
+                    <span className="mt-1 inline-block rounded-full bg-[#E6FA50]/10 px-2 py-0.5 caption uppercase text-[#E6FA50]">
                       {user.role.replace("_", " ")}
                     </span>
                   </div>
@@ -181,7 +181,7 @@ export function Navbar() {
                   <div className="border-t border-white/[0.04] my-1" />
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-400/70 transition-colors hover:bg-red-500/5 hover:text-red-400"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 label text-red-400/70 transition-colors hover:bg-red-500/5 hover:text-red-400"
                   >
                     <LogOut className="h-4 w-4" /> Sign Out
                   </button>
@@ -191,7 +191,7 @@ export function Navbar() {
           ) : (
             <Link
               href="/auth/login"
-              className="btn-lime hidden h-10 items-center gap-2 rounded-full px-6 text-[11px] font-semibold uppercase tracking-[0.08em] md:inline-flex"
+              className="btn-lime hidden h-10 items-center gap-2 rounded-full px-6 label uppercase md:inline-flex"
             >
               <LogIn className="h-4 w-4" /> Sign In
             </Link>
@@ -224,7 +224,7 @@ export function Navbar() {
             <Link
               href="/auth/login"
               onClick={() => setMobileOpen(false)}
-              className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]"
+              className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full label uppercase"
             >
               <LogIn className="h-4 w-4" /> Sign In
             </Link>
@@ -281,7 +281,7 @@ function MenuLink({
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5 label text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
     >
       <Icon className="h-4 w-4 text-[#50C8C8]" /> {children}
     </Link>

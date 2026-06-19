@@ -51,7 +51,7 @@ export default function CommissionPage() {
     <div className="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8">
       <div className="mb-8">
         <p className="caption text-[#E6FA50]">Financial</p>
-        <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] sm:text-4xl">
+        <h1 className="heading-1 mt-2 text-[#F7F7F7]">
           Commission <span className="text-[#E6FA50]">Report</span>
         </h1>
       </div>
@@ -61,7 +61,7 @@ export default function CommissionPage() {
           <button
             key={tab}
             onClick={() => setPreset(tab)}
-            className={`shrink-0 rounded-lg px-4 py-2 text-xs font-medium transition-all ${
+            className={`label shrink-0 rounded-lg px-4 py-2 transition-all ${
               preset === tab
                 ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                 : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
@@ -96,19 +96,19 @@ export default function CommissionPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
               <p className="caption text-[#F7F7F7]/40">Total Commission</p>
-              <p className="price text-2xl text-[#E6FA50] mt-2">{formatIDR(data.totalCommission)}</p>
+              <p className="price mt-2 text-[#E6FA50]">{formatIDR(data.totalCommission)}</p>
             </div>
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
               <p className="caption text-[#F7F7F7]/40">Total GMV</p>
-              <p className="price text-2xl text-[#F7F7F7] mt-2">{formatIDR(data.totalGmv)}</p>
+              <p className="price mt-2 text-[#F7F7F7]">{formatIDR(data.totalGmv)}</p>
             </div>
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
               <p className="caption text-[#F7F7F7]/40">Avg Commission Rate</p>
-              <p className="price text-2xl text-[#F7F7F7] mt-2">{data.avgCommissionRate}%</p>
+              <p className="price mt-2 text-[#F7F7F7]">{data.avgCommissionRate}%</p>
             </div>
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
               <p className="caption text-[#F7F7F7]/40">Total Bookings</p>
-              <p className="price text-2xl text-[#F7F7F7] mt-2">{data.totalBookings}</p>
+              <p className="price mt-2 text-[#F7F7F7]">{data.totalBookings}</p>
             </div>
           </div>
 
@@ -126,23 +126,23 @@ export default function CommissionPage() {
                 {data.venues.map((row) => (
                   <div key={row.venueId} className="grid grid-cols-12 items-center gap-4 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
                     <div className="col-span-4 min-w-0">
-                      <p className="truncate text-sm font-medium text-[#F7F7F7]">{row.venueName}</p>
+                      <p className="body-sm truncate text-[#F7F7F7]">{row.venueName}</p>
                       <p className="truncate caption text-[#F7F7F7]/40 mt-0.5">{row.city}</p>
                     </div>
                     <div className="col-span-2 text-right">
-                      <p className="text-sm text-[#F7F7F7]/60">{row.commissionRate}%</p>
+                      <p className="body-sm text-[#F7F7F7]/60">{row.commissionRate}%</p>
                     </div>
                     <div className="col-span-1 text-right">
-                      <p className="text-sm text-[#F7F7F7]/60">{row.bookings}</p>
+                      <p className="body-sm text-[#F7F7F7]/60">{row.bookings}</p>
                     </div>
                     <div className="col-span-2 text-right">
-                      <p className="price text-sm text-[#F7F7F7]">{formatIDR(row.gmv)}</p>
+                      <p className="price text-[#F7F7F7]">{formatIDR(row.gmv)}</p>
                     </div>
                     <div className="col-span-2 text-right">
-                      <p className="price text-sm text-[#E6FA50]">{formatIDR(row.commission)}</p>
+                      <p className="price text-[#E6FA50]">{formatIDR(row.commission)}</p>
                     </div>
                     <div className="col-span-1 text-right">
-                      <p className="text-sm text-[#F7F7F7]/60">{row.effectiveRate}%</p>
+                      <p className="body-sm text-[#F7F7F7]/60">{row.effectiveRate}%</p>
                     </div>
                   </div>
                 ))}

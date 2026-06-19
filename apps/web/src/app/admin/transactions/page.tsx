@@ -57,7 +57,7 @@ export default function AdminTransactionsPage() {
       {/* Header */}
       <div className="mb-8">
         <p className="caption text-[#E6FA50]">Marketplace Admin</p>
-        <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] sm:text-4xl">Transactions</h1>
+        <h1 className="heading-1 mt-2 text-[#F7F7F7]">Transactions</h1>
       </div>
 
       {/* Tabs */}
@@ -69,7 +69,7 @@ export default function AdminTransactionsPage() {
               setActiveStatus(tab.value);
               setPage(1);
             }}
-            className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`label whitespace-nowrap border-b-2 px-4 py-3 transition-colors ${
               activeStatus === tab.value
                 ? "border-[#E6FA50] text-[#F7F7F7]"
                 : "border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
@@ -95,16 +95,16 @@ export default function AdminTransactionsPage() {
         <>
           <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="body-sm w-full text-left">
                 <thead>
                   <tr className="border-b border-white/[0.06]">
-                    <th className="px-4 py-3 text-[10px] font-medium uppercase tracking-wider text-[#F7F7F7]/40 whitespace-nowrap">Date</th>
-                    <th className="px-4 py-3 text-[10px] font-medium uppercase tracking-wider text-[#F7F7F7]/40 whitespace-nowrap">Venue / Court</th>
-                    <th className="px-4 py-3 text-[10px] font-medium uppercase tracking-wider text-[#F7F7F7]/40 whitespace-nowrap">Customer</th>
-                    <th className="px-4 py-3 text-[10px] font-medium uppercase tracking-wider text-[#F7F7F7]/40 whitespace-nowrap">Schedule</th>
-                    <th className="px-4 py-3 text-[10px] font-medium uppercase tracking-wider text-[#F7F7F7]/40 whitespace-nowrap">Amount</th>
-                    <th className="px-4 py-3 text-[10px] font-medium uppercase tracking-wider text-[#F7F7F7]/40 whitespace-nowrap">Payment</th>
-                    <th className="px-4 py-3 text-[10px] font-medium uppercase tracking-wider text-[#F7F7F7]/40 whitespace-nowrap">Status</th>
+                    <th className="caption px-4 py-3 uppercase whitespace-nowrap text-[#F7F7F7]/40">Date</th>
+                    <th className="caption px-4 py-3 uppercase whitespace-nowrap text-[#F7F7F7]/40">Venue / Court</th>
+                    <th className="caption px-4 py-3 uppercase whitespace-nowrap text-[#F7F7F7]/40">Customer</th>
+                    <th className="caption px-4 py-3 uppercase whitespace-nowrap text-[#F7F7F7]/40">Schedule</th>
+                    <th className="caption px-4 py-3 uppercase whitespace-nowrap text-[#F7F7F7]/40">Amount</th>
+                    <th className="caption px-4 py-3 uppercase whitespace-nowrap text-[#F7F7F7]/40">Payment</th>
+                    <th className="caption px-4 py-3 uppercase whitespace-nowrap text-[#F7F7F7]/40">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -117,20 +117,20 @@ export default function AdminTransactionsPage() {
                         </td>
                         <td className="px-4 py-3 align-middle whitespace-nowrap text-[#F7F7F7]/80">
                           <div className="text-[#F7F7F7]">{item.venue.name}</div>
-                          <div className="text-xs text-[#F7F7F7]/40">{item.court.name} · {item.venue.city}</div>
+                          <div className="caption text-[#F7F7F7]/40">{item.court.name} · {item.venue.city}</div>
                         </td>
                         <td className="px-4 py-3 align-middle whitespace-nowrap text-[#F7F7F7]/80">
                           <div>{item.host.name ?? "—"}</div>
-                          <div className="text-xs text-[#F7F7F7]/40">{item.host.email}</div>
+                          <div className="caption text-[#F7F7F7]/40">{item.host.email}</div>
                         </td>
                         <td className="px-4 py-3 align-middle whitespace-nowrap text-[#F7F7F7]/80">
                           <div>{formatBookingTimeRange(item.startsAt, item.endsAt)}</div>
-                          <div className="text-xs text-[#F7F7F7]/40">{item.durationMinutes} min</div>
+                          <div className="caption text-[#F7F7F7]/40">{item.durationMinutes} min</div>
                         </td>
                         <td className="px-4 py-3 align-middle whitespace-nowrap text-[#F7F7F7]/80">
-                          <div className="font-medium text-[#F7F7F7]">{formatIDR(item.finalAmount)}</div>
+                          <div className="text-[#F7F7F7]">{formatIDR(item.finalAmount)}</div>
                           {item.voucherDiscount > 0 && (
-                            <div className="text-xs text-[#F7F7F7]/40">-{formatIDR(item.voucherDiscount)} voucher</div>
+                            <div className="caption text-[#F7F7F7]/40">-{formatIDR(item.voucherDiscount)} voucher</div>
                           )}
                         </td>
                         <td className="px-4 py-3 align-middle whitespace-nowrap text-[#F7F7F7]/80">
@@ -139,7 +139,7 @@ export default function AdminTransactionsPage() {
                               <div className={PAYMENT_CONFIG[item.payment.status]?.color ?? "text-[#F7F7F7]/40"}>
                                 {item.payment.status}
                               </div>
-                              <div className="text-xs text-[#F7F7F7]/40">
+                              <div className="caption text-[#F7F7F7]/40">
                                 {item.payment.provider} · {item.payment.method}
                               </div>
                             </>
@@ -148,7 +148,7 @@ export default function AdminTransactionsPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 align-middle whitespace-nowrap text-[#F7F7F7]/80">
-                          <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] ${cfg.color} ${cfg.bg}`}>
+                          <span className={`caption rounded-full px-2 py-0.5 uppercase ${cfg.color} ${cfg.bg}`}>
                             {cfg.label}
                           </span>
                         </td>
@@ -160,14 +160,14 @@ export default function AdminTransactionsPage() {
             </div>
           </div>
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-sm text-[#F7F7F7]/40">
+            <span className="body-sm text-[#F7F7F7]/40">
               Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}
             </span>
             <div className="flex gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="flex items-center gap-1 rounded-full border border-white/[0.08] px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:cursor-not-allowed disabled:opacity-40"
+                className="label flex items-center gap-1 rounded-full border border-white/[0.08] px-4 py-2 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
                 Prev
@@ -175,7 +175,7 @@ export default function AdminTransactionsPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="flex items-center gap-1 rounded-full border border-white/[0.08] px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:cursor-not-allowed disabled:opacity-40"
+                className="label flex items-center gap-1 rounded-full border border-white/[0.08] px-4 py-2 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
                 <ChevronRight className="h-3.5 w-3.5" />

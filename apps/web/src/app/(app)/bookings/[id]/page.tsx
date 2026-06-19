@@ -68,8 +68,8 @@ export default function BookingDetailPage() {
       return (
         <div className="min-h-screen pt-28">
           <div className="container py-16 text-center">
-            <p className="text-sm text-[#F7F7F7]/25">Booking not found.</p>
-            <Link href="/bookings" className="mt-4 inline-flex items-center gap-2 text-sm text-[#E6FA50] hover:underline">
+            <p className="body text-[#F7F7F7]/25">Booking not found.</p>
+            <Link href="/bookings" className="label mt-4 inline-flex items-center gap-2 text-[#E6FA50] hover:underline">
               <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
             </Link>
           </div>
@@ -79,7 +79,7 @@ export default function BookingDetailPage() {
     return (
       <div className="min-h-screen pt-28 pb-16">
         <section className="container pb-6">
-          <Link href="/bookings" className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
+          <Link href="/bookings" className="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
           </Link>
         </section>
@@ -191,7 +191,7 @@ export default function BookingDetailPage() {
     <div className="min-h-screen pt-28 pb-16">
       {/* Back nav */}
       <section className="container pb-6">
-        <Link href="/bookings" className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
+        <Link href="/bookings" className="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
         </Link>
       </section>
@@ -204,10 +204,10 @@ export default function BookingDetailPage() {
               <StatusBadge status={isCancelled ? "cancelled" : currentBooking.status.toLowerCase()} />
               {currentBooking.payment && <PaymentBadge status={isCancelled ? "refunded" : currentBooking.payment.status.toLowerCase()} />}
             </div>
-            <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+            <h1 className="heading-1 text-[#F7F7F7]">
               {venue?.name ?? "Unknown Venue"}
             </h1>
-            <p className="mt-1 flex items-center gap-2 text-sm text-[#F7F7F7]/40">
+            <p className="body mt-1 flex items-center gap-2 text-[#F7F7F7]/40">
               <MapPin className="h-3.5 w-3.5" />
               {venue?.city}
             </p>
@@ -234,27 +234,27 @@ export default function BookingDetailPage() {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <div className="rounded-xl bg-white/[0.02] p-3">
                   <Ticket className="h-3.5 w-3.5 text-[#50C8C8]" />
-                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{`#${currentBooking.id.slice(-6).toUpperCase()}`}</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">{`#${currentBooking.id.slice(-6).toUpperCase()}`}</p>
                   <p className="caption mt-0.5 text-[#F7F7F7]/25">Booking ID</p>
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-3">
                   <MapPin className="h-3.5 w-3.5 text-[#50C8C8]" />
-                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{`${court?.name ?? "—"} · ${court?.type ?? ""}`}</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">{`${court?.name ?? "—"} · ${court?.type ?? ""}`}</p>
                   <p className="caption mt-0.5 text-[#F7F7F7]/25">Court</p>
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-3">
                   <CalendarDays className="h-3.5 w-3.5 text-[#50C8C8]" />
-                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{formatBookingDate(currentBooking.bookingDate)}</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">{formatBookingDate(currentBooking.bookingDate)}</p>
                   <p className="caption mt-0.5 text-[#F7F7F7]/25">Date</p>
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-3">
                   <Clock className="h-3.5 w-3.5 text-[#50C8C8]" />
-                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)}</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">{formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)}</p>
                   <p className="caption mt-0.5 text-[#F7F7F7]/25">Time</p>
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-3">
                   <Timer className="h-3.5 w-3.5 text-[#50C8C8]" />
-                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7] break-all">{`${currentBooking.durationMinutes} min`}</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">{`${currentBooking.durationMinutes} min`}</p>
                   <p className="caption mt-0.5 text-[#F7F7F7]/25">Duration</p>
                 </div>
               </div>
@@ -266,12 +266,12 @@ export default function BookingDetailPage() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="rounded-xl bg-white/[0.02] p-4">
                   <ShieldCheck className="h-4 w-4 text-[#E6FA50]" />
-                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7]">Full refund before H-1</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7]">Full refund before H-1</p>
                   <p className="caption mt-1 text-[#F7F7F7]/25">Cancel 24+ hours before your booking date — the full amount is returned to your original payment method.</p>
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-4">
                   <ShieldX className="h-4 w-4 text-red-400" />
-                  <p className="heading-3 mt-1.5 text-[13px] text-[#F7F7F7]">Non-refundable after H-1</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7]">Non-refundable after H-1</p>
                   <p className="caption mt-1 text-[#F7F7F7]/25">Cancelling less than 24 hours before the start time isn&apos;t eligible for a refund.</p>
                 </div>
               </div>
@@ -282,7 +282,7 @@ export default function BookingDetailPage() {
                 <p className="section-label mb-4">Leave a Review</p>
                 {reviewSubmitted ? (
                   <div className="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-4">
-                    <p className="text-sm text-[#E6FA50]">{reviewError ?? "Thanks! Your review has been submitted."}</p>
+                    <p className="body text-[#E6FA50]">{reviewError ?? "Thanks! Your review has been submitted."}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -299,17 +299,17 @@ export default function BookingDetailPage() {
                       maxLength={1000}
                       rows={4}
                       placeholder="Share your experience (optional)"
-                      className="w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none"
+                      className="body w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none"
                     />
                     {reviewError && (
                       <div className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3">
-                        <p className="text-xs text-amber-300/80">{reviewError}</p>
+                        <p className="caption text-amber-300/80">{reviewError}</p>
                       </div>
                     )}
                     <button
                       onClick={submitReview}
                       disabled={isSubmittingReview || reviewRating < 1}
-                      className="rounded-full bg-[#E6FA50] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#06121A] transition-colors hover:bg-[#E6FA50]/90 disabled:opacity-40"
+                      className="label rounded-full bg-[#E6FA50] px-5 py-2.5 text-[#06121A] transition-colors hover:bg-[#E6FA50]/90 disabled:opacity-40"
                     >
                       {isSubmittingReview ? "Submitting..." : "Submit Review"}
                     </button>
@@ -335,8 +335,8 @@ export default function BookingDetailPage() {
                 )}
                 <PaymentRow label="Platform fee" value={`Rp ${(currentBooking.platformFee / 1000).toFixed(0)}K`} />
                 <div className="flex items-center justify-between border-t border-white/[0.04] pt-3">
-                  <span className="text-sm font-medium text-[#F7F7F7]/60">Total</span>
-                  <span className="price text-lg text-[#F7F7F7]">{`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`}</span>
+                  <span className="body text-[#F7F7F7]/60">Total</span>
+                  <span className="price text-[#F7F7F7]">{`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`}</span>
                 </div>
               </div>
 
@@ -359,7 +359,7 @@ export default function BookingDetailPage() {
               <div className="space-y-2">
                 <button
                   onClick={handleShareInvite}
-                  className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 heading-3 text-[13px] text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+                  className="heading-3 w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
                 >
                   <Share2 className="h-4 w-4 text-[#50C8C8]" />
                   Share invite link
@@ -367,7 +367,7 @@ export default function BookingDetailPage() {
                 </button>
                 <Link
                   href={`/booking/${currentBooking.id}/payment`}
-                  className="w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 heading-3 text-[13px] text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+                  className="heading-3 w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
                 >
                   <CreditCard className="h-4 w-4 text-[#50C8C8]" />
                   View payment receipt
@@ -377,7 +377,7 @@ export default function BookingDetailPage() {
                     <div className="my-1 border-t border-white/[0.04]" />
                     <button
                       onClick={handleCancel}
-                      className="w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 heading-3 text-[13px] text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                      className="heading-3 w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
                     >
                       <XCircle className="h-4 w-4" />
                       Cancel booking
@@ -394,26 +394,26 @@ export default function BookingDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
             <p className="section-label">Cancel Booking</p>
-            <h2 className="heading-2 mt-3 text-xl text-[#F7F7F7]">Cancel this booking?</h2>
-            <p className="mt-2 text-sm leading-6 text-[#F7F7F7]/40">
+            <h2 className="heading-2 mt-3 text-[#F7F7F7]">Cancel this booking?</h2>
+            <p className="body mt-2 text-[#F7F7F7]/40">
               This will cancel your booking and release the court time.
             </p>
             <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
-              <p className="text-sm font-medium text-[#F7F7F7]/60">Refund eligibility</p>
-              <p className="mt-1 text-xs leading-5 text-[#F7F7F7]/40">{getRefundNote()}</p>
+              <p className="body text-[#F7F7F7]/60">Refund eligibility</p>
+              <p className="body-sm mt-1 text-[#F7F7F7]/40">{getRefundNote()}</p>
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setShowCancelModal(false)}
                 disabled={isCancelling}
-                className="rounded-full border border-white/[0.08] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
+                className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
               >
                 Keep Booking
               </button>
               <button
                 onClick={confirmCancel}
                 disabled={isCancelling}
-                className="rounded-full bg-red-500/15 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
+                className="label rounded-full bg-red-500/15 px-5 py-2.5 text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
               >
                 {isCancelling ? "Cancelling..." : "Cancel Booking"}
               </button>
@@ -440,7 +440,7 @@ function PaymentRow({ label, value, highlight, bold }: { label: string; value: s
   return (
     <div className="flex items-center justify-between">
       <span className={`caption ${bold ? "text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>{label}</span>
-      <span className={`heading-3 text-[13px] ${highlight ? "text-[#E6FA50]" : bold ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
+      <span className={`price ${highlight ? "text-[#E6FA50]" : bold ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
     </div>
   );
 }
@@ -453,7 +453,7 @@ function StatusBadge({ status }: { status: string }) {
     cancelled: "bg-red-500/10 text-red-400/70",
   };
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/25"}`}>
+    <span className={`caption rounded-full px-2.5 py-0.5 ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/25"}`}>
       {status}
     </span>
   );
@@ -467,7 +467,7 @@ function PaymentBadge({ status }: { status: string }) {
     refunded: "bg-[#50C8C8]/10 text-[#50C8C8]",
   };
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${styles[status] ?? ""}`}>
+    <span className={`caption rounded-full px-2.5 py-0.5 ${styles[status] ?? ""}`}>
       {status}
     </span>
   );

@@ -53,32 +53,32 @@ function ForgotPasswordContent() {
               Padel<span className="text-[#E6FA50]">hive</span>
             </span>
           </Link>
-          <p className="mt-3 text-sm font-light text-[#F7F7F7]/40">
+          <p className="body-lg mt-3 text-[#F7F7F7]/40">
             Reset your password
           </p>
         </div>
 
         <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8">
-          <h1 className="heading-2 text-xl text-[#F7F7F7] text-center mb-6">Forgot Password</h1>
+          <h1 className="heading-2 text-[#F7F7F7] text-center mb-6">Forgot Password</h1>
 
           {error && (
             <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
-              <p className="text-sm text-red-100/80">{error}</p>
+              <p className="body text-red-100/80">{error}</p>
             </div>
           )}
           
           {success ? (
             <div className="mb-6 rounded-xl border border-green-500/20 bg-green-500/10 px-4 py-4 text-center">
-              <p className="text-sm text-green-100/80 mb-4">
+              <p className="body text-green-100/80 mb-4">
                 We&apos;ve sent a password reset link to <strong>{email}</strong>. Check your email to continue.
               </p>
-              <Link href="/auth/login" className="btn-outline-white w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold">
+              <Link href="/auth/login" className="label btn-outline-white w-full flex items-center justify-center gap-2 rounded-xl py-3">
                 Return to Sign In
               </Link>
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-4 mb-6">
-              <p className="text-sm text-[#F7F7F7]/60 mb-4">
+              <p className="body text-[#F7F7F7]/60 mb-4">
                 Enter your email address and we&apos;ll send you a link to reset your password.
               </p>
               <div className="relative">
@@ -90,14 +90,14 @@ function ForgotPasswordContent() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 mt-2"
+                className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Reset Link"}
               </button>
@@ -105,10 +105,10 @@ function ForgotPasswordContent() {
           )}
 
           {!success && (
-            <div className="mt-4 flex flex-col items-center gap-2 text-sm">
+            <div className="body mt-4 flex flex-col items-center gap-2">
               <div className="text-[#F7F7F7]/40">
                 Remember your password?{" "}
-                <Link href="/auth/login" className="text-[#F7F7F7]/80 hover:text-[#E6FA50] font-medium transition-colors">
+                <Link href="/auth/login" className="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">
                   Sign in
                 </Link>
               </div>

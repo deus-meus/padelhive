@@ -63,7 +63,7 @@ function ThemedSelect({
         aria-expanded={open}
         aria-label={ariaLabel}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-16 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-[#06121A] px-3 py-2 text-sm text-[#F7F7F7] transition-colors hover:border-white/[0.15] focus:border-[#E6FA50]/40 focus:outline-none"
+        className="flex w-16 items-center justify-center gap-1.5 rounded-lg border border-white/[0.08] bg-[#06121A] px-3 py-2 label text-[#F7F7F7] transition-colors hover:border-white/[0.15] focus:border-[#E6FA50]/40 focus:outline-none"
       >
         <span>{value}</span>
         <ChevronDown
@@ -89,9 +89,9 @@ function ThemedSelect({
                     onChange(opt);
                     setOpen(false);
                   }}
-                  className={`block w-full px-3 py-1.5 text-center text-sm transition-colors ${
+                  className={`block w-full px-3 py-1.5 text-center label transition-colors ${
                     isSel
-                      ? "bg-[#E6FA50] text-[#06121A] font-semibold"
+                      ? "bg-[#E6FA50] text-[#06121A]"
                       : "text-[#F7F7F7]/80 hover:bg-white/[0.06]"
                   }`}
                 >
@@ -202,7 +202,7 @@ export function TimeSelect({
         aria-label={ariaLabel || "Select time"}
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between bg-[#06121A] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none transition-colors ${
+        className={`w-full flex items-center justify-between bg-[#06121A] border border-white/[0.08] rounded-lg px-3 py-2 label text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none transition-colors ${
           disabled ? "opacity-30 cursor-not-allowed" : "hover:border-white/[0.15]"
         }`}
       >
@@ -226,7 +226,7 @@ export function TimeSelect({
           }`}
         >
           <div className="flex items-center">
-            <h3 className="text-sm font-medium text-[#F7F7F7]/80">Select Time</h3>
+            <h3 className="heading-3 text-[#F7F7F7]/80">Select Time</h3>
           </div>
 
           <div className="mt-5 flex items-center justify-between">
@@ -236,8 +236,8 @@ export function TimeSelect({
               <ThemedSelect ariaLabel="Minute" value={stagedMinute} options={minuteOptions} onChange={(v) => setStagedMinute(v)} />
             </div>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => setStagedAmpm("AM")} className={`px-2 py-1 text-sm font-semibold transition-colors ${stagedAmpm === "AM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}>AM</button>
-              <button type="button" onClick={() => setStagedAmpm("PM")} className={`px-2 py-1 text-sm font-semibold transition-colors ${stagedAmpm === "PM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}>PM</button>
+              <button type="button" onClick={() => setStagedAmpm("AM")} className={`px-2 py-1 label transition-colors ${stagedAmpm === "AM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}>AM</button>
+              <button type="button" onClick={() => setStagedAmpm("PM")} className={`px-2 py-1 label transition-colors ${stagedAmpm === "PM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}>PM</button>
             </div>
           </div>
 
@@ -245,14 +245,14 @@ export function TimeSelect({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-sm text-[#F7F7F7]/60 hover:text-[#F7F7F7] px-3 py-1.5 font-medium transition-colors"
+              className="label text-[#F7F7F7]/60 hover:text-[#F7F7F7] px-3 py-1.5 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleApply}
-              className="btn-lime rounded-full px-5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] bg-[#E6FA50] text-[#06121A]"
+              className="btn-lime rounded-full px-5 py-1.5 label uppercase bg-[#E6FA50] text-[#06121A]"
             >
               Apply
             </button>

@@ -349,7 +349,7 @@ export default function PaymentPage({
         {/* Back */}
         <Link
           href={`/bookings/${params.id}`}
-          className="inline-flex items-center gap-2 text-sm text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60 transition-colors"
+          className="label inline-flex items-center gap-2 text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to booking
@@ -357,10 +357,10 @@ export default function PaymentPage({
 
         {/* Header */}
         <div className="mt-6">
-          <h1 className="heading-1 text-3xl text-[#F7F7F7] md:text-4xl">
+          <h1 className="heading-1 text-[#F7F7F7]">
             Payment
           </h1>
-          <p className="mt-2 text-sm text-[#F7F7F7]/40">
+          <p className="body-sm mt-2 text-[#F7F7F7]/40">
             Complete your booking
           </p>
         </div>
@@ -375,44 +375,44 @@ export default function PaymentPage({
           <div className="space-y-8">
             {/* Booking Summary Card */}
             <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
-              <h3 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
+              <h3 className="heading-3 uppercase text-[#F7F7F7]/60">
                 Booking Details
               </h3>
               <div className="mt-4 space-y-3">
                 {isBookingLoading ? (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="body-sm flex items-center justify-between">
                       <Skeleton className="h-4 w-12 rounded-full" />
                       <Skeleton className="h-4 w-32 rounded-full" />
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="body-sm flex items-center justify-between">
                       <Skeleton className="h-4 w-12 rounded-full" />
                       <Skeleton className="h-4 w-24 rounded-full" />
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="body-sm flex items-center justify-between">
                       <Skeleton className="h-4 w-12 rounded-full" />
                       <Skeleton className="h-4 w-24 rounded-full" />
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="body-sm flex items-center justify-between">
                       <Skeleton className="h-4 w-12 rounded-full" />
                       <Skeleton className="h-4 w-20 rounded-full" />
                     </div>
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="body-sm flex items-center justify-between">
                       <span className="text-[#F7F7F7]/40">Venue</span>
                       <span className="text-[#F7F7F7]/80">{venue}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="body-sm flex items-center justify-between">
                       <span className="text-[#F7F7F7]/40">Court</span>
                       <span className="text-[#F7F7F7]/80">{court}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="body-sm flex items-center justify-between">
                       <span className="text-[#F7F7F7]/40">Date</span>
                       <span className="text-[#F7F7F7]/80">{formattedDate}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="body-sm flex items-center justify-between">
                       <span className="text-[#F7F7F7]/40">Time</span>
                       <span className="text-[#F7F7F7]/80">
                         {formatBookingTimeRange(start, end)}
@@ -426,7 +426,7 @@ export default function PaymentPage({
             {/* Split Payment Toggle */}
             <div>
               <div className="flex items-center justify-between">
-                <h2 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
+                <h2 className="heading-3 uppercase text-[#F7F7F7]/60">
                   <Users className="mr-2 inline h-3.5 w-3.5" />
                   Split Payment
                 </h2>
@@ -444,7 +444,7 @@ export default function PaymentPage({
                   />
                 </button>
               </div>
-              <p className="mt-1 text-[11px] text-[#F7F7F7]/25">
+              <p className="caption mt-1 text-[#F7F7F7]/25">
                 Split the cost equally among all players
               </p>
 
@@ -466,7 +466,7 @@ export default function PaymentPage({
                         }
                       }}
                       disabled={isSettingSplit}
-                      className={`flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
+                      className={`label flex-1 rounded-md py-1.5 transition-colors ${
                         splitMode === "equal" ? "bg-white/[0.06] text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
                       } disabled:opacity-50`}
                     >
@@ -485,7 +485,7 @@ export default function PaymentPage({
                         }
                       }}
                       disabled={isSettingSplit}
-                      className={`flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
+                      className={`label flex-1 rounded-md py-1.5 transition-colors ${
                         splitMode === "custom" ? "bg-white/[0.06] text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
                       } disabled:opacity-50`}
                     >
@@ -496,18 +496,18 @@ export default function PaymentPage({
                   {hasUnsyncedInvites && (
                     <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-3">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-[11px] text-[#F7F7F7]/60">
+                        <p className="caption text-[#F7F7F7]/60">
                           {unsyncedInvites.length} new {unsyncedInvites.length === 1 ? "invitee isn't" : "invitees aren't"} in this split yet.
                         </p>
                         <button
                           onClick={handleResyncParticipants}
                           disabled={isSplitToggling}
-                          className="shrink-0 rounded-full border border-[#E6FA50]/30 px-3 py-1 text-[11px] font-medium text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/10 disabled:opacity-50"
+                          className="label shrink-0 rounded-full border border-[#E6FA50]/30 px-3 py-1 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/10 disabled:opacity-50"
                         >
                           Re-sync
                         </button>
                       </div>
-                      <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
+                      <p className="caption mt-1 text-[#F7F7F7]/25">
                         Re-syncing resets everyone to an equal split. Players who already paid keep their paid status.
                       </p>
                     </div>
@@ -522,14 +522,14 @@ export default function PaymentPage({
                           {isEqualSplit ? (
                             <div className="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
                               <div className="flex items-center justify-between">
-                                <span className="text-sm text-[#F7F7F7]/60">
+                                <span className="body-sm text-[#F7F7F7]/60">
                                   Price per player
                                 </span>
-                                <span className="text-sm font-semibold text-[#E6FA50]">
+                                <span className="body-sm font-semibold text-[#E6FA50]">
                                   Rp {Math.floor(splitData.totalAmount / splitData.shareCount).toLocaleString("id-ID")}
                                 </span>
                               </div>
-                              <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
+                              <p className="caption mt-1 text-[#F7F7F7]/25">
                                 Total Rp {splitData.totalAmount.toLocaleString("id-ID")} ÷{" "}
                                 {splitData.shareCount} players
                               </p>
@@ -537,12 +537,12 @@ export default function PaymentPage({
                           ) : (
                             <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4">
                               <div className="flex items-center justify-between">
-                                <span className="text-sm text-[#F7F7F7]/60">Custom split</span>
-                                <span className="text-sm font-semibold text-[#E6FA50]">
+                                <span className="body-sm text-[#F7F7F7]/60">Custom split</span>
+                                <span className="body-sm font-semibold text-[#E6FA50]">
                                   Rp {splitData.totalAmount.toLocaleString("id-ID")}
                                 </span>
                               </div>
-                              <p className="mt-1 text-[10px] text-[#F7F7F7]/25">
+                              <p className="caption mt-1 text-[#F7F7F7]/25">
                                 Custom amounts per player · {splitData.shareCount} players
                               </p>
                             </div>
@@ -559,14 +559,14 @@ export default function PaymentPage({
                                 className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-[#F7F7F7]/60 text-xs font-semibold">
+                                  <div className="body flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-[#F7F7F7]/60 font-semibold">
                                     {share.name.charAt(0).toUpperCase()}
                                   </div>
                                   <div>
-                                    <p className="text-sm font-medium text-[#F7F7F7]/80">
+                                    <p className="body-sm font-medium text-[#F7F7F7]/80">
                                       {share.name}
                                     </p>
-                                    <p className="text-[11px] text-[#F7F7F7]/25">
+                                    <p className="caption text-[#F7F7F7]/25">
                                       Rp {share.amount.toLocaleString("id-ID")}
                                     </p>
                                   </div>
@@ -577,7 +577,7 @@ export default function PaymentPage({
                                     setShareStatus({ shareId: share.id, status: share.status === "PENDING" ? "PAID" : "PENDING" });
                                   }}
                                   disabled={isToggling}
-                                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${config.bg} hover:opacity-80 disabled:opacity-50`}
+                                  className={`caption flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${config.bg} hover:opacity-80 disabled:opacity-50`}
                                 >
                                   {isToggling ? (
                                     <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
@@ -587,7 +587,7 @@ export default function PaymentPage({
                                     />
                                   )}
                                   <span
-                                    className={`text-[11px] font-medium ${config.color}`}
+                                    className={`${config.color}`}
                                   >
                                     {config.label}
                                   </span>
@@ -604,14 +604,14 @@ export default function PaymentPage({
                             return (
                               <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm text-[#F7F7F7]/60">Allocated</span>
-                                  <span className="text-sm font-semibold text-[#F7F7F7]/80">
+                                  <span className="body-sm text-[#F7F7F7]/60">Allocated</span>
+                                  <span className="body-sm font-semibold text-[#F7F7F7]/80">
                                     Rp {currentSum.toLocaleString("id-ID")} / Rp {splitData.totalAmount.toLocaleString("id-ID")}
                                   </span>
                                 </div>
                                 <div className="mt-1 flex items-center justify-between">
-                                  <span className="text-sm text-[#F7F7F7]/60">Remaining</span>
-                                  <span className={`text-sm font-semibold ${remaining === 0 ? "text-green-400" : "text-red-400"}`}>
+                                  <span className="body-sm text-[#F7F7F7]/60">Remaining</span>
+                                  <span className={`body-sm font-semibold ${remaining === 0 ? "text-green-400" : "text-red-400"}`}>
                                     Rp {remaining.toLocaleString("id-ID")}
                                   </span>
                                 </div>
@@ -625,15 +625,15 @@ export default function PaymentPage({
                               className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4"
                             >
                               <div className="flex items-center gap-3">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-[#F7F7F7]/60 text-xs font-semibold">
+                                <div className="body flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-[#F7F7F7]/60 font-semibold">
                                   {share.name.charAt(0).toUpperCase()}
                                 </div>
-                                <p className="text-sm font-medium text-[#F7F7F7]/80">
+                                <p className="body-sm font-medium text-[#F7F7F7]/80">
                                   {share.name}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm text-[#F7F7F7]/40">Rp</span>
+                                <span className="body-sm text-[#F7F7F7]/40">Rp</span>
                                 <input
                                   type="text"
                                   inputMode="numeric"
@@ -643,14 +643,14 @@ export default function PaymentPage({
                                     setCustomAmounts((prev) => ({ ...prev, [share.id]: val }));
                                     setCustomError(null);
                                   }}
-                                  className="w-24 rounded-lg border border-white/[0.1] bg-[#06121A] px-3 py-1.5 text-right text-sm text-[#F7F7F7] focus:border-[#E6FA50] focus:outline-none"
+                                  className="body w-24 rounded-lg border border-white/[0.1] bg-[#06121A] px-3 py-1.5 text-right text-[#F7F7F7] focus:border-[#E6FA50] focus:outline-none"
                                 />
                               </div>
                             </div>
                           ))}
 
                           <div className="mt-2 space-y-2">
-                            {customError && <p className="text-[11px] text-red-400">{customError}</p>}
+                            {customError && <p className="caption text-red-400">{customError}</p>}
                             <button
                               disabled={
                                 isSettingSplit ||
@@ -680,11 +680,11 @@ export default function PaymentPage({
                                   onError: () => setCustomError("Couldn't save the custom split. Make sure the amounts add up to the total.")
                                 });
                               }}
-                              className="btn-lime flex w-full h-10 items-center justify-center rounded-xl text-xs font-semibold disabled:opacity-50"
+                              className="btn-lime label flex w-full h-10 items-center justify-center rounded-xl disabled:opacity-50"
                             >
                               {isSettingSplit ? "Saving..." : "Save custom split"}
                             </button>
-                            <p className="text-center text-[11px] text-[#F7F7F7]/25">
+                            <p className="caption text-center text-[#F7F7F7]/25">
                               Saved amounts apply immediately. Players who already paid keep their paid status.
                             </p>
                           </div>
@@ -692,7 +692,7 @@ export default function PaymentPage({
                       )}
 
                       <div className="rounded-lg bg-white/[0.02] p-3">
-                        <p className="text-[11px] text-[#F7F7F7]/25">
+                        <p className="caption text-[#F7F7F7]/25">
                           You pay the remaining balance. Friends who haven&apos;t
                           paid will be charged their share separately.
                         </p>
@@ -712,10 +712,10 @@ export default function PaymentPage({
                 <UserPlus className="h-4 w-4 text-[#50C8C8]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[#F7F7F7]/60">
+                <p className="body-sm font-medium text-[#F7F7F7]/60">
                   Invite Friends
                 </p>
-                <p className="text-[11px] text-[#F7F7F7]/25">
+                <p className="caption text-[#F7F7F7]/25">
                   Share your booking link and manage RSVPs
                 </p>
               </div>
@@ -723,7 +723,7 @@ export default function PaymentPage({
 
             {/* Payment Method */}
             <div>
-              <h2 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
+              <h2 className="heading-3 uppercase text-[#F7F7F7]/60">
                 <CreditCard className="mr-2 inline h-3.5 w-3.5" />
                 Payment Method
               </h2>
@@ -752,7 +752,7 @@ export default function PaymentPage({
                       </div>
                       <div className="flex-1">
                         <p
-                          className={`text-sm font-medium ${
+                          className={`body-sm font-medium ${
                             isSelected
                               ? "text-[#E6FA50]"
                               : "text-[#F7F7F7]/60"
@@ -760,7 +760,7 @@ export default function PaymentPage({
                         >
                           {method.label}
                         </p>
-                        <p className="text-[11px] text-[#F7F7F7]/25">
+                        <p className="caption text-[#F7F7F7]/25">
                           {method.description}
                         </p>
                       </div>
@@ -788,7 +788,7 @@ export default function PaymentPage({
           <div className="lg:relative">
             <div className="lg:sticky lg:top-28">
               <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-                <h3 className="heading-3 text-sm text-[#F7F7F7]/60 uppercase tracking-wider">
+                <h3 className="heading-3 uppercase text-[#F7F7F7]/60">
                   Order Summary
                 </h3>
 
@@ -825,10 +825,10 @@ export default function PaymentPage({
 
                 <div className="mt-4 border-t border-white/[0.06] pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#F7F7F7]/60">
+                    <span className="body-sm font-medium text-[#F7F7F7]/60">
                       {splitEnabled ? "You pay" : "Total"}
                     </span>
-                    <span className="price text-xl text-[#F7F7F7]">
+                    <span className="price text-[#F7F7F7]">
                       Rp {yourShare.toLocaleString("id-ID")}
                     </span>
                   </div>
@@ -836,21 +836,21 @@ export default function PaymentPage({
 
                 {paymentError && (
                   <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
-                    <p className="text-[11px] leading-relaxed text-red-200/80">{paymentError}</p>
+                    <p className="caption text-red-200/80">{paymentError}</p>
                   </div>
                 )}
 
                 <button
                   onClick={handlePay}
                   disabled={!selectedMethod || processing || !booking || !clientKey}
-                  className="btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="btn-lime label mt-6 flex h-12 w-full items-center justify-center rounded-full uppercase disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {processing ? "Processing..." : "Pay with Midtrans"}
                 </button>
 
                 {!clientKey && (
                   <div className="mt-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
-                    <p className="text-[11px] leading-relaxed text-red-200/80">Missing Midtrans Client Key configuration.</p>
+                    <p className="caption text-red-200/80">Missing Midtrans Client Key configuration.</p>
                   </div>
                 )}
 
@@ -858,19 +858,19 @@ export default function PaymentPage({
                   <button
                     onClick={handleMarkPaid}
                     disabled={markingPaid || processing || !booking}
-                    className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="label mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] uppercase text-[#F7F7F7]/60 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {markingPaid ? "Marking Paid..." : "Mark as Paid (Demo)"}
                   </button>
                 )}
 
-                <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#F7F7F7]/25">
+                <div className="caption mt-4 flex items-center justify-center gap-2 text-[#F7F7F7]/25">
                   <Shield className="h-3 w-3" />
                   <span>Secure payment provided by Midtrans</span>
                 </div>
 
                 <div className="mt-3 rounded-lg bg-white/[0.02] p-3">
-                  <p className="text-[11px] leading-relaxed text-[#F7F7F7]/25">
+                  <p className="caption text-[#F7F7F7]/25">
                     Free cancellation up to 24h before booking. After that,
                     standard refund policy applies.
                   </p>

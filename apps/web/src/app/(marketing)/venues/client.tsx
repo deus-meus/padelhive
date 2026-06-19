@@ -81,7 +81,7 @@ export default function VenuesPage() {
       <section className="border-b border-white/[0.06] pt-32 pb-10 md:pt-36 md:pb-12">
         <div className="container">
           <span className="section-label">All Venues</span>
-          <h1 className="heading-1 mt-3 text-4xl text-[#F7F7F7] md:text-5xl">
+          <h1 className="heading-1 mt-3 text-[#F7F7F7]">
             Find <span className="text-[#E6FA50]">Courts</span>
           </h1>
           <p className="body-lg mt-3 max-w-md text-[#F7F7F7]/60">
@@ -100,7 +100,7 @@ export default function VenuesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search venues..."
-              className="w-full bg-transparent text-sm font-light text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25"
+              className="body w-full bg-transparent text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function VenuesPage() {
               <button
                 key={c}
                 onClick={() => setCity(c)}
-                className={`shrink-0 rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all duration-200 ${
+                className={`label shrink-0 rounded-full px-4 py-2 uppercase transition-all duration-200 ${
                   city === c ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
                 }`}
               >{c}</button>
@@ -121,7 +121,7 @@ export default function VenuesPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="w-full appearance-none bg-transparent text-sm font-light text-[#F7F7F7] outline-none"
+              className="body w-full appearance-none bg-transparent text-[#F7F7F7] outline-none"
             >
               {SORTS.map((s) => (
                 <option key={s.value} value={s.value} className="bg-[#0C1B26]">{s.label}</option>
@@ -149,12 +149,12 @@ export default function VenuesPage() {
             </div>
           )}
           {shouldShowApiError && (
-            <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200/80">
+            <div className="body-sm mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-200/80">
               {apiError} Showing demo venue data.
             </div>
           )}
           {shouldShowFallback && (
-            <div className="mb-6 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-sm text-[#E6FA50]/70">
+            <div className="body-sm mb-6 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-[#E6FA50]/70">
               Live API unavailable. Showing demo venue data.
             </div>
           )}
@@ -178,21 +178,21 @@ export default function VenuesPage() {
                         <div className="relative aspect-[16/10] overflow-hidden">
                           <img src={images[i % images.length]} alt={venue.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
                           {venue.isVerified && (
-                            <span className="absolute left-3 top-3 rounded-full bg-[#E6FA50] px-2.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#06121A]">Verified</span>
+                            <span className="caption absolute left-3 top-3 rounded-full bg-[#E6FA50] px-2.5 py-0.5 uppercase text-[#06121A]">Verified</span>
                           )}
                         </div>
                         <div className="p-6">
                           <div className="flex items-center gap-2">
                             <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
-                            <span className="label font-semibold text-[#E6FA50]">{venue.rating}</span>
+                            <span className="label text-[#E6FA50]">{venue.rating}</span>
                             <span className="caption text-[#F7F7F7]/25">({venue.reviewCount})</span>
                           </div>
-                          <h3 className="heading-3 mt-2 text-base text-[#F7F7F7]">{venue.name}</h3>
+                          <h3 className="heading-3 mt-2 text-[#F7F7F7]">{venue.name}</h3>
                           <p className="mt-1 flex items-center gap-1.5 caption text-[#F7F7F7]/25">
                             <MapPin className="h-3 w-3" />{venue.city}
                           </p>
                           <div className="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-3">
-                            <span className="price text-sm text-[#50C8C8]">{price > 0 ? `Rp ${(price / 1000).toFixed(0)}K/hr` : "Pricing soon"}</span>
+                            <span className="price text-[#50C8C8]">{price > 0 ? `Rp ${(price / 1000).toFixed(0)}K/hr` : "Pricing soon"}</span>
                             <span className="caption text-[#F7F7F7]/25">{courtCount} courts</span>
                           </div>
                         </div>

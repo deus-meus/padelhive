@@ -169,10 +169,10 @@ export default function OperatingHoursPage() {
       <section className="container">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+            <h1 className="heading-1 text-[#F7F7F7]">
               Operating Hours
             </h1>
-            <p className="mt-1 text-sm text-[#F7F7F7]/40">
+            <p className="body mt-1 text-[#F7F7F7]/40">
               Set venue-wide open and close times
             </p>
           </div>
@@ -183,7 +183,7 @@ export default function OperatingHoursPage() {
             <button
               onClick={handleSave}
               disabled={isPending || isLoading || isVenuesError || venues.length === 0 || !isDirty}
-              className={`flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`label flex h-10 items-center gap-2 rounded-full px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 isSuccess
                   ? "bg-green-400/10 text-green-400 border border-green-400/30"
                   : "btn-lime"
@@ -235,7 +235,7 @@ export default function OperatingHoursPage() {
                 <button
                   key={v.id}
                   onClick={() => handleVenueChange(v.id)}
-                  className={`shrink-0 rounded-full px-4 py-2 text-[11px] font-medium uppercase tracking-[0.08em] transition-all ${
+                  className={`label shrink-0 rounded-full px-4 py-2 transition-all ${
                     activeVenueId === v.id
                       ? "bg-[#E6FA50] text-[#06121A]"
                       : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
@@ -253,13 +253,13 @@ export default function OperatingHoursPage() {
                     <Clock className="h-5 w-5 text-[#50C8C8]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-[#F7F7F7]">Venue Hours</h3>
-                    <p className="text-xs text-[#F7F7F7]/40 mt-0.5">Applies to all courts in this venue.</p>
+                    <h3 className="heading-3 text-[#F7F7F7]">Venue Hours</h3>
+                    <p className="body-sm text-[#F7F7F7]/40 mt-0.5">Applies to all courts in this venue.</p>
                   </div>
                 </div>
                 <button
                   onClick={copyMonday}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:bg-white/[0.04] hover:text-[#F7F7F7]/80"
+                  className="label flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:bg-white/[0.04] hover:text-[#F7F7F7]/80"
                 >
                   <Copy className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Copy Monday</span>
@@ -267,7 +267,7 @@ export default function OperatingHoursPage() {
               </div>
 
               {errorMsg && (
-                <div className="mb-6 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
+                <div className="body mb-6 rounded-lg bg-red-500/10 p-3 text-red-400 border border-red-500/20">
                   {errorMsg}
                 </div>
               )}
@@ -278,12 +278,12 @@ export default function OperatingHoursPage() {
                   return (
                     <div key={day.key} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] transition-all ${isToday ? "border-l-2 border-l-[#E6FA50]/60 bg-[#E6FA50]/[0.02]" : ""}`}>
                       <div className="flex items-center justify-between sm:w-32 shrink-0">
-                        <span className="text-sm font-medium text-[#F7F7F7]/80 flex items-center gap-2">
+                        <span className="body text-[#F7F7F7]/80 flex items-center gap-2">
                           {day.label}
-                          {isToday && <span className="rounded bg-[#E6FA50]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#E6FA50]">Today</span>}
+                          {isToday && <span className="caption rounded bg-[#E6FA50]/10 px-1.5 py-0.5 text-[#E6FA50]">Today</span>}
                         </span>
                         <label className="flex items-center gap-2 cursor-pointer sm:hidden">
-                          <span className="text-xs font-medium text-[#F7F7F7]/40 uppercase tracking-wider">Closed</span>
+                          <span className="label text-[#F7F7F7]/40">Closed</span>
                           <button
                             type="button"
                             role="switch"
@@ -304,7 +304,7 @@ export default function OperatingHoursPage() {
                       
                       <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         {day.closed ? (
-                          <div className="w-full sm:max-w-xs rounded-lg bg-white/[0.02] px-3 py-2 text-center sm:text-left text-sm text-[#F7F7F7]/40 border border-white/[0.04]">
+                          <div className="body w-full sm:max-w-xs rounded-lg bg-white/[0.02] px-3 py-2 text-center sm:text-left text-[#F7F7F7]/40 border border-white/[0.04]">
                             Closed all day
                           </div>
                         ) : (
@@ -319,7 +319,7 @@ export default function OperatingHoursPage() {
                           </div>
                         )}
                         <label className="hidden sm:flex items-center gap-3 cursor-pointer shrink-0">
-                          <span className="text-xs font-medium text-[#F7F7F7]/40 uppercase tracking-wider">Closed</span>
+                          <span className="label text-[#F7F7F7]/40">Closed</span>
                           <button
                             type="button"
                             role="switch"
@@ -348,7 +348,7 @@ export default function OperatingHoursPage() {
       
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40 transition-all">
-          <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
+          <p className="body text-[#F7F7F7]/60">{toast}</p>
         </div>
       )}
     </div>

@@ -31,7 +31,7 @@ export default function DashboardPage() {
         {/* WELCOME */}
         <section className="container pb-component">
           <p className="caption text-[#F7F7F7]/25">Good morning</p>
-          <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] md:text-4xl">
+          <h1 className="heading-1 mt-2 text-[#F7F7F7]">
             Welcome back, <span className="text-[#E6FA50]">{firstName}</span>
           </h1>
           <div className="mt-3 h-5 w-48 animate-pulse rounded-md bg-white/[0.04]" />
@@ -82,7 +82,7 @@ export default function DashboardPage() {
     return (
       <div className="pt-element pb-component container">
         <p className="caption text-[#F7F7F7]/25">Good morning</p>
-        <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] md:text-4xl">
+        <h1 className="heading-1 mt-2 text-[#F7F7F7]">
           Welcome back, <span className="text-[#E6FA50]">{firstName}</span>
         </h1>
         <div className="mt-8">
@@ -113,10 +113,10 @@ export default function DashboardPage() {
       {/* ─── WELCOME ─── */}
       <section className="container pb-component">
         <p className="caption text-[#F7F7F7]/25">Good morning</p>
-        <h1 className="heading-1 mt-2 text-3xl text-[#F7F7F7] md:text-4xl">
+        <h1 className="heading-1 mt-2 text-[#F7F7F7]">
           Welcome back, <span className="text-[#E6FA50]">{firstName}</span>
         </h1>
-        <p className="mt-3 text-sm font-light text-[#F7F7F7]/40">
+        <p className="body mt-3 text-[#F7F7F7]/40">
           Your venues generated{" "}
           <span className="price text-[#50C8C8]">
             Rp {(kpis.weeklyRevenue / 1000).toFixed(0)}K
@@ -144,15 +144,15 @@ export default function DashboardPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="section-label">Revenue This Week</p>
-                <p className="metric mt-3 text-3xl text-[#F7F7F7]">
+                <p className="metric mt-3 text-[#F7F7F7]">
                   Rp {(kpis.weeklyRevenue / 1000).toFixed(0)}K
                 </p>
               </div>
               <div className="flex gap-1">
-                <button className="rounded-lg bg-[#E6FA50]/10 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.1em] text-[#E6FA50]">
+                <button className="label rounded-lg bg-[#E6FA50]/10 px-3 py-1.5 uppercase text-[#E6FA50]">
                   Weekly
                 </button>
-                <button className="rounded-lg bg-white/[0.03] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.1em] text-[#F7F7F7]/25">
+                <button className="label rounded-lg bg-white/[0.03] px-3 py-1.5 uppercase text-[#F7F7F7]/25">
                   Monthly
                 </button>
               </div>
@@ -180,13 +180,13 @@ export default function DashboardPage() {
                 <CourtBar key={i} name={court.name} percentage={court.occupancyRate} />
               ))}
               {courtUtilization.length === 0 && (
-                <p className="text-sm text-[#F7F7F7]/40">No active courts.</p>
+                <p className="body text-[#F7F7F7]/40">No active courts.</p>
               )}
             </div>
 
             <div className="mt-8 border-t border-white/[0.04] pt-5">
               <p className="caption text-[#F7F7F7]/25">Average occupancy</p>
-              <p className="metric mt-1 text-2xl text-[#E6FA50]">{kpis.occupancyRate}%</p>
+              <p className="metric mt-1 text-[#E6FA50]">{kpis.occupancyRate}%</p>
             </div>
           </div>
         </div>
@@ -202,19 +202,19 @@ export default function DashboardPage() {
 
           <div className="space-y-0">
             {todaysSchedule.length === 0 ? (
-              <p className="text-sm text-[#F7F7F7]/40">No bookings today.</p>
+              <p className="body text-[#F7F7F7]/40">No bookings today.</p>
             ) : (
               todaysSchedule.map((slot, i) => {
                 const isConfirmed = slot.status === "CONFIRMED";
                 return (
                   <div key={i} className="flex items-center gap-5 border-b border-white/[0.03] py-3.5 last:border-0">
-                    <span className="metric w-12 shrink-0 text-base text-[#F7F7F7]/40">{slot.time}</span>
+                    <span className="metric w-12 shrink-0 text-[#F7F7F7]/40">{slot.time}</span>
                     <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${isConfirmed ? "bg-[#E6FA50]" : "border-2 border-[#50C8C8] bg-transparent"}`} />
                     <div className="flex-1">
-                      <p className="heading-3 text-sm text-[#F7F7F7]">{slot.player}</p>
+                      <p className="heading-3 text-[#F7F7F7]">{slot.player}</p>
                       <p className="caption text-[#F7F7F7]/25">{slot.court}</p>
                     </div>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${isConfirmed ? "bg-[#E6FA50]/10 text-[#E6FA50]" : "bg-[#50C8C8]/10 text-[#50C8C8]"}`}>
+                    <span className={`caption rounded-full px-2 py-0.5 uppercase ${isConfirmed ? "bg-[#E6FA50]/10 text-[#E6FA50]" : "bg-[#50C8C8]/10 text-[#50C8C8]"}`}>
                       {slot.status.replace(/_/g, " ")}
                     </span>
                   </div>
@@ -237,7 +237,7 @@ export default function DashboardPage() {
 
           <div className="space-y-2">
             {recentBookings.length === 0 ? (
-              <p className="text-sm text-[#F7F7F7]/40">No recent bookings.</p>
+              <p className="body text-[#F7F7F7]/40">No recent bookings.</p>
             ) : (
               recentBookings.map((booking) => {
                 const isConfirmed = booking.status === "CONFIRMED";
@@ -245,10 +245,10 @@ export default function DashboardPage() {
                 return (
                   <div key={booking.id} className="flex items-center gap-4 rounded-lg bg-white/[0.02] p-3.5 transition-colors hover:bg-white/[0.04]">
                     <div className="flex-1 min-w-0">
-                      <p className="heading-3 truncate text-sm text-[#F7F7F7]">{booking.venueName}</p>
+                      <p className="heading-3 truncate text-[#F7F7F7]">{booking.venueName}</p>
                       <p className="caption mt-0.5 text-[#F7F7F7]/25">{booking.courtName} · {booking.bookingDate} · {booking.time}</p>
                     </div>
-                    <p className="price shrink-0 text-sm text-[#F7F7F7]/60">Rp {(booking.finalAmount / 1000).toFixed(0)}K</p>
+                    <p className="price shrink-0 text-[#F7F7F7]/60">Rp {(booking.finalAmount / 1000).toFixed(0)}K</p>
                     <div className={`h-2 w-2 shrink-0 rounded-full ${isConfirmed ? "bg-[#E6FA50]" : isPending ? "bg-[#50C8C8]" : "bg-[#F7F7F7]/25"}`} />
                   </div>
                 );
@@ -288,7 +288,7 @@ function KPICard({
       <div className="flex items-center justify-between">
         <Icon className="h-4 w-4 text-[#50C8C8]" />
       </div>
-      <p className="metric mt-3 text-2xl text-[#F7F7F7]">{value}</p>
+      <p className="metric mt-3 text-[#F7F7F7]">{value}</p>
       <p className="caption mt-1 text-[#F7F7F7]/25">{label}</p>
     </div>
   );
@@ -299,7 +299,7 @@ function CourtBar({ name, percentage }: { name: string; percentage: number }) {
     <div>
       <div className="flex items-center justify-between mb-1.5">
         <span className="label text-[#F7F7F7]/40">{name}</span>
-        <span className="metric text-sm text-[#E6FA50]">{percentage}%</span>
+        <span className="metric text-[#E6FA50]">{percentage}%</span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.04]">
         <div className="h-full rounded-full bg-[#E6FA50]/70" style={{ width: `${percentage}%` }} />
@@ -314,7 +314,7 @@ function QuickAction({ icon: Icon, label, href }: { icon: React.ComponentType<{ 
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E6FA50]/10">
         <Icon className="h-4 w-4 text-[#E6FA50]" />
       </div>
-      <span className="caption font-medium text-[#F7F7F7]/40">{label}</span>
+      <span className="caption text-[#F7F7F7]/40">{label}</span>
     </Link>
   );
 }

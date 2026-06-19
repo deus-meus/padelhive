@@ -77,16 +77,16 @@ export default function VenueManagementPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
+            <h1 className="heading-1 text-[#F7F7F7]">
               Venues
             </h1>
-            <p className="mt-1 text-sm text-[#F7F7F7]/40">
+            <p className="body mt-1 text-[#F7F7F7]/40">
               Manage your padel venues
             </p>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn-lime flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em]"
+            className="label btn-lime flex h-10 items-center gap-2 rounded-full px-5 uppercase"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Venue
@@ -159,7 +159,7 @@ export default function VenueManagementPage() {
         {/* Toast */}
         {toast && (
           <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40">
-            <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
+            <p className="body text-[#F7F7F7]/60">{toast}</p>
           </div>
         )}
       </section>
@@ -231,7 +231,7 @@ function VenueFormModal({
       />
       <div className="relative flex w-full max-w-lg max-h-[90vh] flex-col rounded-2xl border border-white/[0.06] bg-[#0C1B26] shadow-2xl">
         <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] p-6">
-          <h2 className="heading-2 text-xl text-[#F7F7F7]">
+          <h2 className="heading-2 text-[#F7F7F7]">
             {mode === "add" ? "Add New Venue" : "Edit Venue"}
           </h2>
           <button onClick={onClose} className="text-[#F7F7F7]/40 hover:text-[#F7F7F7]">
@@ -243,67 +243,67 @@ function VenueFormModal({
           <form onSubmit={handleSubmit} className="flex flex-col gap-8">
             <div className="space-y-4">
             <div>
-              <label className="caption text-[#F7F7F7]/40">Venue Name</label>
+              <label className="label text-[#F7F7F7]/40">Venue Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Padel Bali Arena"
-                className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                className="body mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="caption text-[#F7F7F7]/40">Location</label>
+              <label className="label text-[#F7F7F7]/40">Location</label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Full address"
-                className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                className="body mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="caption text-[#F7F7F7]/40">City</label>
+              <label className="label text-[#F7F7F7]/40">City</label>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="e.g. Bali"
-                className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                className="body mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="caption text-[#F7F7F7]/40">Description</label>
+              <label className="label text-[#F7F7F7]/40">Description</label>
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe your venue..."
-                className="mt-1.5 w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                className="body mt-1.5 w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                 required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="caption text-[#F7F7F7]/40">Open Time</label>
+                <label className="label text-[#F7F7F7]/40">Open Time</label>
                 <input
                   type="time"
                   value={openTime}
                   onChange={(e) => setOpenTime(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [color-scheme:dark]"
+                  className="body mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [color-scheme:dark]"
                   required
                 />
               </div>
               <div>
-                <label className="caption text-[#F7F7F7]/40">Close Time</label>
+                <label className="label text-[#F7F7F7]/40">Close Time</label>
                 <input
                   type="time"
                   value={closeTime}
                   onChange={(e) => setCloseTime(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [color-scheme:dark]"
+                  className="body mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none [color-scheme:dark]"
                   required
                 />
               </div>
@@ -314,7 +314,7 @@ function VenueFormModal({
 
             {/* Cover Image */}
             <div>
-              <label className="caption text-[#F7F7F7]/40">Cover Image URL (Optional)</label>
+              <label className="label text-[#F7F7F7]/40">Cover Image URL (Optional)</label>
               <input
                 type="url"
                 value={imageUrl}
@@ -323,7 +323,7 @@ function VenueFormModal({
                   setCoverError(false);
                 }}
                 placeholder="https://..."
-                className="mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                className="body mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
               />
               {imageUrl && !coverError && (
                 <img
@@ -337,7 +337,7 @@ function VenueFormModal({
 
             {/* Photo Gallery */}
             <div>
-              <label className="caption text-[#F7F7F7]/40">Photo Gallery (Optional)</label>
+              <label className="label text-[#F7F7F7]/40">Photo Gallery (Optional)</label>
               <div className="mt-1.5 flex gap-2">
                 <input
                   type="url"
@@ -350,18 +350,18 @@ function VenueFormModal({
                     }
                   }}
                   placeholder="Add photo URL..."
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleAddPhoto}
-                  className="btn-lime shrink-0 rounded-xl px-4 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                  className="label btn-lime shrink-0 rounded-xl px-4 uppercase"
                 >
                   Add
                 </button>
               </div>
               {photos.length === 0 ? (
-                <p className="mt-2 text-xs text-[#F7F7F7]/40">No photos added yet.</p>
+                <p className="body-sm mt-2 text-[#F7F7F7]/40">No photos added yet.</p>
               ) : (
                 <div className="mt-3 space-y-2">
                   {photos.map((p, idx) => (
@@ -375,7 +375,7 @@ function VenueFormModal({
                             e.currentTarget.style.display = "none";
                           }}
                         />
-                        <span className="truncate text-xs text-[#F7F7F7]/60">{p}</span>
+                        <span className="body-sm truncate text-[#F7F7F7]/60">{p}</span>
                       </div>
                       <button
                         type="button"
@@ -392,7 +392,7 @@ function VenueFormModal({
 
             {/* Facilities */}
             <div>
-              <label className="caption text-[#F7F7F7]/40">Facilities (Optional)</label>
+              <label className="label text-[#F7F7F7]/40">Facilities (Optional)</label>
               <div className="mt-1.5 flex gap-2">
                 <input
                   type="text"
@@ -405,12 +405,12 @@ function VenueFormModal({
                     }
                   }}
                   placeholder="Add facility..."
-                  className="w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleAddFacility}
-                  className="btn-lime shrink-0 rounded-xl px-4 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                  className="label btn-lime shrink-0 rounded-xl px-4 uppercase"
                 >
                   Add
                 </button>
@@ -419,7 +419,7 @@ function VenueFormModal({
                 {facilities.map((f, idx) => (
                   <span
                     key={idx}
-                    className="flex items-center gap-1.5 rounded-full bg-white/[0.03] pl-3 pr-1.5 py-1 text-[10px] font-medium text-[#F7F7F7]/60"
+                    className="caption flex items-center gap-1.5 rounded-full bg-white/[0.03] pl-3 pr-1.5 py-1 text-[#F7F7F7]/60"
                   >
                     {f}
                     <button
@@ -433,7 +433,7 @@ function VenueFormModal({
                 ))}
               </div>
               <div className="mt-3 border-t border-white/[0.04] pt-3">
-                <p className="mb-2 text-[10px] uppercase tracking-wider text-[#F7F7F7]/40">Quick Add:</p>
+                <p className="section-label mb-2 text-[#F7F7F7]/40">Quick Add:</p>
                 <div className="flex flex-wrap gap-2">
                   {["Parking", "Showers", "Locker Room", "Cafe", "Pro Shop", "WiFi", "Equipment Rental", "Seating Area"].map((preset) => (
                     <button
@@ -442,7 +442,7 @@ function VenueFormModal({
                       onClick={() => {
                         if (!facilities.includes(preset)) setFacilities([...facilities, preset]);
                       }}
-                      className="rounded-full border border-white/[0.06] px-2 py-1 text-[10px] text-[#F7F7F7]/40 transition-colors hover:border-[#E6FA50]/50 hover:text-[#F7F7F7]"
+                      className="caption rounded-full border border-white/[0.06] px-2 py-1 text-[#F7F7F7]/40 transition-colors hover:border-[#E6FA50]/50 hover:text-[#F7F7F7]"
                     >
                       + {preset}
                     </button>
@@ -456,14 +456,14 @@ function VenueFormModal({
                 type="button"
                 onClick={onClose}
                 disabled={isPending}
-                className="flex-1 rounded-full border border-white/[0.08] py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
+                className="label flex-1 rounded-full border border-white/[0.08] py-3 uppercase text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="btn-lime flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-[11px] font-semibold uppercase tracking-[0.08em] disabled:opacity-50"
+                className="label btn-lime flex flex-1 items-center justify-center gap-2 rounded-full py-3 uppercase disabled:opacity-50"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {mode === "add" ? "Submit for Approval" : "Save Changes"}
@@ -488,28 +488,28 @@ function VenueCard({ venue, onEdit, showToast }: { venue: Venue; onEdit: (v: Ven
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <h3 className="heading-2 text-lg text-[#F7F7F7] truncate">
+            <h3 className="heading-3 truncate text-[#F7F7F7]">
               {venue.name}
             </h3>
             {venue.isVerified && (
-              <span className="shrink-0 rounded-full bg-[#E6FA50] px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.1em] text-[#06121A]">
+              <span className="caption shrink-0 rounded-full bg-[#E6FA50] px-2 py-0.5 uppercase text-[#06121A]">
                 Verified
               </span>
             )}
           </div>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-[#F7F7F7]/40">
+          <p className="body-sm mt-1 flex items-center gap-1.5 text-[#F7F7F7]/40">
             <MapPin className="h-3.5 w-3.5" />
             {venue.location} · {venue.city}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-4">
-            <span className="flex items-center gap-1.5 text-xs text-[#F7F7F7]/25">
+            <span className="body-sm flex items-center gap-1.5 text-[#F7F7F7]/25">
               <Star className="h-3 w-3 fill-[#E6FA50] text-[#E6FA50]" />
               {venue.rating} ({venue.reviewCount})
             </span>
-            <span className="text-xs text-[#F7F7F7]/25">
+            <span className="body-sm text-[#F7F7F7]/25">
               {venue.courtCount ?? 0} courts
             </span>
-            <span className="text-xs text-[#F7F7F7]/25">
+            <span className="body-sm text-[#F7F7F7]/25">
               {venue.operatingHours.open} – {venue.operatingHours.close}
             </span>
           </div>
@@ -518,7 +518,7 @@ function VenueCard({ venue, onEdit, showToast }: { venue: Venue; onEdit: (v: Ven
         <div className="flex items-center gap-2">
           <div className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}>
             <StatusIcon className={`h-3.5 w-3.5 ${config.color}`} />
-            <span className={`text-[11px] font-medium ${config.color}`}>
+            <span className={`caption ${config.color}`}>
               {config.label}
             </span>
           </div>
@@ -550,7 +550,7 @@ function VenueCard({ venue, onEdit, showToast }: { venue: Venue; onEdit: (v: Ven
         {venue.facilities.map((f) => (
           <span
             key={f}
-            className="rounded-full bg-white/[0.03] px-3 py-1 text-[10px] font-medium text-[#F7F7F7]/25"
+            className="caption rounded-full bg-white/[0.03] px-3 py-1 text-[#F7F7F7]/25"
           >
             {f}
           </span>

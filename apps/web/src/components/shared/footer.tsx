@@ -9,11 +9,11 @@ export function Footer() {
           {/* Column 1 — Brand + newsletter */}
           <div className="max-w-[320px]">
             <Link href="/" className="inline-block">
-              <span className="font-heading text-xl font-semibold tracking-[-0.02em] text-[#F7F7F7]">
+              <span className="heading-3 text-[#F7F7F7]">
                 Padel<span className="text-[#E6FA50]">hive</span>
               </span>
             </Link>
-            <p className="mt-5 text-sm font-light leading-relaxed text-[#F7F7F7]/25">
+            <p className="mt-5 body text-[#F7F7F7]/25">
               Indonesia&apos;s padel community platform. Book courts, join
               matches, meet players.
             </p>
@@ -25,9 +25,9 @@ export function Footer() {
                 <input
                   type="email"
                   placeholder="Your email"
-                  className="h-10 flex-1 min-w-0 rounded-l-lg border border-white/[0.08] bg-white/[0.03] px-4 text-sm font-light text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30"
+                  className="h-10 flex-1 min-w-0 rounded-l-lg border border-white/[0.08] bg-white/[0.03] px-4 body text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30"
                 />
-                <button className="h-10 shrink-0 rounded-r-lg bg-[#E6FA50] px-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#06121A] transition-colors hover:bg-[#d4e845]">
+                <button className="h-10 shrink-0 rounded-r-lg bg-[#E6FA50] px-4 label uppercase text-[#06121A] transition-colors hover:bg-[#d4e845]">
                   Join
                 </button>
               </div>
@@ -72,7 +72,7 @@ export function Footer() {
         {/* Wordmark section */}
         <div className="border-t border-white/[0.04] pt-20 pb-12 md:pt-24 md:pb-14">
           <p
-            className="select-none text-center font-heading font-bold uppercase leading-[0.78] tracking-[-0.05em] text-[#F7F7F7]/[0.1] text-[clamp(4.5rem,18vw,17.5rem)]"
+            className="select-none text-center display-xl uppercase text-[#F7F7F7]/[0.1]"
           >
             PADELHIVE
           </p>

@@ -110,7 +110,7 @@ export default function DisputesPage() {
     <div className="flex flex-1 flex-col p-6 lg:p-8 relative">
       <div className="mb-8">
         <p className="caption text-[#F7F7F7]/25">Support</p>
-        <h1 className="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
+        <h1 className="heading-1 mt-2 text-[#F7F7F7]">
           Dispute <span className="text-[#E6FA50]">Handling</span>
         </h1>
       </div>
@@ -121,7 +121,7 @@ export default function DisputesPage() {
           <button
             key={tab}
             onClick={() => setFilter(tab)}
-            className={`shrink-0 rounded-lg px-4 py-2 text-xs font-medium capitalize transition-all ${
+            className={`label shrink-0 rounded-lg px-4 py-2 capitalize transition-all ${
               filter === tab
                 ? "bg-[#E6FA50]/10 text-[#E6FA50]"
                 : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
@@ -156,17 +156,17 @@ export default function DisputesPage() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${STATUS_STYLES[dispute.status]}`}>
+                      <span className={`caption rounded-full px-2.5 py-0.5 uppercase ${STATUS_STYLES[dispute.status]}`}>
                         {dispute.status}
                       </span>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] ${PRIORITY_STYLES[dispute.priority]}`}>
+                      <span className={`caption rounded-full px-2.5 py-0.5 uppercase ${PRIORITY_STYLES[dispute.priority]}`}>
                         {dispute.priority}
                       </span>
-                      <span className="rounded-full bg-white/[0.04] px-2.5 py-0.5 text-[10px] font-medium text-[#F7F7F7]/40">
+                      <span className="caption rounded-full bg-white/[0.04] px-2.5 py-0.5 text-[#F7F7F7]/40">
                         {ISSUE_LABELS[dispute.issueType]}
                       </span>
                     </div>
-                    <p className="text-sm text-[#F7F7F7]/80 mt-2">{dispute.description}</p>
+                    <p className="body-sm mt-2 text-[#F7F7F7]/80">{dispute.description}</p>
                     <div className="mt-3 flex flex-wrap items-center gap-4">
                       <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/25">
                         <UserCircle className="h-3.5 w-3.5" /> {dispute.user.name}
@@ -189,7 +189,7 @@ export default function DisputesPage() {
                     <button
                       onClick={() => assignMutation.mutate(dispute.id)}
                       disabled={actingId !== null}
-                      className="flex h-8 items-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-xs font-medium text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50"
+                      className="label flex h-8 items-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50"
                     >
                       {actingId === dispute.id && assignMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />} Assign
                     </button>
@@ -201,7 +201,7 @@ export default function DisputesPage() {
                         setResolveTarget(dispute.id);
                       }}
                       disabled={actingId !== null}
-                      className="flex h-8 items-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-xs font-medium text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50"
+                      className="label flex h-8 items-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50"
                     >
                       {actingId === dispute.id && resolveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />} Resolve
                     </button>
@@ -210,7 +210,7 @@ export default function DisputesPage() {
                     <button
                       onClick={() => closeMutation.mutate(dispute.id)}
                       disabled={actingId !== null}
-                      className="flex h-8 items-center gap-1.5 rounded-lg bg-white/[0.04] px-3 text-xs font-medium text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7] disabled:opacity-50"
+                      className="label flex h-8 items-center gap-1.5 rounded-lg bg-white/[0.04] px-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7] disabled:opacity-50"
                     >
                       {actingId === dispute.id && closeMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />} Close
                     </button>
@@ -226,26 +226,26 @@ export default function DisputesPage() {
       {resolveTarget !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 shadow-2xl">
-            <h2 className="heading-2 text-xl text-[#F7F7F7]">Resolve dispute</h2>
+            <h2 className="heading-2 text-[#F7F7F7]">Resolve dispute</h2>
             <textarea
               value={resolveNotes}
               onChange={(e) => setResolveNotes(e.target.value)}
               placeholder="Resolution notes (optional)..."
-              className="mt-4 w-full rounded-xl border border-white/[0.06] bg-black/20 p-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/50 focus:outline-none"
+              className="body mt-4 w-full rounded-xl border border-white/[0.06] bg-black/20 p-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/50 focus:outline-none"
               rows={4}
             />
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setResolveTarget(null)}
                 disabled={resolveMutation.isPending}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-[#F7F7F7]/60 hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+                className="label rounded-lg px-4 py-2 text-[#F7F7F7]/60 hover:bg-white/[0.04] hover:text-[#F7F7F7]"
               >
                 Cancel
               </button>
               <button
                 onClick={() => resolveMutation.mutate({ id: resolveTarget, notes: resolveNotes.trim() || undefined })}
                 disabled={resolveMutation.isPending}
-                className="flex items-center gap-2 rounded-lg bg-[#E6FA50]/10 px-4 py-2 text-sm font-medium text-[#E6FA50] hover:bg-[#E6FA50]/20 disabled:opacity-50"
+                className="label flex items-center gap-2 rounded-lg bg-[#E6FA50]/10 px-4 py-2 text-[#E6FA50] hover:bg-[#E6FA50]/20 disabled:opacity-50"
               >
                 {resolveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 Confirm Resolve

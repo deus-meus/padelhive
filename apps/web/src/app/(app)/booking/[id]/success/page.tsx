@@ -101,13 +101,13 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#E6FA50]/10">
                 <CheckCircle2 className="h-10 w-10 text-[#E6FA50]" />
               </div>
-              <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#E6FA50]">
+              <p className="mt-6 section-label text-[#E6FA50]">
                 Booking Confirmed
               </p>
-              <h1 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-4xl">
+              <h1 className="heading-1 mt-3 text-[#F7F7F7]">
                 Court secured for your match
               </h1>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/40">
+              <p className="body mx-auto mt-3 max-w-md text-[#F7F7F7]/40">
                 Your payment was successful and the court is confirmed.
               </p>
             </>
@@ -116,13 +116,13 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10">
                 <XCircle className="h-10 w-10 text-red-500" />
               </div>
-              <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-500">
+              <p className="mt-6 section-label text-red-500">
                 Payment Failed
               </p>
-              <h1 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-4xl">
+              <h1 className="heading-1 mt-3 text-[#F7F7F7]">
                 Payment could not be processed
               </h1>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/40">
+              <p className="body mx-auto mt-3 max-w-md text-[#F7F7F7]/40">
                 We could not confirm your payment. Please try again.
               </p>
             </>
@@ -131,13 +131,13 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-yellow-500/10">
                 <Loader2 className="h-10 w-10 animate-spin text-yellow-500" />
               </div>
-              <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-yellow-500">
+              <p className="mt-6 section-label text-yellow-500">
                 Payment Pending
               </p>
-              <h1 className="heading-1 mt-3 text-2xl text-[#F7F7F7] md:text-4xl">
+              <h1 className="heading-1 mt-3 text-[#F7F7F7]">
                 Waiting for confirmation
               </h1>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#F7F7F7]/40">
+              <p className="body mx-auto mt-3 max-w-md text-[#F7F7F7]/40">
                 We are waiting for the payment provider to confirm your payment. This screen will update automatically.
               </p>
             </>
@@ -146,48 +146,48 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
           <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#06121A] p-5 text-left">
             <div className="flex items-start justify-between gap-4 border-b border-white/[0.06] pb-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">Booking ID</p>
-                <p className="mt-1 text-sm font-medium text-[#F7F7F7]/80">{params.id}</p>
+                <p className="section-label text-[#F7F7F7]/40">Booking ID</p>
+                <p className="body mt-1 text-[#F7F7F7]/80">{params.id}</p>
               </div>
-              <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${isPaid ? "bg-[#E6FA50]/10 text-[#E6FA50]" : isFailed ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"}`}>
+              <span className={`caption rounded-full px-3 py-1 ${isPaid ? "bg-[#E6FA50]/10 text-[#E6FA50]" : isFailed ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"}`}>
                 {displayStatus}
               </span>
             </div>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">
+                <div className="section-label flex items-center gap-2 text-[#F7F7F7]/40">
                   <MapPin className="h-3.5 w-3.5" />
                   Venue
                 </div>
-                <p className="mt-2 text-sm font-medium text-[#F7F7F7]/80">{venue}</p>
-                <p className="mt-1 text-xs text-[#F7F7F7]/40">{court}</p>
+                <p className="body mt-2 text-[#F7F7F7]/80">{venue}</p>
+                <p className="body-sm mt-1 text-[#F7F7F7]/40">{court}</p>
               </div>
 
               <div className="rounded-xl bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">
+                <div className="section-label flex items-center gap-2 text-[#F7F7F7]/40">
                   <CalendarDays className="h-3.5 w-3.5" />
                   Date
                 </div>
-                <p className="mt-2 text-sm font-medium text-[#F7F7F7]/80">{formatBookingDate(date)}</p>
+                <p className="body mt-2 text-[#F7F7F7]/80">{formatBookingDate(date)}</p>
               </div>
 
               <div className="rounded-xl bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">
+                <div className="section-label flex items-center gap-2 text-[#F7F7F7]/40">
                   <Clock className="h-3.5 w-3.5" />
                   Time
                 </div>
-                <p className="mt-2 text-sm font-medium text-[#F7F7F7]/80">
+                <p className="body mt-2 text-[#F7F7F7]/80">
                   {formatBookingTimeRange(start, end)}
                 </p>
               </div>
 
               <div className="rounded-xl bg-white/[0.03] p-4">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-[#F7F7F7]/40">
+                <div className="section-label flex items-center gap-2 text-[#F7F7F7]/40">
                   <CreditCard className="h-3.5 w-3.5" />
                   Payment
                 </div>
-                <p className="mt-2 text-sm font-medium text-[#F7F7F7]/80">
+                <p className="price mt-2 text-[#F7F7F7]/80">
                   {amount > 0 ? `Rp ${amount.toLocaleString("id-ID")}` : "—"}
                 </p>
               </div>
@@ -198,21 +198,21 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
             {isFailed ? (
               <Link
                 href={`/booking/${params.id}/payment`}
-                className="btn-lime flex h-12 items-center justify-center rounded-full px-6 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                className="label btn-lime flex h-12 items-center justify-center rounded-full px-6"
               >
                 Try Payment Again
               </Link>
             ) : (
               <Link
                 href="/profile/bookings"
-                className="btn-lime flex h-12 items-center justify-center rounded-full px-6 text-[11px] font-semibold uppercase tracking-[0.08em]"
+                className="label btn-lime flex h-12 items-center justify-center rounded-full px-6"
               >
                 View My Bookings
               </Link>
             )}
             <Link
               href="/venues"
-              className="flex h-12 items-center justify-center rounded-full border border-white/[0.08] px-6 text-[11px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80"
+              className="label flex h-12 items-center justify-center rounded-full border border-white/[0.08] px-6 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80"
             >
               Book Another Court
             </Link>
