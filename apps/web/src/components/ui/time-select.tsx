@@ -20,6 +20,92 @@ function formatTo12Hour(time24: string): string {
   return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
+function ThemedSelect({
+  value,
+  options,
+  onChange,
+  ariaLabel,
+}: {
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+  ariaLabel?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    function handleMousedown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleMousedown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleMousedown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open && selectedRef.current) {
+      selectedRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-20 items-center justify-between gap-2 rounded-lg border border-white/[0.08] bg-[#06121A] px-3 py-2 text-sm text-[#F7F7F7] transition-colors hover:border-white/[0.15] focus:border-[#E6FA50]/40 focus:outline-none"
+      >
+        <span>{value}</span>
+        <ChevronDown
+          className={`h-3.5 w-3.5 shrink-0 text-[#F7F7F7]/40 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-20 mt-1 max-h-44 overflow-y-auto rounded-lg border border-white/[0.08] bg-[#0C1B26] py-1 shadow-2xl shadow-black/40 no-scrollbar"
+        >
+          {options.map((opt) => {
+            const isSel = opt === value;
+            return (
+              <li key={opt} role="option" aria-selected={isSel}>
+                <button
+                  type="button"
+                  ref={isSel ? selectedRef : undefined}
+                  onClick={() => {
+                    onChange(opt);
+                    setOpen(false);
+                  }}
+                  className={`block w-full px-3 py-1.5 text-center text-sm transition-colors ${
+                    isSel
+                      ? "bg-[#E6FA50] text-[#06121A] font-semibold"
+                      : "text-[#F7F7F7]/80 hover:bg-white/[0.06]"
+                  }`}
+                >
+                  {opt}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function TimeSelect({
   value,
   onChange,
@@ -147,29 +233,19 @@ export function TimeSelect({
           </div>
 
           <div className="mt-5 flex items-center justify-center gap-3">
-            <select
-              value={stagedHour}
-              onChange={(e) => setStagedHour(Number(e.target.value))}
-              className="w-16 text-center bg-[#06121A] border border-white/[0.08] rounded-lg py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none [color-scheme:dark]"
-            >
-              {hourOptions.map((h) => (
-                <option key={h} value={h}>
-                  {h}
-                </option>
-              ))}
-            </select>
+            <ThemedSelect
+              ariaLabel="Hour"
+              value={String(stagedHour)}
+              options={hourOptions.map(String)}
+              onChange={(v) => setStagedHour(Number(v))}
+            />
             <span className="text-[#F7F7F7]/40 font-medium">:</span>
-            <select
+            <ThemedSelect
+              ariaLabel="Minute"
               value={stagedMinute}
-              onChange={(e) => setStagedMinute(e.target.value)}
-              className="w-16 text-center bg-[#06121A] border border-white/[0.08] rounded-lg py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none [color-scheme:dark]"
-            >
-              {minuteOptions.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+              options={minuteOptions}
+              onChange={(v) => setStagedMinute(v)}
+            />
           </div>
 
           <div className="mt-4 flex w-full rounded-lg bg-white/[0.04] p-1">
