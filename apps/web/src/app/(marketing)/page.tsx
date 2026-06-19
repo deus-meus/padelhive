@@ -50,30 +50,32 @@ export default async function HomePage() {
         </div>
 
         <div className="container relative z-10 flex flex-1 flex-col justify-center pt-24 pb-16 md:pt-28 md:pb-20">
-          <h1 className="display-hero text-[#F7F7F7]">
-            BOOK.
-            <br />
-            <span className="text-[#E6FA50]">PLAY.</span>
-            <br />
-            CONNECT.
-          </h1>
+          <div className="flex flex-col gap-10 md:flex-row md:items-center md:justify-between md:gap-8">
+            <div>
+              <h1 className="display-hero text-[#F7F7F7]">
+                BOOK.
+                <br />
+                <span className="text-[#E6FA50]">PLAY.</span>
+                <br />
+                CONNECT.
+              </h1>
 
-          <div className="mt-10 flex flex-col gap-6 md:mt-12 md:flex-row md:items-end md:justify-between">
-            <p className="body-lg max-w-md text-[#F7F7F7]/60">
-              Indonesia&apos;s padel community. Book courts, join matches,
-              meet players.
-            </p>
+              <p className="body-lg mt-8 max-w-md text-[#F7F7F7]/60">
+                Indonesia&apos;s padel community. Book courts, join matches,
+                meet players.
+              </p>
+            </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex shrink-0 flex-col gap-3 md:items-stretch">
               <Link
                 href="/venues"
-                className="label btn-lime inline-flex h-12 items-center rounded-full px-8"
+                className="label btn-lime inline-flex h-12 items-center justify-center rounded-full px-8"
               >
                 Book a Court
               </Link>
               <Link
                 href="#community"
-                className="label btn-outline-white inline-flex h-12 items-center rounded-full px-8"
+                className="label btn-outline-white inline-flex h-12 items-center justify-center rounded-full px-8"
               >
                 Join a Match
               </Link>
