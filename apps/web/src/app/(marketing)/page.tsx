@@ -58,26 +58,24 @@ export default async function HomePage() {
             CONNECT.
           </h1>
 
-          <div className="mt-10 flex flex-col gap-6 md:mt-12 md:flex-row md:items-end md:justify-between">
-            <p className="body-lg max-w-md text-[#F7F7F7]/60">
-              Indonesia&apos;s padel community. Book courts, join matches,
-              meet players.
-            </p>
+          <p className="body-lg mt-8 max-w-md text-[#F7F7F7]/60">
+            Indonesia&apos;s padel community. Book courts, join matches,
+            meet players.
+          </p>
 
-            <div className="flex gap-3">
-              <Link
-                href="/venues"
-                className="label btn-lime inline-flex h-12 items-center rounded-full px-8"
-              >
-                Book a Court
-              </Link>
-              <Link
-                href="#community"
-                className="label btn-outline-white inline-flex h-12 items-center rounded-full px-8"
-              >
-                Join a Match
-              </Link>
-            </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/venues"
+              className="label btn-lime inline-flex h-12 items-center rounded-full px-8"
+            >
+              Book a Court
+            </Link>
+            <Link
+              href="#community"
+              className="label btn-outline-white inline-flex h-12 items-center rounded-full px-8"
+            >
+              Join a Match
+            </Link>
           </div>
         </div>
 
