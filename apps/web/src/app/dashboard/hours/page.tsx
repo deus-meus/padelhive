@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getVenuesManage, updateVenue, getApiErrorMessage } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { TimeSelect } from "@/components/ui/time-select";
 
 const DAYS = [
   { key: "mon", label: "Monday" },
@@ -16,12 +17,6 @@ const DAYS = [
   { key: "sat", label: "Saturday" },
   { key: "sun", label: "Sunday" },
 ];
-
-const TIME_OPTIONS: string[] = [];
-for (let h = 0; h < 24; h++) {
-  const hr = h.toString().padStart(2, "0");
-  TIME_OPTIONS.push(`${hr}:00`, `${hr}:30`);
-}
 
 type DaySchedule = {
   key: string;
@@ -314,25 +309,13 @@ export default function OperatingHoursPage() {
                           </div>
                         ) : (
                           <div className="flex items-center gap-3 w-full sm:w-auto">
-                            <select
-                              value={day.open}
-                              onChange={(e) => handleDayChange(index, "open", e.target.value)}
-                              disabled={day.closed}
-                              className="w-full sm:w-32 bg-[#06121A] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed [color-scheme:dark]"
-                            >
-                              {!TIME_OPTIONS.includes(day.open) && <option value={day.open}>{day.open}</option>}
-                              {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
+                            <div className="w-full sm:w-32">
+                              <TimeSelect value={day.open} onChange={(v) => handleDayChange(index, "open", v)} disabled={day.closed} ariaLabel={`${day.label} opening time`} />
+                            </div>
                             <span className="text-[#F7F7F7]/40">–</span>
-                            <select
-                              value={day.close}
-                              onChange={(e) => handleDayChange(index, "close", e.target.value)}
-                              disabled={day.closed}
-                              className="w-full sm:w-32 bg-[#06121A] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed [color-scheme:dark]"
-                            >
-                              {!TIME_OPTIONS.includes(day.close) && <option value={day.close}>{day.close}</option>}
-                              {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
+                            <div className="w-full sm:w-32">
+                              <TimeSelect value={day.close} onChange={(v) => handleDayChange(index, "close", v)} disabled={day.closed} ariaLabel={`${day.label} closing time`} />
+                            </div>
                           </div>
                         )}
                         <label className="hidden sm:flex items-center gap-3 cursor-pointer shrink-0">
