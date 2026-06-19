@@ -49,7 +49,7 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#06121A] via-[#06121A]/40 to-transparent" />
         </div>
 
-        <div className="container relative z-10 flex flex-1 flex-col justify-center pt-28 pb-20 md:pt-32 md:pb-24">
+        <div className="container relative z-10 flex flex-1 flex-col justify-center pt-24 pb-16 md:pt-28 md:pb-20">
           <h1 className="display-hero text-[#F7F7F7]">
             BOOK.
             <br />
@@ -58,24 +58,26 @@ export default async function HomePage() {
             CONNECT.
           </h1>
 
-          <p className="body-lg mt-8 max-w-md text-[#F7F7F7]/60">
-            Indonesia&apos;s padel community. Book courts, join matches,
-            meet players.
-          </p>
+          <div className="mt-10 flex flex-col gap-6 md:mt-12 md:flex-row md:items-end md:justify-between">
+            <p className="body-lg max-w-md text-[#F7F7F7]/60">
+              Indonesia&apos;s padel community. Book courts, join matches,
+              meet players.
+            </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/venues"
-              className="label btn-lime inline-flex h-12 items-center rounded-full px-8"
-            >
-              Book a Court
-            </Link>
-            <Link
-              href="#community"
-              className="label btn-outline-white inline-flex h-12 items-center rounded-full px-8"
-            >
-              Join a Match
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/venues"
+                className="label btn-lime inline-flex h-12 items-center rounded-full px-8"
+              >
+                Book a Court
+              </Link>
+              <Link
+                href="#community"
+                className="label btn-outline-white inline-flex h-12 items-center rounded-full px-8"
+              >
+                Join a Match
+              </Link>
+            </div>
           </div>
         </div>
 
