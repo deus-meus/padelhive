@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Clock, ChevronDown, Check } from "lucide-react";
+import { Clock, ChevronDown } from "lucide-react";
 
 type TimeSelectProps = {
   value: string;
@@ -11,6 +11,15 @@ type TimeSelectProps = {
   minuteStep?: number;
 };
 
+function formatTo12Hour(time24: string): string {
+  if (!time24) return "";
+  const [h24, m] = time24.split(":").map(Number);
+  if (isNaN(h24) || isNaN(m)) return time24;
+  const ampm = h24 >= 12 ? "PM" : "AM";
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
 export function TimeSelect({
   value,
   onChange,
@@ -19,41 +28,27 @@ export function TimeSelect({
   minuteStep = 15,
 }: TimeSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [filter, setFilter] = useState("");
-  const [activeIndex, setActiveIndex] = useState(-1);
   const [openUpwards, setOpenUpwards] = useState(false);
+
+  // Staged states
+  const [stagedHour, setStagedHour] = useState<number>(12);
+  const [stagedMinute, setStagedMinute] = useState<string>("00");
+  const [stagedAmpm, setStagedAmpm] = useState<"AM" | "PM">("AM");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const listboxRef = useRef<HTMLDivElement>(null);
 
-  const allOptions = useMemo(() => {
-    const opts: string[] = [];
-    for (let h = 0; h < 24; h++) {
-      for (let m = 0; m < 60; m += minuteStep) {
-        const hr = h.toString().padStart(2, "0");
-        const mn = m.toString().padStart(2, "0");
-        opts.push(`${hr}:${mn}`);
-      }
-    }
-    if (!opts.includes(value)) {
-      opts.push(value);
-      opts.sort();
-    }
-    return opts;
-  }, [minuteStep, value]);
-
-  const filteredOptions = useMemo(() => {
-    if (!filter) return allOptions;
-    const cleanFilter = filter.replace(/[^\d:]/g, "");
-    return allOptions.filter((o) => o.includes(cleanFilter));
-  }, [allOptions, filter]);
-
+  // Parse incoming value when popover opens
   useEffect(() => {
-    if (isOpen) {
-      const selectedIndex = filteredOptions.indexOf(value);
-      setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+    if (isOpen && value) {
+      const [h24, m] = value.split(":").map(Number);
+      if (!isNaN(h24) && !isNaN(m)) {
+        setStagedAmpm(h24 >= 12 ? "PM" : "AM");
+        setStagedHour(h24 % 12 === 0 ? 12 : h24 % 12);
+        setStagedMinute(String(m).padStart(2, "0"));
+      }
 
+      // Check space
       if (triggerRef.current) {
         const rect = triggerRef.current.getBoundingClientRect();
         if (window.innerHeight - rect.bottom < 260 && rect.top > 260) {
@@ -62,11 +57,10 @@ export function TimeSelect({
           setOpenUpwards(false);
         }
       }
-    } else {
-      setFilter("");
     }
-  }, [isOpen, value, filteredOptions]);
+  }, [isOpen, value]);
 
+  // Click outside closes without saving
   useEffect(() => {
     function handleMousedown(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -81,68 +75,44 @@ export function TimeSelect({
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (isOpen && listboxRef.current) {
-      const selectedIndex = filteredOptions.indexOf(value);
-      if (selectedIndex >= 0) {
-        const el = listboxRef.current.children[selectedIndex] as HTMLElement;
-        if (el) {
-          el.scrollIntoView({ block: "center" });
-        }
-      }
-    }
-  }, [isOpen, filteredOptions, value]);
-
-  useEffect(() => {
-    if (isOpen && activeIndex >= 0 && listboxRef.current) {
-      const activeEl = listboxRef.current.children[activeIndex] as HTMLElement;
-      if (activeEl) {
-        activeEl.scrollIntoView({ block: "nearest" });
-      }
-    }
-  }, [activeIndex, isOpen]);
-
+  // Escape closes without saving
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (!isOpen) {
-      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        setIsOpen(true);
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setActiveIndex((prev) => (prev + 1) % filteredOptions.length);
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setActiveIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length);
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (filteredOptions[activeIndex]) {
-          onChange(filteredOptions[activeIndex]);
-          setIsOpen(false);
-        }
-        break;
-      case "Escape":
-        e.preventDefault();
-        setIsOpen(false);
-        break;
+    if (isOpen && e.key === "Escape") {
+      e.stopPropagation();
+      setIsOpen(false);
     }
   }
+
+  function handleApply() {
+    let h24 = stagedHour % 12;
+    if (stagedAmpm === "PM") h24 += 12;
+    const out = `${String(h24).padStart(2, "0")}:${stagedMinute}`;
+    onChange(out);
+    setIsOpen(false);
+  }
+
+  // Options
+  const hourOptions = Array.from({ length: 12 }, (_, i) => i + 1);
+  const minuteOptions = useMemo(() => {
+    const opts: string[] = [];
+    for (let m = 0; m < 60; m += minuteStep) {
+      opts.push(m.toString().padStart(2, "0"));
+    }
+    if (!opts.includes(stagedMinute)) {
+      opts.push(stagedMinute);
+      opts.sort();
+    }
+    return opts;
+  }, [minuteStep, stagedMinute]);
 
   return (
     <div className="relative w-full" ref={containerRef} onKeyDown={handleKeyDown}>
       <button
         ref={triggerRef}
         type="button"
-        role="combobox"
+        role="button"
+        aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-controls={isOpen ? "time-select-listbox" : undefined}
-        aria-haspopup="listbox"
         aria-label={ariaLabel || "Select time"}
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
@@ -152,7 +122,7 @@ export function TimeSelect({
       >
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-[#F7F7F7]/40" />
-          <span>{value}</span>
+          <span>{formatTo12Hour(value)}</span>
         </div>
         <ChevronDown
           className={`h-4 w-4 text-[#F7F7F7]/40 transition-transform ${
@@ -163,62 +133,80 @@ export function TimeSelect({
 
       {isOpen && (
         <div
-          className={`absolute z-50 w-full min-w-[12rem] bg-[#0C1B26] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 overflow-hidden flex flex-col ${
+          role="dialog"
+          aria-label="Select time"
+          className={`absolute z-50 bg-[#0C1B26] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 p-4 w-64 flex flex-col ${
             openUpwards ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"
           }`}
-          style={{ maxHeight: "240px" }}
         >
-          <div className="p-2 border-b border-white/[0.06] shrink-0">
-            <input
-              type="text"
-              autoFocus
-              value={filter}
-              onChange={(e) => {
-                setFilter(e.target.value);
-                setActiveIndex(0);
-              }}
-              placeholder="Type to filter..."
-              className="w-full bg-white/[0.04] border border-transparent rounded-lg px-3 py-1.5 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/30 focus:border-[#E6FA50]/40 focus:outline-none focus:bg-[#06121A]"
-            />
+          <h3 className="text-sm font-medium text-[#F7F7F7]">Select Time</h3>
+
+          <div className="flex items-center gap-2 mt-4">
+            <select
+              value={stagedHour}
+              onChange={(e) => setStagedHour(Number(e.target.value))}
+              className="bg-[#06121A] border border-white/[0.08] rounded-lg px-2 py-1.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none [color-scheme:dark]"
+            >
+              {hourOptions.map((h) => (
+                <option key={h} value={h}>
+                  {h}
+                </option>
+              ))}
+            </select>
+            <span className="text-[#F7F7F7]/40 font-medium">:</span>
+            <select
+              value={stagedMinute}
+              onChange={(e) => setStagedMinute(e.target.value)}
+              className="bg-[#06121A] border border-white/[0.08] rounded-lg px-2 py-1.5 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none [color-scheme:dark]"
+            >
+              {minuteOptions.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex gap-1 ml-auto">
+              <button
+                type="button"
+                onClick={() => setStagedAmpm("AM")}
+                className={`rounded-lg px-3 py-1.5 text-xs uppercase transition-colors ${
+                  stagedAmpm === "AM"
+                    ? "bg-[#E6FA50] text-[#06121A] font-semibold"
+                    : "bg-white/[0.04] text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
+                }`}
+              >
+                AM
+              </button>
+              <button
+                type="button"
+                onClick={() => setStagedAmpm("PM")}
+                className={`rounded-lg px-3 py-1.5 text-xs uppercase transition-colors ${
+                  stagedAmpm === "PM"
+                    ? "bg-[#E6FA50] text-[#06121A] font-semibold"
+                    : "bg-white/[0.04] text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
+                }`}
+              >
+                PM
+              </button>
+            </div>
           </div>
-          <div
-            id="time-select-listbox"
-            ref={listboxRef}
-            role="listbox"
-            className="flex-1 overflow-y-auto p-1 no-scrollbar"
-          >
-            {filteredOptions.length === 0 ? (
-              <div className="px-3 py-4 text-center text-sm text-[#F7F7F7]/40">
-                No times found
-              </div>
-            ) : (
-              filteredOptions.map((opt, i) => {
-                const isSelected = opt === value;
-                const isActive = i === activeIndex;
-                return (
-                  <div
-                    key={opt}
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      onChange(opt);
-                      setIsOpen(false);
-                    }}
-                    onMouseEnter={() => setActiveIndex(i)}
-                    className={`flex items-center justify-between px-3 py-2 cursor-pointer rounded-lg text-sm transition-colors ${
-                      isSelected
-                        ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                        : isActive
-                        ? "bg-white/[0.04] text-[#F7F7F7]"
-                        : "text-[#F7F7F7]/80"
-                    }`}
-                  >
-                    <span>{opt}</span>
-                    {isSelected && <Check className="h-4 w-4" />}
-                  </div>
-                );
-              })
-            )}
+
+          <div className="flex justify-end gap-2 mt-5">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="text-sm text-[#F7F7F7]/60 hover:text-[#F7F7F7] px-3 py-1.5 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleApply}
+              className="btn-lime rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] bg-[#E6FA50] text-[#06121A]"
+            >
+              Apply
+            </button>
           </div>
         </div>
       )}
