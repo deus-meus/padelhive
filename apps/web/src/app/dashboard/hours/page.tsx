@@ -17,6 +17,12 @@ const DAYS = [
   { key: "sun", label: "Sunday" },
 ];
 
+const TIME_OPTIONS: string[] = [];
+for (let h = 0; h < 24; h++) {
+  const hr = h.toString().padStart(2, "0");
+  TIME_OPTIONS.push(`${hr}:00`, `${hr}:30`);
+}
+
 type DaySchedule = {
   key: string;
   label: string;
@@ -38,6 +44,13 @@ export default function OperatingHoursPage() {
 
   const [schedule, setSchedule] = useState<DaySchedule[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
 
   useEffect(() => {
     if (venue) {
@@ -66,8 +79,23 @@ export default function OperatingHoursPage() {
         );
       }
       setErrorMsg(null);
+      setIsDirty(false);
     }
   }, [venue]);
+
+  useEffect(() => {
+    if (!venue || schedule.length === 0) return;
+    const isDifferent = schedule.some(day => {
+      if (venue.weeklyHours) {
+        const entry = venue.weeklyHours[day.key];
+        if (!entry) return day.open !== venue.operatingHours.open || day.close !== venue.operatingHours.close || day.closed !== false;
+        return day.open !== entry.open || day.close !== entry.close || day.closed !== !!entry.closed;
+      } else {
+        return day.open !== venue.operatingHours.open || day.close !== venue.operatingHours.close || day.closed !== false;
+      }
+    });
+    setIsDirty(isDifferent);
+  }, [schedule, venue]);
 
   function handleVenueChange(id: string) {
     setSelectedVenueId(id);
@@ -84,10 +112,14 @@ export default function OperatingHoursPage() {
       if (activeVenueId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.venues.detail(activeVenueId) });
       }
+      setIsDirty(false);
+      showToast("Operating hours saved");
       setTimeout(() => reset(), 2000);
     },
     onError: (err) => {
-      setErrorMsg(getApiErrorMessage(err));
+      const msg = getApiErrorMessage(err);
+      setErrorMsg(msg);
+      showToast(msg);
     },
   });
 
@@ -135,9 +167,11 @@ export default function OperatingHoursPage() {
     );
   }
 
+  const wibKey = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "Asia/Jakarta" }).format(new Date()).toLowerCase();
+
   return (
     <div className="py-8">
-      <section className="container max-w-3xl">
+      <section className="container">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="heading-1 text-2xl text-[#F7F7F7] md:text-3xl">
@@ -147,32 +181,37 @@ export default function OperatingHoursPage() {
               Set venue-wide open and close times
             </p>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={isPending || isLoading || isVenuesError || venues.length === 0}
-            className={`flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-              isSuccess
-                ? "bg-green-400/10 text-green-400 border border-green-400/30"
-                : "btn-lime"
-            }`}
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Saving
-              </>
-            ) : isSuccess ? (
-              <>
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Saved
-              </>
-            ) : (
-              <>
-                <Save className="h-3.5 w-3.5" />
-                Save Changes
-              </>
+          <div className="flex items-center gap-4">
+            {isDirty && !isPending && !isSuccess && (
+              <span className="hidden sm:inline caption text-[#E6FA50]">Unsaved changes</span>
             )}
-          </button>
+            <button
+              onClick={handleSave}
+              disabled={isPending || isLoading || isVenuesError || venues.length === 0 || !isDirty}
+              className={`flex h-10 items-center gap-2 rounded-full px-5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                isSuccess
+                  ? "bg-green-400/10 text-green-400 border border-green-400/30"
+                  : "btn-lime"
+              }`}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Saving
+                </>
+              ) : isSuccess ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Saved
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" />
+                  Save Changes
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -183,7 +222,7 @@ export default function OperatingHoursPage() {
               ))}
             </div>
             <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <div className="h-16 w-full animate-pulse rounded-lg bg-white/[0.04]" />
+              <div className="h-64 w-full animate-pulse rounded-lg bg-white/[0.04]" />
             </div>
           </>
         ) : isVenuesError ? (
@@ -213,7 +252,7 @@ export default function OperatingHoursPage() {
             </div>
 
             <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
                     <Clock className="h-5 w-5 text-[#50C8C8]" />
@@ -225,10 +264,10 @@ export default function OperatingHoursPage() {
                 </div>
                 <button
                   onClick={copyMonday}
-                  className="flex items-center gap-1.5 rounded-full border border-white/[0.08] px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80"
+                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:bg-white/[0.04] hover:text-[#F7F7F7]/80"
                 >
-                  <Copy className="h-3 w-3" />
-                  Copy Monday
+                  <Copy className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Copy Monday</span>
                 </button>
               </div>
 
@@ -239,54 +278,96 @@ export default function OperatingHoursPage() {
               )}
 
               <div className="space-y-4">
-                {schedule.map((day, index) => (
-                  <div key={day.key} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
-                    <div className="flex items-center justify-between sm:w-32">
-                      <span className="text-sm font-medium text-[#F7F7F7]/80">{day.label}</span>
-                      <label className="flex items-center gap-2 cursor-pointer sm:hidden">
-                        <span className="text-xs text-[#F7F7F7]/40">Closed</span>
-                        <input
-                          type="checkbox"
-                          checked={day.closed}
-                          onChange={(e) => handleDayChange(index, "closed", e.target.checked)}
-                          className="h-4 w-4 rounded border-white/[0.2] bg-transparent text-[#E6FA50] focus:ring-[#E6FA50]/30 focus:ring-offset-0"
-                        />
-                      </label>
+                {schedule.map((day, index) => {
+                  const isToday = day.key === wibKey;
+                  return (
+                    <div key={day.key} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] transition-all ${isToday ? "border-l-2 border-l-[#E6FA50]/60 bg-[#E6FA50]/[0.02]" : ""}`}>
+                      <div className="flex items-center justify-between sm:w-32 shrink-0">
+                        <span className="text-sm font-medium text-[#F7F7F7]/80 flex items-center gap-2">
+                          {day.label}
+                          {isToday && <span className="rounded bg-[#E6FA50]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#E6FA50]">Today</span>}
+                        </span>
+                        <label className="flex items-center gap-2 cursor-pointer sm:hidden">
+                          <span className="text-xs font-medium text-[#F7F7F7]/40 uppercase tracking-wider">Closed</span>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={day.closed}
+                            onClick={() => handleDayChange(index, "closed", !day.closed)}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
+                              day.closed ? "bg-[#E6FA50]" : "bg-white/[0.08]"
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${
+                                day.closed ? "translate-x-4 bg-[#06121A]" : "translate-x-1 bg-[#F7F7F7]/80"
+                              }`}
+                            />
+                          </button>
+                        </label>
+                      </div>
+                      
+                      <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        {day.closed ? (
+                          <div className="w-full sm:max-w-xs rounded-lg bg-white/[0.02] px-3 py-2 text-center sm:text-left text-sm text-[#F7F7F7]/40 border border-white/[0.04]">
+                            Closed all day
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <select
+                              value={day.open}
+                              onChange={(e) => handleDayChange(index, "open", e.target.value)}
+                              disabled={day.closed}
+                              className="w-full sm:w-32 bg-[#06121A] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed [color-scheme:dark]"
+                            >
+                              {!TIME_OPTIONS.includes(day.open) && <option value={day.open}>{day.open}</option>}
+                              {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                            <span className="text-[#F7F7F7]/40">–</span>
+                            <select
+                              value={day.close}
+                              onChange={(e) => handleDayChange(index, "close", e.target.value)}
+                              disabled={day.closed}
+                              className="w-full sm:w-32 bg-[#06121A] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed [color-scheme:dark]"
+                            >
+                              {!TIME_OPTIONS.includes(day.close) && <option value={day.close}>{day.close}</option>}
+                              {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </div>
+                        )}
+                        <label className="hidden sm:flex items-center gap-3 cursor-pointer shrink-0">
+                          <span className="text-xs font-medium text-[#F7F7F7]/40 uppercase tracking-wider">Closed</span>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={day.closed}
+                            onClick={() => handleDayChange(index, "closed", !day.closed)}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
+                              day.closed ? "bg-[#E6FA50]" : "bg-white/[0.08]"
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${
+                                day.closed ? "translate-x-4 bg-[#06121A]" : "translate-x-1 bg-[#F7F7F7]/80"
+                              }`}
+                            />
+                          </button>
+                        </label>
+                      </div>
                     </div>
-                    
-                    <div className="flex-1 grid grid-cols-2 gap-4">
-                      <input
-                        type="time"
-                        value={day.open}
-                        onChange={(e) => handleDayChange(index, "open", e.target.value)}
-                        disabled={day.closed}
-                        className="w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed [color-scheme:dark]"
-                      />
-                      <input
-                        type="time"
-                        value={day.close}
-                        onChange={(e) => handleDayChange(index, "close", e.target.value)}
-                        disabled={day.closed}
-                        className="w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-[#F7F7F7] focus:border-[#E6FA50]/30 focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed [color-scheme:dark]"
-                      />
-                    </div>
-
-                    <label className="hidden sm:flex items-center gap-2 cursor-pointer ml-2">
-                      <input
-                        type="checkbox"
-                        checked={day.closed}
-                        onChange={(e) => handleDayChange(index, "closed", e.target.checked)}
-                        className="h-4 w-4 rounded border-white/[0.2] bg-transparent text-[#E6FA50] focus:ring-[#E6FA50]/30 focus:ring-offset-0"
-                      />
-                      <span className="text-xs font-medium text-[#F7F7F7]/40 uppercase tracking-wider">Closed</span>
-                    </label>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </>
         )}
       </section>
+      
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40 transition-all">
+          <p className="text-sm text-[#F7F7F7]/60">{toast}</p>
+        </div>
+      )}
     </div>
   );
 }
