@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="border-t border-white/[0.04] bg-[#06121A]">
       <div className="container">
         {/* Main footer content */}
-        <div className="grid grid-cols-1 gap-10 py-16 md:grid-cols-2 md:py-20 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-20">
+        <div className="grid grid-cols-1 gap-10 pt-16 pb-6 md:grid-cols-2 md:pt-20 md:pb-8 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-20">
           {/* Column 1 — Brand + newsletter */}
           <div className="max-w-[320px]">
             <Link href="/" className="inline-block">
@@ -71,7 +71,7 @@ export function Footer() {
       </div>
 
       {/* Wordmark section */}
-      <div className="overflow-hidden pt-8 pb-12 md:pt-10 md:pb-14">
+      <div className="overflow-hidden pt-0 pb-12 md:pt-0 md:pb-14">
         <p className="wordmark select-none text-center uppercase text-[#F7F7F7]/[0.1]">
           PADELHIVE
         </p>
