@@ -221,56 +221,24 @@ export function TimeSelect({
         <div
           role="dialog"
           aria-label="Select time"
-          className={`absolute z-50 bg-[#0C1B26] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 p-5 w-56 flex flex-col ${
+          className={`absolute z-50 bg-[#0C1B26] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 p-5 w-72 flex flex-col ${
             openUpwards ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"
           }`}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <h3 className="text-sm font-medium text-[#F7F7F7]/80">Select Time</h3>
-            <span className="text-sm font-semibold text-[#E6FA50]">
-              {stagedHour}:{stagedMinute} {stagedAmpm}
-            </span>
           </div>
 
-          <div className="mt-5 flex items-center justify-center gap-3">
-            <ThemedSelect
-              ariaLabel="Hour"
-              value={String(stagedHour)}
-              options={hourOptions.map(String)}
-              onChange={(v) => setStagedHour(Number(v))}
-            />
-            <span className="text-[#F7F7F7]/40 font-medium">:</span>
-            <ThemedSelect
-              ariaLabel="Minute"
-              value={stagedMinute}
-              options={minuteOptions}
-              onChange={(v) => setStagedMinute(v)}
-            />
-          </div>
-
-          <div className="mt-4 self-center inline-flex rounded-lg bg-white/[0.04] p-1">
-            <button
-              type="button"
-              onClick={() => setStagedAmpm("AM")}
-              className={`rounded-md px-6 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
-                stagedAmpm === "AM"
-                  ? "bg-[#E6FA50] text-[#06121A]"
-                  : "text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
-              }`}
-            >
-              AM
-            </button>
-            <button
-              type="button"
-              onClick={() => setStagedAmpm("PM")}
-              className={`rounded-md px-6 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
-                stagedAmpm === "PM"
-                  ? "bg-[#E6FA50] text-[#06121A]"
-                  : "text-[#F7F7F7]/50 hover:text-[#F7F7F7]/80"
-              }`}
-            >
-              PM
-            </button>
+          <div className="mt-5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ThemedSelect ariaLabel="Hour" value={String(stagedHour)} options={hourOptions.map(String)} onChange={(v) => setStagedHour(Number(v))} />
+              <span className="text-[#F7F7F7]/40">:</span>
+              <ThemedSelect ariaLabel="Minute" value={stagedMinute} options={minuteOptions} onChange={(v) => setStagedMinute(v)} />
+            </div>
+            <div className="flex items-center gap-1">
+              <button type="button" onClick={() => setStagedAmpm("AM")} className={`px-2 py-1 text-sm font-semibold transition-colors ${stagedAmpm === "AM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}>AM</button>
+              <button type="button" onClick={() => setStagedAmpm("PM")} className={`px-2 py-1 text-sm font-semibold transition-colors ${stagedAmpm === "PM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}>PM</button>
+            </div>
           </div>
 
           <div className="mt-5 flex justify-end gap-3 border-t border-white/[0.06] pt-4">
