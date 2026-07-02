@@ -20,6 +20,7 @@ import {
   AlertCircle,
   Shield,
   UserPlus,
+  RotateCcw,
 } from "lucide-react";
 import {
   ApiRequestError,
@@ -30,7 +31,7 @@ import {
   getBookingInvites,
   setBookingSplit,
   clearBookingSplit,
-  setSplitShareStatus,
+  createSharePaymentIntent,
   type ApiBooking,
 } from "@/lib/api";
 import { getUserFacingErrorMessage } from "@/lib/errors";
@@ -89,6 +90,12 @@ const SPLIT_STATUS_CONFIG = {
     color: "text-yellow-400",
     bg: "bg-yellow-400/10",
   },
+  REFUNDED: {
+    label: "Refunded",
+    icon: RotateCcw,
+    color: "text-red-400",
+    bg: "bg-red-400/10",
+  },
 };
 
 export default function PaymentPage({
@@ -102,7 +109,7 @@ export default function PaymentPage({
   const [processing, setProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [markingPaid, setMarkingPaid] = useState(false);
-  const [togglingShareId, setTogglingShareId] = useState<string | null>(null);
+  const [inFlightShareId, setInFlightShareId] = useState<string | null>(null);
   const [splitMode, setSplitMode] = useState<"equal" | "custom">("equal");
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
   const [customError, setCustomError] = useState<string | null>(null);
@@ -117,12 +124,23 @@ export default function PaymentPage({
   const { data: booking, isLoading: isBookingLoading, isError: isBookingError, error: bookingError, refetch: refetchBooking, isFetching: isFetchingBooking } = useQuery({
     queryKey: queryKeys.bookings.detail(params.id),
     queryFn: () => getBookingById(params.id),
+    refetchInterval: (query) => {
+      const b = query.state.data as any;
+      const sd = queryClient.getQueryData<any>(queryKeys.bookings.split(params.id));
+      if (b?.status === "PENDING_PAYMENT" && sd?.shares?.length > 0) return 5000;
+      return false;
+    },
   });
 
   const { data: splitData, isLoading: isSplitLoading } = useQuery({
     queryKey: queryKeys.bookings.split(params.id),
     queryFn: () => getBookingSplit(params.id),
     enabled: !!booking,
+    refetchInterval: (query) => {
+      const data = query.state.data as any;
+      if (data && data.shares?.length > 0 && data.shares.some((s: any) => s.status === "PENDING")) return 5000;
+      return false;
+    },
   });
 
   const { data: invites } = useQuery({
@@ -141,12 +159,8 @@ export default function PaymentPage({
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.bookings.split(params.id) }),
   });
 
-  const { mutate: setShareStatus } = useMutation({
-    mutationFn: ({ shareId, status }: { shareId: string; status: "PENDING" | "PAID" }) =>
-      setSplitShareStatus(params.id, shareId, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.bookings.split(params.id) }),
-    onSettled: () => setTogglingShareId(null),
-  });
+  const hasCollectedShares = splitData?.shares?.some(s => s.status === "PAID" || s.status === "REFUNDED") ?? false;
+
 
   const splitEnabled = (splitData?.shares?.length ?? 0) > 0;
   const isSplitToggling = isSettingSplit || isClearingSplit;
@@ -432,7 +446,7 @@ export default function PaymentPage({
                 </h2>
                 <button
                   onClick={handleToggleSplit}
-                  disabled={isSplitToggling}
+                  disabled={isSplitToggling || hasCollectedShares}
                   className={`relative h-6 w-11 rounded-full transition-colors ${ splitEnabled ? "bg-[#E6FA50]" : "bg-white/[0.1]" } disabled:opacity-50`}
                 >
                   <span
@@ -463,7 +477,7 @@ export default function PaymentPage({
                           setCustomError(null);
                         }
                       }}
-                      disabled={isSettingSplit}
+                      disabled={isSettingSplit || hasCollectedShares}
                       className={`label flex-1 rounded-md py-1.5 transition-colors ${
                         splitMode === "equal" ? "bg-white/[0.06] text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
                       } disabled:opacity-50`}
@@ -482,7 +496,7 @@ export default function PaymentPage({
                           setSplitMode("custom");
                         }
                       }}
-                      disabled={isSettingSplit}
+                      disabled={isSettingSplit || hasCollectedShares}
                       className={`label flex-1 rounded-md py-1.5 transition-colors ${
                         splitMode === "custom" ? "bg-white/[0.06] text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
                       } disabled:opacity-50`}
@@ -499,7 +513,7 @@ export default function PaymentPage({
                         </p>
                         <button
                           onClick={handleResyncParticipants}
-                          disabled={isSplitToggling}
+                          disabled={isSplitToggling || hasCollectedShares}
                           className="label shrink-0 rounded-full border border-[#E6FA50]/30 px-3 py-1 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/10 disabled:opacity-50"
                         >
                           Re-sync
@@ -507,6 +521,14 @@ export default function PaymentPage({
                       </div>
                       <p className="caption mt-1 text-[#F7F7F7]/25">
                         Re-syncing resets everyone to an equal split. Players who already paid keep their paid status.
+                      </p>
+                    </div>
+                  )}
+
+                  {hasCollectedShares && (
+                    <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3">
+                      <p className="caption text-yellow-200/80">
+                        Split is locked because some payments were already collected.
                       </p>
                     </div>
                   )}
@@ -547,9 +569,9 @@ export default function PaymentPage({
                           )}
 
                           {splitData.shares.map((share) => {
-                            const config = SPLIT_STATUS_CONFIG[share.status];
+                            const config = SPLIT_STATUS_CONFIG[share.status as keyof typeof SPLIT_STATUS_CONFIG];
                             const StatusIcon = config.icon;
-                            const isToggling = togglingShareId === share.id;
+                            const isInFlight = inFlightShareId === share.id;
 
                             return (
                               <div
@@ -569,27 +591,52 @@ export default function PaymentPage({
                                     </p>
                                   </div>
                                 </div>
-                                <button
-                                  onClick={() => {
-                                    setTogglingShareId(share.id);
-                                    setShareStatus({ shareId: share.id, status: share.status === "PENDING" ? "PAID" : "PENDING" });
-                                  }}
-                                  disabled={isToggling}
-                                  className={`caption flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${config.bg} hover:opacity-80 disabled:opacity-50`}
-                                >
-                                  {isToggling ? (
-                                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                                  ) : (
-                                    <StatusIcon
-                                      className={`h-3.5 w-3.5 ${config.color}`}
-                                    />
-                                  )}
-                                  <span
-                                    className={`${config.color}`}
+                                {share.status === "PENDING" ? (
+                                  <button
+                                    onClick={async () => {
+                                      if (isInFlight || !selectedMethod) return;
+                                      if (typeof window === "undefined" || !window.snap) {
+                                        setPaymentError("Payment module is still loading. Please try again in a moment.");
+                                        return;
+                                      }
+                                      setInFlightShareId(share.id);
+                                      setPaymentError(null);
+                                      try {
+                                        const intent = await createSharePaymentIntent(params.id, share.id, (selectedMethod as any) ?? "va");
+                                        if (intent.token) {
+                                          window.snap.pay(intent.token, {
+                                            onSuccess: () => {
+                                              queryClient.invalidateQueries({ queryKey: queryKeys.bookings.split(params.id) });
+                                              queryClient.invalidateQueries({ queryKey: queryKeys.bookings.detail(params.id) });
+                                            },
+                                            onPending: () => {
+                                              queryClient.invalidateQueries({ queryKey: queryKeys.bookings.split(params.id) });
+                                              queryClient.invalidateQueries({ queryKey: queryKeys.bookings.detail(params.id) });
+                                            },
+                                            onError: () => setPaymentError("Payment failed or was declined. Please try again."),
+                                            onClose: () => setInFlightShareId(null)
+                                          });
+                                        } else {
+                                          queryClient.invalidateQueries({ queryKey: queryKeys.bookings.split(params.id) });
+                                          queryClient.invalidateQueries({ queryKey: queryKeys.bookings.detail(params.id) });
+                                          setInFlightShareId(null);
+                                        }
+                                      } catch (err: any) {
+                                        setPaymentError(getUserFacingErrorMessage(err) || "Could not create payment intent.");
+                                        setInFlightShareId(null);
+                                      }
+                                    }}
+                                    disabled={isInFlight || !selectedMethod}
+                                    className="btn-lime caption rounded-full px-4 py-1.5 disabled:opacity-50"
                                   >
-                                    {config.label}
-                                  </span>
-                                </button>
+                                    {isInFlight ? "Processing..." : `Pay Rp ${share.amount.toLocaleString("id-ID")}`}
+                                  </button>
+                                ) : (
+                                  <div className={`caption flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}>
+                                    <StatusIcon className={`h-3.5 w-3.5 ${config.color}`} />
+                                    <span className={`${config.color}`}>{config.label}</span>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -641,7 +688,8 @@ export default function PaymentPage({
                                     setCustomAmounts((prev) => ({ ...prev, [share.id]: val }));
                                     setCustomError(null);
                                   }}
-                                  className="body w-24 rounded-lg border border-white/[0.1] bg-[#06121A] px-3 py-1.5 text-right text-[#F7F7F7] focus:border-[#E6FA50] focus:outline-none"
+                                  disabled={hasCollectedShares}
+                                  className="body w-24 rounded-lg border border-white/[0.1] bg-[#06121A] px-3 py-1.5 text-right text-[#F7F7F7] focus:border-[#E6FA50] focus:outline-none disabled:opacity-50"
                                 />
                               </div>
                             </div>
@@ -652,6 +700,7 @@ export default function PaymentPage({
                             <button
                               disabled={
                                 isSettingSplit ||
+                                hasCollectedShares ||
                                 Object.values(customAmounts).some((v) => v === "" || isNaN(parseInt(v, 10))) ||
                                 Object.values(customAmounts).reduce((acc, val) => acc + (parseInt(val, 10) || 0), 0) !== splitData.totalAmount
                               }
@@ -838,28 +887,42 @@ export default function PaymentPage({
                   </div>
                 )}
 
-                <button
-                  onClick={handlePay}
-                  disabled={!selectedMethod || processing || !booking || !clientKey}
-                  className="btn-lime label mt-6 flex h-12 w-full items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {processing ? "Processing..." : "Pay with Midtrans"}
-                </button>
+                {!splitEnabled && (
+                  <>
+                    <button
+                      onClick={handlePay}
+                      disabled={!selectedMethod || processing || !booking || !clientKey}
+                      className="btn-lime label mt-6 flex h-12 w-full items-center justify-center rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      {processing ? "Processing..." : "Pay with Midtrans"}
+                    </button>
 
-                {!clientKey && (
-                  <div className="mt-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
-                    <p className="caption text-red-200/80">Missing Midtrans Client Key configuration.</p>
-                  </div>
+                    {!clientKey && (
+                      <div className="mt-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                        <p className="caption text-red-200/80">Missing Midtrans Client Key configuration.</p>
+                      </div>
+                    )}
+
+                    {isDemoMode && (
+                      <button
+                        onClick={handleMarkPaid}
+                        disabled={markingPaid || processing || !booking}
+                        className="label mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] text-[#F7F7F7]/60 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        {markingPaid ? "Marking Paid..." : "Mark as Paid (Demo)"}
+                      </button>
+                    )}
+                  </>
                 )}
 
-                {isDemoMode && (
-                  <button
-                    onClick={handleMarkPaid}
-                    disabled={markingPaid || processing || !booking}
-                    className="label mt-3 flex h-12 w-full items-center justify-center rounded-full border border-white/[0.08] text-[#F7F7F7]/60 transition-colors hover:border-[#E6FA50]/30 hover:text-[#E6FA50] disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    {markingPaid ? "Marking Paid..." : "Mark as Paid (Demo)"}
-                  </button>
+                {splitEnabled && splitData?.shares.every((s: any) => s.status !== "PENDING") && booking?.status === "CONFIRMED" && (
+                  <div className="mt-6 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-center">
+                    <CheckCircle2 className="mx-auto h-6 w-6 text-green-400 mb-2" />
+                    <p className="body-sm text-green-400">All shares paid — booking confirmed</p>
+                    <Link href={`/bookings/${params.id}`} className="mt-3 inline-block btn-lime caption px-4 py-2 rounded-full">
+                      View Booking
+                    </Link>
+                  </div>
                 )}
 
                 <div className="caption mt-4 flex items-center justify-center gap-2 text-[#F7F7F7]/25">

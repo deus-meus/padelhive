@@ -98,6 +98,9 @@ export class BookingSplitService {
   async setSplit(bookingId: string, userId: string, dto: SetBookingSplitDto): Promise<BookingSplitDto> {
     const booking = await this.getValidBooking(bookingId, userId);
 
+    const collected = await this.prisma.bookingSplitShare.count({ where: { bookingId, status: { in: [SplitShareStatus.PAID, SplitShareStatus.REFUNDED] } } });
+    if (collected > 0) throw new BadRequestException("Cannot modify a split that already has collected payments.");
+
     if (!dto.participants || dto.participants.length === 0) {
       throw new BadRequestException("Participants list cannot be empty");
     }
@@ -205,6 +208,9 @@ export class BookingSplitService {
 
   async clearSplit(bookingId: string, userId: string): Promise<void> {
     await this.getValidBooking(bookingId, userId);
+
+    const collected = await this.prisma.bookingSplitShare.count({ where: { bookingId, status: { in: [SplitShareStatus.PAID, SplitShareStatus.REFUNDED] } } });
+    if (collected > 0) throw new BadRequestException("Cannot modify a split that already has collected payments.");
 
     await this.prisma.bookingSplitShare.deleteMany({
       where: { bookingId },
