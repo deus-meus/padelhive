@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 };
 import { getVenues, getHomeStats } from "@/lib/api";
 import { HomeSearchBar } from "@/components/home/home-search-bar";
-import { PlayerAvatarStack } from "@/components/ui/player-avatar-stack";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -276,36 +275,18 @@ export default async function HomePage() {
                 and grow your network.
               </p>
 
-              <div className="mt-10">
-                <PlayerAvatarStack
-                  players={[
-                    { id: "p1", name: "Andi Pratama", avatarUrl: "https://i.pravatar.cc/150?img=11" },
-                    { id: "p2", name: "Sari Dewi", avatarUrl: "https://i.pravatar.cc/150?img=32" },
-                    { id: "p3", name: "Budi Santoso", avatarUrl: "https://i.pravatar.cc/150?img=15" },
-                    { id: "p4", name: "Clara Wijaya", avatarUrl: "https://i.pravatar.cc/150?img=25" },
-                    { id: "p5", name: "Dewi Lestari", avatarUrl: "https://i.pravatar.cc/150?img=44" },
-                  ]}
-                  maxVisible={5}
-                  size={36}
-                  showCount={false}
-                />
-                <p className="caption mt-3 text-[#F7F7F7]/25">
-                  <span className="text-[#F7F7F7]/60">+2,847</span> joined this month
-                </p>
-              </div>
-
-              <div className="mt-12 grid grid-cols-3 gap-6">
+              <div className="mt-12 grid grid-cols-2 gap-6">
                 <div>
-                  <p className="metric text-[#E6FA50]">10K+</p>
+                  <p className="metric text-[#E6FA50]">
+                    {stats ? formatStat(stats.players) : "—"}
+                  </p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
                 <div>
-                  <p className="metric text-[#F7F7F7]">2K+</p>
+                  <p className="metric text-[#F7F7F7]">
+                    {stats ? formatStat(stats.matchesThisMonth) : "—"}
+                  </p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Matches/mo</p>
-                </div>
-                <div>
-                  <p className="metric text-[#F7F7F7]">95%</p>
-                  <p className="caption mt-2 text-[#F7F7F7]/25">Match rate</p>
                 </div>
               </div>
 

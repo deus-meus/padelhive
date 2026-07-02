@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Phone, Mail, Lock, Loader2, ChevronRight, ArrowRight } from "lucide-react";
+import { Mail, Lock, Loader2 } from "lucide-react";
 import { useAuthStore, ROLE_REDIRECTS } from "@/stores/auth-store";
 import { getUserFacingErrorMessage } from "@/lib/errors";
 
@@ -28,16 +28,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
   const { loginWithGoogle, loginWithEmail, user, isLoading } = useAuthStore();
-  const [method, setMethod] = useState<"phone" | "email">("phone");
-  const [input, setInput] = useState("");
-  const [password, setPassword] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2500);
-  }
 
   async function handleGoogleLogin() {
     if (isLoading) return;
@@ -51,26 +42,20 @@ function LoginContent() {
     }
   }
 
-  function handleOTPRequest() {
-    setError(null);
-    if (!input.trim()) {
-      setError("Please enter your phone number");
-      showToast("Please enter your phone number");
-      return;
-    }
-    router.push(`/auth/verify?method=phone&contact=${encodeURIComponent(input)}`);
-  }
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     if (isLoading) return;
     setError(null);
-    if (!input.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError("Please enter your email and password");
       return;
     }
     try {
-      const loggedInUser = await loginWithEmail(input, password);
+      const loggedInUser = await loginWithEmail(email, password);
       router.push(nextPath || ROLE_REDIRECTS[loggedInUser.role] || "/venues");
     } catch (err: unknown) {
       const msg = getUserFacingErrorMessage(err);
@@ -125,107 +110,53 @@ function LoginContent() {
           </div>
 
           {/* Method toggle */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setMethod("phone")}
-              disabled={isLoading}
-              className={`label flex-1 flex items-center justify-center gap-2 rounded-lg py-2 transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
-                method === "phone"
-                  ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                  : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
-              }`}
-            >
-              <Phone className="h-3.5 w-3.5" /> Phone
-            </button>
-            <button
-              onClick={() => setMethod("email")}
-              disabled={isLoading}
-              className={`label flex-1 flex items-center justify-center gap-2 rounded-lg py-2 transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
-                method === "email"
-                  ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                  : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
-              }`}
-            >
-              <Mail className="h-3.5 w-3.5" /> Email
-            </button>
-          </div>
-
           {/* Form */}
-          {method === "phone" ? (
-            <div className="relative mb-4">
-              <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
+          <form onSubmit={handleEmailLogin} className="space-y-4 mb-4">
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
               <input
-                type="tel"
-                placeholder="+62 812 3456 7890"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleOTPRequest(); }}
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
+                required
                 className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
-          ) : (
-            <form onSubmit={handleEmailLogin} className="space-y-4 mb-4">
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  disabled={isLoading}
-                  required
-                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  required
-                  className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            </form>
-          )}
-
-          {/* Action Button */}
-          {method === "phone" ? (
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                required
+                className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
             <button
-              onClick={handleOTPRequest}
-              disabled={isLoading}
-              className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Send OTP Code <ChevronRight className="h-4 w-4" />
-            </button>
-          ) : (
-            <button
-              onClick={handleEmailLogin}
+              type="submit"
               disabled={isLoading}
               className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
             </button>
-          )}
+          </form>
 
           {/* Links for Email method */}
-          {method === "email" && (
-            <div className="body mt-4 flex flex-col items-center gap-2">
-              <Link href="/auth/forgot-password" className="text-[#F7F7F7]/60 hover:text-[#E6FA50] transition-colors">
-                Forgot password?
+          <div className="body mt-4 flex flex-col items-center gap-2">
+            <Link href="/auth/forgot-password" className="text-[#F7F7F7]/60 hover:text-[#E6FA50] transition-colors">
+              Forgot password?
+            </Link>
+            <div className="text-[#F7F7F7]/40">
+              Don&apos;t have an account?{" "}
+              <Link href={`/auth/signup${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} className="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">
+                Sign up
               </Link>
-              <div className="text-[#F7F7F7]/40">
-                Don&apos;t have an account?{" "}
-                <Link href={`/auth/signup${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} className="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">
-                  Sign up
-                </Link>
-              </div>
             </div>
-          )}
+          </div>
         </div>
 
         <p className="mt-6 text-center caption text-[#F7F7F7]/25">
@@ -233,12 +164,6 @@ function LoginContent() {
         </p>
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
-          <p className="caption text-[#F7F7F7]/60">{toast}</p>
-        </div>
-      )}
     </div>
   );
 }
