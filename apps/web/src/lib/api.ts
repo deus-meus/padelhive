@@ -928,7 +928,8 @@ export async function updateVenueStatus(id: string, status: VenueStatusValue): P
 }
 
 export interface CommissionVenueRow { venueId: string; venueName: string; city: string; commissionRate: number; bookings: number; gmv: number; commission: number; effectiveRate: number; }
-export interface CommissionReport { totalCommission: number; totalGmv: number; totalBookings: number; avgCommissionRate: number; venues: CommissionVenueRow[]; }
+export interface CommissionMonth { month: string; commission: number; gmv: number; bookings: number; }
+export interface CommissionReport { totalCommission: number; totalGmv: number; totalBookings: number; avgCommissionRate: number; venues: CommissionVenueRow[]; monthlySeries: CommissionMonth[]; }
 export interface GetCommissionParams { fromDate?: string; toDate?: string; }
 export async function getCommissionReport(params: GetCommissionParams = {}): Promise<CommissionReport> {
   const sp = new URLSearchParams();

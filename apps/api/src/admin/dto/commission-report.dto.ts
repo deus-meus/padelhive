@@ -1,5 +1,19 @@
 import { ApiProperty } from "@nestjs/swagger";
 
+export class CommissionMonthDto {
+  @ApiProperty()
+  month!: string;
+
+  @ApiProperty()
+  commission!: number;
+
+  @ApiProperty()
+  gmv!: number;
+
+  @ApiProperty()
+  bookings!: number;
+}
+
 export class CommissionVenueRowDto {
   @ApiProperty()
   venueId!: string;
@@ -41,4 +55,7 @@ export class CommissionReportDto {
 
   @ApiProperty({ type: () => [CommissionVenueRowDto] })
   venues!: CommissionVenueRowDto[];
+
+  @ApiProperty({ type: () => [CommissionMonthDto] })
+  monthlySeries!: CommissionMonthDto[];
 }
