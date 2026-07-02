@@ -23,4 +23,7 @@ export class HomeStatsDto {
 
   @ApiProperty({ type: [CityCountDto] })
   cityCounts!: CityCountDto[];
+
+  @ApiProperty()
+  recentUsers!: { name: string; avatarUrl: string | null }[];
 }

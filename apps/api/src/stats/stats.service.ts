@@ -15,7 +15,7 @@ export class StatsService {
     const monthEndExclusive = new Date(monthStart);
     monthEndExclusive.setUTCMonth(monthEndExclusive.getUTCMonth() + 1);
 
-    const [players, venues, matchesThisMonth, hoursSum, cityGroups] = await Promise.all([
+    const [players, venues, matchesThisMonth, hoursSum, cityGroups, recentUsers] = await Promise.all([
       this.prisma.user.count({ where: { role: UserRole.PLAYER } }),
       this.prisma.venue.count({ where: { status: VenueStatus.APPROVED } }),
       this.prisma.booking.count({
@@ -33,6 +33,11 @@ export class StatsService {
         where: { status: VenueStatus.APPROVED },
         _count: { _all: true },
       }),
+      this.prisma.user.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: { name: true, avatarUrl: true },
+      }),
     ]);
 
     const hoursPlayed = Math.round((hoursSum._sum.durationMinutes ?? 0) / 60);
@@ -48,6 +53,7 @@ export class StatsService {
       matchesThisMonth,
       hoursPlayed,
       cityCounts,
+      recentUsers: recentUsers.map(u => ({ name: u.name, avatarUrl: u.avatarUrl })),
     };
   }
 }

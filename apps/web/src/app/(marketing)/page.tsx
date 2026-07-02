@@ -262,38 +262,54 @@ export default async function HomePage() {
               <p className="body-lg max-w-md text-[#F7F7F7]/60">
                 Padelhive is where Indonesia&apos;s padel community lives.
                 Join open matches, find partners at your level, split costs,
-                and grow your network — on and off the court.
+                and grow your network.
               </p>
 
-              <p className="body mt-5 max-w-md text-[#F7F7F7]/35">
-                Whether you&apos;re a seasoned competitor or picking up a racket for
-                the first time, there&apos;s a match for you. Connect with players
-                across skill levels, build your crew, and make every session count.
-                Track your progress, grow your padel network, and find open matches near you instantly.
-              </p>
+              <div className="mt-8 flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {(stats?.recentUsers ?? []).slice(0, 5).map((user, i) =>
+                    user.avatarUrl ? (
+                      <img
+                        key={i}
+                        src={user.avatarUrl}
+                        alt={user.name}
+                        className="h-8 w-8 rounded-full border-2 border-[#06121A] object-cover"
+                      />
+                    ) : (
+                      <div
+                        key={i}
+                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#06121A] bg-[#1a2f3d] text-[10px] font-semibold text-[#E6FA50]"
+                      >
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )
+                  )}
+                </div>
+                {(stats?.recentUsers?.length ?? 0) > 0 && (
+                  <p className="caption text-[#F7F7F7]/40">
+                    +{formatStat(stats?.players ?? 0)} joined this month
+                  </p>
+                )}
+              </div>
 
-              <div className="mt-12 flex items-start gap-10 border-t border-white/[0.06] pt-10">
+              <div className="mt-10 flex items-start gap-10 border-t border-white/[0.06] pt-10">
                 <div>
-                  <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}</p>
+                  <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}+</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
                 <div>
-                  <p className="metric text-[#F7F7F7]">{formatStat(stats?.matchesThisMonth ?? 0)}</p>
+                  <p className="metric text-[#F7F7F7]">{formatStat(stats?.matchesThisMonth ?? 0)}+</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Matches/mo</p>
                 </div>
                 <div>
-                  <p className="metric text-[#E6FA50]">{formatStat(stats?.hoursPlayed ?? 0)}</p>
+                  <p className="metric text-[#F7F7F7]">{formatStat(stats?.hoursPlayed ?? 0)}+</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Hours played</p>
-                </div>
-                <div>
-                  <p className="metric text-[#F7F7F7]">{stats?.cityCounts?.length ?? 0}</p>
-                  <p className="caption mt-2 text-[#F7F7F7]/25">Cities</p>
                 </div>
               </div>
 
               <Link
                 href="/venues"
-                className="label btn-lime mt-12 inline-flex h-12 w-fit items-center gap-2 rounded-full px-8"
+                className="label btn-lime mt-10 inline-flex h-12 w-fit items-center gap-2 rounded-full px-8"
               >
                 Join the Community
                 <ArrowRight className="h-4 w-4" />
