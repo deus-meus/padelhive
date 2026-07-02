@@ -52,3 +52,25 @@ export function getSlotPrice(court: CourtPricing, hour: number, isWeekend: boole
 export function wibHourFromUtc(utc: Date): number {
   return (utc.getUTCHours() + WIB_OFFSET_HOURS) % 24;
 }
+
+export function parseHour(timeStr: string): number {
+  return parseInt(timeStr.split(":")[0], 10);
+}
+
+export function isOvernight(openHour: number, closeHour: number): boolean {
+  return closeHour <= openHour;
+}
+
+export function addDaysToDateStr(dateStr: string, days: number): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  const newYear = date.getUTCFullYear();
+  const newMonth = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const newDay = String(date.getUTCDate()).padStart(2, "0");
+  return `${newYear}-${newMonth}-${newDay}`;
+}
+
+export function resolveSlotUtc(dateStr: string, clockHour: number, openHour: number, overnight: boolean): Date {
+  const offset = (overnight && clockHour < openHour) ? 1 : 0;
+  return wibToUtc(addDaysToDateStr(dateStr, offset), String(clockHour).padStart(2, "0") + ":00");
+}

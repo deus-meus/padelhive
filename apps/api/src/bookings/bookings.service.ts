@@ -1,12 +1,12 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException, Logger } from "@nestjs/common";
-import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus, NotificationType } from "@prisma/client";
+import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus, NotificationType, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
 import { RescheduleBookingDto } from "./dto/reschedule-booking.dto";
 import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
 import { RevenueDto } from "./dto/revenue.dto";
-import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc } from "../common/pricing.util";
+import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc, isOvernight, parseHour, resolveSlotUtc } from "../common/pricing.util";
 import { VouchersService } from "../vouchers/vouchers.service";
 import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
 import { 
@@ -59,6 +59,9 @@ const reschedulableBookingSelect = {
   voucherDiscount: true,
   courtId: true,
   venueId: true,
+  venue: {
+    select: { openTime: true, closeTime: true, weeklyHours: true },
+  },
   court: {
     select: {
       id: true,
@@ -135,16 +138,17 @@ export class BookingsService {
   }
 
   async createBookingForUser(hostUserId: string, body: CreateBookingDto): Promise<BookingResponseDto> {
-    const parsedTime = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt);
-
     const venue = await this.prisma.venue.findFirst({
       where: { id: body.venueId, status: VenueStatus.APPROVED },
-      select: { id: true, name: true, city: true, status: true },
+      select: { id: true, name: true, city: true, status: true, openTime: true, closeTime: true, weeklyHours: true },
     });
 
     if (!venue) {
       throw new NotFoundException("Venue not found");
     }
+
+    const { openHour, closeHour } = this.resolveDayHours(venue, body.bookingDate);
+    const parsedTime = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt, openHour, closeHour);
 
     const court = await this.prisma.court.findFirst({
       where: { id: body.courtId, venueId: body.venueId, isActive: true },
@@ -240,7 +244,8 @@ export class BookingsService {
       throw new BadRequestException("This booking cannot be rescheduled");
     }
 
-    const parsed = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt);
+    const { openHour, closeHour } = this.resolveDayHours(booking.venue, body.bookingDate);
+    const parsed = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt, openHour, closeHour);
 
     await this.assertNoOverlap(booking.courtId, parsed.startsAt, parsed.endsAt, booking.id);
 
@@ -418,7 +423,44 @@ export class BookingsService {
     };
   }
 
-  private parseBookingTime(bookingDateValue: string, startsAtValue: string, endsAtValue: string): ParsedBookingTime {
+  private resolveDayHours(
+    venue: { openTime: string; closeTime: string; weeklyHours?: Prisma.JsonValue | null },
+    dateStr: string
+  ): { openHour: number; closeHour: number } {
+    const dayIdx = new Date(dateStr + "T12:00:00Z").getUTCDay();
+    const key = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][dayIdx];
+
+    let startHour = 6;
+    let endHour = 22;
+
+    if (venue.openTime) {
+      const parsed = parseInt(venue.openTime.split(":")[0], 10);
+      if (!Number.isNaN(parsed)) startHour = parsed;
+    }
+    if (venue.closeTime) {
+      const parsed = parseInt(venue.closeTime.split(":")[0], 10);
+      if (!Number.isNaN(parsed)) endHour = parsed;
+    }
+
+    if (venue.weeklyHours && typeof venue.weeklyHours === "object" && key in venue.weeklyHours) {
+      const entry = (venue.weeklyHours as Record<string, { open?: string; close?: string; closed?: boolean }>)[key];
+      if (entry.closed === true) {
+        throw new BadRequestException("Venue is closed on the selected day");
+      }
+      if (entry.open) {
+        const parsed = parseInt(entry.open.split(":")[0], 10);
+        if (!Number.isNaN(parsed)) startHour = parsed;
+      }
+      if (entry.close) {
+        const parsed = parseInt(entry.close.split(":")[0], 10);
+        if (!Number.isNaN(parsed)) endHour = parsed;
+      }
+    }
+
+    return { openHour: startHour, closeHour: endHour };
+  }
+
+  private parseBookingTime(bookingDateValue: string, startsAtValue: string, endsAtValue: string, openHour: number, closeHour: number): ParsedBookingTime {
     if (!DATE_PATTERN.test(bookingDateValue)) {
       throw new BadRequestException("bookingDate must use YYYY-MM-DD format");
     }
@@ -432,8 +474,9 @@ export class BookingsService {
       throw new BadRequestException("bookingDate must be a valid calendar date");
     }
 
-    const startsAt = wibToUtc(bookingDateValue, startsAtValue);
-    const endsAt = wibToUtc(bookingDateValue, endsAtValue);
+    const overnight = isOvernight(openHour, closeHour);
+    const startsAt = resolveSlotUtc(bookingDateValue, parseHour(startsAtValue), openHour, overnight);
+    const endsAt = resolveSlotUtc(bookingDateValue, parseHour(endsAtValue), openHour, overnight);
 
     if (endsAt <= startsAt) {
       throw new BadRequestException("endsAt must be after startsAt");

@@ -142,6 +142,16 @@ export class VenuesService {
       }
     }
 
+    if (fields.openTime !== undefined && fields.closeTime !== undefined) {
+      const open = fields.openTime as string;
+      const close = fields.closeTime as string;
+      if (/^\d{2}:\d{2}$/.test(open) && /^\d{2}:\d{2}$/.test(close)) {
+        if (open === close) {
+          throw new BadRequestException("openTime and closeTime cannot be equal");
+        }
+      }
+    }
+
     if (fields.imageUrl !== undefined) {
       if (typeof fields.imageUrl !== "string") throw new BadRequestException("imageUrl must be a string");
     }
@@ -172,8 +182,8 @@ export class VenuesService {
           if (typeof value.close !== "string" || !/^\d{2}:\d{2}$/.test(value.close)) {
             throw new BadRequestException("weeklyHours close must be HH:MM string");
           }
-          if (value.close <= value.open) {
-            throw new BadRequestException("weeklyHours close time must be after open time");
+          if (value.close === value.open) {
+            throw new BadRequestException("weeklyHours open and close cannot be equal");
           }
         }
       }
