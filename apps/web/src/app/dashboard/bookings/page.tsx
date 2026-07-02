@@ -8,9 +8,10 @@ import {
   Calendar,
   Search,
 } from "lucide-react";
-import { mockBookings } from "@/mock/bookings";
-import { mockCourts } from "@/mock/courts";
-import { mockVenues } from "@/mock/venues";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
+import { getAdminBookings } from "@/lib/api";
+import { ErrorBanner } from "@/components/ui/error-state";
 
 type TabKey = "upcoming" | "completed" | "cancelled";
 
@@ -20,69 +21,6 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "cancelled", label: "Cancelled" },
 ];
 
-const MOCK_OWNER_BOOKINGS = [
-  ...mockBookings,
-  {
-    id: "booking-5",
-    userId: "user-1",
-    courtId: "court-1",
-    venueId: "venue-1",
-    bookingDate: "2026-06-01",
-    startTime: "09:00",
-    endTime: "10:00",
-    status: "confirmed" as const,
-    totalAmount: 300000,
-    createdAt: "2026-05-28T10:00:00Z",
-  },
-  {
-    id: "booking-6",
-    userId: "user-2",
-    courtId: "court-2",
-    venueId: "venue-1",
-    bookingDate: "2026-06-01",
-    startTime: "14:00",
-    endTime: "15:00",
-    status: "confirmed" as const,
-    totalAmount: 200000,
-    createdAt: "2026-05-28T12:00:00Z",
-  },
-  {
-    id: "booking-7",
-    userId: "user-1",
-    courtId: "court-3",
-    venueId: "venue-2",
-    bookingDate: "2026-06-02",
-    startTime: "18:00",
-    endTime: "19:00",
-    status: "pending" as const,
-    totalAmount: 400000,
-    createdAt: "2026-05-29T08:00:00Z",
-  },
-  {
-    id: "booking-8",
-    userId: "user-2",
-    courtId: "court-1",
-    venueId: "venue-1",
-    bookingDate: "2026-05-20",
-    startTime: "10:00",
-    endTime: "11:00",
-    status: "completed" as const,
-    totalAmount: 300000,
-    createdAt: "2026-05-19T09:00:00Z",
-  },
-  {
-    id: "booking-9",
-    userId: "user-1",
-    courtId: "court-4",
-    venueId: "venue-2",
-    bookingDate: "2026-05-18",
-    startTime: "16:00",
-    endTime: "17:00",
-    status: "cancelled" as const,
-    totalAmount: 500000,
-    createdAt: "2026-05-17T14:00:00Z",
-  },
-];
 
 const STATUS_CONFIG = {
   confirmed: { label: "Confirmed", icon: CheckCircle2, color: "text-green-400", bg: "bg-green-400/10" },
@@ -92,17 +30,6 @@ const STATUS_CONFIG = {
   expired: { label: "Expired", icon: XCircle, color: "text-[#F7F7F7]/25", bg: "bg-white/[0.03]" },
 };
 
-const PAYMENT_STATUS: Record<string, "paid" | "pending" | "refunded"> = {
-  "booking-1": "paid",
-  "booking-2": "paid",
-  "booking-3": "pending",
-  "booking-4": "refunded",
-  "booking-5": "paid",
-  "booking-6": "pending",
-  "booking-7": "pending",
-  "booking-8": "paid",
-  "booking-9": "refunded",
-};
 
 const PAYMENT_CONFIG = {
   paid: { label: "Paid", color: "text-green-400", bg: "bg-green-400/10" },
@@ -110,39 +37,46 @@ const PAYMENT_CONFIG = {
   refunded: { label: "Refunded", color: "text-[#50C8C8]", bg: "bg-[#50C8C8]/10" },
 };
 
-const PLAYER_NAMES: Record<string, string> = {
-  "user-1": "Andi Saputra",
-  "user-2": "Budi Rahmat",
-  "user-3": "Clara Wijaya",
-};
 
 export default function BookingsManagementPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("upcoming");
   const [search, setSearch] = useState("");
 
-  const filteredBookings = MOCK_OWNER_BOOKINGS.filter((b) => {
-    if (activeTab === "upcoming") return b.status === "confirmed" || b.status === "pending";
-    if (activeTab === "completed") return b.status === "completed";
-    if (activeTab === "cancelled") return b.status === "cancelled";
+  const { data: bookingsData, isLoading, isError } = useQuery({
+    queryKey: queryKeys.admin.bookings({}),
+    queryFn: () => getAdminBookings(),
+  });
+
+  const allBookings = bookingsData?.items ?? [];
+
+  const filteredBookings = allBookings.filter((b) => {
+    const s = b.status.toLowerCase();
+    if (activeTab === "upcoming") return s === "confirmed" || s === "pending_payment" || s === "pending";
+    if (activeTab === "completed") return s === "completed";
+    if (activeTab === "cancelled") return s === "cancelled" || s === "refunded" || s === "pending_refund";
     return true;
   }).filter((b) => {
     if (!search) return true;
-    const court = mockCourts.find((c) => c.id === b.courtId);
-    const venue = mockVenues.find((v) => v.id === b.venueId);
-    const player = PLAYER_NAMES[b.userId] ?? "";
+    const courtName = b.court?.name?.toLowerCase() || "";
+    const venueName = b.venue?.name?.toLowerCase() || "";
+    const playerName = (b.host?.name || b.host?.email || "").toLowerCase();
     const searchLower = search.toLowerCase();
     return (
-      court?.name.toLowerCase().includes(searchLower) ||
-      venue?.name.toLowerCase().includes(searchLower) ||
-      player.toLowerCase().includes(searchLower)
+      courtName.includes(searchLower) ||
+      venueName.includes(searchLower) ||
+      playerName.includes(searchLower)
     );
   });
 
-  const upcomingCount = MOCK_OWNER_BOOKINGS.filter(
-    (b) => b.status === "confirmed" || b.status === "pending"
-  ).length;
-  const completedCount = MOCK_OWNER_BOOKINGS.filter((b) => b.status === "completed").length;
-  const cancelledCount = MOCK_OWNER_BOOKINGS.filter((b) => b.status === "cancelled").length;
+  const upcomingCount = allBookings.filter((b) => {
+    const s = b.status.toLowerCase();
+    return s === "confirmed" || s === "pending_payment" || s === "pending";
+  }).length;
+  const completedCount = allBookings.filter((b) => b.status.toLowerCase() === "completed").length;
+  const cancelledCount = allBookings.filter((b) => {
+    const s = b.status.toLowerCase();
+    return s === "cancelled" || s === "refunded" || s === "pending_refund";
+  }).length;
 
   const tabCounts: Record<TabKey, number> = {
     upcoming: upcomingCount,
@@ -201,13 +135,34 @@ export default function BookingsManagementPage() {
           />
         </div>
 
+        {isError && (
+          <div className="mt-5">
+            <ErrorBanner
+              title="Couldn't load bookings"
+              description="An error occurred while fetching your bookings. Please try again later."
+            />
+          </div>
+        )}
+
+        {isLoading && !isError && (
+          <div className="mt-6 text-[#F7F7F7]/40 body-sm">
+            Loading bookings...
+          </div>
+        )}
+
         {/* Bookings list */}
         <div className="mt-6 space-y-3">
-          {filteredBookings.map((booking) => {
-            const court = mockCourts.find((c) => c.id === booking.courtId);
-            const venue = mockVenues.find((v) => v.id === booking.venueId);
-            const player = PLAYER_NAMES[booking.userId] ?? "Unknown Player";
-            const config = STATUS_CONFIG[booking.status];
+          {!isLoading && !isError && filteredBookings.map((booking) => {
+            const court = booking.court;
+            const venue = booking.venue;
+            const player = booking.host?.name || booking.host?.email || "Unknown Player";
+            
+            // Map API status to config keys
+            let mappedStatus = booking.status.toLowerCase();
+            if (mappedStatus === "pending_payment") mappedStatus = "pending";
+            if (mappedStatus === "pending_refund") mappedStatus = "cancelled";
+            if (mappedStatus === "refunded") mappedStatus = "cancelled";
+            const config = STATUS_CONFIG[mappedStatus as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
             const StatusIcon = config.icon;
 
             return (
@@ -228,8 +183,8 @@ export default function BookingsManagementPage() {
                         </span>
                       </div>
                       {(() => {
-                        const payStatus = PAYMENT_STATUS[booking.id] ?? "pending";
-                        const payConfig = PAYMENT_CONFIG[payStatus];
+                        const payStatus = booking.payment?.status?.toLowerCase() || "pending";
+                        const payConfig = PAYMENT_CONFIG[payStatus as keyof typeof PAYMENT_CONFIG] || PAYMENT_CONFIG.pending;
                         return (
                           <span className={`caption rounded-full px-2.5 py-0.5 ${payConfig.bg} ${payConfig.color}`}>
                             {payConfig.label}
@@ -247,18 +202,18 @@ export default function BookingsManagementPage() {
                         {booking.bookingDate}
                       </span>
                       <span className="text-[#F7F7F7]/10">·</span>
-                      <span>{booking.startTime} – {booking.endTime}</span>
+                      <span>{booking.startsAt?.substring(0, 5)} – {booking.endsAt?.substring(0, 5)}</span>
                     </div>
                   </div>
                   <p className="price shrink-0 text-[#F7F7F7]/60">
-                    Rp {(booking.totalAmount / 1000).toFixed(0)}K
+                    Rp {(booking.finalAmount / 1000).toFixed(0)}K
                   </p>
                 </div>
               </div>
             );
           })}
 
-          {filteredBookings.length === 0 && (
+          {!isLoading && !isError && filteredBookings.length === 0 && (
             <div className="rounded-xl border border-dashed border-white/[0.08] p-12 text-center">
               <p className="body text-[#F7F7F7]/25">
                 No {activeTab} bookings found.

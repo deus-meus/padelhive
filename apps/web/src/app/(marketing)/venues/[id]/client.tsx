@@ -20,8 +20,6 @@ import {
   Lock,
   Navigation,
 } from "lucide-react";
-import { mockVenues } from "@/mock/venues";
-import { mockCourts } from "@/mock/courts";
 import { padelImg } from "@/lib/images";
 import { getVenue, getVenueCourts, getVenueReviews, ApiRequestError } from "@/lib/api";
 import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
@@ -72,7 +70,6 @@ export default function VenueDetailPage({
 }: {
   params: { id: string };
 }) {
-  const fallbackVenue = mockVenues.find((v) => v.id === params.id);
   const { data: apiVenue, isLoading: isLoadingVenue, isError: isVenueError, error: venueError, refetch: refetchVenue, isFetching: isFetchingVenue } = useQuery({
     queryKey: queryKeys.venues.detail(params.id),
     queryFn: () => getVenue(params.id),
@@ -88,13 +85,10 @@ export default function VenueDetailPage({
     queryFn: () => getVenueReviews(params.id),
   });
 
-  const venue = apiVenue ?? fallbackVenue ?? null;
-  const fallbackCourts = useMemo(() => fallbackVenue ? mockCourts.filter((c) => c.venueId === fallbackVenue.id) : [], [fallbackVenue]);
-  const courts = apiCourts && apiCourts.length > 0 ? apiCourts : fallbackCourts;
+  const venue = apiVenue ?? null;
+  const courts = apiCourts ?? [];
 
   const isLoading = isLoadingVenue || isLoadingCourts;
-  const isUsingFallback = isVenueError || (!apiVenue && Boolean(fallbackVenue));
-  const apiError = isVenueError || isCourtsError ? "Could not reach the live venue API." : null;
 
   const minPrice = useMemo(() => (courts.length ? Math.min(...courts.map((c) => c.pricing.weekdayOffPeak)) : 0), [courts]);
   const maxPrice = useMemo(() => (courts.length ? Math.max(...courts.map((c) => c.pricing.weekendPeak)) : 0), [courts]);
@@ -172,13 +166,6 @@ export default function VenueDetailPage({
 
   return (
     <div className="min-h-screen pt-20">
-      {(isLoading || isUsingFallback || apiError) && (
-        <section className="container pt-6">
-          <div className={`body-sm rounded-xl border px-4 py-3 ${apiError && !isLoading ? "border-red-500/20 bg-red-500/10 text-red-200/80" : "border-white/[0.06] bg-white/[0.03] text-[#F7F7F7]/40"}`}>
-            {isLoading ? "Loading live venue data..." : apiError ? `${apiError} Showing demo venue data.` : "Live API unavailable. Showing demo venue data."}
-          </div>
-        </section>
-      )}
       {/* ─── IMAGE GALLERY ─── */}
       <section className="container pt-8 pb-10">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:grid-rows-2">

@@ -16,7 +16,6 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getUserBookings, getVouchers } from "@/lib/api";
-import { mockVouchers } from "@/mock/vouchers";
 import { NotificationBell } from "./notification-bell";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -72,9 +71,7 @@ export function Navbar() {
     enabled: isPlayer,
     staleTime: 60_000,
   });
-  const hasVoucherData = Boolean(vouchersData && vouchersData.length > 0);
-  const voucherList = hasVoucherData ? vouchersData : mockVouchers;
-  const activeVoucherCount = voucherList.filter((v) => v.isActive).length;
+  const activeVoucherCount = vouchersData.filter((v) => v.isActive).length;
 
   return (
     <header
