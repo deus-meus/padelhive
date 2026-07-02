@@ -292,13 +292,13 @@ export default async function HomePage() {
                 )}
               </div>
 
-              <div className="mt-10 flex items-start gap-10">
+              <div className="mt-10 flex items-start gap-14">
                 <div>
-                  <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}+</p>
+                  <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
                 <div>
-                  <p className="metric text-[#F7F7F7]">{formatStat(stats?.matchesThisMonth ?? 0)}+</p>
+                  <p className="metric text-[#F7F7F7]">{formatStat(stats?.matchesThisMonth ?? 0)}</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Matches/mo</p>
                 </div>
                 <div>
@@ -413,7 +413,7 @@ export default async function HomePage() {
 
 function formatStat(n: number): string {
   if (n >= 1000) {
-    return `${Math.floor(n / 1000)}K`;
+    return `${Math.floor(n / 1000)}K+`;
   }
   return n.toLocaleString("en-US");
 }
