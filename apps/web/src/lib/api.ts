@@ -549,6 +549,10 @@ export async function cancelBooking(bookingId: string): Promise<BookingSummary> 
   });
 }
 
+export async function rescheduleBooking(bookingId: string, body: { bookingDate: string; startsAt: string; endsAt: string }): Promise<BookingSummary> {
+  return apiFetch<ApiBooking>(`/bookings/${bookingId}/reschedule`, { method: "PATCH", body: JSON.stringify(body) });
+}
+
 export type BookingFilter = "upcoming" | "past" | "cancelled";
 
 export async function getUserBookings(
