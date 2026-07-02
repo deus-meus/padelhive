@@ -9,6 +9,7 @@ import { mockVenues } from "@/mock/venues";
 import { padelImg } from "@/lib/images";
 import { getVenues } from "@/lib/api";
 import { EmptyState } from "@/components/ui/error-state";
+import { FilterSelect, FilterMultiSelect } from "@/components/ui/filter-select";
 
 const CITIES = ["All", "Bali", "Jakarta", "Surabaya"];
 const FACILITIES = ["Parking", "Shower", "Locker", "Pro Shop", "Cafe", "WiFi", "AC", "Coaching", "Equipment Rental"];
@@ -154,63 +155,67 @@ export default function VenuesPage() {
               ))}
             </div>
 
-            <div className="flex items-center gap-2 rounded-xl bg-white/[0.03] px-4 py-3 lg:w-56 shrink-0">
-              <ArrowUpDown className="h-4 w-4 shrink-0 text-[#F7F7F7]/25" />
-              <select
+            <div className="shrink-0 lg:w-56 flex justify-end">
+              <FilterSelect
+                icon={ArrowUpDown}
                 value={sort}
-                onChange={(e) => setSort(e.target.value as SortKey)}
-                className="body w-full appearance-none bg-transparent text-[#F7F7F7] outline-none"
-              >
-                {SORTS.map((s) => (
-                  <option key={s.value} value={s.value} className="bg-[#0C1B26]">{s.label}</option>
-                ))}
-              </select>
+                options={SORTS}
+                onChange={(v) => setSort(v as SortKey)}
+                alignRight
+                className="w-full lg:w-full"
+              />
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-x-6 gap-y-3">
-            <div className="flex items-center gap-2">
-              <span className="caption text-[#F7F7F7]/40">Type:</span>
-              <div className="flex gap-1.5">
-                {[null, "INDOOR", "OUTDOOR"].map(t => (
-                  <button key={t ?? "All"} onClick={() => setCourtType(t as any)} className={`caption shrink-0 rounded-full px-3 py-1 transition-colors ${courtType === t ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"}`}>
-                    {t === null ? "All" : t === "INDOOR" ? "Indoor" : "Outdoor"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="caption text-[#F7F7F7]/40">Rating:</span>
-              <div className="flex gap-1.5">
-                {[{l:"Any",v:null},{l:"4.0+",v:4.0},{l:"4.5+",v:4.5}].map(r => (
-                  <button key={r.l} onClick={() => setRatingMin(r.v)} className={`caption shrink-0 rounded-full px-3 py-1 transition-colors ${ratingMin === r.v ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"}`}>
-                    {r.l}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="caption text-[#F7F7F7]/40">Price:</span>
-              <div className="flex gap-1.5 flex-wrap">
-                <button onClick={() => { setPriceMin(null); setPriceMax(null); }} className={`caption shrink-0 rounded-full px-3 py-1 transition-colors ${priceMin === null && priceMax === null ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"}`}>Any</button>
-                <button onClick={() => { setPriceMin(null); setPriceMax(100000); }} className={`caption shrink-0 rounded-full px-3 py-1 transition-colors ${priceMin === null && priceMax === 100000 ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"}`}>Under Rp100K</button>
-                <button onClick={() => { setPriceMin(100000); setPriceMax(200000); }} className={`caption shrink-0 rounded-full px-3 py-1 transition-colors ${priceMin === 100000 && priceMax === 200000 ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"}`}>Rp100–200K</button>
-                <button onClick={() => { setPriceMin(200000); setPriceMax(null); }} className={`caption shrink-0 rounded-full px-3 py-1 transition-colors ${priceMin === 200000 && priceMax === null ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"}`}>Above Rp200K</button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 w-full pt-1 lg:pt-0 lg:w-auto">
-              <span className="caption text-[#F7F7F7]/40">Facilities:</span>
-              <div className="flex gap-1.5 flex-wrap">
-                {FACILITIES.map(f => (
-                  <button key={f} onClick={() => toggleFacility(f)} className={`caption shrink-0 rounded-full px-3 py-1 transition-colors border ${facilities.includes(f) ? "bg-[#E6FA50]/10 border-[#E6FA50]/50 text-[#E6FA50]" : "border-white/[0.08] text-[#F7F7F7]/40 hover:border-white/[0.2]"}`}>
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-3">
+            <FilterSelect
+              value={courtType ?? "all"}
+              onChange={(v) => setCourtType(v === "all" ? null : (v as "INDOOR" | "OUTDOOR"))}
+              active={courtType !== null}
+              options={[
+                { value: "all", label: "All types" },
+                { value: "INDOOR", label: "Indoor" },
+                { value: "OUTDOOR", label: "Outdoor" },
+              ]}
+            />
+            <FilterSelect
+              value={ratingMin === null ? "all" : String(ratingMin)}
+              onChange={(v) => setRatingMin(v === "all" ? null : Number(v))}
+              active={ratingMin !== null}
+              options={[
+                { value: "all", label: "All ratings" },
+                { value: "4", label: "4.0+" },
+                { value: "4.5", label: "4.5+" },
+              ]}
+            />
+            <FilterSelect
+              value={priceMin === null && priceMax === null ? "all" : priceMax === 100000 ? "u100" : priceMin === 100000 ? "100-200" : "200"}
+              onChange={(v) => {
+                if (v === "all") { setPriceMin(null); setPriceMax(null); }
+                else if (v === "u100") { setPriceMin(null); setPriceMax(100000); }
+                else if (v === "100-200") { setPriceMin(100000); setPriceMax(200000); }
+                else if (v === "200") { setPriceMin(200000); setPriceMax(null); }
+              }}
+              active={priceMin !== null || priceMax !== null}
+              options={[
+                { value: "all", label: "All prices" },
+                { value: "u100", label: "Under Rp100K" },
+                { value: "100-200", label: "Rp100–200K" },
+                { value: "200", label: "Above Rp200K" },
+              ]}
+            />
+            <FilterMultiSelect
+              label="Facilities"
+              options={FACILITIES}
+              selected={facilities}
+              onToggle={toggleFacility}
+              onClear={() => setFacilities([])}
+            />
+            {(search || city !== "All" || ratingMin !== null || courtType !== null || facilities.length > 0 || priceMin !== null || priceMax !== null) && (
+               <button onClick={handleClearFilters} className="caption text-[#E6FA50] hover:underline px-3 h-10 flex items-center">
+                 Clear all filters
+               </button>
+            )}
           </div>
         </div>
       </section>
