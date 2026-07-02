@@ -933,11 +933,21 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
   return apiFetch<AdminMetrics>("/admin/metrics");
 }
 
-export type SplitShareStatus = "PENDING" | "PAID";
-export type BookingSplitShare = { id: string; name: string; email: string | null; userId: string | null; inviteId: string | null; amount: number; status: SplitShareStatus; paidAt: string | null };
+export type SplitShareStatus = "PENDING" | "PAID" | "REFUNDED";
+export type BookingSplitShare = { id: string; name: string; email: string | null; userId: string | null; inviteId: string | null; amount: number; status: SplitShareStatus; paidAt: string | null; refundedAt?: string | null };
 export type BookingSplit = { bookingId: string; totalAmount: number; splitTotal: number; paidAmount: number; shareCount: number; shares: BookingSplitShare[] };
 export type SplitParticipantInput = { name: string; email?: string; userId?: string; inviteId?: string; amount?: number };
 export type SetBookingSplitInput = { mode: "equal" | "custom"; participants: SplitParticipantInput[] };
+
+export type SharePaymentIntent = {
+  shareId: string;
+  amount: number;
+  provider: string;
+  method: string;
+  providerReference: string;
+  redirectUrl: string | null;
+  token: string | null;
+};
 
 export async function getBookingSplit(bookingId: string): Promise<BookingSplit> {
   return apiFetch<BookingSplit>(`/bookings/${bookingId}/split`);
@@ -960,5 +970,12 @@ export async function setSplitShareStatus(bookingId: string, shareId: string, st
   return apiFetch<BookingSplit>(`/bookings/${bookingId}/split/${shareId}`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  });
+}
+
+export async function createSharePaymentIntent(bookingId: string, shareId: string, method: "va" | "ewallet" | "card"): Promise<SharePaymentIntent> {
+  return apiFetch<SharePaymentIntent>(`/bookings/${bookingId}/split/${shareId}/pay`, {
+    method: "POST",
+    body: JSON.stringify({ method }),
   });
 }
