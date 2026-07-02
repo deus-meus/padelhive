@@ -296,7 +296,47 @@ export async function getMe(): Promise<{ id: string; firebaseUid?: string; email
   return { ...me, role: me.role.toLowerCase() };
 }
 
+export type UploadSignatureResponse = {
+  timestamp: number;
+  signature: string;
+  apiKey: string;
+  cloudName: string;
+  folder: string;
+};
 
+export async function getUploadSignature(): Promise<UploadSignatureResponse> {
+  return apiFetch<UploadSignatureResponse>("/uploads/signature", { method: "POST" });
+}
+
+export async function uploadVenueImage(file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Please select an image file");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("Image must be 5MB or smaller");
+  }
+
+  const sig = await getUploadSignature();
+  
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("api_key", sig.apiKey);
+  formData.append("timestamp", sig.timestamp.toString());
+  formData.append("signature", sig.signature);
+  formData.append("folder", sig.folder);
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to upload image to Cloudinary");
+  }
+
+  const data = await response.json();
+  return data.secure_url;
+}
 
 function mapVenue(venue: ApiVenue): Venue {
   return {
