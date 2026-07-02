@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
-import { getVenuesManage, createVenue, updateVenue, getApiErrorMessage, VenueInput, UpdateVenueInput } from "@/lib/api";
+import { getVenuesManage, createVenue, updateVenue, getApiErrorMessage, VenueInput, UpdateVenueInput, uploadVenueImage } from "@/lib/api";
 import { Venue } from "@/types";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
@@ -193,6 +193,9 @@ function VenueFormModal({
   const [facilities, setFacilities] = useState<string[]>(initial?.facilities ?? []);
   const [facilityDraft, setFacilityDraft] = useState("");
 
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
   const handleAddPhoto = () => {
     const val = photoDraft.trim();
     if (val && !photos.includes(val)) setPhotos([...photos, val]);
@@ -203,6 +206,39 @@ function VenueFormModal({
     const val = facilityDraft.trim();
     if (val && !facilities.includes(val)) setFacilities([...facilities, val]);
     setFacilityDraft("");
+  };
+
+  const handleUploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingCover(true);
+    setCoverError(false);
+    try {
+      const url = await uploadVenueImage(file);
+      setImageUrl(url);
+    } catch (err: any) {
+      alert(err.message || "Failed to upload image");
+    } finally {
+      setIsUploadingCover(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingPhoto(true);
+    try {
+      const url = await uploadVenueImage(file);
+      if (!photos.includes(url)) {
+        setPhotos((prev) => [...prev, url]);
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to upload image");
+    } finally {
+      setIsUploadingPhoto(false);
+      e.target.value = "";
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -314,7 +350,22 @@ function VenueFormModal({
 
             {/* Cover Image */}
             <div>
-              <label className="label text-[#F7F7F7]/40">Cover Image URL (Optional)</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="label text-[#F7F7F7]/40">Cover Image URL (Optional)</label>
+                <div className="flex items-center gap-2">
+                  {isUploadingCover && <Loader2 className="h-4 w-4 animate-spin text-[#E6FA50]" />}
+                  <label className="label cursor-pointer text-[#E6FA50] hover:underline">
+                    Upload file
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadCover}
+                      disabled={isUploadingCover}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
               <input
                 type="url"
                 value={imageUrl}
@@ -323,7 +374,7 @@ function VenueFormModal({
                   setCoverError(false);
                 }}
                 placeholder="https://..."
-                className="body mt-1.5 w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
+                className="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none"
               />
               {imageUrl && !coverError && (
                 <img
@@ -337,8 +388,23 @@ function VenueFormModal({
 
             {/* Photo Gallery */}
             <div>
-              <label className="label text-[#F7F7F7]/40">Photo Gallery (Optional)</label>
-              <div className="mt-1.5 flex gap-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="label text-[#F7F7F7]/40">Photo Gallery (Optional)</label>
+                <div className="flex items-center gap-2">
+                  {isUploadingPhoto && <Loader2 className="h-4 w-4 animate-spin text-[#E6FA50]" />}
+                  <label className="label cursor-pointer text-[#E6FA50] hover:underline">
+                    Upload file
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadPhoto}
+                      disabled={isUploadingPhoto}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+              <div className="flex gap-2">
                 <input
                   type="url"
                   value={photoDraft}

@@ -19,6 +19,8 @@ import { NotificationsModule } from "./notifications/notifications.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerModule } from "@nestjs/throttler";
 
+import { UploadsModule } from "./uploads/uploads.module";
+
 @Module({
   imports: [
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 10 }]),
@@ -27,6 +29,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
     AuthModule,
     UsersModule,
     VenuesModule,
+    UploadsModule,
     CourtsModule,
     BookingsModule,
     PaymentsModule,
