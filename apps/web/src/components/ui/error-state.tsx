@@ -94,7 +94,7 @@ export function EmptyState({
   actionHref?: string;
 }) {
   const actionClass =
-    "mt-6 inline-flex h-10 items-center gap-2 rounded-full bg-[#E6FA50] text-[#0A1628] hover:bg-[#E6FA50]/90 px-6 font-semibold label uppercase transition-colors";
+    "mt-6 inline-flex h-10 items-center gap-2 rounded-full bg-[#E6FA50] text-[#0A1628] hover:bg-[#E6FA50]/90 px-6 font-semibold label transition-colors";
   return (
     <div className="flex min-h-[360px] w-full flex-1 flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
