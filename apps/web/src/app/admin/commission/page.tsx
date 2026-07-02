@@ -47,13 +47,57 @@ export default function CommissionPage() {
     queryFn: () => getCommissionReport({ fromDate, toDate }),
   });
 
+  const exportCsv = () => {
+    if (!data || data.venues.length === 0) return;
+    const escapeCsv = (str: string | number) => `"${String(str).replace(/"/g, '""')}"`;
+    const header = ["Venue", "City", "Config Rate (%)", "Bookings", "GMV", "Commission", "Effective Rate (%)"];
+    const rows = data.venues.map((row) => [
+      escapeCsv(row.venueName),
+      escapeCsv(row.city),
+      row.commissionRate,
+      row.bookings,
+      row.gmv,
+      row.commission,
+      row.effectiveRate,
+    ]);
+    const totalRow = [
+      escapeCsv(""),
+      escapeCsv(""),
+      "",
+      data.totalBookings,
+      data.totalGmv,
+      data.totalCommission,
+      data.avgCommissionRate,
+    ];
+    const csvContent = [header, ...rows, totalRow].map(r => r.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `commission-report-${preset.toLowerCase().replace(/\s+/g,"-")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8">
-      <div className="mb-8">
-        <p className="caption text-[#E6FA50]">Financial</p>
-        <h1 className="heading-1 mt-2 text-[#F7F7F7]">
-          Commission <span className="text-[#E6FA50]">Report</span>
-        </h1>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="caption text-[#E6FA50]">Financial</p>
+          <h1 className="heading-1 mt-2 text-[#F7F7F7]">
+            Commission <span className="text-[#E6FA50]">Report</span>
+          </h1>
+        </div>
+        {data && data.venues.length > 0 && (
+          <button
+            onClick={exportCsv}
+            className="label btn-lime inline-flex h-10 items-center justify-center rounded-xl px-6"
+          >
+            Export CSV
+          </button>
+        )}
       </div>
 
       <div className="mb-6 flex gap-2 overflow-x-auto no-scrollbar">
@@ -111,6 +155,37 @@ export default function CommissionPage() {
               <p className="price mt-2 text-[#F7F7F7]">{data.totalBookings}</p>
             </div>
           </div>
+
+          {data.monthlySeries && data.monthlySeries.length > 0 && (
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
+              <p className="body font-medium text-[#F7F7F7] mb-4">Monthly Commission</p>
+              <div className="flex h-48 items-end gap-2 overflow-x-auto no-scrollbar pt-10 sm:gap-4">
+                {(() => {
+                  const maxComm = Math.max(...data.monthlySeries.map((m) => m.commission), 1);
+                  return data.monthlySeries.map((m) => {
+                    const heightPct = Math.max((m.commission / maxComm) * 100, 1);
+                    const monthLabel = new Date(`${m.month}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+                    return (
+                      <div key={m.month} className="flex h-full w-12 flex-shrink-0 flex-col justify-end gap-2 sm:w-16">
+                        <div className="group relative flex w-full flex-1 flex-col justify-end">
+                          <div className="absolute -top-10 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded border border-white/[0.06] bg-[#0C1B26] px-2 py-1 text-xs text-[#F7F7F7] opacity-0 transition-opacity group-hover:opacity-100">
+                            {formatIDR(m.commission)}
+                          </div>
+                          <div
+                            className="w-full rounded-t bg-[#E6FA50] transition-all"
+                            style={{ height: `${heightPct}%` }}
+                          />
+                        </div>
+                        <div className="text-center text-xs text-[#F7F7F7]/40">
+                          {monthLabel}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          )}
 
           <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] overflow-x-auto no-scrollbar">
             <div className="min-w-[800px] p-4">

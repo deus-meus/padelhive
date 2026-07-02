@@ -207,12 +207,37 @@ export class AdminService {
     const totalBookings = rows.reduce((sum, r) => sum + r.bookings, 0);
     const avgCommissionRate = totalGmv > 0 ? Math.round((totalCommission / totalGmv) * 1000) / 10 : 0;
 
+    const seriesRows = await this.prisma.booking.findMany({
+      where,
+      select: { bookingDate: true, platformFee: true, finalAmount: true },
+    });
+
+    const seriesMap = new Map<string, { gmv: number; commission: number; bookings: number }>();
+    for (const row of seriesRows) {
+      const wibDate = utcToWibDateStr(row.bookingDate);
+      const month = wibDate.slice(0, 7);
+      if (!seriesMap.has(month)) {
+        seriesMap.set(month, { gmv: 0, commission: 0, bookings: 0 });
+      }
+      const bucket = seriesMap.get(month)!;
+      bucket.gmv += row.finalAmount;
+      bucket.commission += row.platformFee;
+      bucket.bookings += 1;
+    }
+
+    const monthlySeries = Array.from(seriesMap.entries()).map(([month, data]) => ({
+      month,
+      ...data,
+    }));
+    monthlySeries.sort((a, b) => a.month.localeCompare(b.month));
+
     return {
       totalCommission,
       totalGmv,
       totalBookings,
       avgCommissionRate,
       venues: rows,
+      monthlySeries,
     };
   }
 
