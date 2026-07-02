@@ -270,7 +270,7 @@ export default async function HomePage() {
                 <div className="flex -space-x-2">
                   {Array.from({ length: 5 }).map((_, i) => {
                     const user = (stats?.recentUsers ?? [])[i];
-                    const colors = ["#E6FA50", "#50C8C8", "#F97316", "#A78BFA", "#EC4899"];
+                    const colors = ["#E6FA50", "#50C8C8", "#BFEF2E", "#2EADAD", "#7BCE3A"];
                     return user?.avatarUrl ? (
                       <img
                         key={i}
