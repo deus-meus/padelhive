@@ -276,7 +276,7 @@ export default function VenuesPage() {
           )}
 
           {filteredVenues.length === 0 && !shouldShowLoading && (
-            <EmptyState icon={Search} title="No venues found" description="Try adjusting your search or filters." />
+            <EmptyState icon={Search} title="No venues found" description="Try adjusting your search or filters." actionLabel="Browse all venues" actionHref="/venues" />
           )}
         </div>
       </section>

@@ -145,6 +145,8 @@ export default function DisputesPage() {
             icon={AlertTriangle}
             title="No disputes"
             description={filter === "ALL" ? "There are no disputes right now." : `No ${filter.toLowerCase()} disputes in this category.`}
+            actionLabel="Refresh"
+            onAction={() => refetch()}
           />
         ) : (
           disputes.map((dispute) => (

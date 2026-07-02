@@ -134,7 +134,7 @@ export default function CommissionPage() {
       ) : isError ? (
         <ErrorBanner title="Couldn't load commission report" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
       ) : data && data.venues.length === 0 ? (
-        <EmptyState icon={Coins} title="No commission data" description="No completed bookings in this period." />
+        <EmptyState icon={Coins} title="No commission data" description="No completed bookings in this period." actionLabel="Refresh" onAction={() => refetch()} />
       ) : data ? (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

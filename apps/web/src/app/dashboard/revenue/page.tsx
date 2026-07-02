@@ -103,6 +103,8 @@ export default function RevenuePage() {
               icon={TrendingUp}
               title="No revenue data yet"
               description="Once your venues start taking bookings, revenue analytics will show up here."
+              actionLabel="Refresh"
+              onAction={() => refetch()}
             />
           </div>
         </section>

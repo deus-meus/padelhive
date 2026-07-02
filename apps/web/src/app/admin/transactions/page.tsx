@@ -90,7 +90,7 @@ export default function AdminTransactionsPage() {
       ) : isError ? (
         <ErrorBanner title="Couldn't load transactions" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
       ) : items.length === 0 ? (
-        <EmptyState icon={Receipt} title="No transactions found" description="No bookings match the selected status." />
+        <EmptyState icon={Receipt} title="No transactions found" description="No bookings match the selected status." actionLabel="Refresh" onAction={() => refetch()} />
       ) : (
         <>
           <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]">

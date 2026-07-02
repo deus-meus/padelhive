@@ -111,6 +111,8 @@ export default function AdminVenuesPage() {
                 ? "There are no venues waiting for approval."
                 : "No venues match the selected status."
             }
+            actionLabel="Refresh"
+            onAction={() => refetch()}
           />
         ) : (
           venues.map((venue) => {

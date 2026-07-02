@@ -200,7 +200,7 @@ export default function VouchersPage() {
 
         {filtered.length === 0 && !isError && (
           <div className="py-16 text-center">
-            <EmptyState icon={Ticket} title={`No ${filter} vouchers found`} description={`There are no ${filter} vouchers available.`} />
+            <EmptyState icon={Ticket} title={`No ${filter} vouchers found`} description={`There are no ${filter} vouchers available.`} actionLabel="Browse venues" actionHref="/venues" />
           </div>
         )}
       </section>

@@ -62,7 +62,7 @@ export default function AdminMetricsPage() {
             Metrics <span className="text-[#E6FA50]">Report</span>
           </h1>
         </div>
-        <EmptyState icon={BarChart3} title="No metrics data" description="No bookings have been made yet." />
+        <EmptyState icon={BarChart3} title="No metrics data" description="No bookings have been made yet." actionLabel="Refresh" onAction={() => refetch()} />
       </div>
     );
   }
