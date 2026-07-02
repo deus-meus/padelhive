@@ -269,24 +269,10 @@ export default async function HomePage() {
                 Whether you&apos;re a seasoned competitor or picking up a racket for
                 the first time, there&apos;s a match for you. Connect with players
                 across skill levels, build your crew, and make every session count.
+                Track your progress, grow your padel network, and find open matches near you instantly.
               </p>
 
-              <div className="mt-10 flex flex-col gap-3">
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E6FA50]" />
-                  <p className="body text-[#F7F7F7]/50">Find open matches near you and join instantly</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E6FA50]" />
-                  <p className="body text-[#F7F7F7]/50">Split court costs automatically with your crew</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E6FA50]" />
-                  <p className="body text-[#F7F7F7]/50">Track your progress and grow your padel network</p>
-                </div>
-              </div>
-
-              <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-white/[0.06] pt-10">
+              <div className="mt-12 flex items-start gap-10 border-t border-white/[0.06] pt-10">
                 <div>
                   <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
