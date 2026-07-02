@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 import { getVenues, getHomeStats } from "@/lib/api";
 import { HomeSearchBar } from "@/components/home/home-search-bar";
 import { padelImg } from "@/lib/images";
-import { EmptyState } from "@/components/ui/error-state";
+import { FeaturedVenueEmpty, AllVenuesEmpty } from "@/components/home/home-empty-states";
 
 const IMG = {
   hero: padelImg(1920, 85),
@@ -137,13 +137,7 @@ export default async function HomePage() {
           </div>
 
           {!featuredVenue ? (
-            <EmptyState
-              icon={Star}
-              title="Featured venues coming soon"
-              description="We're curating the best courts in Indonesia. Check back soon or explore everything available now."
-              actionLabel="Browse All Venues"
-              actionHref="/venues"
-            />
+            <FeaturedVenueEmpty />
           ) : (
             <Link href={`/venues/${featuredVenue.id}`} className="group block">
               <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
@@ -336,13 +330,7 @@ export default async function HomePage() {
 
           <div className="space-y-5">
             {venues.length === 0 ? (
-              <EmptyState
-                icon={MapPin}
-                title="No venues yet"
-                description="New courts are being added across Indonesia. Browse the full directory to see what's live."
-                actionLabel="Browse All Venues"
-                actionHref="/venues"
-              />
+              <AllVenuesEmpty />
             ) : (
               venues.map((venue, i) => {
                 const images = [IMG.venue1, IMG.venue2, IMG.venue3];
