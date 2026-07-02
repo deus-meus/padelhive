@@ -258,40 +258,42 @@ export default async function HomePage() {
             </div>
 
             {/* Content */}
-            <div className="flex flex-col justify-start pt-4 lg:pt-8">
+            <div className="flex flex-col justify-center">
               <p className="body-lg max-w-md text-[#F7F7F7]/60">
                 Padelhive is where Indonesia&apos;s padel community lives.
                 Join open matches, find partners at your level, split costs,
                 and grow your network.
               </p>
 
-              <div className="mt-8 flex items-center gap-3">
-                <div className="flex -space-x-2">
-                  {(stats?.recentUsers ?? []).slice(0, 5).map((user, i) =>
-                    user.avatarUrl ? (
-                      <img
-                        key={i}
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        className="h-8 w-8 rounded-full border-2 border-[#06121A] object-cover"
-                      />
-                    ) : (
-                      <div
-                        key={i}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#06121A] bg-[#1a2f3d] text-[10px] font-semibold text-[#E6FA50]"
-                      >
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    )
-                  )}
-                </div>
-                {(stats?.recentUsers?.length ?? 0) > 0 && (
+              {/* Avatar stack — stacked vertically */}
+              {(stats?.recentUsers?.length ?? 0) > 0 && (
+                <div className="mt-8 flex flex-col gap-2">
+                  <div className="flex -space-x-2">
+                    {(stats?.recentUsers ?? []).slice(0, 5).map((user, i) =>
+                      user.avatarUrl ? (
+                        <img
+                          key={i}
+                          src={user.avatarUrl}
+                          alt={user.name}
+                          className="h-8 w-8 rounded-full border-2 border-[#06121A] object-cover"
+                        />
+                      ) : (
+                        <div
+                          key={i}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#06121A] bg-[#1a2f3d] text-[10px] font-semibold text-[#E6FA50]"
+                        >
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )
+                    )}
+                  </div>
                   <p className="caption text-[#F7F7F7]/40">
                     +{formatStat(stats?.players ?? 0)} joined this month
                   </p>
-                )}
-              </div>
+                </div>
+              )}
 
+              {/* Stats row */}
               <div className="mt-10 flex items-start gap-10">
                 <div>
                   <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}+</p>
