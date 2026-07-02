@@ -55,14 +55,14 @@ export function ErrorBanner({
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
-        <div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
           <p className="heading-3 text-[#F7F7F7]">{title}</p>
-          {resolvedDescription ? (
-            <p className="mt-0.5 body-sm text-[#F7F7F7]/40">{resolvedDescription}</p>
-          ) : null}
         </div>
+        {resolvedDescription ? (
+          <p className="mt-1 body-sm text-[#F7F7F7]/40">{resolvedDescription}</p>
+        ) : null}
       </div>
       {onRetry ? (
         <button

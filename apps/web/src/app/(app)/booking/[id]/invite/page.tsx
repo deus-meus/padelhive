@@ -258,11 +258,9 @@ export default function InviteFriendsPage({
             </div>
           )}
           {submitError && (
-            <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
-              <div className="flex-1">
-                <p className="caption text-red-200/80">{submitError}</p>
-              </div>
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-300" />
+              <p className="caption text-red-200/80">{submitError}</p>
             </div>
           )}
           {errorMessage && !isLoading && (
