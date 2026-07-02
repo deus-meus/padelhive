@@ -26,4 +26,7 @@ export class HomeStatsDto {
 
   @ApiProperty()
   recentUsers!: { name: string; avatarUrl: string | null }[];
+
+  @ApiProperty()
+  matchRate!: number;
 }
