@@ -19,6 +19,7 @@ import { RequestUser } from "../auth/types/request-user.type";
 import { BookingsService } from "./bookings.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
+import { RescheduleBookingDto } from "./dto/reschedule-booking.dto";
 import { BookingListItemDto } from "./dto/list-bookings.dto";
 import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
 import { RevenueDto } from "./dto/revenue.dto";
@@ -99,6 +100,17 @@ export class BookingsController {
   @ApiNotFoundResponse({ description: "Booking not found" })
   cancel(@Param("id") id: string, @CurrentUser() user: RequestUser): Promise<BookingResponseDto> {
     return this.bookingsService.cancelBookingForUser(id, user.id);
+  }
+
+  @Patch(":id/reschedule")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Reschedule a booking to a new time on the same court" })
+  @ApiOkResponse({ type: BookingResponseDto })
+  @ApiBadRequestResponse({ description: "Booking cannot be rescheduled" })
+  @ApiConflictResponse({ description: "Court is unavailable for the requested time" })
+  @ApiNotFoundResponse({ description: "Booking not found" })
+  reschedule(@Param("id") id: string, @Body() body: RescheduleBookingDto, @CurrentUser() user: RequestUser): Promise<BookingResponseDto> {
+    return this.bookingsService.rescheduleBookingForUser(id, user.id, body);
   }
 
   @Get(":id/split")

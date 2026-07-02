@@ -3,6 +3,7 @@ import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus, Not
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
+import { RescheduleBookingDto } from "./dto/reschedule-booking.dto";
 import { OwnerDashboardDto } from "./dto/owner-dashboard.dto";
 import { RevenueDto } from "./dto/revenue.dto";
 import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, wibToUtc } from "../common/pricing.util";
@@ -49,6 +50,25 @@ const cancellableBookingSelect = {
       status: true,
     },
   },
+};
+
+const reschedulableBookingSelect = {
+  id: true,
+  status: true,
+  voucherId: true,
+  voucherDiscount: true,
+  courtId: true,
+  venueId: true,
+  court: {
+    select: {
+      id: true,
+      type: true,
+      weekdayPeak: true,
+      weekdayOffPeak: true,
+      weekendPeak: true,
+      weekendOffPeak: true,
+    }
+  }
 };
 
 type CancellableBooking = {
@@ -185,6 +205,75 @@ export class BookingsService {
           await tx.voucher.update({ where: { id: voucherId }, data: { usedCount: { increment: 1 } } });
         }
         return created;
+      });
+    } catch (error) {
+      const e = error as { message?: string; meta?: { message?: string; target?: unknown } };
+      const msg = e?.message || "";
+      const metaMsg = e?.meta?.message || "";
+      const target = e?.meta?.target || [];
+
+      if (
+        msg.includes("booking_no_overlap") ||
+        msg.includes("23P01") ||
+        metaMsg.includes("booking_no_overlap") ||
+        metaMsg.includes("23P01") ||
+        (Array.isArray(target) && target.includes("booking_no_overlap")) ||
+        (typeof target === "string" && target.includes("booking_no_overlap"))
+      ) {
+        throw new ConflictException("This court is already booked for the selected time.");
+      }
+      throw error;
+    }
+  }
+
+  async rescheduleBookingForUser(id: string, hostUserId: string, body: RescheduleBookingDto): Promise<BookingResponseDto> {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id, hostUserId },
+      select: reschedulableBookingSelect,
+    });
+
+    if (!booking) {
+      throw new NotFoundException("Booking not found");
+    }
+
+    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PENDING_PAYMENT) {
+      throw new BadRequestException("This booking cannot be rescheduled");
+    }
+
+    const parsed = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt);
+
+    await this.assertNoOverlap(booking.courtId, parsed.startsAt, parsed.endsAt, booking.id);
+
+    const courtWithDetails: SelectedCourt = {
+      id: booking.court.id,
+      venueId: booking.venueId,
+      name: "",
+      type: booking.court.type,
+      isActive: true,
+      weekdayPeak: booking.court.weekdayPeak,
+      weekdayOffPeak: booking.court.weekdayOffPeak,
+      weekendPeak: booking.court.weekendPeak,
+      weekendOffPeak: booking.court.weekendOffPeak,
+    };
+
+    const courtAmount = this.calculateCourtAmount(courtWithDetails, parsed.startsAt, parsed.durationMinutes);
+    const platformFee = Math.round(courtAmount * PLATFORM_FEE_RATE);
+    const subtotal = courtAmount + platformFee;
+    const finalAmount = Math.max(0, subtotal - booking.voucherDiscount);
+
+    try {
+      return await this.prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          bookingDate: parsed.bookingDate,
+          startsAt: parsed.startsAt,
+          endsAt: parsed.endsAt,
+          durationMinutes: parsed.durationMinutes,
+          courtAmount,
+          platformFee,
+          finalAmount,
+        },
+        select: bookingSelect,
       });
     } catch (error) {
       const e = error as { message?: string; meta?: { message?: string; target?: unknown } };
@@ -363,13 +452,14 @@ export class BookingsService {
     return { bookingDate, startsAt, endsAt, durationMinutes };
   }
 
-  private async assertNoOverlap(courtId: string, startsAt: Date, endsAt: Date): Promise<void> {
+  private async assertNoOverlap(courtId: string, startsAt: Date, endsAt: Date, excludeBookingId?: string): Promise<void> {
     const overlap = await this.prisma.booking.findFirst({
       where: {
         courtId,
         status: { in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED] },
         startsAt: { lt: endsAt },
         endsAt: { gt: startsAt },
+        ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
       },
       select: { id: true },
     });

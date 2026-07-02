@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -22,8 +22,9 @@ import {
   ArrowLeft,
   Copy,
   Star,
+  CalendarClock,
 } from "lucide-react";
-import { ApiRequestError, cancelBooking, getBookingById, createReview } from "@/lib/api";
+import { ApiRequestError, cancelBooking, getBookingById, createReview, rescheduleBooking, getVenueAvailability } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
 import { getUserFacingErrorMessage } from "@/lib/errors";
 import { padelImg } from "@/lib/images";
@@ -44,10 +45,35 @@ export default function BookingDetailPage() {
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
+  const queryClient = useQueryClient();
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState<string>(() => {
+    return new Date().toISOString().split("T")[0]; // Simple YYYY-MM-DD
+  });
+  const [rescheduleStartHour, setRescheduleStartHour] = useState<string | null>(null);
+
   const { data: booking, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: queryKeys.bookings.detail(bookingId),
     queryFn: () => getBookingById(bookingId),
   });
+
+  const venue = booking?.venue;
+  const court = booking?.court;
+
+  const { data: availabilityResponse, isFetching: isAvailabilityFetching, isLoading: isAvailabilityLoading, isError: isAvailabilityError } = useQuery({
+    queryKey: queryKeys.venues.availability(venue?.id ?? "", rescheduleDate, court?.id ?? ""),
+    queryFn: () => getVenueAvailability(venue!.id, rescheduleDate, court!.id),
+    enabled: showRescheduleModal && !!venue?.id && !!court?.id && !!rescheduleDate,
+  });
+
+  const timeSlots = useMemo(() => {
+    if (availabilityResponse && !isAvailabilityError && court) {
+      const c = availabilityResponse.courts.find((c) => c.id === court.id);
+      if (c) return c.slots;
+    }
+    return [];
+  }, [availabilityResponse, isAvailabilityError, court]);
 
   if (isLoading) {
     return (
@@ -95,8 +121,6 @@ export default function BookingDetailPage() {
   }
 
   const currentBooking = booking;
-  const venue = booking.venue;
-  const court = booking.court;
 
   function showToast(msg: string) {
     setToast(msg);
@@ -185,6 +209,60 @@ export default function BookingDetailPage() {
     } finally {
       setIsSubmittingReview(false);
     }
+  }
+
+  async function confirmReschedule() {
+    if (isRescheduling || !rescheduleStartHour || !currentBooking) return;
+    
+    setIsRescheduling(true);
+    const startHourNum = parseInt(rescheduleStartHour.split(":")[0], 10);
+    const durationHours = currentBooking.durationMinutes / 60;
+    const endsAt = `${String(startHourNum + durationHours).padStart(2, "0")}:00`;
+
+    try {
+      await rescheduleBooking(bookingId, {
+        bookingDate: rescheduleDate,
+        startsAt: rescheduleStartHour,
+        endsAt,
+      });
+      setShowRescheduleModal(false);
+      showToast("Booking rescheduled");
+      refetch();
+      queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue!.id, rescheduleDate, court!.id) });
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        if (error.status === 409) {
+          showToast("This court is already booked for the selected time.");
+        } else if (error.status === 400) {
+          showToast(getUserFacingErrorMessage(error) || "This booking cannot be rescheduled.");
+        } else {
+          showToast(getUserFacingErrorMessage(error));
+        }
+      } else {
+        showToast(getUserFacingErrorMessage(error));
+      }
+    } finally {
+      setIsRescheduling(false);
+    }
+  }
+
+  function toggleRescheduleSlot(time: string) {
+    if (isRescheduling) return;
+    
+    const startHourNum = parseInt(time.split(":")[0], 10);
+    const durationHours = currentBooking.durationMinutes / 60;
+    
+    const isConsecutiveAvailable = Array.from({ length: durationHours }).every((_, i) => {
+      const h = `${String(startHourNum + i).padStart(2, "0")}:00`;
+      const slot = timeSlots.find((s) => s.startsAt === h);
+      return slot && slot.available;
+    });
+
+    if (!isConsecutiveAvailable) {
+      return;
+    }
+    
+    setRescheduleStartHour(time === rescheduleStartHour ? null : time);
   }
 
   return (
@@ -376,6 +454,13 @@ export default function BookingDetailPage() {
                   <>
                     <div className="my-1 border-t border-white/[0.04]" />
                     <button
+                      onClick={() => setShowRescheduleModal(true)}
+                      className="heading-3 w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+                    >
+                      <CalendarClock className="h-4 w-4 text-[#50C8C8]" />
+                      Reschedule booking
+                    </button>
+                    <button
                       onClick={handleCancel}
                       className="heading-3 w-full flex items-center gap-3 rounded-xl bg-red-500/5 px-4 py-3 text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400"
                     >
@@ -389,6 +474,108 @@ export default function BookingDetailPage() {
           </div>
         </div>
       </section>
+
+      {showRescheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 overflow-y-auto pt-10 pb-10">
+          <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl relative my-auto">
+            <button
+              onClick={() => {
+                setShowRescheduleModal(false);
+                setRescheduleStartHour(null);
+              }}
+              className="absolute right-4 top-4 text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80 transition-colors"
+            >
+              <XCircle className="h-6 w-6" />
+            </button>
+            <p className="section-label">Reschedule Booking</p>
+            <h2 className="heading-2 mt-3 text-[#F7F7F7]">Choose a new time</h2>
+            <p className="body mt-2 text-[#F7F7F7]/40">
+              You are rescheduling a {currentBooking.durationMinutes}-minute booking.
+            </p>
+            
+            <div className="mt-6">
+              <label className="caption block mb-2 text-[#F7F7F7]/60">Date</label>
+              <input
+                type="date"
+                min={new Date().toISOString().split("T")[0]}
+                value={rescheduleDate}
+                onChange={(e) => {
+                  setRescheduleDate(e.target.value);
+                  setRescheduleStartHour(null);
+                }}
+                className="body w-full rounded-xl border border-white/[0.06] bg-[#0C1B26] px-4 py-3 text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none"
+              />
+            </div>
+
+            <div className="mt-6">
+              <label className="caption block mb-2 text-[#F7F7F7]/60">Available time slots</label>
+              <div className="grid grid-cols-4 gap-2">
+                {isAvailabilityLoading || isAvailabilityFetching ? (
+                  <p className="caption col-span-full py-4 text-[#F7F7F7]/40">Loading availability...</p>
+                ) : isAvailabilityError ? (
+                  <p className="caption col-span-full py-4 text-red-400/80">Failed to load availability.</p>
+                ) : timeSlots.length === 0 ? (
+                  <p className="caption col-span-full py-4 text-[#F7F7F7]/40">No available slots for this date.</p>
+                ) : (
+                  timeSlots.map((slot) => {
+                    const isSelected = rescheduleStartHour === slot.startsAt;
+                    
+                    const startHourNum = parseInt(slot.startsAt.split(":")[0], 10);
+                    const durationHours = currentBooking.durationMinutes / 60;
+                    
+                    const isConsecutiveAvailable = Array.from({ length: durationHours }).every((_, i) => {
+                      const h = `${String(startHourNum + i).padStart(2, "0")}:00`;
+                      const s = timeSlots.find((ts) => ts.startsAt === h);
+                      return s && s.available;
+                    });
+                    
+                    const isDisabled = !isConsecutiveAvailable;
+
+                    return (
+                      <button
+                        key={slot.startsAt}
+                        disabled={isDisabled}
+                        onClick={() => toggleRescheduleSlot(slot.startsAt)}
+                        className={`relative flex min-h-[48px] w-full flex-col items-center justify-center rounded-xl border p-2 text-center transition-all ${
+                          isDisabled 
+                            ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed" 
+                            : isSelected 
+                              ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]" 
+                              : "border-white/[0.08] bg-[#0C1B26] hover:border-[#50C8C8]/40"
+                        }`}
+                      >
+                        <span className={`label ${isDisabled ? "text-[#F7F7F7]/25" : isSelected ? "text-[#E6FA50]" : "text-[#F7F7F7]/80"}`}>
+                          {slot.startsAt}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                onClick={() => {
+                  setShowRescheduleModal(false);
+                  setRescheduleStartHour(null);
+                }}
+                disabled={isRescheduling}
+                className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80 disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReschedule}
+                disabled={!rescheduleStartHour || isRescheduling}
+                className="label rounded-full bg-[#E6FA50] px-5 py-2.5 text-[#06121A] transition-colors hover:bg-[#E6FA50]/90 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isRescheduling ? "Rescheduling..." : "Confirm Reschedule"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
