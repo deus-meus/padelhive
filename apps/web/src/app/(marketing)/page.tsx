@@ -292,7 +292,7 @@ export default async function HomePage() {
                 )}
               </div>
 
-              <div className="mt-10 flex items-start gap-10 border-t border-white/[0.06] pt-10">
+              <div className="mt-10 flex items-start gap-10">
                 <div>
                   <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}+</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
