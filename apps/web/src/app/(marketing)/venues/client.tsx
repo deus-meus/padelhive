@@ -87,15 +87,6 @@ export default function VenuesPage() {
     setFacilities(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
   };
 
-  const handleClearFilters = () => {
-    setSearch("");
-    setCity("All");
-    setRatingMin(null);
-    setCourtType(null);
-    setFacilities([]);
-    setPriceMin(null);
-    setPriceMax(null);
-  };
 
   return (
     <>
@@ -195,11 +186,7 @@ export default function VenuesPage() {
               onToggle={toggleFacility}
               onClear={() => setFacilities([])}
             />
-            {(search || city !== "All" || ratingMin !== null || courtType !== null || facilities.length > 0 || priceMin !== null || priceMax !== null) && (
-               <button onClick={handleClearFilters} className="caption text-[#E6FA50] hover:underline px-3 h-10 flex items-center">
-                 Clear all filters
-               </button>
-            )}
+
           </div>
         </div>
       </section>
@@ -232,17 +219,10 @@ export default function VenuesPage() {
 
           {!shouldShowLoading && (
             <>
-              <div className="mb-6 flex items-center justify-between">
-                <p className="caption text-[#F7F7F7]/40">
-                  {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"}
-                  {city !== "All" ? ` in ${city}` : ""}
-                </p>
-                {(search || city !== "All" || ratingMin || courtType || facilities.length > 0 || priceMin || priceMax) && (
-                  <button onClick={handleClearFilters} className="caption text-[#E6FA50] hover:underline">
-                    Clear all filters
-                  </button>
-                )}
-              </div>
+              <p className="caption mb-6 text-[#F7F7F7]/40">
+                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"}
+                {city !== "All" ? ` in ${city}` : ""}
+              </p>
 
               <div className={`grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 transition-opacity duration-300 ${isFetching ? "opacity-60" : "opacity-100"}`}>
                 {filteredVenues.map((venue, i) => {
@@ -283,7 +263,7 @@ export default function VenuesPage() {
           )}
 
           {filteredVenues.length === 0 && !shouldShowLoading && (
-            <EmptyState icon={Search} title="No venues found" description="Try adjusting your search or filters." actionLabel="Clear filters" onAction={handleClearFilters} />
+            <EmptyState icon={Search} title="No venues found" description="Try adjusting your search or filters." />
           )}
         </div>
       </section>
