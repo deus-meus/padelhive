@@ -266,32 +266,33 @@ export default async function HomePage() {
               </p>
 
               {/* Avatar stack — stacked vertically */}
-              {(stats?.recentUsers?.length ?? 0) > 0 && (
-                <div className="mt-8 flex flex-col gap-2">
-                  <div className="flex -space-x-2">
-                    {(stats?.recentUsers ?? []).slice(0, 5).map((user, i) =>
-                      user.avatarUrl ? (
-                        <img
-                          key={i}
-                          src={user.avatarUrl}
-                          alt={user.name}
-                          className="h-8 w-8 rounded-full border-2 border-[#06121A] object-cover"
-                        />
-                      ) : (
-                        <div
-                          key={i}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#06121A] bg-[#1a2f3d] text-[10px] font-semibold text-[#E6FA50]"
-                        >
-                          {user.name.charAt(0).toUpperCase()}
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <p className="caption text-[#F7F7F7]/40">
-                    +{formatStat(stats?.players ?? 0)} joined this month
-                  </p>
+              <div className="mt-8 flex flex-col gap-2">
+                <div className="flex -space-x-2">
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const user = (stats?.recentUsers ?? [])[i];
+                    const colors = ["#E6FA50", "#50C8C8", "#F97316", "#A78BFA", "#EC4899"];
+                    return user?.avatarUrl ? (
+                      <img
+                        key={i}
+                        src={user.avatarUrl}
+                        alt={user.name}
+                        className="h-8 w-8 rounded-full border-2 border-[#06121A] object-cover"
+                      />
+                    ) : (
+                      <div
+                        key={i}
+                        className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#06121A] text-[10px] font-semibold text-[#06121A]"
+                        style={{ backgroundColor: colors[i % colors.length] }}
+                      >
+                        {user ? user.name.charAt(0).toUpperCase() : ""}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+                <p className="caption text-[#F7F7F7]/40">
+                  +{formatStat(stats?.players ?? 0)} joined this month
+                </p>
+              </div>
 
               {/* Stats row */}
               <div className="mt-10 flex items-start gap-10">
