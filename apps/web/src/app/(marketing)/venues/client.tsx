@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { MapPin, Star, Search, ArrowUpDown } from "lucide-react";
 import { mockVenues } from "@/mock/venues";
 import { padelImg } from "@/lib/images";
@@ -51,7 +51,7 @@ export default function VenuesPage() {
 
   const [sort, setSort] = useState<SortKey>("recommended");
 
-  const { data: apiVenues, isLoading: isLoadingVenues, isError: isVenuesError } = useQuery({
+  const { data: apiVenues, isLoading: isLoadingVenues, isError: isVenuesError, isFetching } = useQuery({
     queryKey: ["venues", { q: debouncedSearch, city, ratingMin, courtType, facilities, priceMin, priceMax }],
     queryFn: () => getVenues({
       q: debouncedSearch,
@@ -62,6 +62,7 @@ export default function VenuesPage() {
       priceMin: priceMin ?? undefined,
       priceMax: priceMax ?? undefined,
     }),
+    placeholderData: keepPreviousData,
   });
 
   const hasApiData = Boolean(apiVenues && apiVenues.length > 0);
@@ -262,7 +263,7 @@ export default function VenuesPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <div className={`grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 transition-opacity duration-300 ${isFetching ? "opacity-60" : "opacity-100"}`}>
                 {filteredVenues.map((venue, i) => {
                   const price = venue.priceFrom ?? 0;
                   const courtCount = venue.courtCount ?? 0;
