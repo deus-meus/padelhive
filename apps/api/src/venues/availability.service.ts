@@ -6,7 +6,7 @@ import {
   VenueAvailabilityResponseDto,
   VenueAvailabilitySlotDto,
 } from "./dto/venue-availability-response.dto";
-import { getSlotPrice, isPeakHour, isWeekendWib, wibToUtc } from "../common/pricing.util";
+import { getSlotPrice, isPeakHour, isWeekendWib, wibToUtc, isOvernight, utcToWibDateStr, wibHourFromUtc } from "../common/pricing.util";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_OPEN_HOUR = 6;
@@ -52,6 +52,14 @@ export class AvailabilityService {
       }
     }
 
+    const overnight = isOvernight(startHour, endHour);
+    const totalHours = overnight ? (24 - startHour) + endHour : endHour - startHour;
+
+    if (!isClosed && totalHours <= 0) {
+      isClosed = true;
+    }
+
+
     const courtWhere: { venueId: string; isActive: boolean; id?: string } = {
       venueId,
       isActive: true,
@@ -89,8 +97,9 @@ export class AvailabilityService {
     }
 
     const bookingDate = new Date(`${dateStr}T00:00:00.000Z`);
-    const dayStart = wibToUtc(dateStr, `${String(startHour).padStart(2, "0")}:00`);
-    const dayEnd = wibToUtc(dateStr, `${String(endHour).padStart(2, "0")}:00`);
+    const sessionStartUtc = wibToUtc(dateStr, `${String(startHour).padStart(2, "0")}:00`);
+    const dayStart = sessionStartUtc;
+    const dayEnd = new Date(sessionStartUtc.getTime() + totalHours * 3600000);
 
     const courtIds = courts.map((c) => c.id);
 
@@ -116,10 +125,8 @@ export class AvailabilityService {
       const courtBookings = bookings.filter((b) => b.courtId === court.id);
       const slots = this.generateSlots(
         court,
-        startHour,
-        endHour,
-        dateStr,
-        isWeekend,
+        sessionStartUtc,
+        totalHours,
         courtBookings
       );
       return {
@@ -153,23 +160,23 @@ export class AvailabilityService {
       weekendPeak: number;
       weekendOffPeak: number;
     },
-    startHour: number,
-    endHour: number,
-    dateStr: string,
-    isWeekend: boolean,
+    sessionStartUtc: Date,
+    totalHours: number,
     bookings: { courtId: string; startsAt: Date; endsAt: Date }[]
   ): VenueAvailabilitySlotDto[] {
     const slots: VenueAvailabilitySlotDto[] = [];
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      const startsAt = `${String(hour).padStart(2, "0")}:00`;
-      const endsAt = `${String(hour + 1).padStart(2, "0")}:00`;
+    for (let i = 0; i < totalHours; i++) {
+      const slotStart = new Date(sessionStartUtc.getTime() + i * 3600000);
+      const slotEnd = new Date(slotStart.getTime() + 3600000);
+      
+      const wibHour = wibHourFromUtc(slotStart);
+      const wibDate = utcToWibDateStr(slotStart);
+      const isWeekend = isWeekendWib(wibDate);
+      const price = getSlotPrice(court, wibHour, isWeekend);
 
-      const slotStart = wibToUtc(dateStr, startsAt);
-      const slotEnd = wibToUtc(dateStr, endsAt);
-
-      const isPeak = isPeakHour(hour, isWeekend);
-      const price = getSlotPrice(court, hour, isWeekend);
+      const startsAt = `${String(wibHour).padStart(2, "0")}:00`;
+      const endsAt = `${String((wibHour + 1) % 24).padStart(2, "0")}:00`;
 
       const available = !bookings.some(
         (b) => b.startsAt < slotEnd && b.endsAt > slotStart
@@ -180,7 +187,7 @@ export class AvailabilityService {
         endsAt,
         available,
         price,
-        isPeak,
+        isPeak: isPeakHour(wibHour, isWeekend),
       });
     }
 
