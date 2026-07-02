@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 import { getVenues, getHomeStats } from "@/lib/api";
 import { HomeSearchBar } from "@/components/home/home-search-bar";
 import { padelImg } from "@/lib/images";
+import { EmptyState } from "@/components/ui/error-state";
 
 const IMG = {
   hero: padelImg(1920, 85),
@@ -136,18 +137,13 @@ export default async function HomePage() {
           </div>
 
           {!featuredVenue ? (
-            <div className="flex flex-col items-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center md:py-20">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
-                <Star className="h-6 w-6 text-[#E6FA50]" />
-              </div>
-              <h3 className="heading-3 mt-6 text-[#F7F7F7]">Featured venues coming soon</h3>
-              <p className="body mt-2 max-w-sm text-[#F7F7F7]/40">
-                We&apos;re curating the best courts in Indonesia. Check back soon or explore everything available now.
-              </p>
-              <Link href="/venues" className="label btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6">
-                Browse All Venues
-              </Link>
-            </div>
+            <EmptyState
+              icon={Star}
+              title="Featured venues coming soon"
+              description="We're curating the best courts in Indonesia. Check back soon or explore everything available now."
+              actionLabel="Browse All Venues"
+              actionHref="/venues"
+            />
           ) : (
             <Link href={`/venues/${featuredVenue.id}`} className="group block">
               <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
@@ -340,18 +336,13 @@ export default async function HomePage() {
 
           <div className="space-y-5">
             {venues.length === 0 ? (
-              <div className="flex flex-col items-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center md:py-20">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
-                  <MapPin className="h-6 w-6 text-[#E6FA50]" />
-                </div>
-                <h3 className="heading-3 mt-6 text-[#F7F7F7]">No venues yet</h3>
-                <p className="body mt-2 max-w-sm text-[#F7F7F7]/40">
-                  New courts are being added across Indonesia. Browse the full directory to see what&apos;s live.
-                </p>
-                <Link href="/venues" className="label btn-lime mt-6 inline-flex h-10 items-center justify-center rounded-xl px-6">
-                  Browse All Venues
-                </Link>
-              </div>
+              <EmptyState
+                icon={MapPin}
+                title="No venues yet"
+                description="New courts are being added across Indonesia. Browse the full directory to see what's live."
+                actionLabel="Browse All Venues"
+                actionHref="/venues"
+              />
             ) : (
               venues.map((venue, i) => {
                 const images = [IMG.venue1, IMG.venue2, IMG.venue3];

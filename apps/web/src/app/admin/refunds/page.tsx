@@ -148,6 +148,8 @@ export default function RefundsPage() {
             icon={RotateCcw}
             title="No refunds found"
             description={filter === "PENDING" ? "There are no refund requests waiting for review." : "No refunds match the selected filter."}
+            actionLabel="Refresh"
+            onAction={() => refetch()}
           />
         ) : (
           refunds.map((refund) => {

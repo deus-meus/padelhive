@@ -493,7 +493,7 @@ export default function VenueDetailPage({
                 </div>
               ) : !reviews || reviews.length === 0 ? (
                 <div className="mt-4">
-                  <EmptyState icon={Star} title="No reviews yet" description="Be the first to review this venue after your visit." />
+                  <EmptyState icon={Star} title="No reviews yet" description="Be the first to review this venue after your visit." actionLabel="Book a court" actionHref={`/venues/${venue.id}/book`} />
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">

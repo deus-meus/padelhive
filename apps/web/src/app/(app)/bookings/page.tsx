@@ -382,6 +382,8 @@ export default function BookingsPage() {
                 icon={RotateCcw}
                 title="No refund requests"
                 description="Refund requests you submit will appear here."
+                actionLabel="View bookings"
+                actionHref="/bookings"
               />
             ) : (
               myRefunds.map((refund) => (
@@ -409,7 +411,7 @@ export default function BookingsPage() {
             )
           ) : activeTab === "disputes" ? (
             myDisputes.length === 0 ? (
-              <EmptyState icon={AlertTriangle} title="No disputes" description="Issues you report will appear here." />
+              <EmptyState icon={AlertTriangle} title="No disputes" description="Issues you report will appear here." actionLabel="View bookings" actionHref="/bookings" />
             ) : (
               myDisputes.map((dispute) => (
                 <div key={dispute.id} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
