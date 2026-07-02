@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "PadelHive - Play. Compete. Connect.",
   description: "Indonesia's premier padel community. Book courts, join matches, meet players.",
 };
-import { getVenues } from "@/lib/api";
+import { getVenues, getHomeStats } from "@/lib/api";
 import { HomeSearchBar } from "@/components/home/home-search-bar";
 import { PlayerAvatarStack } from "@/components/ui/player-avatar-stack";
 import { padelImg } from "@/lib/images";
@@ -25,13 +25,34 @@ const IMG = {
 
 export default async function HomePage() {
   let venues: Awaited<ReturnType<typeof getVenues>> = [];
+  let stats: Awaited<ReturnType<typeof getHomeStats>> | null = null;
+  
   try {
-    venues = await getVenues({ revalidate: 60 });
+    const [fetchedVenues, fetchedStats] = await Promise.all([
+      getVenues({ revalidate: 60 }).catch((e) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("Failed to fetch venues for home page", e);
+        }
+        return [];
+      }),
+      getHomeStats({ revalidate: 60 }).catch((e) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("Failed to fetch stats for home page", e);
+        }
+        return null;
+      }),
+    ]);
+    venues = fetchedVenues;
+    stats = fetchedStats;
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("Failed to fetch venues for home page");
-    }
+    // Promise.all catches are handled inline
   }
+
+  const getCityCount = (cityName: string) => {
+    if (!stats) return 0;
+    const match = stats.cityCounts.find((c) => c.city.toLowerCase() === cityName.toLowerCase());
+    return match ? match.count : 0;
+  };
 
   const featuredVenue = venues.length > 0 ? venues[0] : null;
 
@@ -86,13 +107,13 @@ export default async function HomePage() {
       {/* ─── STATS ─── */}
       <section className="border-y border-white/[0.06] bg-[#06121A]">
         <div className="container flex items-center justify-between py-5">
-          <StatInline value="5,000+" label="Players" />
+          <StatInline value={stats ? formatStat(stats.players) : "—"} label="Players" />
           <div className="h-4 w-px bg-white/[0.08]" />
-          <StatInline value="50+" label="Venues" />
+          <StatInline value={stats ? formatStat(stats.venues) : "—"} label="Venues" />
           <div className="h-4 w-px bg-white/[0.08]" />
-          <StatInline value="200+" label="Matches/mo" />
+          <StatInline value={stats ? formatStat(stats.matchesThisMonth) : "—"} label="Matches/mo" />
           <div className="hidden h-4 w-px bg-white/[0.08] md:block" />
-          <StatInline value="15K+" label="Hours Played" className="hidden md:flex" />
+          <StatInline value={stats ? formatStat(stats.hoursPlayed) : "—"} label="Hours Played" className="hidden md:flex" />
         </div>
       </section>
 
@@ -194,7 +215,7 @@ export default async function HomePage() {
           <div className="space-y-4">
             <CityBlock
               name="BALI"
-              venues={12}
+              venues={getCityCount("Bali")}
               tagline="Island courts. Ocean breeze. Sunset sessions."
               image={IMG.bali}
               href="/venues?city=Bali"
@@ -203,7 +224,7 @@ export default async function HomePage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <CityBlock
                 name="JAKARTA"
-                venues={24}
+                venues={getCityCount("Jakarta")}
                 tagline="Premium indoor facilities in the city center."
                 image={IMG.jakarta}
                 href="/venues?city=Jakarta"
@@ -211,7 +232,7 @@ export default async function HomePage() {
               />
               <CityBlock
                 name="SURABAYA"
-                venues={8}
+                venues={getCityCount("Surabaya")}
                 tagline="East Java's emerging padel scene."
                 image={IMG.surabaya}
                 href="/venues?city=Surabaya"
@@ -401,6 +422,13 @@ export default async function HomePage() {
       </section>
     </>
   );
+}
+
+function formatStat(n: number): string {
+  if (n >= 1000) {
+    return `${Math.floor(n / 1000)}K`;
+  }
+  return n.toLocaleString("en-US");
 }
 
 function StatInline({ value, label, className = "" }: { value: string; label: string; className?: string }) {

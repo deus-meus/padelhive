@@ -20,6 +20,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerModule } from "@nestjs/throttler";
 
 import { UploadsModule } from "./uploads/uploads.module";
+import { StatsModule } from "./stats/stats.module";
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { UploadsModule } from "./uploads/uploads.module";
     DisputesModule,
     NotificationsModule,
     AdminModule,
+    StatsModule,
   ],
   providers: [
     {

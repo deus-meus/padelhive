@@ -801,6 +801,19 @@ export async function markAllNotificationsRead(): Promise<{ updated: number }> {
   return apiFetch<{ updated: number }>("/notifications/read-all", { method: "PATCH" });
 }
 
+export type HomeStats = {
+  players: number;
+  venues: number;
+  matchesThisMonth: number;
+  hoursPlayed: number;
+  cityCounts: { city: string; count: number }[];
+};
+
+export async function getHomeStats(opts?: { revalidate?: number }): Promise<HomeStats> {
+  const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
+  return apiFetch<HomeStats>("/stats/home", options);
+}
+
 export type OwnerDashboard = {
   kpis: {
     weeklyRevenue: number;
