@@ -808,6 +808,7 @@ export type HomeStats = {
   hoursPlayed: number;
   cityCounts: { city: string; count: number }[];
   recentUsers: { name: string; avatarUrl: string | null }[];
+  matchRate: number;
 };
 
 export async function getHomeStats(opts?: { revalidate?: number }): Promise<HomeStats> {
