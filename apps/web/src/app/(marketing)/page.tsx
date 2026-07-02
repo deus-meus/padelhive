@@ -107,13 +107,13 @@ export default async function HomePage() {
       {/* ─── STATS ─── */}
       <section className="border-y border-white/[0.06] bg-[#06121A]">
         <div className="container flex items-center justify-between py-5">
-          <StatInline value={stats ? formatStat(stats.players) : "—"} label="Players" />
+          <StatInline value={formatStat(stats?.players ?? 0)} label="Players" />
           <div className="h-4 w-px bg-white/[0.08]" />
-          <StatInline value={stats ? formatStat(stats.venues) : "—"} label="Venues" />
+          <StatInline value={formatStat(stats?.venues ?? 0)} label="Venues" />
           <div className="h-4 w-px bg-white/[0.08]" />
-          <StatInline value={stats ? formatStat(stats.matchesThisMonth) : "—"} label="Matches/mo" />
+          <StatInline value={formatStat(stats?.matchesThisMonth ?? 0)} label="Matches/mo" />
           <div className="hidden h-4 w-px bg-white/[0.08] md:block" />
-          <StatInline value={stats ? formatStat(stats.hoursPlayed) : "—"} label="Hours Played" className="hidden md:flex" />
+          <StatInline value={formatStat(stats?.hoursPlayed ?? 0)} label="Hours Played" className="hidden md:flex" />
         </div>
       </section>
 
@@ -268,13 +268,13 @@ export default async function HomePage() {
               <div className="mt-12 grid grid-cols-2 gap-6">
                 <div>
                   <p className="metric text-[#E6FA50]">
-                    {stats ? formatStat(stats.players) : "—"}
+                    {formatStat(stats?.players ?? 0)}
                   </p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
                 <div>
                   <p className="metric text-[#F7F7F7]">
-                    {stats ? formatStat(stats.matchesThisMonth) : "—"}
+                    {formatStat(stats?.matchesThisMonth ?? 0)}
                   </p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Matches/mo</p>
                 </div>
