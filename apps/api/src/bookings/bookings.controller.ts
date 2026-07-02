@@ -26,8 +26,8 @@ import { RevenueDto } from "./dto/revenue.dto";
 import { BookingSplitService } from "./booking-split.service";
 import { SetBookingSplitDto } from "./dto/create-split.dto";
 import { UpdateSplitShareStatusDto } from "./dto/update-split-share.dto";
-import { BookingSplitDto } from "./dto/split-response.dto";
-
+import { BookingSplitDto, SharePaymentIntentDto } from "./dto/split-response.dto";
+import { CreateSharePaymentDto } from "./dto/create-share-payment.dto";
 @ApiTags("bookings")
 @Controller("bookings")
 export class BookingsController {
@@ -166,5 +166,22 @@ export class BookingsController {
     @CurrentUser() user: RequestUser
   ): Promise<BookingSplitDto> {
     return this.bookingSplitService.setShareStatus(id, shareId, user.id, body.status);
+  }
+
+  @Post(":id/split/:shareId/pay")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Create a payment intent for a split share" })
+  @ApiOkResponse({ type: SharePaymentIntentDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiForbiddenResponse({ description: "Only the booking host can manage the split ledger" })
+  @ApiBadRequestResponse({ description: "Invalid split request" })
+  @ApiNotFoundResponse({ description: "Booking or share not found" })
+  createSharePaymentIntent(
+    @Param("id") id: string,
+    @Param("shareId") shareId: string,
+    @Body() body: CreateSharePaymentDto,
+    @CurrentUser() user: RequestUser
+  ): Promise<SharePaymentIntentDto> {
+    return this.bookingSplitService.createSharePaymentIntent(id, shareId, user.id, body.method);
   }
 }

@@ -1,12 +1,17 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { BookingStatus, SplitShareStatus } from "@prisma/client";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Inject } from "@nestjs/common";
+import { BookingStatus, SplitShareStatus, Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { SetBookingSplitDto } from "./dto/create-split.dto";
-import { BookingSplitDto, BookingSplitShareDto } from "./dto/split-response.dto";
+import { BookingSplitDto, BookingSplitShareDto, SharePaymentIntentDto } from "./dto/split-response.dto";
+import { PAYMENT_GATEWAY_TOKEN } from "../payments/gateways/payment-gateway.interface";
+import type { PaymentGateway } from "../payments/gateways/payment-gateway.interface";
 
 @Injectable()
 export class BookingSplitService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(PAYMENT_GATEWAY_TOKEN) private readonly paymentGateway: PaymentGateway
+  ) {}
 
   private identityKey(s: { inviteId: string | null; userId: string | null; email: string | null; name: string }): string {
     if (s.inviteId) return `invite:${s.inviteId}`;
@@ -223,5 +228,97 @@ export class BookingSplitService {
     });
 
     return this.buildSplitResponse(bookingId, booking.finalAmount, shares);
+  }
+
+  async checkAndConfirmBooking(tx: Prisma.TransactionClient, bookingId: string) {
+    const booking = await tx.booking.findUnique({
+      where: { id: bookingId },
+      select: { id: true, status: true },
+    });
+    if (!booking) return;
+
+    const remaining = await tx.bookingSplitShare.count({
+      where: { bookingId, status: { not: SplitShareStatus.PAID } },
+    });
+
+    if (remaining === 0 && booking.status === BookingStatus.PENDING_PAYMENT) {
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: { status: BookingStatus.CONFIRMED, expiresAt: null },
+      });
+    }
+  }
+
+  async createSharePaymentIntent(
+    bookingId: string,
+    shareId: string,
+    userId: string,
+    method: "va" | "ewallet" | "card"
+  ): Promise<SharePaymentIntentDto> {
+    const SUPPORTED_METHODS = ["va", "ewallet", "card"];
+    if (!SUPPORTED_METHODS.includes(method)) {
+      throw new BadRequestException("Unsupported payment method");
+    }
+
+    await this.getValidBooking(bookingId, userId);
+
+    const share = await this.prisma.bookingSplitShare.findFirst({
+      where: { id: shareId, bookingId },
+    });
+
+    if (!share) {
+      throw new NotFoundException("Split share not found for this booking");
+    }
+
+    if (share.status === SplitShareStatus.PAID) {
+      throw new BadRequestException("This share is already paid");
+    }
+
+    if (share.amount <= 0) {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.bookingSplitShare.update({
+          where: { id: share.id },
+          data: { status: SplitShareStatus.PAID, paidAt: new Date() },
+        });
+        await this.checkAndConfirmBooking(tx, bookingId);
+      });
+      return {
+        shareId: share.id,
+        amount: share.amount,
+        provider: "system",
+        method,
+        providerReference: `split-${share.id}-zero`,
+        redirectUrl: null,
+        token: null,
+      };
+    }
+
+    const orderId = `split-${share.id}-${Date.now()}`;
+    const result = await this.paymentGateway.createTransaction({
+      orderId,
+      amount: share.amount,
+      method,
+    });
+
+    await this.prisma.bookingSplitShare.update({
+      where: { id: share.id },
+      data: {
+        provider: "midtrans",
+        method,
+        providerReference: orderId,
+        providerRedirectUrl: result.redirectUrl ?? null,
+        providerToken: result.token ?? null,
+      },
+    });
+
+    return {
+      shareId: share.id,
+      amount: share.amount,
+      provider: "midtrans",
+      method,
+      providerReference: orderId,
+      redirectUrl: result.redirectUrl ?? null,
+      token: result.token ?? null,
+    };
   }
 }

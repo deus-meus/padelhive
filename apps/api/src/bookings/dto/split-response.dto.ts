@@ -45,3 +45,26 @@ export class BookingSplitDto {
   @ApiProperty({ type: [BookingSplitShareDto] })
   shares!: BookingSplitShareDto[];
 }
+
+export class SharePaymentIntentDto {
+  @ApiProperty()
+  shareId!: string;
+
+  @ApiProperty()
+  amount!: number;
+
+  @ApiProperty()
+  provider!: string;
+
+  @ApiProperty()
+  method!: string;
+
+  @ApiProperty()
+  providerReference!: string;
+
+  @ApiPropertyOptional()
+  redirectUrl?: string | null;
+
+  @ApiPropertyOptional()
+  token?: string | null;
+}

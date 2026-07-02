@@ -327,21 +327,27 @@ model RefundEvent {
 }
 
 model BookingSplitShare {
-  id        String           @id @default(cuid())
-  bookingId String
-  inviteId  String?
-  userId    String?
-  name      String
-  email     String?
-  amount    Int
-  status    SplitShareStatus @default(PENDING)
-  paidAt    DateTime?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id                  String           @id @default(cuid())
+  bookingId           String
+  inviteId            String?
+  userId              String?
+  name                String
+  email               String?
+  amount              Int
+  status              SplitShareStatus @default(PENDING)
+  provider            String?
+  method              String?
+  providerReference   String?
+  providerRedirectUrl String?
+  providerToken       String?
+  paidAt              DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   booking   Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
+  @@index([providerReference])
 }
 
 model Review {
