@@ -33,7 +33,7 @@ describe("Read-only bookings API", () => {
         }),
       },
     };
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, {} as never);
 
     await service.findBookingForUser("booking-1", "user-1");
 
@@ -50,7 +50,7 @@ describe("Read-only bookings API", () => {
 
   it("returns 404 when booking is missing or belongs to another user", async () => {
     const prisma = { booking: { findFirst: jest.fn().mockResolvedValue(null) } };
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
+    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, {} as never);
 
     await expect(service.findBookingForUser("booking-2", "user-1")).rejects.toThrow(NotFoundException);
   });

@@ -1,17 +1,29 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Inject } from "@nestjs/common";
-import { BookingStatus, SplitShareStatus, Prisma } from "@prisma/client";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Inject, Logger } from "@nestjs/common";
+import { BookingStatus, SplitShareStatus, Prisma, NotificationType } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { SetBookingSplitDto } from "./dto/create-split.dto";
 import { BookingSplitDto, BookingSplitShareDto, SharePaymentIntentDto } from "./dto/split-response.dto";
 import { PAYMENT_GATEWAY_TOKEN } from "../payments/gateways/payment-gateway.interface";
 import type { PaymentGateway } from "../payments/gateways/payment-gateway.interface";
+import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
 
 @Injectable()
 export class BookingSplitService {
+  private readonly logger = new Logger(BookingSplitService.name);
+
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(PAYMENT_GATEWAY_TOKEN) private readonly paymentGateway: PaymentGateway
+    @Inject(PAYMENT_GATEWAY_TOKEN) private readonly paymentGateway: PaymentGateway,
+    private readonly notifications: NotificationsService
   ) {}
+
+  private async safeNotify(input: CreateNotificationInput) {
+    try {
+      await this.notifications.createNotification(input);
+    } catch (err) {
+      this.logger.warn(`Failed to emit notification: ${String(err)}`);
+    }
+  }
 
   private identityKey(s: { inviteId: string | null; userId: string | null; email: string | null; name: string }): string {
     if (s.inviteId) return `invite:${s.inviteId}`;
@@ -41,7 +53,7 @@ export class BookingSplitService {
     return booking;
   }
 
-  private buildSplitResponse(bookingId: string, finalAmount: number, shares: Array<{ id: string; name: string; email: string | null; userId: string | null; inviteId: string | null; amount: number; status: "PENDING" | "PAID"; paidAt: Date | null; }>): BookingSplitDto {
+  private buildSplitResponse(bookingId: string, finalAmount: number, shares: Array<{ id: string; name: string; email: string | null; userId: string | null; inviteId: string | null; amount: number; status: "PENDING" | "PAID" | "REFUNDED"; paidAt: Date | null; }>): BookingSplitDto {
     let splitTotal = 0;
     let paidAmount = 0;
 
@@ -320,5 +332,48 @@ export class BookingSplitService {
       redirectUrl: result.redirectUrl ?? null,
       token: result.token ?? null,
     };
+  }
+
+  async refundPaidShares(bookingId: string, opts: { notifyHostUserId?: string } = {}): Promise<{ refundedCount: number; failedCount: number }> {
+    const paidShares = await this.prisma.bookingSplitShare.findMany({
+      where: { bookingId, status: SplitShareStatus.PAID },
+    });
+
+    if (paidShares.length === 0) {
+      return { refundedCount: 0, failedCount: 0 };
+    }
+
+    let refundedCount = 0;
+    let failedCount = 0;
+
+    for (const share of paidShares) {
+      if (share.provider === "midtrans" && share.providerReference) {
+        try {
+          await this.paymentGateway.refundPayment(share.providerReference, share.amount, `${share.id}-refund`);
+        } catch (err) {
+          this.logger.warn(`Failed to refund Midtrans payment for split share ${share.id}: ${String(err)}`);
+          failedCount++;
+          continue;
+        }
+      }
+
+      await this.prisma.bookingSplitShare.update({
+        where: { id: share.id },
+        data: { status: SplitShareStatus.REFUNDED, refundedAt: new Date() },
+      });
+      refundedCount++;
+    }
+
+    if (opts.notifyHostUserId && refundedCount > 0) {
+      await this.safeNotify({
+        userId: opts.notifyHostUserId,
+        type: NotificationType.REFUND_PROCESSED,
+        title: "Split Share Refunded",
+        body: "Split share payments were refunded.",
+        linkUrl: `/bookings/${bookingId}`,
+      });
+    }
+
+    return { refundedCount, failedCount };
   }
 }

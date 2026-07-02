@@ -118,7 +118,8 @@ type ParsedBookingTime = {
   durationMinutes: number;
 };
 
-@Injectable()
+import { BookingSplitService } from "./booking-split.service";
+
 @Injectable()
 export class BookingsService {
   private readonly logger = new Logger(BookingsService.name);
@@ -126,7 +127,8 @@ export class BookingsService {
   constructor(
     private readonly prisma: PrismaService, 
     private readonly vouchersService: VouchersService,
-    private readonly notifications: NotificationsService
+    private readonly notifications: NotificationsService,
+    private readonly bookingSplitService: BookingSplitService
   ) {}
 
   private async safeNotify(input: CreateNotificationInput) {
@@ -373,6 +375,14 @@ export class BookingsService {
       body: "Your booking has been cancelled.",
       linkUrl: `/bookings/${booking.id}`,
     });
+
+    if (refundDecision.isRefundEligible) {
+      try {
+        await this.bookingSplitService.refundPaidShares(booking.id, { notifyHostUserId: hostUserId });
+      } catch (err) {
+        this.logger.warn(`Best-effort split share refund failed during cancel for booking ${booking.id}: ${String(err)}`);
+      }
+    }
 
     return this.withRefundDecision(cancelledBooking, refundDecision);
   }

@@ -30,7 +30,7 @@ describe("BookingExpiryService", () => {
       }),
     };
 
-    service = new BookingExpiryService(prisma as never);
+    service = new BookingExpiryService(prisma as never, {} as never);
     loggerLogSpy = jest.spyOn((service as unknown as { logger: { log: jest.Mock } }).logger, "log").mockImplementation();
   });
 
