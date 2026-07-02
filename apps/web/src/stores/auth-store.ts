@@ -37,7 +37,6 @@ interface AuthState {
   registerWithEmail: (name: string, email: string, password: string) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   logout: () => Promise<void>;
-  login: (role: UserRole) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -45,10 +44,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: false,
   isInitialized: false,
 
-  login: async (role: UserRole) => {
-    // Stub implementation to satisfy Phone OTP flow
-    console.warn("Mock login called via OTP flow");
-  },
 
   initialize: () => {
     if (get().isInitialized) return;
