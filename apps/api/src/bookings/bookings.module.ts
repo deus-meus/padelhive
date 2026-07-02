@@ -7,8 +7,10 @@ import { BookingsService } from "./bookings.service";
 import { BookingExpiryService } from "./booking-expiry.service";
 import { BookingSplitService } from "./booking-split.service";
 
+import { PaymentsModule } from "../payments/payments.module";
+
 @Module({
-  imports: [UsersModule, VouchersModule, NotificationsModule],
+  imports: [UsersModule, VouchersModule, NotificationsModule, PaymentsModule],
   controllers: [BookingsController],
   providers: [BookingsService, BookingExpiryService, BookingSplitService],
   exports: [BookingsService],

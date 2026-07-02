@@ -107,6 +107,11 @@ export class PaymentsService {
       throw new BadRequestException("Booking cannot be paid");
     }
 
+    const splitCount = await this.prisma.bookingSplitShare.count({ where: { bookingId: booking.id } });
+    if (splitCount > 0) {
+      throw new BadRequestException("This booking is split; pay each share individually.");
+    }
+
     const pendingPayment = await this.prisma.payment.findFirst({
       where: { bookingId: booking.id, status: PaymentStatus.PENDING, provider: body.provider },
       select: paymentSelect,
@@ -198,6 +203,11 @@ export class PaymentsService {
       throw new BadRequestException("Only pending-payment bookings can be confirmed");
     }
 
+    const splitCount = await this.prisma.bookingSplitShare.count({ where: { bookingId: payment.bookingId } });
+    if (splitCount > 0) {
+      throw new BadRequestException("This booking is split; pay each share individually.");
+    }
+
     const paidPayment = await this.prisma.$transaction(async (tx) => {
       await tx.booking.update({
         where: { id: payment.bookingId },
@@ -236,7 +246,57 @@ export class PaymentsService {
       include: { booking: true },
     });
 
+    const { transaction_status, fraud_status } = payload;
+
     if (!payment) {
+      const share = await this.prisma.bookingSplitShare.findFirst({
+        where: { providerReference: payload.order_id },
+        include: { booking: true },
+      });
+      if (!share) return;
+      if (share.status === "PAID") return;
+
+      let shareTargetStatus: "PAID" | null = null;
+      let shareTargetBookingStatus: BookingStatus | null = null;
+
+      if (transaction_status === "settlement" || transaction_status === "capture") {
+        if (transaction_status === "capture" && fraud_status === "challenge") {
+          return;
+        }
+        shareTargetStatus = "PAID";
+        shareTargetBookingStatus = BookingStatus.CONFIRMED;
+      } else if (["deny", "cancel", "expire", "pending"].includes(transaction_status)) {
+        return;
+      }
+
+      if (!shareTargetStatus) return;
+
+      let bookingJustConfirmed = false;
+      await this.prisma.$transaction(async (tx) => {
+        await tx.bookingSplitShare.update({
+          where: { id: share.id },
+          data: { status: shareTargetStatus as "PAID", paidAt: new Date() },
+        });
+
+        const remaining = await tx.bookingSplitShare.count({
+          where: { bookingId: share.bookingId, status: { not: "PAID" } },
+        });
+
+        if (remaining === 0 && share.booking.status === BookingStatus.PENDING_PAYMENT) {
+          await tx.booking.update({
+            where: { id: share.bookingId },
+            data: { status: BookingStatus.CONFIRMED, expiresAt: null },
+          });
+          bookingJustConfirmed = true;
+        }
+      });
+
+      await this.safeNotify({ userId: share.booking.hostUserId, type: NotificationType.PAYMENT_SUCCESS, title: "Payment successful", body: "A split share was paid.", linkUrl: `/bookings/${share.bookingId}` });
+
+      if (bookingJustConfirmed) {
+        await this.safeNotify({ userId: share.booking.hostUserId, type: NotificationType.BOOKING_CONFIRMED, title: "Booking confirmed", body: "Your court booking is confirmed.", linkUrl: `/bookings/${share.bookingId}` });
+      }
+
       return;
     }
 
@@ -250,7 +310,6 @@ export class PaymentsService {
 
     let targetPaymentStatus: PaymentStatus | null = null;
     let targetBookingStatus: BookingStatus | null = null;
-    const { transaction_status, fraud_status } = payload;
 
     if (transaction_status === "settlement" || transaction_status === "capture") {
       if (transaction_status === "capture" && fraud_status === "challenge") {
