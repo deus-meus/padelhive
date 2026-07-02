@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Ticket, CheckCircle2, XCircle, Loader2 } from "lucide-react";
-import { mockVouchers } from "@/mock/vouchers";
+import { getVouchers } from "@/lib/api";
 
 export type VoucherResult = {
   valid: boolean;
@@ -29,10 +29,12 @@ export function VoucherApply({
 
     setLoading(true);
 
-    setTimeout(() => {
-      const voucher = mockVouchers.find(
-        (v) => v.code.toLowerCase() === code.trim().toLowerCase()
-      );
+    setTimeout(async () => {
+      try {
+        const vouchers = await getVouchers();
+        const voucher = vouchers.find(
+          (v) => v.code.toLowerCase() === code.trim().toLowerCase()
+        );
 
       let validationResult: VoucherResult;
 
@@ -71,6 +73,10 @@ export function VoucherApply({
       setLoading(false);
       if (validationResult.valid) {
         onApply(validationResult);
+      }
+      } catch (err) {
+        setResult({ valid: false, code: code.trim(), discount: 0, message: "Could not reach voucher API" });
+        setLoading(false);
       }
     }, 800);
   }

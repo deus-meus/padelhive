@@ -12,9 +12,11 @@ import {
   ArrowLeft,
   CheckCircle2,
 } from "lucide-react";
-import { mockVenues } from "@/mock/venues";
-import { mockCourts } from "@/mock/courts";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queries";
+import { getVenue, getVenueCourts } from "@/lib/api";
 import { VoucherApply, type VoucherResult } from "@/components/booking/voucher-apply";
+import { ErrorBanner } from "@/components/ui/error-state";
 import { padelImg } from "@/lib/images";
 
 const MOCK_CHECKOUT = {
@@ -35,8 +37,21 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle");
 
-  const venue = mockVenues.find((v) => v.id === MOCK_CHECKOUT.venueId);
-  const court = mockCourts.find((c) => c.id === MOCK_CHECKOUT.courtId);
+  const { data: apiVenue, isError: isVenueError, isLoading: isVenueLoading } = useQuery({
+    queryKey: queryKeys.venues.detail(MOCK_CHECKOUT.venueId),
+    queryFn: () => getVenue(MOCK_CHECKOUT.venueId),
+  });
+
+  const { data: apiCourts, isError: isCourtsError, isLoading: isCourtsLoading } = useQuery({
+    queryKey: queryKeys.venues.courts(MOCK_CHECKOUT.venueId),
+    queryFn: () => getVenueCourts(MOCK_CHECKOUT.venueId),
+  });
+
+  const venue = apiVenue ?? null;
+  const court = apiCourts?.find((c) => c.id === MOCK_CHECKOUT.courtId) ?? null;
+
+  const isLoading = isVenueLoading || isCourtsLoading;
+  const isError = isVenueError || isCourtsError;
 
   const subtotal = MOCK_CHECKOUT.courtFee;
   const total = subtotal - voucherDiscount + MOCK_CHECKOUT.platformFee;
@@ -95,6 +110,22 @@ export default function CheckoutPage() {
         </p>
       </section>
 
+      {isError && (
+        <section className="container pb-8">
+          <ErrorBanner
+            title="Couldn't load checkout details"
+            description="We could not reach the server to load venue and court information."
+          />
+        </section>
+      )}
+
+      {isLoading && !isError && (
+        <section className="container pb-8 text-[#F7F7F7]/40 body-sm">
+          Loading checkout details...
+        </section>
+      )}
+
+      {!isError && !isLoading && (
       <section className="container">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left — booking details & voucher */}
@@ -233,6 +264,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Toast */}
       {toast && (

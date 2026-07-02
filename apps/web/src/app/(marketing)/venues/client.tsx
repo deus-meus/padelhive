@@ -5,10 +5,9 @@ import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { MapPin, Star, Search, ArrowUpDown } from "lucide-react";
-import { mockVenues } from "@/mock/venues";
 import { padelImg } from "@/lib/images";
 import { getVenues } from "@/lib/api";
-import { EmptyState } from "@/components/ui/error-state";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { FilterSelect, FilterMultiSelect } from "@/components/ui/filter-select";
 
 const CITIES = ["All", "Bali", "Jakarta", "Surabaya"];
@@ -66,27 +65,11 @@ export default function VenuesPage() {
   });
 
   const hasApiData = Boolean(apiVenues && apiVenues.length > 0);
-  const isUsingFallback = isVenuesError || (apiVenues && apiVenues.length === 0);
-  const apiError = isVenuesError ? "Could not reach the live venue API." : null;
   const shouldShowLoading = isLoadingVenues && !hasApiData && !apiVenues;
-  const shouldShowApiError = Boolean(apiError) && !shouldShowLoading;
-  const shouldShowFallback = isUsingFallback && !apiError && !shouldShowLoading;
 
   const filteredVenues = useMemo(() => {
-    let list = apiVenues ?? [];
+    const list = apiVenues ?? [];
     
-    if (isUsingFallback) {
-      list = mockVenues.filter((venue) => {
-        const matchesSearch = venue.name.toLowerCase().includes(debouncedSearch.toLowerCase());
-        const matchesCity = city === "All" || venue.city === city;
-        const matchesRating = ratingMin === null || (venue.rating ?? 0) >= ratingMin;
-        const matchesFacilities = facilities.length === 0 || facilities.every(f => venue.facilities.includes(f));
-        const passMin = priceMin === null || (venue.priceFrom ?? 0) >= priceMin;
-        const passMax = priceMax === null || (venue.priceFrom ?? 0) <= priceMax;
-        return matchesSearch && matchesCity && matchesRating && matchesFacilities && passMin && passMax;
-      });
-    }
-
     const sorted = [...list];
     if (sort === "rating") {
       sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
@@ -98,7 +81,7 @@ export default function VenuesPage() {
       });
     }
     return sorted;
-  }, [apiVenues, isUsingFallback, debouncedSearch, city, ratingMin, facilities, priceMin, priceMax, sort]);
+  }, [apiVenues, sort]);
 
   const toggleFacility = (f: string) => {
     setFacilities(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
@@ -238,14 +221,12 @@ export default function VenuesPage() {
               ))}
             </div>
           )}
-          {shouldShowApiError && (
-            <div className="body-sm mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-200/80">
-              {apiError} Showing demo venue data.
-            </div>
-          )}
-          {shouldShowFallback && (
-            <div className="body-sm mb-6 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-[#E6FA50]/70">
-              Live API unavailable. Showing demo venue data.
+          {isVenuesError && !shouldShowLoading && (
+            <div className="mb-6">
+              <ErrorBanner
+                title="Couldn't load venues"
+                description="An error occurred while fetching venues. Please try again later."
+              />
             </div>
           )}
 

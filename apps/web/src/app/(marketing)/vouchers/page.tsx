@@ -12,10 +12,10 @@ import {
   CheckCircle2,
   X,
 } from "lucide-react";
-import { mockVouchers } from "@/mock/vouchers";
-import { Voucher } from "@/types";
 import { getVouchers } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
+import { type Voucher } from "@/types";
 
 export default function VouchersPage() {
   const [filter, setFilter] = useState<"active" | "expired">("active");
@@ -26,14 +26,10 @@ export default function VouchersPage() {
     queryFn: getVouchers,
   });
 
-  const vouchers = data && data.length > 0 ? data : mockVouchers;
-  const isUsingFallback = isError || (data && data.length === 0);
-  const apiError = isError ? "Could not reach the live voucher API." : null;
+  const vouchers = data ?? [];
 
   const hasApiData = Boolean(data && data.length > 0);
   const shouldShowLoading = isLoadingVouchers && !hasApiData;
-  const shouldShowApiError = Boolean(apiError) && !shouldShowLoading;
-  const shouldShowFallback = isUsingFallback && !apiError && !shouldShowLoading;
 
   const active = vouchers.filter((v) => v.isActive);
   const expired = vouchers.filter((v) => !v.isActive);
@@ -67,14 +63,12 @@ export default function VouchersPage() {
         <p className="body mt-2 text-[#F7F7F7]/40">
           Use voucher codes to get discounts on your bookings.
         </p>
-        {shouldShowApiError && (
-          <div className="body-sm mt-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-200/80">
-            {apiError} Showing demo voucher data.
-          </div>
-        )}
-        {shouldShowFallback && (
-          <div className="body-sm mt-5 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 px-4 py-3 text-[#E6FA50]/70">
-            Live API unavailable. Showing demo voucher data.
+        {isError && !shouldShowLoading && (
+          <div className="mt-5">
+            <ErrorBanner
+              title="Couldn't load vouchers"
+              description="An error occurred while fetching vouchers. Please try again later."
+            />
           </div>
         )}
       </section>
@@ -204,10 +198,9 @@ export default function VouchersPage() {
         </div>
         )}
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !isError && (
           <div className="py-16 text-center">
-            <Ticket className="mx-auto h-8 w-8 text-[#F7F7F7]/10 mb-3" />
-            <p className="body text-[#F7F7F7]/25">No {filter} vouchers available.</p>
+            <EmptyState icon={Ticket} title={`No ${filter} vouchers found`} description={`There are no ${filter} vouchers available.`} />
           </div>
         )}
       </section>
