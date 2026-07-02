@@ -195,7 +195,11 @@ export default function VenuesPage() {
               onToggle={toggleFacility}
               onClear={() => setFacilities([])}
             />
-
+            {(search || city !== "All" || ratingMin !== null || courtType !== null || facilities.length > 0 || priceMin !== null || priceMax !== null) && (
+               <button onClick={handleClearFilters} className="caption text-[#E6FA50] hover:underline px-3 h-10 flex items-center">
+                 Clear all filters
+               </button>
+            )}
           </div>
         </div>
       </section>
@@ -272,7 +276,7 @@ export default function VenuesPage() {
           )}
 
           {filteredVenues.length === 0 && !shouldShowLoading && (
-            <EmptyState icon={Search} title="No venues found" description="Try adjusting your search or filters." actionLabel="Clear filters" onAction={handleClearFilters} />
+            <EmptyState icon={Search} title="No venues found" description="Try adjusting your search or filters." />
           )}
         </div>
       </section>
