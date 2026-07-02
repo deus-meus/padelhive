@@ -2,12 +2,16 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
+import { BookingSplitService } from "./booking-split.service";
 
 @Injectable()
 export class BookingExpiryService {
   private readonly logger = new Logger(BookingExpiryService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly bookingSplitService: BookingSplitService
+  ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
   public async sweepExpiredBookings(): Promise<void> {
@@ -62,6 +66,20 @@ export class BookingExpiryService {
         });
       }
     });
+
+    const paidShareBookings = await this.prisma.bookingSplitShare.findMany({
+      where: { bookingId: { in: bookingIds }, status: "PAID" },
+      select: { bookingId: true, booking: { select: { hostUserId: true } } },
+      distinct: ["bookingId"],
+    });
+
+    for (const b of paidShareBookings) {
+      try {
+        await this.bookingSplitService.refundPaidShares(b.bookingId, { notifyHostUserId: b.booking.hostUserId });
+      } catch (err) {
+        this.logger.warn(`Best-effort split share refund failed during expiry sweep for booking ${b.bookingId}: ${String(err)}`);
+      }
+    }
 
     this.logger.log(`Expired ${bookingIds.length} stale pending-payment bookings.`);
   }

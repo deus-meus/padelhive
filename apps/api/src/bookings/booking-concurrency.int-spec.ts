@@ -71,7 +71,7 @@ describe("Booking Concurrency (Integration)", () => {
       },
     });
 
-    service = new BookingsService(prisma, {} as never, { createNotification: jest.fn() } as never);
+    service = new BookingsService(prisma, {} as never, { createNotification: jest.fn() } as never, {} as never);
   });
 
   afterAll(async () => {

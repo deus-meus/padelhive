@@ -64,6 +64,7 @@ enum VoucherType {
 enum SplitShareStatus {
   PENDING
   PAID
+  REFUNDED
 }
 
 enum DisputeStatus {
@@ -341,6 +342,7 @@ model BookingSplitShare {
   providerRedirectUrl String?
   providerToken       String?
   paidAt              DateTime?
+  refundedAt          DateTime?
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 

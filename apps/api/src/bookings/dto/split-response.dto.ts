@@ -19,8 +19,8 @@ export class BookingSplitShareDto {
   @ApiProperty()
   amount!: number;
 
-  @ApiProperty({ enum: ["PENDING", "PAID"] })
-  status!: "PENDING" | "PAID";
+  @ApiProperty({ enum: ["PENDING", "PAID", "REFUNDED"] })
+  status!: "PENDING" | "PAID" | "REFUNDED";
 
   @ApiPropertyOptional()
   paidAt?: Date | null;
