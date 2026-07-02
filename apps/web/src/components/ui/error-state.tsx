@@ -61,7 +61,7 @@ export function ErrorBanner({
           <p className="heading-3 text-[#F7F7F7]">{title}</p>
         </div>
         {resolvedDescription ? (
-          <p className="mt-1 body-sm text-[#F7F7F7]/40">{resolvedDescription}</p>
+          <p className="mt-1 pl-6 body-sm text-[#F7F7F7]/40">{resolvedDescription}</p>
         ) : null}
       </div>
       {onRetry ? (
