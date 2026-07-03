@@ -107,7 +107,7 @@ export class RefundsService {
               type: NotificationType.REFUND_REQUESTED,
               title: "New refund request",
               body: `A new refund request for ${booking.venue.name} needs review.`,
-              linkUrl: `/admin/refunds`,
+              linkUrl: `/dashboard/refunds`,
             })
           )
       );

@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Menu,
   X,
+  RotateCcw,
 } from "lucide-react";
 import { useState } from "react";
 import { RequireAuth } from "@/components/auth/require-auth";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/hours", label: "Operating Hours", icon: Clock },
   { href: "/dashboard/bookings", label: "Bookings", icon: CalendarDays },
   { href: "/dashboard/revenue", label: "Revenue", icon: TrendingUp },
+  { href: "/dashboard/refunds", label: "Refunds", icon: RotateCcw },
 ];
 
 export default function DashboardLayout({
