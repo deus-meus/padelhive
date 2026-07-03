@@ -29,4 +29,7 @@ export class HomeStatsDto {
 
   @ApiProperty()
   matchRate!: number;
+
+  @ApiProperty()
+  newUsersThisMonth!: number;
 }

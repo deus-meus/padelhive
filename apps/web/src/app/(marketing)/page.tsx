@@ -290,7 +290,7 @@ export default async function HomePage() {
                   })}
                 </div>
                 <p className="caption text-[#F7F7F7]/40">
-                  +{formatStat(stats?.players ?? 0)} joined this month
+                  +{formatStat(stats?.newUsersThisMonth ?? 0)} joined this month
                 </p>
               </div>
 

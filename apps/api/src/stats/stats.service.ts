@@ -15,7 +15,9 @@ export class StatsService {
     const monthEndExclusive = new Date(monthStart);
     monthEndExclusive.setUTCMonth(monthEndExclusive.getUTCMonth() + 1);
 
-    const [players, venues, matchesThisMonth, hoursSum, cityGroups, recentUsers, completedBookings, totalBookings] = await Promise.all([
+    const wibMonthStartUtc = new Date(`${todayWib.slice(0, 7)}-01T00:00:00.000+07:00`);
+
+    const [players, venues, matchesThisMonth, hoursSum, cityGroups, recentUsers, completedBookings, totalBookings, newUsersThisMonth] = await Promise.all([
       this.prisma.user.count({ where: { role: UserRole.PLAYER } }),
       this.prisma.venue.count({ where: { status: VenueStatus.APPROVED } }),
       this.prisma.booking.count({
@@ -44,6 +46,7 @@ export class StatsService {
       this.prisma.booking.count({
         where: { status: { notIn: ["EXPIRED"] } },
       }),
+      this.prisma.user.count({ where: { createdAt: { gte: wibMonthStartUtc } } }),
     ]);
 
     const hoursPlayed = Math.round((hoursSum._sum.durationMinutes ?? 0) / 60);
@@ -65,6 +68,7 @@ export class StatsService {
       cityCounts,
       recentUsers: recentUsers.map(u => ({ name: u.name, avatarUrl: u.avatarUrl })),
       matchRate,
+      newUsersThisMonth,
     };
   }
 }
