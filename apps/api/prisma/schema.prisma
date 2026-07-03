@@ -429,6 +429,7 @@ enum NotificationType {
   DISPUTE_ASSIGNED
   DISPUTE_RESOLVED
   DISPUTE_CLOSED
+  VENUE_SUBMITTED
 }
 
 model Notification {
