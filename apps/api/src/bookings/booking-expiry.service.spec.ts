@@ -1,27 +1,38 @@
-import { BookingStatus, PaymentStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus, NotificationType, RefundType, RefundStatus, UserRole } from "@prisma/client";
 import { BookingExpiryService } from "./booking-expiry.service";
 
 describe("BookingExpiryService", () => {
   let service: BookingExpiryService;
   let prisma: {
     booking: { findMany: jest.Mock };
+    bookingCharge: { findMany: jest.Mock };
+    user: { findMany: jest.Mock };
     bookingSplitShare?: { findMany: jest.Mock };
     $transaction: jest.Mock;
   };
   let txBookingUpdateManyMock: jest.Mock;
   let txPaymentUpdateManyMock: jest.Mock;
   let txVoucherUpdateManyMock: jest.Mock;
+  let txBookingChargeUpdateManyMock: jest.Mock;
+  let txRefundFindFirstMock: jest.Mock;
+  let txRefundCreateMock: jest.Mock;
+  let notificationsMock: any;
   let loggerLogSpy: jest.SpyInstance;
 
   beforeEach(() => {
     txBookingUpdateManyMock = jest.fn().mockResolvedValue({ count: 1 });
     txPaymentUpdateManyMock = jest.fn().mockResolvedValue({ count: 1 });
     txVoucherUpdateManyMock = jest.fn().mockResolvedValue({ count: 0 });
+    txBookingChargeUpdateManyMock = jest.fn().mockResolvedValue({ count: 1 });
+    txRefundFindFirstMock = jest.fn().mockResolvedValue(null);
+    txRefundCreateMock = jest.fn().mockResolvedValue({});
 
     prisma = {
       booking: {
         findMany: jest.fn(),
       },
+      bookingCharge: { findMany: jest.fn().mockResolvedValue([]) },
+      user: { findMany: jest.fn().mockResolvedValue([]) },
       bookingSplitShare: {
         findMany: jest.fn().mockResolvedValue([]),
       },
@@ -30,11 +41,14 @@ describe("BookingExpiryService", () => {
           booking: { updateMany: txBookingUpdateManyMock },
           payment: { updateMany: txPaymentUpdateManyMock },
           voucher: { updateMany: txVoucherUpdateManyMock },
+          bookingCharge: { updateMany: txBookingChargeUpdateManyMock },
+          refund: { findFirst: txRefundFindFirstMock, create: txRefundCreateMock },
         });
       }),
     };
 
-    service = new BookingExpiryService(prisma as never, {} as never);
+    notificationsMock = { createNotification: jest.fn() };
+    service = new BookingExpiryService(prisma as never, {} as never, notificationsMock as never);
     loggerLogSpy = jest.spyOn((service as unknown as { logger: { log: jest.Mock } }).logger, "log").mockImplementation();
   });
 
@@ -102,6 +116,81 @@ describe("BookingExpiryService", () => {
         expiresAt: { lte: expect.any(Date) },
       },
       data: { status: BookingStatus.EXPIRED },
+    });
+  });
+
+  describe("sweepUnpaidRescheduleCharges", () => {
+    it("cancels CONFIRMED booking, fails charge, queues FULL refund, notifies host", async () => {
+      prisma.bookingCharge.findMany.mockResolvedValue([
+        {
+          id: "charge-1",
+          bookingId: "booking-1",
+          booking: {
+            id: "booking-1",
+            hostUserId: "host-1",
+            payment: { id: "payment-1", amount: 150000, status: PaymentStatus.PAID },
+          },
+        },
+      ]);
+      txBookingChargeUpdateManyMock.mockResolvedValue({ count: 1 });
+
+      await service.sweepUnpaidRescheduleCharges();
+
+      expect(txBookingChargeUpdateManyMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "charge-1", status: PaymentStatus.PENDING },
+          data: { status: PaymentStatus.FAILED, failedAt: expect.any(Date) },
+        })
+      );
+      expect(txBookingUpdateManyMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "booking-1", status: BookingStatus.CONFIRMED },
+          data: { status: BookingStatus.CANCELLED, cancelledAt: expect.any(Date) },
+        })
+      );
+      expect(txRefundCreateMock).toHaveBeenCalledWith({
+        data: {
+          bookingId: "booking-1",
+          paymentId: "payment-1",
+          amount: 150000,
+          reason: "Auto-cancelled: reschedule balance not paid in time.",
+          type: RefundType.FULL,
+          status: RefundStatus.PENDING,
+        },
+      });
+      expect(notificationsMock.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: "host-1",
+          type: NotificationType.BOOKING_CANCELLED,
+        })
+      );
+    });
+
+    it("no overdue charges", async () => {
+      prisma.bookingCharge.findMany.mockResolvedValue([]);
+
+      await service.sweepUnpaidRescheduleCharges();
+
+      expect(txBookingChargeUpdateManyMock).not.toHaveBeenCalled();
+      expect(txRefundCreateMock).not.toHaveBeenCalled();
+      expect(notificationsMock.createNotification).not.toHaveBeenCalled();
+    });
+
+    it("concurrent-pay race: bookingCharge update matches 0", async () => {
+      prisma.bookingCharge.findMany.mockResolvedValue([
+        {
+          id: "charge-1",
+          bookingId: "booking-1",
+          booking: { id: "booking-1", hostUserId: "host-1", payment: null },
+        },
+      ]);
+      txBookingChargeUpdateManyMock.mockResolvedValue({ count: 0 });
+
+      await service.sweepUnpaidRescheduleCharges();
+
+      expect(txBookingChargeUpdateManyMock).toHaveBeenCalled();
+      expect(txBookingUpdateManyMock).not.toHaveBeenCalled();
+      expect(txRefundCreateMock).not.toHaveBeenCalled();
     });
   });
 });

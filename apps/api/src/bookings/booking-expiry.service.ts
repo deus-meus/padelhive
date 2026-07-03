@@ -1,8 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { PrismaService } from "../prisma/prisma.service";
-import { BookingStatus, PaymentStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus, NotificationType, RefundType, RefundStatus, UserRole } from "@prisma/client";
 import { BookingSplitService } from "./booking-split.service";
+import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
+import { RESCHEDULE_CHARGE_TTL_MS } from "../common/constants";
 
 @Injectable()
 export class BookingExpiryService {
@@ -10,8 +12,136 @@ export class BookingExpiryService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly bookingSplitService: BookingSplitService
+    private readonly bookingSplitService: BookingSplitService,
+    private readonly notifications: NotificationsService
   ) {}
+
+  private async safeNotify(input: CreateNotificationInput) {
+    try { await this.notifications.createNotification(input); }
+    catch (err) { this.logger.warn(`Failed to emit notification: ${String(err)}`); }
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  public async sweepUnpaidRescheduleCharges(): Promise<void> {
+    const now = new Date();
+    const deadline = new Date(now.getTime() - RESCHEDULE_CHARGE_TTL_MS);
+
+    const overdue = await this.prisma.bookingCharge.findMany({
+      where: {
+        status: PaymentStatus.PENDING,
+        booking: { status: BookingStatus.CONFIRMED },
+        OR: [
+          { createdAt: { lte: deadline } },
+          { booking: { startsAt: { lte: now } } },
+        ],
+      },
+      select: {
+        id: true,
+        bookingId: true,
+        booking: {
+          select: {
+            id: true,
+            hostUserId: true,
+            payment: { select: { id: true, amount: true, status: true } },
+          },
+        },
+      },
+    });
+
+    if (overdue.length === 0) return;
+
+    let superAdminIds: string[] = [];
+    try {
+      const admins = await this.prisma.user.findMany({
+        where: { role: UserRole.SUPER_ADMIN },
+        select: { id: true },
+      });
+      superAdminIds = admins.map((a) => a.id);
+    } catch (err) {
+      this.logger.warn(`Failed to load super admins during reschedule-charge sweep: ${String(err)}`);
+    }
+
+    let cancelledCount = 0;
+
+    for (const charge of overdue) {
+      try {
+        const booking = charge.booking;
+        const payment = booking.payment;
+
+        const result = await this.prisma.$transaction(async (tx) => {
+          const chargeRes = await tx.bookingCharge.updateMany({
+            where: { id: charge.id, status: PaymentStatus.PENDING },
+            data: { status: PaymentStatus.FAILED, failedAt: now },
+          });
+          if (chargeRes.count === 0) return { cancelled: false, refundCreated: false };
+
+          await tx.booking.updateMany({
+            where: { id: booking.id, status: BookingStatus.CONFIRMED },
+            data: { status: BookingStatus.CANCELLED, cancelledAt: now },
+          });
+
+          let refundCreated = false;
+          if (payment && payment.status === PaymentStatus.PAID) {
+            const existing = await tx.refund.findFirst({ where: { paymentId: payment.id } });
+            if (!existing) {
+              await tx.refund.create({
+                data: {
+                  bookingId: booking.id,
+                  paymentId: payment.id,
+                  amount: payment.amount,
+                  reason: "Auto-cancelled: reschedule balance not paid in time.",
+                  type: RefundType.FULL,
+                  status: RefundStatus.PENDING,
+                },
+              });
+              refundCreated = true;
+            }
+          }
+
+          return { cancelled: true, refundCreated };
+        });
+
+        if (!result.cancelled) continue;
+        cancelledCount++;
+
+        try {
+          await this.bookingSplitService.refundPaidShares(booking.id, { notifyHostUserId: booking.hostUserId });
+        } catch (err) {
+          this.logger.warn(`Best-effort split share refund failed during reschedule-charge sweep for booking ${booking.id}: ${String(err)}`);
+        }
+
+        await this.safeNotify({
+          userId: booking.hostUserId,
+          type: NotificationType.BOOKING_CANCELLED,
+          title: "Booking cancelled",
+          body: "Your booking was cancelled because the reschedule balance was not paid in time. Any payment will be refunded.",
+          linkUrl: `/bookings/${booking.id}`,
+        });
+
+        if (result.refundCreated) {
+          await Promise.all(
+            superAdminIds
+              .filter((id) => id !== booking.hostUserId)
+              .map((id) =>
+                this.safeNotify({
+                  userId: id,
+                  type: NotificationType.REFUND_REQUESTED,
+                  title: "Refund to review",
+                  body: "A booking was auto-cancelled for an unpaid reschedule balance and needs a refund.",
+                  linkUrl: `/admin/refunds`,
+                })
+              )
+          );
+        }
+      } catch (err) {
+        this.logger.warn(`Best-effort auto-void failed for charge ${charge.id}: ${String(err)}`);
+      }
+    }
+
+    if (cancelledCount > 0) {
+      this.logger.log(`Auto-cancelled ${cancelledCount} bookings with unpaid reschedule balance.`);
+    }
+  }
 
   @Cron(CronExpression.EVERY_MINUTE)
   public async sweepExpiredBookings(): Promise<void> {
