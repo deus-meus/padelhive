@@ -259,7 +259,7 @@ export default async function HomePage() {
 
             {/* Content */}
             <div className="flex flex-col justify-center">
-              <p className="body-lg text-[#F7F7F7]/60">
+              <p className="body-lg max-w-md text-[#F7F7F7]/60">
                 Padelhive is where Indonesia&apos;s padel community lives.
                 Join open matches, find partners at your level, split costs,
                 and grow your network.
@@ -295,8 +295,8 @@ export default async function HomePage() {
               </div>
 
               {/* Stats row — full width, 3 equal columns */}
-              <div className="mt-10 grid w-full grid-cols-3">
-                <div className="text-left">
+              <div className="mt-10 grid max-w-md grid-cols-3">
+                <div>
                   <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
