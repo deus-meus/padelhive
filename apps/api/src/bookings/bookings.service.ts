@@ -57,6 +57,7 @@ const reschedulableBookingSelect = {
   status: true,
   voucherId: true,
   voucherDiscount: true,
+  finalAmount: true,
   courtId: true,
   venueId: true,
   venue: {
@@ -266,22 +267,33 @@ export class BookingsService {
     const courtAmount = this.calculateCourtAmount(courtWithDetails, parsed.startsAt, parsed.durationMinutes);
     const platformFee = Math.round(courtAmount * PLATFORM_FEE_RATE);
     const subtotal = courtAmount + platformFee;
-    const finalAmount = Math.max(0, subtotal - booking.voucherDiscount);
+    let voucherDiscount = 0;
+    if (booking.voucherId) {
+      voucherDiscount = await this.vouchersService.repriceVoucherById(booking.voucherId, subtotal);
+    }
+    const finalAmount = Math.max(0, subtotal - voucherDiscount);
+    const priceDelta = finalAmount - booking.finalAmount;
 
     try {
-      return await this.prisma.booking.update({
-        where: { id: booking.id },
-        data: {
-          bookingDate: parsed.bookingDate,
-          startsAt: parsed.startsAt,
-          endsAt: parsed.endsAt,
-          durationMinutes: parsed.durationMinutes,
-          courtAmount,
-          platformFee,
-          finalAmount,
-        },
-        select: bookingSelect,
+      const updated = await this.prisma.$transaction(async (tx) => {
+        const updatedBooking = await tx.booking.update({
+          where: { id: booking.id },
+          data: {
+            bookingDate: parsed.bookingDate,
+            startsAt: parsed.startsAt,
+            endsAt: parsed.endsAt,
+            durationMinutes: parsed.durationMinutes,
+            courtAmount,
+            platformFee,
+            voucherDiscount,
+            finalAmount,
+          },
+          select: bookingSelect,
+        });
+        await tx.payment.deleteMany({ where: { bookingId: booking.id, status: PaymentStatus.PENDING } });
+        return updatedBooking;
       });
+      return { ...updated, priceDelta };
     } catch (error) {
       const e = error as { message?: string; meta?: { message?: string; target?: unknown } };
       const msg = e?.message || "";

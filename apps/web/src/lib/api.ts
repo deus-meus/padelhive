@@ -61,6 +61,7 @@ export type ApiBooking = {
   platformFee: number;
   voucherDiscount: number;
   finalAmount: number;
+  priceDelta?: number;
   isRefundEligible?: boolean;
   refundAmount?: number;
   refundPolicyReason?: string;

@@ -220,13 +220,23 @@ export default function BookingDetailPage() {
     const endsAt = `${String(startHourNum + durationHours).padStart(2, "0")}:00`;
 
     try {
-      await rescheduleBooking(bookingId, {
+      const result = await rescheduleBooking(bookingId, {
         bookingDate: rescheduleDate,
         startsAt: rescheduleStartHour,
         endsAt,
       });
       setShowRescheduleModal(false);
-      showToast("Booking rescheduled");
+      
+      let toastMsg = "Booking rescheduled";
+      if (result.priceDelta) {
+        const absDelta = Math.abs(result.priceDelta).toLocaleString("id-ID");
+        if (result.priceDelta > 0) {
+          toastMsg = `Jadwal diperbarui. Ada selisih tagihan Rp ${absDelta} yang akan ditagih terpisah.`;
+        } else if (result.priceDelta < 0) {
+          toastMsg = `Jadwal diperbarui. Kelebihan bayar Rp ${absDelta} akan dikembalikan terpisah.`;
+        }
+      }
+      showToast(toastMsg);
       refetch();
       queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue!.id, rescheduleDate, court!.id) });
     } catch (error) {
