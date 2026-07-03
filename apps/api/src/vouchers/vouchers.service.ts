@@ -230,4 +230,18 @@ export class VouchersService {
 
     return { voucherId: voucher.id, code: voucher.code, type: voucher.type, discount };
   }
+
+  async repriceVoucherById(voucherId: string, subtotal: number): Promise<number> {
+    const voucher = await this.prisma.voucher.findUnique({ where: { id: voucherId } });
+    if (!voucher) return 0;
+    if (voucher.minPurchase != null && subtotal < voucher.minPurchase) return 0;
+    let discount = 0;
+    if (voucher.type === VoucherType.PERCENTAGE) {
+      discount = Math.floor((subtotal * voucher.value) / 100);
+      if (voucher.maxDiscount != null) discount = Math.min(discount, voucher.maxDiscount);
+    } else {
+      discount = voucher.value;
+    }
+    return Math.max(0, Math.min(discount, subtotal));
+  }
 }
