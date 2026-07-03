@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationType, Notification } from "@prisma/client";
+import { MailService } from "../mail/mail.service";
 import { Subject, Observable } from "rxjs";
 import { filter, map } from "rxjs/operators";
 
@@ -12,11 +13,26 @@ export type CreateNotificationInput = {
   linkUrl?: string;
 };
 
+const EMAIL_NOTIFICATION_TYPES = new Set<NotificationType>([
+  NotificationType.BOOKING_CONFIRMED,
+  NotificationType.BOOKING_CANCELLED,
+  NotificationType.PAYMENT_SUCCESS,
+  NotificationType.PAYMENT_FAILED,
+  NotificationType.REFUND_REQUESTED,
+  NotificationType.REFUND_APPROVED,
+  NotificationType.REFUND_REJECTED,
+  NotificationType.REFUND_PROCESSED,
+  NotificationType.BALANCE_DUE,
+]);
+
 @Injectable()
 export class NotificationsService {
   private readonly notificationStream = new Subject<{ userId: string; notification: Notification }>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailService: MailService
+  ) {}
 
   // Generic creator — will be used by other services in a later PR to emit notifications.
   async createNotification(input: CreateNotificationInput) {
@@ -29,7 +45,31 @@ export class NotificationsService {
         linkUrl: input.linkUrl,
       },
     });
+
     this.notificationStream.next({ userId: input.userId, notification });
+
+    if (EMAIL_NOTIFICATION_TYPES.has(input.type)) {
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { id: input.userId },
+          select: { email: true, name: true },
+        });
+
+        if (user && user.email) {
+          await this.mailService.sendNotificationEmail({
+            to: user.email,
+            toName: user.name ?? undefined,
+            type: input.type,
+            title: input.title,
+            body: input.body,
+            linkUrl: input.linkUrl,
+          });
+        }
+      } catch (err) {
+        // best effort, swallow db error
+      }
+    }
+
     return notification;
   }
 
