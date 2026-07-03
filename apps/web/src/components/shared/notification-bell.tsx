@@ -12,29 +12,8 @@ import {
   markAllNotificationsRead,
 } from "@/lib/api";
 import Link from "next/link";
-
-function formatRelativeTime(dateString: string) {
-  const d = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return "Just now";
-  
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `${diffInDays}d ago`;
-  
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-  });
-}
+import { formatRelativeTime } from "@/lib/format";
+import { NotificationIcon } from "@/components/shared/notification-icon";
 
 export function NotificationBell({ enabled }: { enabled: boolean }) {
   const router = useRouter();
@@ -142,10 +121,13 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
                     onClick={() => handleItemClick(n.id, n.isRead, n.linkUrl)}
                     className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
                   >
-                    {!n.isRead && (
-                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#E6FA50]" />
-                    )}
-                    <div className={n.isRead ? "ml-5" : "ml-0"}>
+                    <div className="relative shrink-0">
+                      <NotificationIcon type={n.type} />
+                      {!n.isRead && (
+                        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-[#E6FA50]" />
+                      )}
+                    </div>
+                    <div className="ml-0">
                       <p className="label text-[#F7F7F7]">{n.title}</p>
                       <p className="caption text-[#F7F7F7]/40 mt-0.5">
                         {n.body}
