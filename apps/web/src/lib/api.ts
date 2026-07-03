@@ -62,6 +62,7 @@ export type ApiBooking = {
   voucherDiscount: number;
   finalAmount: number;
   priceDelta?: number;
+  balanceDue?: number;
   isRefundEligible?: boolean;
   refundAmount?: number;
   refundPolicyReason?: string;
@@ -593,6 +594,32 @@ export async function cancelBooking(bookingId: string): Promise<BookingSummary> 
 
 export async function rescheduleBooking(bookingId: string, body: { bookingDate: string; startsAt: string; endsAt: string }): Promise<BookingSummary> {
   return apiFetch<ApiBooking>(`/bookings/${bookingId}/reschedule`, { method: "PATCH", body: JSON.stringify(body) });
+}
+
+export type ApiBookingCharge = {
+  id: string;
+  bookingId: string;
+  amount: number;
+  status: string;
+  provider: string;
+  method: string;
+  providerReference?: string | null;
+  providerRedirectUrl?: string | null;
+  providerToken?: string | null;
+  paidAt?: string | null;
+};
+
+export async function payRescheduleCharge(bookingId: string, method: string): Promise<ApiBookingCharge> {
+  return apiFetch<ApiBookingCharge>(`/bookings/${bookingId}/charge/pay`, {
+    method: "POST",
+    body: JSON.stringify({ method }),
+  });
+}
+
+export async function markRescheduleChargePaid(bookingId: string): Promise<ApiBookingCharge> {
+  return apiFetch<ApiBookingCharge>(`/bookings/${bookingId}/charge/mark-paid`, {
+    method: "PATCH",
+  });
 }
 
 export type BookingFilter = "upcoming" | "past" | "cancelled";
