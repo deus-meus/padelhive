@@ -4,6 +4,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
 import { BookingStatus, PaymentStatus, Prisma, RefundStatus } from "@prisma/client";
 import { PAYMENT_GATEWAY_TOKEN } from "../payments/gateways/payment-gateway.interface";
+import { NotificationsService } from "../notifications/notifications.service";
 
 describe("RefundsService", () => {
   let service: RefundsService;
@@ -28,6 +29,9 @@ describe("RefundsService", () => {
       create: jest.fn(),
       findMany: jest.fn(),
     },
+    user: {
+      findMany: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
@@ -35,7 +39,12 @@ describe("RefundsService", () => {
     refundPayment: jest.fn(),
   };
 
+  const mockNotificationsService = {
+    createNotification: jest.fn(),
+  };
+
   beforeEach(async () => {
+    mockPrismaService.user.findMany.mockResolvedValue([]);
     mockPrismaService.$transaction.mockImplementation(async (cb: (arg: unknown) => unknown) => cb(mockPrismaService));
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -47,6 +56,10 @@ describe("RefundsService", () => {
         {
           provide: PAYMENT_GATEWAY_TOKEN,
           useValue: mockPaymentGateway,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
         },
       ],
     }).compile();
@@ -65,6 +78,7 @@ describe("RefundsService", () => {
         hostUserId: "user-1",
         payment: { id: "payment-1", amount: 100, status: PaymentStatus.PAID },
         refunds: [],
+        venue: { name: "Test Venue", ownerId: "owner-1", admins: [] },
       });
       mockPrismaService.refund.create.mockResolvedValue({ id: "refund-1" });
 
@@ -88,6 +102,7 @@ describe("RefundsService", () => {
         id: "booking-1",
         payment: { id: "payment-1", amount: 100, status: PaymentStatus.PENDING },
         refunds: [],
+        venue: { name: "Test Venue", ownerId: "owner-1", admins: [] },
       });
       await expect(service.createRefund("user-1", { bookingId: "booking-1", reason: "reason 1" }))
         .rejects.toThrow(BadRequestException);
@@ -98,6 +113,7 @@ describe("RefundsService", () => {
         id: "booking-1",
         payment: { id: "payment-1", amount: 100, status: PaymentStatus.PAID },
         refunds: [{ id: "refund-2" }],
+        venue: { name: "Test Venue", ownerId: "owner-1", admins: [] },
       });
       await expect(service.createRefund("user-1", { bookingId: "booking-1", reason: "reason 1" }))
         .rejects.toThrow(BadRequestException);
@@ -109,6 +125,7 @@ describe("RefundsService", () => {
         status: BookingStatus.CANCELLED, // Booking is cancelled
         payment: { id: "payment-1", amount: 100, status: PaymentStatus.PAID }, // But payment is PAID
         refunds: [],
+        venue: { name: "Test Venue", ownerId: "owner-1", admins: [] },
       });
       mockPrismaService.refund.create.mockResolvedValue({ id: "refund-1" });
 
@@ -121,6 +138,7 @@ describe("RefundsService", () => {
         id: "booking-1",
         payment: { id: "payment-1", amount: 100, status: PaymentStatus.PAID },
         refunds: [],
+        venue: { name: "Test Venue", ownerId: "owner-1", admins: [] },
       });
 
       mockPrismaService.refund.create.mockRejectedValue(
@@ -342,21 +360,25 @@ describe("RefundsService", () => {
     it("should return all refunds for super admin", async () => {
       mockPrismaService.refund.findMany.mockResolvedValue([{ id: "1" }]);
       await expect(service.findAllRefunds("admin-1", true)).resolves.toEqual([{ id: "1" }]);
-      expect(mockPrismaService.refund.findMany).toHaveBeenCalledWith({
-        where: {},
-        orderBy: { createdAt: "desc" },
-      });
+      expect(mockPrismaService.refund.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {},
+          orderBy: { createdAt: "desc" },
+        })
+      );
     });
 
     it("should filter by venue for venue owner/admin", async () => {
       mockPrismaService.refund.findMany.mockResolvedValue([{ id: "1" }]);
       await expect(service.findAllRefunds("admin-1", false)).resolves.toEqual([{ id: "1" }]);
-      expect(mockPrismaService.refund.findMany).toHaveBeenCalledWith({
-        where: {
-          booking: { venue: { OR: [ { ownerId: "admin-1" }, { admins: { some: { userId: "admin-1" } } } ] } }
-        },
-        orderBy: { createdAt: "desc" },
-      });
+      expect(mockPrismaService.refund.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            booking: { venue: { OR: [ { ownerId: "admin-1" }, { admins: { some: { userId: "admin-1" } } } ] } }
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      );
     });
   });
 });
