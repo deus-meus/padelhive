@@ -300,11 +300,11 @@ export default async function HomePage() {
                   <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
-                <div>
+                <div className="text-center">
                   <p className="metric text-[#F7F7F7]">{formatStat(stats?.matchesThisMonth ?? 0)}</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Matches/mo</p>
                 </div>
-                <div>
+                <div className="text-right">
                   <p className="metric text-[#F7F7F7]">{stats?.matchRate ?? 0}%</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Match rate</p>
                 </div>
