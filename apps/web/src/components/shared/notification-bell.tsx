@@ -11,6 +11,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from "@/lib/api";
+import Link from "next/link";
 
 function formatRelativeTime(dateString: string) {
   const d = new Date(dateString);
@@ -161,6 +162,16 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
                 No notifications yet.
               </div>
             )}
+          </div>
+          <div className="border-t border-white/[0.04] mt-1" />
+          <div className="px-3 py-2">
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="block w-full text-center label text-[#F7F7F7]/60 hover:text-[#F7F7F7] transition-colors py-1"
+            >
+              See all notifications
+            </Link>
           </div>
         </div>
       )}
