@@ -47,7 +47,7 @@ export class BookingChargeService {
       throw new BadRequestException("Unsupported payment method");
     }
 
-    if (charge.provider === "midtrans" && charge.providerReference && charge.providerRedirectUrl) {
+    if (charge.providerReference && charge.providerRedirectUrl) {
       return {
         id: charge.id,
         bookingId: charge.bookingId,

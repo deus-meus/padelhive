@@ -133,6 +133,24 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     expect(safeNotifySpy).toHaveBeenCalled();
   });
 
+  it("resolves successfully with partial refund even when notification read rejects", async () => {
+    prismaMock.booking.findFirst
+      .mockResolvedValueOnce(reschedulableBooking)
+      .mockResolvedValueOnce(null);
+
+    vouchersMock.repriceVoucherById.mockResolvedValue(30000);
+
+    const updatedMock = { id: "booking-1", finalAmount: 180000 };
+    prismaMock.booking.update.mockResolvedValue(updatedMock);
+
+    prismaMock.user.findMany.mockRejectedValueOnce(new Error("DB error"));
+
+    const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
+
+    expect(prismaMock.refund.create).toHaveBeenCalled();
+    expect(result.priceDelta).toBe(-10000);
+  });
+
   it("does not create refund if payment is PENDING (no paid payment)", async () => {
     prismaMock.booking.findFirst
       .mockResolvedValueOnce({ 
