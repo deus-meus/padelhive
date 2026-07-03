@@ -173,6 +173,9 @@ export default function RefundsPage() {
                           {refund.booking?.venue?.name ?? "Unknown venue"}
                         </span>
                         <RefundStatusBadge status={refund.status} />
+                        {refund.type === "RESCHEDULE_DIFF" && (
+                          <span className="caption rounded-full bg-blue-500/10 px-2 py-0.5 text-blue-400">Selisih reschedule</span>
+                        )}
                       </div>
                       <p className="caption text-[#F7F7F7]/40 mt-1">
                         {refund.booking?.court?.name ?? "Court"} · #{refund.bookingId.slice(0, 8)}

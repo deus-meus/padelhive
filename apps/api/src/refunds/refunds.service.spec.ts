@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { RefundsService } from "./refunds.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
-import { BookingStatus, PaymentStatus, Prisma, RefundStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus, Prisma, RefundStatus, RefundType } from "@prisma/client";
 import { PAYMENT_GATEWAY_TOKEN } from "../payments/gateways/payment-gateway.interface";
 import { NotificationsService } from "../notifications/notifications.service";
 
@@ -242,6 +242,22 @@ describe("RefundsService", () => {
           actorUserId: "admin-1",
         },
       });
+    });
+
+    it("processRefund should skip booking cancellation for RESCHEDULE_DIFF", async () => {
+      mockPrismaService.refund.findUnique.mockResolvedValue({ 
+        id: "1", amount: 100, status: RefundStatus.APPROVED, paymentId: null, type: RefundType.RESCHEDULE_DIFF, bookingId: "b-1", booking: { payment: { id: "p-booking", provider: "midtrans" }, status: BookingStatus.CONFIRMED, venue: { ownerId: "admin-1", admins: [] } }
+      });
+      mockPrismaService.refund.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.refund.findUniqueOrThrow.mockResolvedValue({ id: "1", status: RefundStatus.PROCESSED });
+      mockPaymentGateway.refundPayment.mockResolvedValue(undefined);
+
+      await expect(service.processRefund("1", "admin-1", false)).resolves.toEqual({ id: "1", status: RefundStatus.PROCESSED });
+
+      expect(mockPaymentGateway.refundPayment).toHaveBeenCalledWith("p-booking", 100, "1");
+      expect(mockPrismaService.refund.updateMany).toHaveBeenCalled();
+      expect(mockPrismaService.payment.update).not.toHaveBeenCalled();
+      expect(mockPrismaService.booking.update).not.toHaveBeenCalled();
     });
 
     it("processRefund should skip gateway for internal provider", async () => {

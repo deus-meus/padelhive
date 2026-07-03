@@ -21,6 +21,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
 
   function createPrismaMock(payment: unknown = null) {
     return {
+      bookingSplitShare: { count: jest.fn().mockResolvedValue(0), findFirst: jest.fn().mockResolvedValue(null) },
       payment: {
         findFirst: jest.fn().mockResolvedValue(payment),
         create: jest.fn(),

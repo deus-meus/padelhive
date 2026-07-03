@@ -5,6 +5,7 @@ describe("BookingExpiryService", () => {
   let service: BookingExpiryService;
   let prisma: {
     booking: { findMany: jest.Mock };
+    bookingSplitShare?: { findMany: jest.Mock };
     $transaction: jest.Mock;
   };
   let txBookingUpdateManyMock: jest.Mock;
@@ -20,6 +21,9 @@ describe("BookingExpiryService", () => {
     prisma = {
       booking: {
         findMany: jest.fn(),
+      },
+      bookingSplitShare: {
+        findMany: jest.fn().mockResolvedValue([]),
       },
       $transaction: jest.fn(async (cb) => {
         return cb({
