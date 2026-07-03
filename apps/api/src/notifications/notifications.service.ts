@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { NotificationType } from "@prisma/client";
+import { NotificationType, Notification } from "@prisma/client";
+import { Subject, Observable } from "rxjs";
+import { filter, map } from "rxjs/operators";
 
 export type CreateNotificationInput = {
   userId: string;
@@ -12,11 +14,13 @@ export type CreateNotificationInput = {
 
 @Injectable()
 export class NotificationsService {
+  private readonly notificationStream = new Subject<{ userId: string; notification: Notification }>();
+
   constructor(private readonly prisma: PrismaService) {}
 
   // Generic creator — will be used by other services in a later PR to emit notifications.
   async createNotification(input: CreateNotificationInput) {
-    return this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: input.userId,
         type: input.type,
@@ -25,6 +29,15 @@ export class NotificationsService {
         linkUrl: input.linkUrl,
       },
     });
+    this.notificationStream.next({ userId: input.userId, notification });
+    return notification;
+  }
+
+  streamForUser(userId: string): Observable<Notification> {
+    return this.notificationStream.asObservable().pipe(
+      filter((event) => event.userId === userId),
+      map((event) => event.notification),
+    );
   }
 
   async findMyNotifications(userId: string) {
