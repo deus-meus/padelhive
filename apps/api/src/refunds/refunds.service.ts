@@ -30,7 +30,7 @@ export class RefundsService {
 
     const booking = await this.prisma.booking.findFirst({
       where: { id: dto.bookingId, hostUserId: userId },
-      include: { payment: true, refunds: true },
+      include: { payment: true, refunds: true, venue: { include: { admins: true } } },
     });
 
     if (!booking) {
@@ -78,6 +78,7 @@ export class RefundsService {
         where: { role: UserRole.SUPER_ADMIN },
         select: { id: true },
       });
+      const superAdminIds = new Set(superAdmins.map((a) => a.id));
       await Promise.all(
         superAdmins
           .filter((a) => a.id !== userId)
@@ -88,6 +89,25 @@ export class RefundsService {
               title: "New refund request",
               body: "A refund request is awaiting review.",
               linkUrl: `/admin/refunds`,
+            })
+          )
+      );
+
+      const venueTeamIds = new Set([
+        booking.venue.ownerId,
+        ...booking.venue.admins.map((admin) => admin.userId),
+      ]);
+
+      await Promise.all(
+        Array.from(venueTeamIds)
+          .filter((id) => id !== userId && !superAdminIds.has(id))
+          .map((id) =>
+            this.safeNotify({
+              userId: id,
+              type: NotificationType.REFUND_REQUESTED,
+              title: "New refund request",
+              body: `A new refund request for ${booking.venue.name} needs review.`,
+              linkUrl: `/dashboard/refunds`,
             })
           )
       );
