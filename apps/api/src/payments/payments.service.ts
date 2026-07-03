@@ -253,7 +253,42 @@ export class PaymentsService {
         where: { providerReference: payload.order_id },
         include: { booking: true },
       });
-      if (!share) return;
+      if (!share) {
+        const charge = await this.prisma.bookingCharge.findFirst({ where: { id: payload.order_id } });
+        if (!charge) return;
+        if (charge.status === PaymentStatus.PAID) return;
+
+        let chargeTargetStatus: PaymentStatus | null = null;
+        if (transaction_status === "settlement" || transaction_status === "capture") {
+          if (transaction_status === "capture" && fraud_status === "challenge") {
+            return;
+          }
+          chargeTargetStatus = PaymentStatus.PAID;
+        } else if (["deny", "cancel", "expire"].includes(transaction_status)) {
+          chargeTargetStatus = PaymentStatus.FAILED;
+        } else if (transaction_status === "pending") {
+          return;
+        }
+
+        if (!chargeTargetStatus) return;
+
+        await this.prisma.bookingCharge.update({
+          where: { id: charge.id },
+          data: {
+            status: chargeTargetStatus,
+            paidAt: chargeTargetStatus === PaymentStatus.PAID ? new Date() : undefined,
+            failedAt: chargeTargetStatus === PaymentStatus.FAILED ? new Date() : undefined,
+          },
+        });
+
+        if (chargeTargetStatus === PaymentStatus.PAID) {
+          const booking = await this.prisma.booking.findUnique({ where: { id: charge.bookingId } });
+          if (booking) {
+            await this.safeNotify({ userId: booking.hostUserId, type: NotificationType.PAYMENT_SUCCESS, title: "Balance paid", body: "Balance paid", linkUrl: `/bookings/${charge.bookingId}` });
+          }
+        }
+        return;
+      }
       if (share.status === "PAID") return;
 
       let shareTargetStatus: "PAID" | null = null;

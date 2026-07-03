@@ -22,6 +22,11 @@ describe("BookingsService - rescheduleBookingForUser", () => {
       refund: {
         create: jest.fn(),
       },
+      bookingCharge: {
+        deleteMany: jest.fn(),
+        create: jest.fn(),
+        findFirst: jest.fn(),
+      },
       user: {
         findMany: jest.fn().mockResolvedValue([]),
       },
@@ -47,7 +52,7 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     finalAmount: 190000,
     courtId: "court-1",
     venueId: "venue-1",
-    payment: { id: "payment-1", status: PaymentStatus.PAID, provider: "midtrans" },
+    payment: { id: "payment-1", status: PaymentStatus.PAID, provider: "midtrans", method: "card" },
     venue: {
       openTime: "06:00",
       closeTime: "22:00",
@@ -69,7 +74,7 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     endsAt: "11:00",
   };
 
-  it("throws BadRequestException on paid CONFIRMED booking when price increases", async () => {
+  it("creates top-up charge on paid CONFIRMED booking when price increases", async () => {
     prismaMock.booking.findFirst
       .mockResolvedValueOnce(reschedulableBooking) 
       .mockResolvedValueOnce(null); 
@@ -78,11 +83,25 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     // mock voucher giving 0 discount -> finalAmount = 210000 (increase from 190000)
     vouchersMock.repriceVoucherById.mockResolvedValue(0);
 
-    await expect(service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody))
-      .rejects.toThrow(BadRequestException);
+    const updatedMock = { id: "booking-1", finalAmount: 210000 };
+    prismaMock.booking.update.mockResolvedValue(updatedMock);
 
-    expect(prismaMock.booking.update).not.toHaveBeenCalled();
-    expect(prismaMock.refund.create).not.toHaveBeenCalled();
+    const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
+
+    expect(prismaMock.bookingCharge.deleteMany).toHaveBeenCalledWith({ where: { bookingId: "booking-1", status: PaymentStatus.PENDING } });
+    expect(prismaMock.bookingCharge.create).toHaveBeenCalledWith({
+      data: {
+        bookingId: "booking-1",
+        amount: 20000,
+        reason: "Reschedule price difference",
+        status: PaymentStatus.PENDING,
+        provider: "midtrans",
+        method: "card",
+      },
+    });
+
+    expect(result.priceDelta).toBe(20000);
+    expect(safeNotifySpy).toHaveBeenCalled();
   });
 
   it("creates partial refund on paid CONFIRMED booking when price decreases", async () => {

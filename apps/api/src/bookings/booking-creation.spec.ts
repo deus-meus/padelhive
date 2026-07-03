@@ -90,7 +90,7 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
 describe("Booking creation API", () => {
   it("uses current user as booking host in controller", async () => {
     const service = { createBookingForUser: jest.fn().mockResolvedValue({ id: "booking-1" }) } as unknown as BookingsService;
-    const controller = new BookingsController(service, {} as never);
+    const controller = new BookingsController(service, {} as never, {} as never);
     const body = { venueId: "venue-1", courtId: "court-1", bookingDate: "2099-06-01", startsAt: "09:00", endsAt: "11:00" };
 
     await expect(controller.create(body, requestUser)).resolves.toEqual({ id: "booking-1" });
@@ -99,7 +99,7 @@ describe("Booking creation API", () => {
 
   it("uses current user when cancelling in controller", async () => {
     const service = { cancelBookingForUser: jest.fn().mockResolvedValue({ id: "booking-1", status: BookingStatus.CANCELLED }) } as unknown as BookingsService;
-    const controller = new BookingsController(service, {} as never);
+    const controller = new BookingsController(service, {} as never, {} as never);
 
     await expect(controller.cancel("booking-1", requestUser)).resolves.toEqual({ id: "booking-1", status: BookingStatus.CANCELLED });
     expect(service.cancelBookingForUser).toHaveBeenCalledWith("booking-1", "user-1");

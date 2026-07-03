@@ -24,7 +24,7 @@ import {
   Star,
   CalendarClock,
 } from "lucide-react";
-import { ApiRequestError, cancelBooking, getBookingById, createReview, rescheduleBooking, getVenueAvailability } from "@/lib/api";
+import { ApiRequestError, cancelBooking, getBookingById, createReview, rescheduleBooking, getVenueAvailability, payRescheduleCharge, markRescheduleChargePaid } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
 import { getUserFacingErrorMessage } from "@/lib/errors";
 import { padelImg } from "@/lib/images";
@@ -52,6 +52,9 @@ export default function BookingDetailPage() {
     return new Date().toISOString().split("T")[0]; // Simple YYYY-MM-DD
   });
   const [rescheduleStartHour, setRescheduleStartHour] = useState<string | null>(null);
+
+  const [topupMethod, setTopupMethod] = useState("card");
+  const [isPayingTopUp, setIsPayingTopUp] = useState(false);
 
   const { data: booking, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: queryKeys.bookings.detail(bookingId),
@@ -228,7 +231,10 @@ export default function BookingDetailPage() {
       setShowRescheduleModal(false);
       
       let toastMsg = "Jadwal diperbarui.";
-      if (result.priceDelta && result.priceDelta < 0) {
+      if (result.priceDelta && result.priceDelta > 0) {
+        const absDelta = result.priceDelta.toLocaleString("id-ID");
+        toastMsg = `Jadwal diperbarui. Ada selisih Rp ${absDelta} — silakan bayar untuk menyelesaikan.`;
+      } else if (result.priceDelta && result.priceDelta < 0) {
         const absDelta = Math.abs(result.priceDelta).toLocaleString("id-ID");
         toastMsg = `Jadwal diperbarui. Kelebihan bayar Rp ${absDelta} sedang diproses sebagai refund.`;
       }
@@ -267,6 +273,25 @@ export default function BookingDetailPage() {
     }
     
     setRescheduleStartHour(time === rescheduleStartHour ? null : time);
+  }
+
+  async function handlePayTopUp() {
+    if (isPayingTopUp || !currentBooking?.balanceDue) return;
+    setIsPayingTopUp(true);
+    try {
+      const res = await payRescheduleCharge(bookingId, topupMethod);
+      if (res.providerRedirectUrl) {
+        window.location.href = res.providerRedirectUrl;
+      } else {
+        await markRescheduleChargePaid(bookingId);
+        showToast("Top-up paid successfully");
+        refetch();
+      }
+    } catch (err) {
+      showToast(getUserFacingErrorMessage(err));
+    } finally {
+      setIsPayingTopUp(false);
+    }
   }
 
   return (
@@ -474,6 +499,30 @@ export default function BookingDetailPage() {
                   </>
                 )}
               </div>
+              
+              {currentBooking.balanceDue && currentBooking.balanceDue > 0 && (
+                <div className="mt-6 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 p-4">
+                  <p className="body mb-3 text-[#F7F7F7]">Top-up required</p>
+                  <div className="flex gap-2 mb-3">
+                    <select
+                      value={topupMethod}
+                      onChange={(e) => setTopupMethod(e.target.value)}
+                      className="body w-full rounded-lg border border-white/[0.06] bg-[#0C1B26] px-3 py-2 text-[#F7F7F7] focus:outline-none"
+                    >
+                      <option value="card">Card</option>
+                      <option value="va">Virtual Account</option>
+                      <option value="ewallet">E-Wallet</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={handlePayTopUp}
+                    disabled={isPayingTopUp}
+                    className="label w-full rounded-lg bg-[#E6FA50] py-2.5 text-[#06121A] transition-colors hover:bg-[#E6FA50]/90 disabled:opacity-50"
+                  >
+                    {isPayingTopUp ? "Processing..." : `Bayar selisih Rp ${currentBooking.balanceDue.toLocaleString("id-ID")}`}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
