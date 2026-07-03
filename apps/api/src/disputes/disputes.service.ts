@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, Logger } from "@nes
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateDisputeDto } from "./dto/create-dispute.dto";
 import { DisputeResponseDto } from "./dto/dispute-response.dto";
-import { DisputeStatus, DisputeIssueType, DisputePriority, Dispute, NotificationType } from "@prisma/client";
+import { DisputeStatus, DisputeIssueType, DisputePriority, Dispute, NotificationType, UserRole } from "@prisma/client";
 import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
 
 @Injectable()
@@ -98,6 +98,24 @@ export class DisputesService {
       body: "We received your report and will look into it.",
       linkUrl: `/bookings?tab=disputes`
     });
+
+    const superAdmins = await this.prisma.user.findMany({
+      where: { role: UserRole.SUPER_ADMIN },
+      select: { id: true },
+    });
+    await Promise.all(
+      superAdmins
+        .filter((a) => a.id !== userId)
+        .map((a) =>
+          this.safeNotify({
+            userId: a.id,
+            type: NotificationType.DISPUTE_CREATED,
+            title: "New dispute reported",
+            body: "A player reported an issue on a booking.",
+            linkUrl: `/admin/disputes`,
+          })
+        )
+    );
 
     return this.toResponse(dispute);
   }

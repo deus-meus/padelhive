@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { BookingStatus, PaymentStatus, RefundStatus, Prisma, NotificationType } from "@prisma/client";
+import { BookingStatus, PaymentStatus, RefundStatus, Prisma, NotificationType, UserRole } from "@prisma/client";
 import { CreateRefundDto } from "./dto/create-refund.dto";
 import { PAYMENT_GATEWAY_TOKEN, PaymentGateway } from "../payments/gateways/payment-gateway.interface";
 import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
@@ -73,6 +73,24 @@ export class RefundsService {
         body: "We received your refund request and it's under review.",
         linkUrl: `/bookings?tab=refunds`
       });
+
+      const superAdmins = await this.prisma.user.findMany({
+        where: { role: UserRole.SUPER_ADMIN },
+        select: { id: true },
+      });
+      await Promise.all(
+        superAdmins
+          .filter((a) => a.id !== userId)
+          .map((a) =>
+            this.safeNotify({
+              userId: a.id,
+              type: NotificationType.REFUND_REQUESTED,
+              title: "New refund request",
+              body: "A refund request is awaiting review.",
+              linkUrl: `/admin/refunds`,
+            })
+          )
+      );
 
       return refund;
     } catch (error) {
