@@ -290,6 +290,11 @@ model Voucher {
   @@index([validFrom, validUntil])
 }
 
+enum RefundType {
+  FULL
+  RESCHEDULE_DIFF
+}
+
 model Refund {
   id          String       @id @default(cuid())
   bookingId   String
@@ -297,6 +302,7 @@ model Refund {
   amount      Int
   reason      String
   status      RefundStatus @default(PENDING)
+  type        RefundType   @default(FULL)
   adminNotes  String?
   processedAt DateTime?
   createdAt   DateTime     @default(now())

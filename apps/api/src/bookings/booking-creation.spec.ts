@@ -120,7 +120,7 @@ describe("Booking creation API", () => {
 
     expect(prisma.venue.findFirst).toHaveBeenCalledWith({
       where: { id: "venue-1", status: VenueStatus.APPROVED },
-      select: { id: true, name: true, city: true, status: true },
+      select: { id: true, name: true, city: true, status: true, openTime: true, closeTime: true, weeklyHours: true },
     });
     expect(prisma.court.findFirst).toHaveBeenCalledWith({
       where: { id: "court-1", venueId: "venue-1", isActive: true },

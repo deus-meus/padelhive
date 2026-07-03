@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException, Logger } from "@nestjs/common";
-import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus, NotificationType, Prisma } from "@prisma/client";
+import { BookingStatus, CourtType, PaymentStatus, RefundStatus, RefundType, VenueStatus, NotificationType, Prisma, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { BookingResponseDto } from "./dto/booking-response.dto";
 import { CreateBookingDto } from "./dto/create-booking.dto";
@@ -58,6 +58,7 @@ const reschedulableBookingSelect = {
   voucherId: true,
   voucherDiscount: true,
   finalAmount: true,
+  payment: { select: { id: true, status: true, provider: true } },
   courtId: true,
   venueId: true,
   venue: {
@@ -274,6 +275,14 @@ export class BookingsService {
     const finalAmount = Math.max(0, subtotal - voucherDiscount);
     const priceDelta = finalAmount - booking.finalAmount;
 
+    const hasPaidPayment = booking.payment?.status === PaymentStatus.PAID;
+    if (booking.status === BookingStatus.CONFIRMED && hasPaidPayment && priceDelta > 0) {
+      const abs = Math.abs(priceDelta).toLocaleString("id-ID");
+      throw new BadRequestException(`Rescheduling to this slot increases the price by Rp ${abs}. Paying the difference isn't supported yet — please cancel and rebook.`);
+    }
+    const createPartialRefund = booking.status === BookingStatus.CONFIRMED && hasPaidPayment && priceDelta < 0;
+    const refundAmount = -priceDelta;
+
     try {
       const updated = await this.prisma.$transaction(async (tx) => {
         const updatedBooking = await tx.booking.update({
@@ -291,8 +300,75 @@ export class BookingsService {
           select: bookingSelect,
         });
         await tx.payment.deleteMany({ where: { bookingId: booking.id, status: PaymentStatus.PENDING } });
+        if (createPartialRefund) {
+          await tx.refund.create({
+            data: {
+              bookingId: booking.id,
+              paymentId: null,
+              amount: refundAmount,
+              reason: "Reschedule price difference",
+              status: RefundStatus.PENDING,
+              type: RefundType.RESCHEDULE_DIFF,
+              events: { create: { toStatus: RefundStatus.PENDING, actorUserId: hostUserId } },
+            },
+          });
+        }
         return updatedBooking;
       });
+
+      if (createPartialRefund) {
+        await this.safeNotify({
+          userId: hostUserId,
+          type: NotificationType.REFUND_REQUESTED,
+          title: "Refund under review",
+          body: `We are processing your refund of Rp ${refundAmount.toLocaleString("id-ID")} for the reschedule price difference.`,
+          linkUrl: `/bookings?tab=refunds`,
+        });
+
+        const superAdmins = await this.prisma.user.findMany({
+          where: { role: UserRole.SUPER_ADMIN },
+          select: { id: true },
+        });
+        const superAdminIds = new Set(superAdmins.map((a) => a.id));
+        await Promise.all(
+          superAdmins
+            .filter((a) => a.id !== hostUserId)
+            .map((a) =>
+              this.safeNotify({
+                userId: a.id,
+                type: NotificationType.REFUND_REQUESTED,
+                title: "New refund request",
+                body: "A partial refund from reschedule is awaiting review.",
+                linkUrl: `/admin/refunds`,
+              })
+            )
+        );
+
+        const venueData = await this.prisma.venue.findUnique({
+          where: { id: booking.venueId },
+          select: { name: true, ownerId: true, admins: { select: { userId: true } } },
+        });
+        if (venueData) {
+          const venueTeamIds = new Set([
+            venueData.ownerId,
+            ...venueData.admins.map((admin) => admin.userId),
+          ]);
+          await Promise.all(
+            Array.from(venueTeamIds)
+              .filter((id) => id !== hostUserId && !superAdminIds.has(id))
+              .map((id) =>
+                this.safeNotify({
+                  userId: id,
+                  type: NotificationType.REFUND_REQUESTED,
+                  title: "New refund request",
+                  body: `A partial refund from reschedule for ${venueData.name} needs review.`,
+                  linkUrl: `/dashboard/refunds`,
+                })
+              )
+          );
+        }
+      }
+
       return { ...updated, priceDelta };
     } catch (error) {
       const e = error as { message?: string; meta?: { message?: string; target?: unknown } };

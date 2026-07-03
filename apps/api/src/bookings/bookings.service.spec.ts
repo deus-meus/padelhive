@@ -1,15 +1,16 @@
 import { BadRequestException, ConflictException, NotFoundException } from "@nestjs/common";
-import { BookingStatus, CourtType, PaymentStatus, VenueStatus } from "@prisma/client";
+import { BookingStatus, CourtType, PaymentStatus, RefundStatus, RefundType } from "@prisma/client";
 import { BookingsService } from "./bookings.service";
 
 describe("BookingsService - rescheduleBookingForUser", () => {
   let service: BookingsService;
   let prismaMock: any;
   let vouchersMock: any;
+  let safeNotifySpy: any;
 
   beforeEach(() => {
     prismaMock = {
-      venue: { findFirst: jest.fn() },
+      venue: { findFirst: jest.fn(), findUnique: jest.fn().mockResolvedValue(null) },
       court: { findFirst: jest.fn() },
       booking: {
         findFirst: jest.fn(),
@@ -17,6 +18,12 @@ describe("BookingsService - rescheduleBookingForUser", () => {
       },
       payment: {
         deleteMany: jest.fn(),
+      },
+      refund: {
+        create: jest.fn(),
+      },
+      user: {
+        findMany: jest.fn().mockResolvedValue([]),
       },
       $transaction: jest.fn(async (cb) => cb(prismaMock)),
     };
@@ -29,6 +36,7 @@ describe("BookingsService - rescheduleBookingForUser", () => {
       {} as any,
       {} as any
     );
+    safeNotifySpy = jest.spyOn(service as any, 'safeNotify').mockResolvedValue(undefined);
   });
 
   const reschedulableBooking = {
@@ -39,6 +47,7 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     finalAmount: 190000,
     courtId: "court-1",
     venueId: "venue-1",
+    payment: { id: "payment-1", status: PaymentStatus.PAID, provider: "midtrans" },
     venue: {
       openTime: "06:00",
       closeTime: "22:00",
@@ -60,56 +69,69 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     endsAt: "11:00",
   };
 
-  it("recomputes voucher, deletes PENDING payments and exposes priceDelta", async () => {
+  it("throws BadRequestException on paid CONFIRMED booking when price increases", async () => {
     prismaMock.booking.findFirst
-      .mockResolvedValueOnce(reschedulableBooking) // for the reschedule
-      .mockResolvedValueOnce(null); // for assertNoOverlap
+      .mockResolvedValueOnce(reschedulableBooking) 
+      .mockResolvedValueOnce(null); 
 
-    // new courtAmount = 200000. platform fee = 10000. subtotal = 210000.
-    vouchersMock.repriceVoucherById.mockResolvedValue(15000);
+    // new courtAmount = 200000. platform fee = 10000. subtotal = 210000. 
+    // mock voucher giving 0 discount -> finalAmount = 210000 (increase from 190000)
+    vouchersMock.repriceVoucherById.mockResolvedValue(0);
 
-    const updatedMock = { id: "booking-1", finalAmount: 195000 };
-    prismaMock.booking.update.mockResolvedValue(updatedMock);
+    await expect(service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody))
+      .rejects.toThrow(BadRequestException);
 
-    const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
-
-    expect(vouchersMock.repriceVoucherById).toHaveBeenCalledWith("voucher-1", 210000);
-    expect(prismaMock.payment.deleteMany).toHaveBeenCalledWith({
-      where: { bookingId: "booking-1", status: PaymentStatus.PENDING },
-    });
-    
-    expect(prismaMock.booking.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "booking-1" },
-        data: expect.objectContaining({
-          voucherDiscount: 15000,
-          finalAmount: 195000,
-        }),
-      })
-    );
-
-    expect(result).toEqual({ ...updatedMock, priceDelta: 5000 });
+    expect(prismaMock.booking.update).not.toHaveBeenCalled();
+    expect(prismaMock.refund.create).not.toHaveBeenCalled();
   });
 
-  it("works when booking has no voucher", async () => {
+  it("creates partial refund on paid CONFIRMED booking when price decreases", async () => {
     prismaMock.booking.findFirst
-      .mockResolvedValueOnce({ ...reschedulableBooking, voucherId: null, voucherDiscount: 0, finalAmount: 210000 })
+      .mockResolvedValueOnce(reschedulableBooking)
       .mockResolvedValueOnce(null);
 
-    const updatedMock = { id: "booking-1", finalAmount: 210000 };
+    // subtotal = 210000. mock voucher giving 30000 discount -> finalAmount = 180000 (decrease from 190000)
+    vouchersMock.repriceVoucherById.mockResolvedValue(30000);
+
+    const updatedMock = { id: "booking-1", finalAmount: 180000 };
     prismaMock.booking.update.mockResolvedValue(updatedMock);
 
     const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
 
-    expect(vouchersMock.repriceVoucherById).not.toHaveBeenCalled();
-    expect(result.priceDelta).toBe(0);
-    expect(prismaMock.booking.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          voucherDiscount: 0,
-          finalAmount: 210000,
-        }),
+    expect(prismaMock.refund.create).toHaveBeenCalledWith({
+      data: {
+        bookingId: "booking-1",
+        paymentId: null,
+        amount: 10000,
+        reason: "Reschedule price difference",
+        status: RefundStatus.PENDING,
+        type: RefundType.RESCHEDULE_DIFF,
+        events: expect.any(Object),
+      },
+    });
+
+    expect(result.priceDelta).toBe(-10000);
+    expect(safeNotifySpy).toHaveBeenCalled();
+  });
+
+  it("does not create refund if payment is PENDING (no paid payment)", async () => {
+    prismaMock.booking.findFirst
+      .mockResolvedValueOnce({ 
+        ...reschedulableBooking, 
+        status: BookingStatus.PENDING_PAYMENT,
+        payment: { id: "payment-1", status: PaymentStatus.PENDING, provider: "midtrans" }
       })
-    );
+      .mockResolvedValueOnce(null);
+
+    // finalAmount will be 180000 (decrease)
+    vouchersMock.repriceVoucherById.mockResolvedValue(30000);
+
+    const updatedMock = { id: "booking-1", finalAmount: 180000 };
+    prismaMock.booking.update.mockResolvedValue(updatedMock);
+
+    const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
+
+    expect(prismaMock.refund.create).not.toHaveBeenCalled();
+    expect(result.priceDelta).toBe(-10000);
   });
 });

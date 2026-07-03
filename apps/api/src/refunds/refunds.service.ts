@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { BookingStatus, PaymentStatus, RefundStatus, Prisma, NotificationType, UserRole } from "@prisma/client";
+import { BookingStatus, PaymentStatus, RefundStatus, Prisma, NotificationType, UserRole, RefundType } from "@prisma/client";
 import { CreateRefundDto } from "./dto/create-refund.dto";
 import { PAYMENT_GATEWAY_TOKEN, PaymentGateway } from "../payments/gateways/payment-gateway.interface";
 import { NotificationsService, CreateNotificationInput } from "../notifications/notifications.service";
@@ -296,7 +296,7 @@ export class RefundsService {
     const refund = await this.prisma.refund.findUnique({ 
       where: { id },
       include: { 
-        booking: { include: { venue: { include: { admins: { where: { userId: adminUserId } } } } } }, 
+        booking: { include: { venue: { include: { admins: { where: { userId: adminUserId } } } }, payment: true } },
         payment: true 
       } 
     });
@@ -313,8 +313,9 @@ export class RefundsService {
       throw new BadRequestException(`Cannot process refund in status ${refund.status}`);
     }
 
-    if (refund.payment && refund.payment.provider === "midtrans") {
-      await this.paymentGateway.refundPayment(refund.payment.id, refund.amount, refund.id);
+    const gatewayPayment = refund.payment ?? refund.booking.payment;
+    if (gatewayPayment && gatewayPayment.provider === "midtrans") {
+      await this.paymentGateway.refundPayment(gatewayPayment.id, refund.amount, refund.id);
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -346,7 +347,7 @@ export class RefundsService {
         });
       }
 
-      if (refund.booking.status === BookingStatus.CONFIRMED) {
+      if (refund.booking.status === BookingStatus.CONFIRMED && refund.type !== RefundType.RESCHEDULE_DIFF) {
         await tx.booking.update({
           where: { id: refund.bookingId },
           data: {

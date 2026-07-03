@@ -192,6 +192,7 @@ export type ApiRefund = {
   amount: number;
   reason: string;
   status: RefundStatus;
+  type?: "FULL" | "RESCHEDULE_DIFF";
   adminNotes: string | null;
   processedAt: string | null;
   createdAt: string;

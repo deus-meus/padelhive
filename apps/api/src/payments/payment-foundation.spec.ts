@@ -36,6 +36,7 @@ const paymentResponse = {
 function createPrisma(overrides: Record<string, unknown> = {}) {
   return {
     booking: { findFirst: jest.fn().mockResolvedValue(booking), update: jest.fn().mockResolvedValue({}) },
+    bookingSplitShare: { count: jest.fn().mockResolvedValue(0) },
     payment: {
       findFirst: jest.fn().mockResolvedValue(null),
       create: jest.fn().mockResolvedValue(paymentResponse),

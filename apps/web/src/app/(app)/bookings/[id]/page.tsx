@@ -227,14 +227,10 @@ export default function BookingDetailPage() {
       });
       setShowRescheduleModal(false);
       
-      let toastMsg = "Booking rescheduled";
-      if (result.priceDelta) {
+      let toastMsg = "Jadwal diperbarui.";
+      if (result.priceDelta && result.priceDelta < 0) {
         const absDelta = Math.abs(result.priceDelta).toLocaleString("id-ID");
-        if (result.priceDelta > 0) {
-          toastMsg = `Jadwal diperbarui. Ada selisih tagihan Rp ${absDelta} yang akan ditagih terpisah.`;
-        } else if (result.priceDelta < 0) {
-          toastMsg = `Jadwal diperbarui. Kelebihan bayar Rp ${absDelta} akan dikembalikan terpisah.`;
-        }
+        toastMsg = `Jadwal diperbarui. Kelebihan bayar Rp ${absDelta} sedang diproses sebagai refund.`;
       }
       showToast(toastMsg);
       refetch();
@@ -243,13 +239,11 @@ export default function BookingDetailPage() {
       if (error instanceof ApiRequestError) {
         if (error.status === 409) {
           showToast("This court is already booked for the selected time.");
-        } else if (error.status === 400) {
-          showToast(getUserFacingErrorMessage(error) || "This booking cannot be rescheduled.");
         } else {
-          showToast(getUserFacingErrorMessage(error));
+          showToast(error.message || "This booking cannot be rescheduled.");
         }
       } else {
-        showToast(getUserFacingErrorMessage(error));
+        showToast(error instanceof Error ? error.message : "An error occurred");
       }
     } finally {
       setIsRescheduling(false);

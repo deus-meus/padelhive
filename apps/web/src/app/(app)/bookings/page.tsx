@@ -400,6 +400,9 @@ export default function BookingsPage() {
                         }`}>
                           {refund.status}
                         </span>
+                        {refund.type === "RESCHEDULE_DIFF" && (
+                          <span className="caption rounded-full bg-blue-500/10 px-2 py-0.5 text-blue-400">Selisih reschedule</span>
+                        )}
                       </div>
                       <p className="caption text-[#F7F7F7]/40 mt-2 italic">&ldquo;{refund.reason}&rdquo;</p>
                       <p className="caption text-[#F7F7F7]/25 mt-2">Requested: {formatShortDate(refund.createdAt)}</p>
