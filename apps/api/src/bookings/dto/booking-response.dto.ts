@@ -68,6 +68,9 @@ export class BookingResponseDto {
   @ApiPropertyOptional({ description: "Difference in final amount upon reschedule (new - old). Positive means user owes more, negative means refund due." })
   priceDelta?: number;
 
+  @ApiPropertyOptional({ description: "Amount of outstanding PENDING top-up charge." })
+  balanceDue?: number;
+
   @ApiPropertyOptional({ example: true })
   isRefundEligible?: boolean;
 

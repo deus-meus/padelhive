@@ -1,14 +1,32 @@
-import { Controller, Get, Patch, Param } from "@nestjs/common";
+import { Controller, Get, Patch, Param, Sse, MessageEvent, UseGuards } from "@nestjs/common";
 import { NotificationsService } from "./notifications.service";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { RequestUser } from "../auth/types/request-user.type";
 import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
+import { Observable, interval, merge } from "rxjs";
+import { map } from "rxjs/operators";
+import { Public } from "../auth/decorators/public.decorator";
+import { SseFirebaseAuthGuard } from "../auth/guards/sse-firebase-auth.guard";
 
 @ApiTags("Notifications")
 @ApiBearerAuth()
 @Controller("notifications")
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
+
+  @Sse("stream")
+  @Public()
+  @UseGuards(SseFirebaseAuthGuard)
+  @ApiOperation({ summary: "Real-time notifications stream (SSE)" })
+  stream(@CurrentUser() user: RequestUser): Observable<MessageEvent> {
+    const notifications$ = this.notificationsService
+      .streamForUser(user.id)
+      .pipe(map((n) => ({ data: n, type: "notification" }) as MessageEvent));
+    const heartbeat$ = interval(25000).pipe(
+      map(() => ({ data: { ts: Date.now() }, type: "ping" }) as MessageEvent),
+    );
+    return merge(notifications$, heartbeat$);
+  }
 
   @Get()
   @ApiOperation({ summary: "Get my notifications" })

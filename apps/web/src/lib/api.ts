@@ -3,7 +3,7 @@ import { formatShortDate } from "@/lib/format";
 import { Court, Venue, Voucher } from "@/types";
 import { getIdToken } from "@/lib/auth-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
 type ApiVenue = {
   id: string;
@@ -62,6 +62,7 @@ export type ApiBooking = {
   voucherDiscount: number;
   finalAmount: number;
   priceDelta?: number;
+  balanceDue?: number;
   isRefundEligible?: boolean;
   refundAmount?: number;
   refundPolicyReason?: string;
@@ -595,6 +596,32 @@ export async function rescheduleBooking(bookingId: string, body: { bookingDate: 
   return apiFetch<ApiBooking>(`/bookings/${bookingId}/reschedule`, { method: "PATCH", body: JSON.stringify(body) });
 }
 
+export type ApiBookingCharge = {
+  id: string;
+  bookingId: string;
+  amount: number;
+  status: string;
+  provider: string;
+  method: string;
+  providerReference?: string | null;
+  providerRedirectUrl?: string | null;
+  providerToken?: string | null;
+  paidAt?: string | null;
+};
+
+export async function payRescheduleCharge(bookingId: string, method: string): Promise<ApiBookingCharge> {
+  return apiFetch<ApiBookingCharge>(`/bookings/${bookingId}/charge/pay`, {
+    method: "POST",
+    body: JSON.stringify({ method }),
+  });
+}
+
+export async function markRescheduleChargePaid(bookingId: string): Promise<ApiBookingCharge> {
+  return apiFetch<ApiBookingCharge>(`/bookings/${bookingId}/charge/mark-paid`, {
+    method: "PATCH",
+  });
+}
+
 export type BookingFilter = "upcoming" | "past" | "cancelled";
 
 export async function getUserBookings(
@@ -776,7 +803,8 @@ export type NotificationType =
   | "BOOKING_CONFIRMED" | "BOOKING_CANCELLED"
   | "PAYMENT_SUCCESS" | "PAYMENT_FAILED"
   | "REFUND_REQUESTED" | "REFUND_APPROVED" | "REFUND_REJECTED" | "REFUND_PROCESSED"
-  | "DISPUTE_CREATED" | "DISPUTE_ASSIGNED" | "DISPUTE_RESOLVED" | "DISPUTE_CLOSED";
+  | "DISPUTE_CREATED" | "DISPUTE_ASSIGNED" | "DISPUTE_RESOLVED" | "DISPUTE_CLOSED"
+  | "VENUE_SUBMITTED" | "BALANCE_DUE";
 
 export type ApiNotification = {
   id: string;

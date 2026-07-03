@@ -21,7 +21,8 @@ describe("Midtrans Webhook and Gateway integration", () => {
 
   function createPrismaMock(payment: unknown = null) {
     return {
-      bookingSplitShare: { count: jest.fn().mockResolvedValue(0), findFirst: jest.fn().mockResolvedValue(null) },
+      bookingSplitShare: { count: jest.fn().mockResolvedValue(0), findFirst: jest.fn().mockResolvedValue(null), update: jest.fn() },
+      bookingCharge: { findFirst: jest.fn().mockResolvedValue(null), update: jest.fn() },
       payment: {
         findFirst: jest.fn().mockResolvedValue(payment),
         create: jest.fn(),
@@ -32,6 +33,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
       booking: {
         findFirst: jest.fn(),
         update: jest.fn(),
+        findUnique: jest.fn(),
       },
       $transaction: jest.fn(async (cb) => {
         const tx = {
@@ -254,5 +256,38 @@ describe("Midtrans Webhook and Gateway integration", () => {
       data: { status: PaymentStatus.FAILED, paidAt: undefined, failedAt: expect.any(Date) },
     });
     expect(txBookingUpdateMock!).not.toHaveBeenCalled();
+  });
+
+  it("settlement webhook for an order_id matching a BookingCharge marks it PAID", async () => {
+    const prisma = createPrismaMock(null);
+    prisma.bookingCharge.findFirst.mockResolvedValue({
+      id: "charge-1",
+      bookingId: "booking-1",
+      status: PaymentStatus.PENDING,
+    });
+    prisma.booking.findUnique = jest.fn().mockResolvedValue({ id: "booking-1", hostUserId: "host-1" });
+
+    const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
+    
+    const signature_key = generateSignature("charge-1", "200", "10000.00");
+    const payload = {
+      order_id: "charge-1",
+      status_code: "200",
+      gross_amount: "10000.00",
+      signature_key,
+      transaction_status: "settlement",
+    };
+
+    await service.handleMidtransWebhook(payload as MidtransWebhookDto);
+    
+    expect(prisma.bookingCharge.update).toHaveBeenCalledWith({
+      where: { id: "charge-1" },
+      data: {
+        status: PaymentStatus.PAID,
+        paidAt: expect.any(Date),
+        failedAt: undefined,
+      },
+    });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

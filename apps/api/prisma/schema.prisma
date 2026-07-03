@@ -215,6 +215,7 @@ model Booking {
   splitShares     BookingSplitShare[]
   review          Review?
   disputes        Dispute[]
+  charges         BookingCharge[]
 
   @@index([hostUserId])
   @@index([venueId])
@@ -358,6 +359,29 @@ model BookingSplitShare {
   @@index([providerReference])
 }
 
+model BookingCharge {
+  id                  String        @id @default(cuid())
+  bookingId           String
+  amount              Int
+  reason              String        @default("Reschedule price difference")
+  status              PaymentStatus @default(PENDING)
+  provider            String
+  method              String
+  providerReference   String?
+  providerRedirectUrl String?
+  providerToken       String?
+  paidAt              DateTime?
+  failedAt            DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  booking             Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([providerReference])
+}
+
 model Review {
   id        String   @id @default(cuid())
   venueId   String
@@ -436,6 +460,7 @@ enum NotificationType {
   DISPUTE_RESOLVED
   DISPUTE_CLOSED
   VENUE_SUBMITTED
+  BALANCE_DUE
 }
 
 model Notification {

@@ -32,6 +32,9 @@ describe("Read-only bookings API", () => {
           host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
         }),
       },
+      bookingCharge: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
     };
     const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, {} as never);
 
@@ -49,7 +52,10 @@ describe("Read-only bookings API", () => {
   });
 
   it("returns 404 when booking is missing or belongs to another user", async () => {
-    const prisma = { booking: { findFirst: jest.fn().mockResolvedValue(null) } };
+    const prisma = { 
+      booking: { findFirst: jest.fn().mockResolvedValue(null) },
+      bookingCharge: { findFirst: jest.fn().mockResolvedValue(null) },
+    };
     const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, {} as never);
 
     await expect(service.findBookingForUser("booking-2", "user-1")).rejects.toThrow(NotFoundException);
@@ -58,7 +64,7 @@ describe("Read-only bookings API", () => {
   it("returns current user's booking from controller", async () => {
     const booking = { id: "booking-1" };
     const service = { findBookingForUser: jest.fn().mockResolvedValue(booking) } as unknown as BookingsService;
-    const controller = new BookingsController(service, {} as never);
+    const controller = new BookingsController(service, {} as never, {} as never);
 
     await expect(controller.findOne("booking-1", requestUser)).resolves.toEqual(booking);
     expect(service.findBookingForUser).toHaveBeenCalledWith("booking-1", "user-1");

@@ -58,7 +58,7 @@ const reschedulableBookingSelect = {
   voucherId: true,
   voucherDiscount: true,
   finalAmount: true,
-  payment: { select: { id: true, status: true, provider: true } },
+  payment: { select: { id: true, status: true, provider: true, method: true } },
   courtId: true,
   venueId: true,
   venue: {
@@ -276,10 +276,7 @@ export class BookingsService {
     const priceDelta = finalAmount - booking.finalAmount;
 
     const hasPaidPayment = booking.payment?.status === PaymentStatus.PAID;
-    if (booking.status === BookingStatus.CONFIRMED && hasPaidPayment && priceDelta > 0) {
-      const abs = Math.abs(priceDelta).toLocaleString("id-ID");
-      throw new BadRequestException(`Rescheduling to this slot increases the price by Rp ${abs}. Paying the difference isn't supported yet — please cancel and rebook.`);
-    }
+    const createTopUpCharge = booking.status === BookingStatus.CONFIRMED && hasPaidPayment && priceDelta > 0;
     const createPartialRefund = booking.status === BookingStatus.CONFIRMED && hasPaidPayment && priceDelta < 0;
     const refundAmount = -priceDelta;
 
@@ -313,60 +310,87 @@ export class BookingsService {
             },
           });
         }
+        if (createTopUpCharge) {
+          await tx.bookingCharge.deleteMany({ where: { bookingId: booking.id, status: PaymentStatus.PENDING } });
+          await tx.bookingCharge.create({
+            data: {
+              bookingId: booking.id,
+              amount: priceDelta,
+              reason: "Reschedule price difference",
+              status: PaymentStatus.PENDING,
+              provider: booking.payment!.provider,
+              method: booking.payment!.method,
+            },
+          });
+        }
         return updatedBooking;
       });
 
       if (createPartialRefund) {
-        await this.safeNotify({
-          userId: hostUserId,
-          type: NotificationType.REFUND_REQUESTED,
-          title: "Refund under review",
-          body: `We are processing your refund of Rp ${refundAmount.toLocaleString("id-ID")} for the reschedule price difference.`,
-          linkUrl: `/bookings?tab=refunds`,
-        });
+        try {
+          await this.safeNotify({
+            userId: hostUserId,
+            type: NotificationType.REFUND_REQUESTED,
+            title: "Refund under review",
+            body: `We are processing your refund of Rp ${refundAmount.toLocaleString("id-ID")} for the reschedule price difference.`,
+            linkUrl: `/bookings?tab=refunds`,
+          });
 
-        const superAdmins = await this.prisma.user.findMany({
-          where: { role: UserRole.SUPER_ADMIN },
-          select: { id: true },
-        });
-        const superAdminIds = new Set(superAdmins.map((a) => a.id));
-        await Promise.all(
-          superAdmins
-            .filter((a) => a.id !== hostUserId)
-            .map((a) =>
-              this.safeNotify({
-                userId: a.id,
-                type: NotificationType.REFUND_REQUESTED,
-                title: "New refund request",
-                body: "A partial refund from reschedule is awaiting review.",
-                linkUrl: `/admin/refunds`,
-              })
-            )
-        );
-
-        const venueData = await this.prisma.venue.findUnique({
-          where: { id: booking.venueId },
-          select: { name: true, ownerId: true, admins: { select: { userId: true } } },
-        });
-        if (venueData) {
-          const venueTeamIds = new Set([
-            venueData.ownerId,
-            ...venueData.admins.map((admin) => admin.userId),
-          ]);
+          const superAdmins = await this.prisma.user.findMany({
+            where: { role: UserRole.SUPER_ADMIN },
+            select: { id: true },
+          });
+          const superAdminIds = new Set(superAdmins.map((a) => a.id));
           await Promise.all(
-            Array.from(venueTeamIds)
-              .filter((id) => id !== hostUserId && !superAdminIds.has(id))
-              .map((id) =>
+            superAdmins
+              .filter((a) => a.id !== hostUserId)
+              .map((a) =>
                 this.safeNotify({
-                  userId: id,
+                  userId: a.id,
                   type: NotificationType.REFUND_REQUESTED,
                   title: "New refund request",
-                  body: `A partial refund from reschedule for ${venueData.name} needs review.`,
-                  linkUrl: `/dashboard/refunds`,
+                  body: "A partial refund from reschedule is awaiting review.",
+                  linkUrl: `/admin/refunds`,
                 })
               )
           );
+
+          const venueData = await this.prisma.venue.findUnique({
+            where: { id: booking.venueId },
+            select: { name: true, ownerId: true, admins: { select: { userId: true } } },
+          });
+          if (venueData) {
+            const venueTeamIds = new Set([
+              venueData.ownerId,
+              ...venueData.admins.map((admin) => admin.userId),
+            ]);
+            await Promise.all(
+              Array.from(venueTeamIds)
+                .filter((id) => id !== hostUserId && !superAdminIds.has(id))
+                .map((id) =>
+                  this.safeNotify({
+                    userId: id,
+                    type: NotificationType.REFUND_REQUESTED,
+                    title: "New refund request",
+                    body: `A partial refund from reschedule for ${venueData.name} needs review.`,
+                    linkUrl: `/dashboard/refunds`,
+                  })
+                )
+            );
+          }
+        } catch (err) {
+          this.logger.warn(`Best-effort reschedule refund notifications failed for booking ${booking.id}: ${String(err)}`);
         }
+      }
+
+      if (createTopUpCharge) {
+        await this.safeNotify({
+          userId: hostUserId,
+          type: NotificationType.BALANCE_DUE,
+          title: "Balance due",
+          body: `A price difference of Rp ${priceDelta.toLocaleString("id-ID")} is due for your reschedule.`,
+          linkUrl: `/bookings/${booking.id}`,
+        });
       }
 
       return { ...updated, priceDelta };
@@ -400,7 +424,9 @@ export class BookingsService {
       throw new NotFoundException("Booking not found");
     }
 
-    return booking;
+    const pendingCharge = await this.prisma.bookingCharge.findFirst({ where: { bookingId: id, status: PaymentStatus.PENDING }, orderBy: { createdAt: "desc" } });
+
+    return { ...booking, balanceDue: pendingCharge?.amount };
   }
 
   async cancelBookingForUser(id: string, hostUserId: string, now = new Date()): Promise<BookingResponseDto> {

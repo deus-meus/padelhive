@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { NotificationType } from "@prisma/client";
+import { NotificationType, Notification } from "@prisma/client";
 import { MailService } from "../mail/mail.service";
+import { Subject, Observable } from "rxjs";
+import { filter, map } from "rxjs/operators";
 
 export type CreateNotificationInput = {
   userId: string;
@@ -25,6 +27,8 @@ const EMAIL_NOTIFICATION_TYPES = new Set<NotificationType>([
 
 @Injectable()
 export class NotificationsService {
+  private readonly notificationStream = new Subject<{ userId: string; notification: Notification }>();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailService: MailService
@@ -41,6 +45,8 @@ export class NotificationsService {
         linkUrl: input.linkUrl,
       },
     });
+
+    this.notificationStream.next({ userId: input.userId, notification });
 
     if (EMAIL_NOTIFICATION_TYPES.has(input.type)) {
       try {
@@ -65,6 +71,13 @@ export class NotificationsService {
     }
 
     return notification;
+  }
+
+  streamForUser(userId: string): Observable<Notification> {
+    return this.notificationStream.asObservable().pipe(
+      filter((event) => event.userId === userId),
+      map((event) => event.notification),
+    );
   }
 
   async findMyNotifications(userId: string) {

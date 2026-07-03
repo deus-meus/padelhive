@@ -4,6 +4,7 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { FirebaseAuthService } from "./firebase-auth.service";
 import { FirebaseAuthGuard } from "./guards/firebase-auth.guard";
+import { SseFirebaseAuthGuard } from "./guards/sse-firebase-auth.guard";
 import { UsersModule } from "../users/users.module";
 import { RolesGuard } from "./guards/roles.guard";
 
@@ -15,6 +16,7 @@ import { RolesGuard } from "./guards/roles.guard";
     AuthService,
     FirebaseAuthService,
     FirebaseAuthGuard,
+    SseFirebaseAuthGuard,
     RolesGuard,
     {
       provide: APP_GUARD,
@@ -25,6 +27,6 @@ import { RolesGuard } from "./guards/roles.guard";
       useClass: RolesGuard,
     },
   ],
-  exports: [AuthService, FirebaseAuthService, FirebaseAuthGuard, RolesGuard],
+  exports: [AuthService, FirebaseAuthService, FirebaseAuthGuard, SseFirebaseAuthGuard, RolesGuard],
 })
 export class AuthModule {}

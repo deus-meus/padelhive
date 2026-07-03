@@ -28,12 +28,16 @@ import { SetBookingSplitDto } from "./dto/create-split.dto";
 import { UpdateSplitShareStatusDto } from "./dto/update-split-share.dto";
 import { BookingSplitDto, SharePaymentIntentDto } from "./dto/split-response.dto";
 import { CreateSharePaymentDto } from "./dto/create-share-payment.dto";
+import { BookingChargeService } from "./booking-charge.service";
+import { CreateChargePaymentDto } from "./dto/create-charge-payment.dto";
+import { ChargeResponseDto } from "./dto/charge-response.dto";
 @ApiTags("bookings")
 @Controller("bookings")
 export class BookingsController {
   constructor(
     private readonly bookingsService: BookingsService,
-    private readonly bookingSplitService: BookingSplitService
+    private readonly bookingSplitService: BookingSplitService,
+    private readonly bookingChargeService: BookingChargeService
   ) {}
 
   @Post()
@@ -183,5 +187,34 @@ export class BookingsController {
     @CurrentUser() user: RequestUser
   ): Promise<SharePaymentIntentDto> {
     return this.bookingSplitService.createSharePaymentIntent(id, shareId, user.id, body.method);
+  }
+
+  @Post(":id/charge/pay")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Create a payment intent for a reschedule top-up charge" })
+  @ApiOkResponse({ type: ChargeResponseDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiBadRequestResponse({ description: "Invalid charge request" })
+  @ApiNotFoundResponse({ description: "Booking not found" })
+  createChargeIntent(
+    @Param("id") id: string,
+    @Body() body: CreateChargePaymentDto,
+    @CurrentUser() user: RequestUser
+  ): Promise<ChargeResponseDto> {
+    return this.bookingChargeService.createChargeIntent(id, user.id, body.method);
+  }
+
+  @Patch(":id/charge/mark-paid")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Mark a top-up charge as paid (demo)" })
+  @ApiOkResponse({ type: ChargeResponseDto })
+  @ApiUnauthorizedResponse({ description: "Authentication required" })
+  @ApiBadRequestResponse({ description: "Invalid charge request" })
+  @ApiNotFoundResponse({ description: "Booking not found" })
+  markChargePaidForUser(
+    @Param("id") id: string,
+    @CurrentUser() user: RequestUser
+  ): Promise<ChargeResponseDto> {
+    return this.bookingChargeService.markChargePaidForUser(id, user.id);
   }
 }

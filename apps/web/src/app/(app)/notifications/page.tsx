@@ -11,29 +11,8 @@ import {
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
-
-function formatRelativeTime(dateString: string) {
-  const d = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return "Just now";
-  
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `${diffInDays}d ago`;
-  
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-  });
-}
+import { formatRelativeTime } from "@/lib/format";
+import { NotificationIcon } from "@/components/shared/notification-icon";
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -171,11 +150,12 @@ export default function NotificationsPage() {
                   !n.isRead ? "border-white/[0.06] bg-[#0C1B26]" : "border-white/[0.03] bg-white/[0.01]"
                 } hover:bg-white/[0.03]`}
               >
-                {!n.isRead ? (
-                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#E6FA50]" />
-                ) : (
-                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-transparent" />
-                )}
+                <div className="relative shrink-0">
+                  <NotificationIcon type={n.type} />
+                  {!n.isRead && (
+                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-[#E6FA50]" />
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className={`label ${!n.isRead ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{n.title}</p>
                   <p className={`caption mt-1 ${!n.isRead ? "text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>
