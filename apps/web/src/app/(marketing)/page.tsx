@@ -295,7 +295,7 @@ export default async function HomePage() {
               </div>
 
               {/* Stats row — full width, 3 equal columns */}
-              <div className="mt-10 grid max-w-md grid-cols-3">
+              <div className="mt-10 grid w-full max-w-md grid-cols-3">
                 <div>
                   <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}</p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
