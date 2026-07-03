@@ -1,9 +1,10 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { Prisma, VenueStatus, CourtType } from "@prisma/client";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, Logger } from "@nestjs/common";
+import { Prisma, VenueStatus, CourtType, NotificationType, UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { VenueResponseDto } from "./dto/venue-response.dto";
 import { CreateVenueDto } from "./dto/create-venue.dto";
 import { UpdateVenueDto } from "./dto/update-venue.dto";
+import { NotificationsService } from "../notifications/notifications.service";
 
 const venueSelect = {
   id: true,
@@ -39,7 +40,11 @@ type SelectedVenue = Omit<VenueResponseDto, "rating" | "courtCount" | "priceFrom
 
 @Injectable()
 export class VenuesService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(VenuesService.name);
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async findApprovedVenues(filters?: { q?: string; city?: string; priceMin?: string; priceMax?: string; rating?: string; facilities?: string; type?: string }): Promise<VenueResponseDto[]> {
     const where: Prisma.VenueWhereInput = { status: VenueStatus.APPROVED };
@@ -207,6 +212,30 @@ export class VenuesService {
     return slug;
   }
 
+  private async notifySuperAdminsVenueSubmitted(ownerId: string, venueName: string): Promise<void> {
+    try {
+      const superAdmins = await this.prisma.user.findMany({
+        where: { role: UserRole.SUPER_ADMIN },
+        select: { id: true },
+      });
+      await Promise.all(
+        superAdmins
+          .filter((a) => a.id !== ownerId)
+          .map((a) =>
+            this.notifications.createNotification({
+              userId: a.id,
+              type: NotificationType.VENUE_SUBMITTED,
+              title: "New venue submitted",
+              body: `A new venue "${venueName}" is awaiting approval.`,
+              linkUrl: `/admin/venues`,
+            })
+          )
+      );
+    } catch (err) {
+      this.logger.warn(`Failed to emit venue-submitted notifications: ${String(err)}`);
+    }
+  }
+
   async findVenuesForManagement(userId: string, isSuperAdmin: boolean): Promise<VenueResponseDto[]> {
     const where = isSuperAdmin ? {} : { OR: [{ ownerId: userId }, { admins: { some: { userId } } }] };
     const venues = await this.prisma.venue.findMany({
@@ -240,6 +269,7 @@ export class VenuesService {
         },
         select: venueSelect,
       });
+      await this.notifySuperAdminsVenueSubmitted(userId, venue.name);
       return this.toVenueResponse(venue);
     } catch (error: unknown) {
       if (error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "P2002") {

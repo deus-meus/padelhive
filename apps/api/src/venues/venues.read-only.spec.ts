@@ -7,7 +7,8 @@ import { AvailabilityService } from "./availability.service";
 describe("Read-only venues API", () => {
   it("queries approved venues only for venue list", async () => {
     const prisma = { venue: { findMany: jest.fn().mockResolvedValue([]) } };
-    const service = new VenuesService(prisma as never);
+    const notifications = { createNotification: jest.fn() };
+    const service = new VenuesService(prisma as never, notifications as never);
 
     await service.findApprovedVenues();
 
@@ -38,7 +39,8 @@ describe("Read-only venues API", () => {
       _count: { courts: 2 },
     };
     const prisma = { venue: { findFirst: jest.fn().mockResolvedValue(venue) } };
-    const service = new VenuesService(prisma as never);
+    const notifications = { createNotification: jest.fn() };
+    const service = new VenuesService(prisma as never, notifications as never);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { courts, _count, ...expectedVenue } = venue;
@@ -57,7 +59,8 @@ describe("Read-only venues API", () => {
 
   it("returns 404 for missing or non-approved venue detail", async () => {
     const prisma = { venue: { findFirst: jest.fn().mockResolvedValue(null) } };
-    const service = new VenuesService(prisma as never);
+    const notifications = { createNotification: jest.fn() };
+    const service = new VenuesService(prisma as never, notifications as never);
 
     await expect(service.findApprovedVenueById("venue-pending")).rejects.toThrow(NotFoundException);
   });
