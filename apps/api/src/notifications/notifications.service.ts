@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationType } from "@prisma/client";
+import { MailService } from "../mail/mail.service";
 
 export type CreateNotificationInput = {
   userId: string;
@@ -10,13 +11,28 @@ export type CreateNotificationInput = {
   linkUrl?: string;
 };
 
+const EMAIL_NOTIFICATION_TYPES = new Set<NotificationType>([
+  NotificationType.BOOKING_CONFIRMED,
+  NotificationType.BOOKING_CANCELLED,
+  NotificationType.PAYMENT_SUCCESS,
+  NotificationType.PAYMENT_FAILED,
+  NotificationType.REFUND_REQUESTED,
+  NotificationType.REFUND_APPROVED,
+  NotificationType.REFUND_REJECTED,
+  NotificationType.REFUND_PROCESSED,
+  NotificationType.BALANCE_DUE,
+]);
+
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailService: MailService
+  ) {}
 
   // Generic creator — will be used by other services in a later PR to emit notifications.
   async createNotification(input: CreateNotificationInput) {
-    return this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: input.userId,
         type: input.type,
@@ -25,6 +41,30 @@ export class NotificationsService {
         linkUrl: input.linkUrl,
       },
     });
+
+    if (EMAIL_NOTIFICATION_TYPES.has(input.type)) {
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { id: input.userId },
+          select: { email: true, name: true },
+        });
+
+        if (user && user.email) {
+          await this.mailService.sendNotificationEmail({
+            to: user.email,
+            toName: user.name ?? undefined,
+            type: input.type,
+            title: input.title,
+            body: input.body,
+            linkUrl: input.linkUrl,
+          });
+        }
+      } catch (err) {
+        // best effort, swallow db error
+      }
+    }
+
+    return notification;
   }
 
   async findMyNotifications(userId: string) {
