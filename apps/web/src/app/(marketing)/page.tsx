@@ -259,13 +259,13 @@ export default async function HomePage() {
 
             {/* Content */}
             <div className="flex flex-col justify-center">
-              <p className="body-lg max-w-md text-[#F7F7F7]/60">
+              <p className="body-lg text-[#F7F7F7]/60">
                 Padelhive is where Indonesia&apos;s padel community lives.
                 Join open matches, find partners at your level, split costs,
                 and grow your network.
               </p>
 
-              {/* Avatar stack — stacked vertically */}
+              {/* Avatar stack — always show 5 slots */}
               <div className="mt-8 flex flex-col gap-2">
                 <div className="flex -space-x-2">
                   {Array.from({ length: 5 }).map((_, i) => {
@@ -294,7 +294,7 @@ export default async function HomePage() {
                 </p>
               </div>
 
-              {/* Stats row */}
+              {/* Stats row — full width, 3 equal columns */}
               <div className="mt-10 grid w-full grid-cols-3">
                 <div>
                   <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}</p>
