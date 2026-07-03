@@ -25,14 +25,14 @@ describe("BookingChargeService", () => {
   });
 
   describe("createChargeIntent", () => {
-    it("returns idempotent intent if already midtrans with ref/url", async () => {
+    it("returns idempotent intent if charge already has ref/url regardless of provider", async () => {
       prismaMock.booking.findFirst.mockResolvedValue({ id: "booking-1" });
       const existingCharge = {
         id: "charge-1",
         bookingId: "booking-1",
         amount: 20000,
         status: PaymentStatus.PENDING,
-        provider: "midtrans",
+        provider: "stripe",
         method: "card",
         providerReference: "charge-1",
         providerRedirectUrl: "http://redirect",

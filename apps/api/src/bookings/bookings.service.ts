@@ -327,55 +327,59 @@ export class BookingsService {
       });
 
       if (createPartialRefund) {
-        await this.safeNotify({
-          userId: hostUserId,
-          type: NotificationType.REFUND_REQUESTED,
-          title: "Refund under review",
-          body: `We are processing your refund of Rp ${refundAmount.toLocaleString("id-ID")} for the reschedule price difference.`,
-          linkUrl: `/bookings?tab=refunds`,
-        });
+        try {
+          await this.safeNotify({
+            userId: hostUserId,
+            type: NotificationType.REFUND_REQUESTED,
+            title: "Refund under review",
+            body: `We are processing your refund of Rp ${refundAmount.toLocaleString("id-ID")} for the reschedule price difference.`,
+            linkUrl: `/bookings?tab=refunds`,
+          });
 
-        const superAdmins = await this.prisma.user.findMany({
-          where: { role: UserRole.SUPER_ADMIN },
-          select: { id: true },
-        });
-        const superAdminIds = new Set(superAdmins.map((a) => a.id));
-        await Promise.all(
-          superAdmins
-            .filter((a) => a.id !== hostUserId)
-            .map((a) =>
-              this.safeNotify({
-                userId: a.id,
-                type: NotificationType.REFUND_REQUESTED,
-                title: "New refund request",
-                body: "A partial refund from reschedule is awaiting review.",
-                linkUrl: `/admin/refunds`,
-              })
-            )
-        );
-
-        const venueData = await this.prisma.venue.findUnique({
-          where: { id: booking.venueId },
-          select: { name: true, ownerId: true, admins: { select: { userId: true } } },
-        });
-        if (venueData) {
-          const venueTeamIds = new Set([
-            venueData.ownerId,
-            ...venueData.admins.map((admin) => admin.userId),
-          ]);
+          const superAdmins = await this.prisma.user.findMany({
+            where: { role: UserRole.SUPER_ADMIN },
+            select: { id: true },
+          });
+          const superAdminIds = new Set(superAdmins.map((a) => a.id));
           await Promise.all(
-            Array.from(venueTeamIds)
-              .filter((id) => id !== hostUserId && !superAdminIds.has(id))
-              .map((id) =>
+            superAdmins
+              .filter((a) => a.id !== hostUserId)
+              .map((a) =>
                 this.safeNotify({
-                  userId: id,
+                  userId: a.id,
                   type: NotificationType.REFUND_REQUESTED,
                   title: "New refund request",
-                  body: `A partial refund from reschedule for ${venueData.name} needs review.`,
-                  linkUrl: `/dashboard/refunds`,
+                  body: "A partial refund from reschedule is awaiting review.",
+                  linkUrl: `/admin/refunds`,
                 })
               )
           );
+
+          const venueData = await this.prisma.venue.findUnique({
+            where: { id: booking.venueId },
+            select: { name: true, ownerId: true, admins: { select: { userId: true } } },
+          });
+          if (venueData) {
+            const venueTeamIds = new Set([
+              venueData.ownerId,
+              ...venueData.admins.map((admin) => admin.userId),
+            ]);
+            await Promise.all(
+              Array.from(venueTeamIds)
+                .filter((id) => id !== hostUserId && !superAdminIds.has(id))
+                .map((id) =>
+                  this.safeNotify({
+                    userId: id,
+                    type: NotificationType.REFUND_REQUESTED,
+                    title: "New refund request",
+                    body: `A partial refund from reschedule for ${venueData.name} needs review.`,
+                    linkUrl: `/dashboard/refunds`,
+                  })
+                )
+            );
+          }
+        } catch (err) {
+          this.logger.warn(`Best-effort reschedule refund notifications failed for booking ${booking.id}: ${String(err)}`);
         }
       }
 
