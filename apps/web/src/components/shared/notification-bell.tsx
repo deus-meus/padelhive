@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { formatRelativeTime } from "@/lib/format";
 import { NotificationIcon } from "@/components/shared/notification-icon";
+import { useNotificationStream } from "@/hooks/use-notification-stream";
 
 export function NotificationBell({ enabled }: { enabled: boolean }) {
   const router = useRouter();
@@ -21,12 +22,14 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
   const [open, setOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
 
+  useNotificationStream(enabled);
+
   const { data: unreadCount = 0 } = useQuery({
     queryKey: queryKeys.notifications.unreadCount(),
     queryFn: getUnreadNotificationCount,
     enabled,
     staleTime: 30_000,
-    refetchInterval: 60_000,
+    refetchInterval: 300_000,
   });
 
   const { data: notifications, isLoading } = useQuery({
