@@ -1,8 +1,8 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
 import { Redis } from 'ioredis';
 
 @Injectable()
-export class RedisService implements OnModuleInit, OnModuleDestroy {
+export class RedisService implements OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   public readonly isEnabled: boolean;
 
@@ -11,32 +11,28 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   constructor() {
     this.isEnabled = Boolean(process.env.REDIS_URL);
-  }
 
-  onModuleInit() {
-    if (!this.isEnabled) {
-      return;
+    if (this.isEnabled) {
+      const redisUrl = process.env.REDIS_URL!;
+      
+      // Create publisher connection
+      this.publisher = new Redis(redisUrl, {
+        maxRetriesPerRequest: null,
+        lazyConnect: false,
+      });
+      this.publisher.on('error', (err) => {
+        this.logger.error(`Redis publisher error: ${err.message}`);
+      });
+
+      // Create subscriber connection
+      this.subscriber = new Redis(redisUrl, {
+        maxRetriesPerRequest: null,
+        lazyConnect: false,
+      });
+      this.subscriber.on('error', (err) => {
+        this.logger.error(`Redis subscriber error: ${err.message}`);
+      });
     }
-
-    const redisUrl = process.env.REDIS_URL!;
-    
-    // Create publisher connection
-    this.publisher = new Redis(redisUrl, {
-      maxRetriesPerRequest: null,
-      lazyConnect: false,
-    });
-    this.publisher.on('error', (err) => {
-      this.logger.error(`Redis publisher error: ${err.message}`);
-    });
-
-    // Create subscriber connection
-    this.subscriber = new Redis(redisUrl, {
-      maxRetriesPerRequest: null,
-      lazyConnect: false,
-    });
-    this.subscriber.on('error', (err) => {
-      this.logger.error(`Redis subscriber error: ${err.message}`);
-    });
   }
 
   async onModuleDestroy() {

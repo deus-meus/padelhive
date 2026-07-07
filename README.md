@@ -41,7 +41,7 @@ docker-compose.yml   # local PostgreSQL
 - **API:** `npm run api:dev`
 - **Web:** `npm run dev`
 
-**Local Redis test:** run `docker run -p 6379:6379 redis:7`, set `REDIS_URL=redis://localhost:6379` in `apps/api/.env`, start two api instances on different ports, open an SSE stream against each, trigger a notification, and confirm BOTH receive it; then unset `REDIS_URL` and confirm the app still boots and SSE works single-instance.
+**Local Redis test:** run `docker compose --profile redis up -d redis` (or `docker run -p 6379:6379 redis:7` as a fallback for non-compose users), set `REDIS_URL=redis://localhost:6379` in `apps/api/.env`, start two api instances on different ports, open an SSE stream against each, trigger a notification, and confirm BOTH receive it; then unset `REDIS_URL` and confirm the app still boots and SSE works single-instance.
 
 ## Testing
 - **API unit tests:** `npm run test -w @padelhive/api`
