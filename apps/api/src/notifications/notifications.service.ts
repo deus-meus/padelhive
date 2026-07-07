@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationType, Notification } from "@prisma/client";
 import { MailService } from "../mail/mail.service";
 import { Subject, Observable } from "rxjs";
 import { filter, map } from "rxjs/operators";
+import { RedisService } from "../redis/redis.service";
 
 export type CreateNotificationInput = {
   userId: string;
@@ -26,13 +27,28 @@ const EMAIL_NOTIFICATION_TYPES = new Set<NotificationType>([
 ]);
 
 @Injectable()
-export class NotificationsService {
+export class NotificationsService implements OnModuleInit {
   private readonly notificationStream = new Subject<{ userId: string; notification: Notification }>();
+  private readonly NOTIFICATIONS_CHANNEL = "notifications:stream";
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly redis: RedisService
   ) {}
+
+  async onModuleInit() {
+    if (this.redis.isEnabled) {
+      await this.redis.subscribe(this.NOTIFICATIONS_CHANNEL, (message) => {
+        try {
+          const parsed = JSON.parse(message);
+          this.notificationStream.next(parsed);
+        } catch (err) {
+          // ignore
+        }
+      });
+    }
+  }
 
   // Generic creator — will be used by other services in a later PR to emit notifications.
   async createNotification(input: CreateNotificationInput) {
@@ -46,7 +62,18 @@ export class NotificationsService {
       },
     });
 
-    this.notificationStream.next({ userId: input.userId, notification });
+    if (this.redis.isEnabled) {
+      try {
+        await this.redis.publish(
+          this.NOTIFICATIONS_CHANNEL,
+          JSON.stringify({ userId: input.userId, notification })
+        );
+      } catch (err) {
+        this.notificationStream.next({ userId: input.userId, notification });
+      }
+    } else {
+      this.notificationStream.next({ userId: input.userId, notification });
+    }
 
     if (EMAIL_NOTIFICATION_TYPES.has(input.type)) {
       try {
