@@ -21,11 +21,23 @@ import { ThrottlerModule } from "@nestjs/throttler";
 
 import { UploadsModule } from "./uploads/uploads.module";
 import { StatsModule } from "./stats/stats.module";
+import { RedisModule } from "./redis/redis.module";
+import { RedisService } from "./redis/redis.service";
+import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 10 }]),
+    ThrottlerModule.forRootAsync({
+      inject: [RedisService],
+      useFactory: (redis: RedisService) => ({
+        throttlers: [{ ttl: 60000, limit: 10 }],
+        storage: redis.isEnabled && redis.getPublisher()
+          ? new ThrottlerStorageRedisService(redis.getPublisher() as any)
+          : undefined,
+      }),
+    }),
     ScheduleModule.forRoot(),
+    RedisModule,
     PrismaModule,
     AuthModule,
     UsersModule,
