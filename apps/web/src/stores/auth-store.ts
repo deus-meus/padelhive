@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { onAuthStateChanged } from "firebase/auth";
+import { onIdTokenChanged } from "firebase/auth";
 import { firebaseAuth } from "@/lib/firebase";
 import {
   signInWithGoogle as authSignInWithGoogle,
@@ -48,9 +48,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: () => {
     if (get().isInitialized) return;
 
-    onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
+    onIdTokenChanged(firebaseAuth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
+          // Force refreshing token triggers verification check
+          await firebaseUser.getIdToken(true);
           const backendUser = await getMe();
           set({
             user: {
@@ -60,7 +62,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             },
           });
         } catch (error) {
-          console.error("Failed to fetch user from backend", error);
+          console.error("Failed to fetch user from backend or refresh token", error);
           set({ user: null });
         }
       } else {
