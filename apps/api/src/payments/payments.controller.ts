@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -17,6 +17,7 @@ import { CreatePaymentIntentDto } from "./dto/create-payment-intent.dto";
 import { PaymentResponseDto } from "./dto/payment-response.dto";
 import { MidtransWebhookDto } from "./dto/midtrans-webhook.dto";
 import { PaymentsService } from "./payments.service";
+import { ThrottlerGuard } from "@nestjs/throttler";
 
 @ApiTags("payments")
 @Controller("payments")
@@ -61,6 +62,7 @@ export class PaymentsController {
 
   @Post("webhook")
   @Public()
+  @UseGuards(ThrottlerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Midtrans webhook handler" })
   @ApiOkResponse({ description: "Webhook processed" })
