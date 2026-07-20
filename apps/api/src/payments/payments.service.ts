@@ -214,6 +214,11 @@ export class PaymentsService {
         data: { status: BookingStatus.CONFIRMED, expiresAt: null },
       });
 
+      await tx.bookingCharge.updateMany({
+        where: { bookingId: payment.bookingId, reason: "Refund Protection Insurance", status: PaymentStatus.PENDING },
+        data: { status: PaymentStatus.PAID, paidAt: new Date(), method: payment.method },
+      });
+
       return tx.payment.update({
         where: { id: payment.id },
         data: { status: PaymentStatus.PAID, paidAt: new Date() },
@@ -383,6 +388,13 @@ export class PaymentsService {
           where: { id: payment.bookingId },
           data: { status: targetBookingStatus, expiresAt: null },
         });
+
+        if (targetPaymentStatus === PaymentStatus.PAID) {
+          await tx.bookingCharge.updateMany({
+            where: { bookingId: payment.bookingId, reason: "Refund Protection Insurance", status: PaymentStatus.PENDING },
+            data: { status: PaymentStatus.PAID, paidAt: new Date(), method: payment.method },
+          });
+        }
       }
     });
 

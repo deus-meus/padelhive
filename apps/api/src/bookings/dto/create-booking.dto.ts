@@ -18,4 +18,7 @@ export class CreateBookingDto {
 
   @ApiPropertyOptional({ example: "WELCOME10", description: "Optional voucher code to apply" })
   voucherCode?: string;
+
+  @ApiPropertyOptional({ example: true, description: "Whether user opt-in for Refund Protection Insurance" })
+  hasInsurance?: boolean;
 }
