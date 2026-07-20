@@ -143,6 +143,7 @@ export default function BookingFlowPage({
   const [appliedVoucher, setAppliedVoucher] = useState<{ code: string; discount: number } | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [voucherChecking, setVoucherChecking] = useState(false);
+  const [hasInsurance, setHasInsurance] = useState(false);
   
   const apiDateStr = useMemo(() => getIsoDateString(selectedDate), [selectedDate]);
   
@@ -228,7 +229,8 @@ export default function BookingFlowPage({
   const duration = selectedSlots.length;
 
   const platformFee = Math.round(totalPrice * 0.05);
-  const subtotalWithFee = totalPrice + platformFee;
+  const insuranceFee = hasInsurance ? 15000 : 0;
+  const subtotalWithFee = totalPrice + platformFee + insuranceFee;
   const discountedTotal = Math.max(0, subtotalWithFee - (appliedVoucher?.discount ?? 0));
 
   async function handleApplyVoucher() {
@@ -347,6 +349,7 @@ export default function BookingFlowPage({
       startsAt: startTime,
       endsAt: endTime,
       voucherCode: appliedVoucher?.code,
+      hasInsurance,
     });
   }
 
@@ -690,6 +693,16 @@ export default function BookingFlowPage({
                         : "—"}
                     </span>
                   </div>
+                  {hasInsurance && (
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="body-sm text-[#F7F7F7]/40">
+                        Refund Protection
+                      </span>
+                      <span className="body-sm text-[#F7F7F7]/60">
+                        Rp 15.000
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 border-t border-white/[0.06] pt-4">
@@ -699,10 +712,27 @@ export default function BookingFlowPage({
                     </span>
                     <span className="price text-[#F7F7F7]">
                       {totalPrice > 0
-                        ? `Rp ${(totalPrice * 1.05).toLocaleString("id-ID")}`
+                        ? `Rp ${(totalPrice * 1.05 + (hasInsurance ? 15000 : 0)).toLocaleString("id-ID")}`
                         : "—"}
                     </span>
                   </div>
+                </div>
+
+                <div className="mt-5 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4 space-y-2">
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={hasInsurance}
+                      onChange={(e) => setHasInsurance(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-white/[0.08] bg-[#0C1B26] text-[#E6FA50] focus:ring-0 focus:ring-offset-0"
+                    />
+                    <div className="flex flex-col">
+                      <span className="label text-[#F7F7F7]/80">Add Refund Protection</span>
+                      <span className="caption mt-0.5 text-[#F7F7F7]/40">
+                        Get 100% refund eligibility up to 2 hours before playing for Rp 15.000 flat.
+                      </span>
+                    </div>
+                  </label>
                 </div>
 
                 <div className="mt-5 space-y-3">

@@ -14,7 +14,10 @@ import {
   REFUND_WINDOW_MS, 
   REFUND_ELIGIBLE_REASON, 
   REFUND_ELIGIBLE_UNPAID_REASON, 
-  REFUND_INELIGIBLE_REASON 
+  REFUND_INELIGIBLE_REASON,
+  INSURANCE_REFUND_WINDOW_MS,
+  INSURANCE_REFUND_ELIGIBLE_REASON,
+  INSURANCE_REFUND_INELIGIBLE_REASON
 } from "../common/constants";
 
 type BookingFilter = "upcoming" | "past" | "cancelled";
@@ -47,6 +50,14 @@ const cancellableBookingSelect = {
     select: {
       id: true,
       amount: true,
+      status: true,
+    },
+  },
+  charges: {
+    select: {
+      id: true,
+      amount: true,
+      reason: true,
       status: true,
     },
   },
@@ -93,6 +104,7 @@ type CancellableBooking = {
   court: { id: string; name: string; type: CourtType };
   host: { id: string; name: string | null; email: string };
   payment: { id: string; amount: number; status: PaymentStatus } | null;
+  charges: { id: string; amount: number; reason: string; status: PaymentStatus }[];
 };
 
 type RefundDecision = {
@@ -177,12 +189,13 @@ export class BookingsService {
 
     const courtAmount = this.calculateCourtAmount(court, parsedTime.startsAt, parsedTime.durationMinutes);
     const platformFee = Math.round(courtAmount * PLATFORM_FEE_RATE);
-    const subtotal = courtAmount + platformFee;
+    const insuranceFee = body.hasInsurance ? 15000 : 0;
+    const subtotal = courtAmount + platformFee + insuranceFee;
 
     let voucherId: string | null = null;
     let voucherDiscount = 0;
     if (body.voucherCode) {
-      const priced = await this.vouchersService.priceVoucher(body.voucherCode, subtotal);
+      const priced = await this.vouchersService.priceVoucher(body.voucherCode, subtotal - insuranceFee);
       voucherId = priced.voucherId;
       voucherDiscount = priced.discount;
     }
@@ -209,6 +222,18 @@ export class BookingsService {
           },
           select: bookingSelect,
         });
+        if (body.hasInsurance) {
+          await tx.bookingCharge.create({
+            data: {
+              bookingId: created.id,
+              amount: insuranceFee,
+              reason: "Refund Protection Insurance",
+              status: PaymentStatus.PENDING,
+              provider: "midtrans",
+              method: "va",
+            },
+          });
+        }
         if (voucherId) {
           await tx.voucher.update({ where: { id: voucherId }, data: { usedCount: { increment: 1 } } });
         }
@@ -502,14 +527,19 @@ export class BookingsService {
   }
 
   private calculateRefundDecision(booking: CancellableBooking, now: Date): RefundDecision {
-    const isRefundEligible = booking.startsAt.getTime() - now.getTime() >= REFUND_WINDOW_MS;
+    const hasInsurance = booking.charges?.some(
+      (c) => c.reason === "Refund Protection Insurance" && c.status === PaymentStatus.PAID
+    );
+
+    const windowLimit = hasInsurance ? INSURANCE_REFUND_WINDOW_MS : REFUND_WINDOW_MS;
+    const isRefundEligible = booking.startsAt.getTime() - now.getTime() >= windowLimit;
     const hasPaidPayment = booking.payment?.status === PaymentStatus.PAID;
 
     if (isRefundEligible && hasPaidPayment) {
       return {
         isRefundEligible: true,
         refundAmount: booking.payment?.amount ?? 0,
-        refundPolicyReason: REFUND_ELIGIBLE_REASON,
+        refundPolicyReason: hasInsurance ? INSURANCE_REFUND_ELIGIBLE_REASON : REFUND_ELIGIBLE_REASON,
       };
     }
 
@@ -524,7 +554,7 @@ export class BookingsService {
     return {
       isRefundEligible: false,
       refundAmount: 0,
-      refundPolicyReason: REFUND_INELIGIBLE_REASON,
+      refundPolicyReason: hasInsurance ? INSURANCE_REFUND_INELIGIBLE_REASON : REFUND_INELIGIBLE_REASON,
     };
   }
 

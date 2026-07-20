@@ -79,6 +79,7 @@ export type CreateBookingInput = {
   startsAt: string;
   endsAt: string;
   voucherCode?: string;
+  hasInsurance?: boolean;
 };
 
 export type BookingSummary = ApiBooking;

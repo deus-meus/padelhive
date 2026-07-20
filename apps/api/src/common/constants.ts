@@ -4,3 +4,6 @@ export const REFUND_ELIGIBLE_REASON = "Full refund eligible: cancelled at least 
 export const REFUND_ELIGIBLE_UNPAID_REASON = "Full refund eligible, but no paid payment exists for this booking.";
 export const REFUND_INELIGIBLE_REASON = "Non-refundable: cancellations less than 24 hours before booking start are not eligible.";
 export const RESCHEDULE_CHARGE_TTL_MS = 24 * 60 * 60 * 1000;
+export const INSURANCE_REFUND_WINDOW_MS = 2 * 60 * 60 * 1000;
+export const INSURANCE_REFUND_ELIGIBLE_REASON = "Refund Protection: 100% refund eligible when cancelled at least 2 hours before booking start.";
+export const INSURANCE_REFUND_INELIGIBLE_REASON = "Non-refundable: cancellations less than 2 hours before booking start are not eligible.";
