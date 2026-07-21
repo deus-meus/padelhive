@@ -1,16 +1,17 @@
-import {
-  PrismaClient, UserRole, VenueStatus, CourtType,
-  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus
+import { PrismaClient, UserRole, VenueStatus, CourtType, 
+  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus 
 } from "@prisma/client";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 
-if (process.env.NODE_ENV === "production") {
-  console.error("Do not run this seed in production!");
-  process.exit(1);
-}
-
 const prisma = new PrismaClient();
+
+async function main() {
+  // Allow seeding in demo/production for test purposes
+  // if (process.env.NODE_ENV === "production") {
+  //   console.error("Do not run this seed in production!");
+  //   process.exit(1);
+  // }
 
 let firebaseEnabled = false;
 
@@ -281,10 +282,11 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
-    console.error(error);
+  .catch((e) => {
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
   });
+}
