@@ -9,4 +9,4 @@ echo "Running Prisma Seeder..."
 node prisma/seed.js
 
 echo "Starting API Server..."
-node dist/main.js
+node dist/src/main.js
