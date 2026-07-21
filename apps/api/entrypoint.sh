@@ -5,8 +5,7 @@ echo "Running Prisma Migrations..."
 npx prisma migrate deploy
 
 echo "Running Prisma Seeder..."
-# Compile seeder to JS and run it using pure node
-npx tsc prisma/seed.ts
+# Run the pre-compiled JS seeder
 node prisma/seed.js
 
 echo "Starting API Server..."
