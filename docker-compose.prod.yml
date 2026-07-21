@@ -59,12 +59,14 @@ services:
       # are embedded at build time, so only server-side env vars are strictly needed here.
 
   watchtower:
-    image: containrrr/watchtower
+    image: containrrr/watchtower:latest
     container_name: watchtower
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/ubuntu/.docker/config.json:/config.json
+    environment:
+      - DOCKER_API_VERSION=1.44
     command: --interval 60 padelhive_api padelhive_web
 
 volumes:
