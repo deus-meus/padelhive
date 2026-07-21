@@ -1,6 +1,5 @@
-import {
-  PrismaClient, UserRole, VenueStatus, CourtType,
-  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus
+import { PrismaClient, UserRole, VenueStatus, CourtType, 
+  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus 
 } from "@prisma/client";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
