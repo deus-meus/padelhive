@@ -3,6 +3,7 @@ import { NotificationsService } from "./notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { NotificationType, Notification } from "@prisma/client";
 import { MailService } from "../mail/mail.service";
+import { RedisService } from "../redis/redis.service";
 
 describe("NotificationsService", () => {
   let service: NotificationsService;
@@ -30,6 +31,14 @@ describe("NotificationsService", () => {
           provide: MailService,
           useValue: {
             sendNotificationEmail: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: RedisService,
+          useValue: {
+            isEnabled: false,
+            subscribe: jest.fn(),
+            publish: jest.fn(),
           },
         },
       ],

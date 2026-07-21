@@ -4,6 +4,8 @@ import request from "supertest";
 import { AppModule } from "../app.module";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { FirebaseAuthService } from "../auth/firebase-auth.service";
+import { PrismaService } from "../prisma/prisma.service";
+import { RedisService } from "../redis/redis.service";
 
 describe("Invites Throttling (e2e)", () => {
   let app: INestApplication;
@@ -16,6 +18,10 @@ describe("Invites Throttling (e2e)", () => {
     })
       .overrideProvider(FirebaseAuthService)
       .useValue({ verifyIdToken: jest.fn() })
+      .overrideProvider(PrismaService)
+      .useValue({ $connect: jest.fn(), onModuleInit: jest.fn(), onModuleDestroy: jest.fn(), invite: { findUnique: jest.fn() } })
+      .overrideProvider(RedisService)
+      .useValue({ isEnabled: false, getPublisher: jest.fn() })
       .compile();
 
     app = moduleFixture.createNestApplication<NestExpressApplication>();

@@ -38,7 +38,7 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     service = new BookingsService(
       prismaMock as any,
       vouchersMock as any,
-      {} as any,
+      { refundPaidShares: jest.fn() } as any,
       {} as any
     );
     safeNotifySpy = jest.spyOn(service as any, 'safeNotify').mockResolvedValue(undefined);

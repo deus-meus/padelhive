@@ -1,0 +1,41 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+RUN apk add --no-cache openssl
+
+# Copy monorepo root package files
+COPY package*.json ./
+COPY apps/api/package*.json ./apps/api/
+COPY apps/web/package*.json ./apps/web/
+
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Generate Prisma and build the API
+RUN npm run prisma:generate -w @padelhive/api
+RUN npm run build -w @padelhive/api
+
+# Create production image
+FROM node:20-alpine
+
+WORKDIR /app
+RUN apk add --no-cache openssl
+
+# Copy built artifacts and node_modules from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/apps/api/package*.json ./apps/api/
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+
+# Entrypoint script for migrations, seeding, and starting
+COPY apps/api/entrypoint.sh /app/apps/api/entrypoint.sh
+RUN chmod +x /app/apps/api/entrypoint.sh
+
+WORKDIR /app/apps/api
+
+EXPOSE 3001
+
+ENTRYPOINT ["./entrypoint.sh"]
