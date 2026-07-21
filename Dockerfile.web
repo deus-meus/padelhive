@@ -43,11 +43,17 @@ COPY --from=builder /app/apps/web/public* ./apps/web/public/
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
-USER nextjs
-
-EXPOSE 3000
+# IMPORTANT: Setting HOSTNAME to 0.0.0.0 ensures server listens on all interfaces
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
+# Fix for Next.js 14+ Server Actions issue in standalone mode:
+# Ensuring execution happens from the right working directory where the standalone bundle lives
+WORKDIR /app/apps/web
+
+USER nextjs
+
+EXPOSE 3000
+
 # Start the standalone server (from Next.js output standalone feature)
-CMD ["node", "apps/web/server.js"]
+CMD ["node", "server.js"]
