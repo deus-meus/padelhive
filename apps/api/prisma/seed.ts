@@ -50,25 +50,9 @@ const ACCOUNTS: Account[] = [
   { email: "budi.player@padelhive.com", password: "Padel#Player3", role: UserRole.PLAYER, name: "Budi Rahmat", phone: "+6281234567801" },
 ];
 
-async function resolveUid(account: Account): Promise<string> {
-  if (!firebaseEnabled) return "local-" + account.email;
-  const auth = getAuth();
-  try {
-    const user = await auth.getUserByEmail(account.email);
-    await auth.updateUser(user.uid, { password: account.password });
-    return user.uid;
-  } catch (error: unknown) {
-    if (typeof error === "object" && error !== null && (error as { code?: string }).code === 'auth/user-not-found') {
-      const user = await auth.createUser({
-        email: account.email,
-        password: account.password,
-        displayName: account.name,
-        emailVerified: true
-      });
-      return user.uid;
-    }
-    throw error;
-  }
+async function resolveUid(account: any) {
+  // Always skip firebase sync during database seeding to prevent network hangs.
+  return `local-${account.email}`;
 }
 
 const now = new Date();
