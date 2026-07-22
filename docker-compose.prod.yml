@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -12,7 +12,11 @@ services:
     volumes:
       - padelhive_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-padelhive}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-padelhive}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,28 +27,27 @@ services:
     restart: unless-stopped
     volumes:
       - padelhive_redisdata:/data
-    api:
-      build:
-        context: .
-        dockerfile: Dockerfile.api
-      container_name: padelhive_api
-      restart: unless-stopped
-      ports:
-        - "3001:3001"
-      depends_on:
-        postgres:
-          condition: service_healthy
-        redis:
-          condition: service_started
-      volumes:
-        - ./firebase-credentials.json:/app/firebase-credentials.json
-      env_file:
-        - .env
-      environment:
-        - NODE_ENV=production
-        - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-padelhive}?schema=public
-        - REDIS_URL=redis://redis:6379
-        - GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-credentials.json
+
+  api:
+    image: ghcr.io/${GH_OWNER}/padelhive-api:latest
+    container_name: padelhive_api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./firebase-credentials.json:/app/firebase-credentials.json
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-padelhive}?schema=public
+      - REDIS_URL=redis://redis:6379
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-credentials.json
 
   web:
     image: ghcr.io/${GH_OWNER}/padelhive-web:latest
@@ -58,7 +61,7 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      # In production, Next.js runs in standalone mode; env vars for browser (NEXT_PUBLIC_*) 
+      # In production, Next.js runs in standalone mode; env vars for browser (NEXT_PUBLIC_*)
       # are embedded at build time, so only server-side env vars are strictly needed here.
 
   watchtower:
