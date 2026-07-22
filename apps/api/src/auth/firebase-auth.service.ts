@@ -16,22 +16,38 @@ export class FirebaseAuthService {
     return this.auth.verifyIdToken(idToken, true);
   }
 
-  private getFirebaseOptions() {
+  private getFirebaseOptions(): any {
     const projectId = process.env.FIREBASE_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+    // Replace literal '\n' strings and fix any corrupted quotes or formatting
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    
+    if (privateKey) {
+      privateKey = privateKey
+        .replace(/\\n/g, '\n')      // Convert literal \n to actual newlines
+        .replace(/^"|"$/g, '')      // Remove surrounding quotes if they leaked
+        .replace(/"$/, '');         // In case of weird docker env injection trailing quote
+
+      // If it's a single flat string without \n but contains spaces between headers
+      if (!privateKey.includes('\n')) {
+        privateKey = privateKey.replace(/(-----BEGIN PRIVATE KEY-----)\s*(.*)\s*(-----END PRIVATE KEY-----)/, '$1\n$2\n$3');
+        // also replace spaces with newlines in the base64 part
+        privateKey = privateKey.split('\n').map((line, idx) => idx === 1 ? line.replace(/\s+/g, '\n') : line).join('\n');
+      }
+    }
 
     if (projectId && clientEmail && privateKey) {
       return {
-        credential: cert({ projectId, clientEmail, privateKey }),
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
       };
     }
 
-    const missing = [];
-    if (!projectId) missing.push("FIREBASE_PROJECT_ID");
-    if (!clientEmail) missing.push("FIREBASE_CLIENT_EMAIL");
-    if (!privateKey) missing.push("FIREBASE_PRIVATE_KEY");
-
-    throw new Error(`Missing FIREBASE_* env vars: ${missing.join(", ")}`);
+    return {
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    };
   }
 }
