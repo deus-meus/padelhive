@@ -22,6 +22,13 @@ export class FirebaseAuthService {
     // Replace literal '\n' strings and fix any corrupted quotes or formatting
     let privateKey = process.env.FIREBASE_PRIVATE_KEY;
     
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      // If the path is specified, cert() will automatically load and parse the JSON file!
+      return {
+        credential: cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
+      };
+    }
+
     if (privateKey) {
       privateKey = privateKey
         .replace(/\\n/g, '\n')      // Convert literal \n to actual newlines
