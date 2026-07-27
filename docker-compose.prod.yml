@@ -50,11 +50,7 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-credentials.json
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-      args:
-        NEXT_PUBLIC_API_URL: "http://101.32.126.104:3001/api"
+    image: ghcr.io/${GH_OWNER}/padelhive-web:latest
     container_name: padelhive_web
     restart: unless-stopped
     ports:
