@@ -470,7 +470,7 @@ function CityBlock({
 function Step({ number, title, description }: { number: string; title: string; description: string }) {
   return (
     <div className="group flex gap-8 py-8 md:gap-12 md:py-10">
-      <span className="display-lg text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20">
+      <span className="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
         {number}
       </span>
       <div className="flex flex-col justify-center">
