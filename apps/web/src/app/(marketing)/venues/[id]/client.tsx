@@ -487,11 +487,7 @@ export default function VenueDetailPage({
                     </div>
                   ))}
                 </div>
-              ) : isReviewsError ? (
-                <div className="mt-4">
-                  <ErrorBanner title="Couldn't load reviews" onRetry={() => refetchReviews()} isRetrying={isFetchingReviews} />
-                </div>
-              ) : !reviews || reviews.length === 0 ? (
+              ) : isReviewsError || !reviews || reviews.length === 0 ? (
                 <div className="mt-4">
                   <EmptyState icon={Star} title="No reviews yet" description="Be the first to review this venue after your visit." actionLabel="Book a court" actionHref={`/venues/${venue.id}/book`} />
                 </div>

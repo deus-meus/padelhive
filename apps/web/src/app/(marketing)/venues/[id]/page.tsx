@@ -3,7 +3,7 @@ import { queryKeys } from "@/lib/queries";
 import { getVenue, getVenueCourts, getVenues } from "@/lib/api";
 import VenueDetailClient from "./client";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type Params = { id: string };
 
