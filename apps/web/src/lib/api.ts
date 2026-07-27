@@ -3,7 +3,7 @@ import { formatShortDate } from "@/lib/format";
 import { Court, Venue, Voucher } from "@/types";
 import { getIdToken } from "@/lib/auth-client";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+export const API_URL = "http://101.32.126.104:3001/api";
 
 type ApiVenue = {
   id: string;
