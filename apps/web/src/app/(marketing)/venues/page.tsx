@@ -1,13 +1,14 @@
 import { Suspense } from "react";
 import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
+import { Metadata } from "next";
 import { getVenues } from "@/lib/api";
 import VenuesClient from "./client";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Venues | PadelHive",
   description: "Find and book padel courts across Indonesia.",
 };
