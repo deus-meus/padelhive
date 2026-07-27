@@ -1,45 +1,8 @@
-import { PrismaClient, UserRole, VenueStatus, CourtType, 
-  BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus 
-} from "@prisma/client";
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
+import { PrismaClient, UserRole, VenueStatus, CourtType, BookingStatus, PaymentStatus, InviteStatus, RefundStatus, VoucherType, SplitShareStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  // Allow seeding in demo/production for test purposes
-  // if (process.env.NODE_ENV === "production") {
-  //   console.error("Do not run this seed in production!");
-  //   process.exit(1);
-  // }
-
-let firebaseEnabled = false;
-
-try {
-  if (!getApps().length) {
-    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-      initializeApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        })
-      });
-      firebaseEnabled = true;
-    } else if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-      initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID || 'padelhive' });
-      firebaseEnabled = true;
-    }
-  } else {
-    firebaseEnabled = true;
-  }
-} catch (error) {
-  console.warn("Firebase admin initialization failed, proceeding with local uids", error);
-}
-
-type Account = { email: string; password: string; role: UserRole; name: string; phone: string };
-
-const ACCOUNTS: Account[] = [
+const ACCOUNTS = [
   { email: "admin@padelhive.com", password: "Padel#Super1", role: UserRole.SUPER_ADMIN, name: "Admin Padelhive", phone: "+6281234567899" },
   { email: "budi.owner@padelhive.com", password: "Padel#Owner1", role: UserRole.VENUE_OWNER, name: "Budi Santoso", phone: "+6281234567892" },
   { email: "reza.owner@padelhive.com", password: "Padel#Owner2", role: UserRole.VENUE_OWNER, name: "Reza Hakim", phone: "+6281234567812" },
@@ -50,25 +13,8 @@ const ACCOUNTS: Account[] = [
   { email: "budi.player@padelhive.com", password: "Padel#Player3", role: UserRole.PLAYER, name: "Budi Rahmat", phone: "+6281234567801" },
 ];
 
-async function resolveUid(account: Account): Promise<string> {
-  if (!firebaseEnabled) return "local-" + account.email;
-  const auth = getAuth();
-  try {
-    const user = await auth.getUserByEmail(account.email);
-    await auth.updateUser(user.uid, { password: account.password });
-    return user.uid;
-  } catch (error: unknown) {
-    if (typeof error === "object" && error !== null && (error as { code?: string }).code === 'auth/user-not-found') {
-      const user = await auth.createUser({
-        email: account.email,
-        password: account.password,
-        displayName: account.name,
-        emailVerified: true
-      });
-      return user.uid;
-    }
-    throw error;
-  }
+async function resolveUid(account: any) {
+  return `local-${account.email}`;
 }
 
 const now = new Date();
@@ -79,14 +25,12 @@ function getWibMidnight(offsetDays: number): Date {
   return new Date(Date.UTC(wibDate.getUTCFullYear(), wibDate.getUTCMonth(), wibDate.getUTCDate()));
 }
 
-function getWibTime(offsetDays: number, hours: number, minutes: number = 0): Date {
+function getWibTime(offsetDays: number, hours: number, minutes = 0): Date {
   const midnight = getWibMidnight(offsetDays);
   return new Date(midnight.getTime() + (hours - 7) * 60 * 60 * 1000 + minutes * 60 * 1000);
 }
 
 async function main() {
-  console.log("Seeding with Firebase enabled:", firebaseEnabled);
-
   console.log("Wiping existing data...");
   await prisma.$transaction([
     prisma.refundEvent.deleteMany(),
@@ -188,6 +132,7 @@ async function main() {
 
   const courtA = await prisma.court.create({ data: { venueId: bali.id, name: "Court A", type: CourtType.OUTDOOR, weekdayPeak: 300000, weekdayOffPeak: 200000, weekendPeak: 400000, weekendOffPeak: 250000 } });
   await prisma.court.create({ data: { venueId: bali.id, name: "Court B", type: CourtType.OUTDOOR, weekdayPeak: 300000, weekdayOffPeak: 200000, weekendPeak: 400000, weekendOffPeak: 250000 } });
+
   const court1 = await prisma.court.create({ data: { venueId: jakarta.id, name: "Court 1", type: CourtType.INDOOR, weekdayPeak: 400000, weekdayOffPeak: 280000, weekendPeak: 500000, weekendOffPeak: 350000 } });
   await prisma.court.create({ data: { venueId: jakarta.id, name: "Court 2", type: CourtType.INDOOR, weekdayPeak: 400000, weekdayOffPeak: 280000, weekendPeak: 500000, weekendOffPeak: 350000 } });
   const courtUtama = await prisma.court.create({ data: { venueId: surabaya.id, name: "Court Utama", type: CourtType.INDOOR, weekdayPeak: 250000, weekdayOffPeak: 180000, weekendPeak: 350000, weekendOffPeak: 220000 } });
@@ -289,4 +234,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-}
