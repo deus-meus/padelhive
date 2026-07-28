@@ -65,8 +65,8 @@ jobs:
           tags: ${{ steps.meta-web.outputs.tags }}
           labels: ${{ steps.meta-web.outputs.labels }}
           build-args: |
-            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-            APP_WEB_URL=${{ secrets.APP_WEB_URL }}
+            NEXT_PUBLIC_API_URL=http://101.32.126.104:3001/api
+            APP_WEB_URL=http://101.32.126.104:3000
             NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=${{ secrets.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY }}
             NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION=${{ secrets.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION }}
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
