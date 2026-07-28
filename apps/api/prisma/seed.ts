@@ -131,12 +131,12 @@ async function main() {
   });
 
   const courtA = await prisma.court.create({ data: { venueId: bali.id, name: "Court A", type: CourtType.OUTDOOR, weekdayPeak: 300000, weekdayOffPeak: 200000, weekendPeak: 400000, weekendOffPeak: 250000 } });
-  await prisma.court.create({ data: { venueId: bali.id, name: "Court B", type: CourtType.OUTDOOR, weekdayPeak: 300000, weekdayOffPeak: 200000, weekendPeak: 400000, weekendOffPeak: 250000 } });
+  const courtB = await prisma.court.create({ data: { venueId: bali.id, name: "Court B", type: CourtType.OUTDOOR, weekdayPeak: 300000, weekdayOffPeak: 200000, weekendPeak: 400000, weekendOffPeak: 250000 } });
 
   const court1 = await prisma.court.create({ data: { venueId: jakarta.id, name: "Court 1", type: CourtType.INDOOR, weekdayPeak: 400000, weekdayOffPeak: 280000, weekendPeak: 500000, weekendOffPeak: 350000 } });
-  await prisma.court.create({ data: { venueId: jakarta.id, name: "Court 2", type: CourtType.INDOOR, weekdayPeak: 400000, weekdayOffPeak: 280000, weekendPeak: 500000, weekendOffPeak: 350000 } });
+  const court2 = await prisma.court.create({ data: { venueId: jakarta.id, name: "Court 2", type: CourtType.INDOOR, weekdayPeak: 400000, weekdayOffPeak: 280000, weekendPeak: 500000, weekendOffPeak: 350000 } });
   const courtUtama = await prisma.court.create({ data: { venueId: surabaya.id, name: "Court Utama", type: CourtType.INDOOR, weekdayPeak: 250000, weekdayOffPeak: 180000, weekendPeak: 350000, weekendOffPeak: 220000 } });
-  await prisma.court.create({ data: { venueId: surabaya.id, name: "Court Latihan", type: CourtType.OUTDOOR, weekdayPeak: 200000, weekdayOffPeak: 150000, weekendPeak: 280000, weekendOffPeak: 180000 } });
+  const courtLatihan = await prisma.court.create({ data: { venueId: surabaya.id, name: "Court Latihan", type: CourtType.OUTDOOR, weekdayPeak: 200000, weekdayOffPeak: 150000, weekendPeak: 280000, weekendOffPeak: 180000 } });
 
   console.log("Creating vouchers...");
   const v1 = await prisma.voucher.create({ data: { code: "WELCOME20", type: VoucherType.PERCENTAGE, value: 20, minPurchase: 200000, maxDiscount: 100000, usageLimit: 500, usedCount: 1, isActive: true, validFrom: getWibMidnight(-30), validUntil: getWibMidnight(30) } });
@@ -222,6 +222,59 @@ async function main() {
   await prisma.bookingSplitShare.create({
     data: { bookingId: bUpcoming.id, inviteId: iSari.id, userId: usersRecord["sari@example.com"].id, name: "Sari Dewi", amount: 126000, status: SplitShareStatus.PENDING }
   });
+
+  console.log("Creating reviews for completed bookings...");
+  const reviewsData = [
+    { venueId: bali.id, courtId: courtA.id, userId: usersRecord["andi@example.com"].id, name: "Andi Pratama", rating: 5, comment: "Fasilitas outdoor terbaik di Bali! View-nya mantap.", offset: -10 },
+    { venueId: bali.id, courtId: courtB.id, userId: usersRecord["sari@example.com"].id, name: "Sari Dewi", rating: 4, comment: "Asik buat main sore, tapi siang panas banget.", offset: -8 },
+    { venueId: bali.id, courtId: courtA.id, userId: usersRecord["budi.player@padelhive.com"].id, name: "Budi Rahmat", rating: 5, comment: "Kondisi lapangan sangat terawat. Top!", offset: -3 },
+
+    { venueId: jakarta.id, courtId: court1.id, userId: usersRecord["andi@example.com"].id, name: "Andi Pratama", rating: 4, comment: "Lokasi strategis di SCBD. Parkiran agak susah kalau malam.", offset: -7 },
+    { venueId: jakarta.id, courtId: court1.id, userId: usersRecord["sari@example.com"].id, name: "Sari Dewi", rating: 5, comment: "Lapangan sangat terawat dan fasilitas showernya bersih sekali! Akan rutin main di sini.", offset: -14 }, // Replaces the old single review
+    { venueId: jakarta.id, courtId: court2.id, userId: usersRecord["budi.player@padelhive.com"].id, name: "Budi Rahmat", rating: 5, comment: "AC dingin, lapangan indoor estetik. Cocok buat mabar pulang ngantor.", offset: -2 },
+
+    { venueId: surabaya.id, courtId: courtUtama.id, userId: usersRecord["andi@example.com"].id, name: "Andi Pratama", rating: 5, comment: "Akhirnya ada padel di Surabaya. Lapangannya standar internasional.", offset: -12 },
+    { venueId: surabaya.id, courtId: courtLatihan.id, userId: usersRecord["sari@example.com"].id, name: "Sari Dewi", rating: 4, comment: "Peralatan rentalnya lengkap dan bagus-bagus kondisinya.", offset: -6 },
+    { venueId: surabaya.id, courtId: courtUtama.id, userId: usersRecord["budi.player@padelhive.com"].id, name: "Budi Rahmat", rating: 5, comment: "Coach nya sangat profesional dan ramah untuk pemula.", offset: -1 },
+  ];
+
+  for (let i = 0; i < reviewsData.length; i++) {
+    const data = reviewsData[i];
+    // Create a completed booking for this review
+    const booking = await prisma.booking.create({
+      data: {
+        id: `booking-completed-review-${i}`,
+        hostUserId: data.userId,
+        venueId: data.venueId,
+        courtId: data.courtId,
+        bookingDate: getWibMidnight(data.offset),
+        startsAt: getWibTime(data.offset, 14, 0),
+        endsAt: getWibTime(data.offset, 16, 0),
+        durationMinutes: 120,
+        status: BookingStatus.COMPLETED,
+        courtAmount: 300000,
+        platformFee: 15000,
+        voucherDiscount: 0,
+        finalAmount: 315000,
+        completedAt: getWibTime(data.offset, 16, 0)
+      }
+    });
+
+    await prisma.payment.create({
+      data: { id: `payment-review-${i}`, bookingId: booking.id, status: PaymentStatus.PAID, provider: "midtrans", method: "qris", amount: 315000, paidAt: getWibTime(data.offset, 13, 30), providerReference: `MT-REV-${i}` }
+    });
+
+    await prisma.review.create({
+      data: {
+        venueId: data.venueId,
+        bookingId: booking.id,
+        authorId: data.userId,
+        rating: data.rating,
+        comment: data.comment,
+        createdAt: getWibTime(data.offset + 1, 9, 0) // Review posted the next morning
+      }
+    });
+  }
 
   console.log("Seeding complete!");
 }
