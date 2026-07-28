@@ -223,6 +223,18 @@ async function main() {
     data: { bookingId: bUpcoming.id, inviteId: iSari.id, userId: usersRecord["sari@example.com"].id, name: "Sari Dewi", amount: 126000, status: SplitShareStatus.PENDING }
   });
 
+  console.log("Creating reviews...");
+  await prisma.review.create({
+    data: {
+      venueId: jakarta.id,
+      bookingId: bCompleted.id,
+      authorId: usersRecord["sari@example.com"].id,
+      rating: 5,
+      comment: "Lapangan sangat terawat dan fasilitas showernya bersih sekali! Akan rutin main di sini.",
+      createdAt: getWibTime(-13, 8, 30)
+    }
+  });
+
   console.log("Seeding complete!");
 }
 
