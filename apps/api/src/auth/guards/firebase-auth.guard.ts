@@ -33,16 +33,23 @@ export class FirebaseAuthGuard implements CanActivate {
       throw new UnauthorizedException("Missing bearer token");
     }
 
+    let decodedToken;
     try {
-      const decodedToken = await this.firebaseAuthService.verifyIdToken(token);
-      request.user = await this.usersService.findOrCreateFromFirebaseToken(decodedToken);
-      return true;
+      decodedToken = await this.firebaseAuthService.verifyIdToken(token);
     } catch (error) {
-      if (error instanceof UnauthorizedException) throw error;
       const code = (error as { code?: string })?.code;
       const message = (error as { message?: string })?.message;
       this.logger.warn(`Firebase token verification failed: ${code ?? "unknown"} - ${message ?? "no message"}`);
       throw new UnauthorizedException("Invalid bearer token");
+    }
+
+    try {
+      request.user = await this.usersService.findOrCreateFromFirebaseToken(decodedToken);
+      return true;
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
+      this.logger.error(`Database error while fetching user from Firebase token: ${String(error)}`);
+      throw error; // This will bubble up as a 500 Internal Server Error (or Prisma's filter might handle it), keeping the user's session valid locally.
     }
   }
 
