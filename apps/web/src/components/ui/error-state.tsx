@@ -51,31 +51,7 @@ export function ErrorBanner({
   onRetry?: () => void;
   isRetrying?: boolean;
 }) {
-  const resolvedDescription = description ?? (error !== undefined ? getApiErrorMessage(error) : "Couldn't load data");
-
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
-          <p className="heading-3 text-[#F7F7F7]">{title}</p>
-        </div>
-        {resolvedDescription ? (
-          <p className="mt-1 pl-6 body-sm text-[#F7F7F7]/40">{resolvedDescription}</p>
-        ) : null}
-      </div>
-      {onRetry ? (
-        <button
-          onClick={onRetry}
-          disabled={isRetrying}
-          className="inline-flex h-9 shrink-0 items-center gap-2 self-start rounded-full border border-amber-400/30 bg-amber-400/10 px-4 label text-amber-300 transition-colors hover:bg-amber-400/20 disabled:opacity-50 sm:self-auto"
-        >
-          <RotateCw className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`} />
-          {isRetrying ? "Retrying" : "Try again"}
-        </button>
-      ) : null}
-    </div>
-  );
+  return null; // Disabled globally as per user request to only show empty states instead
 }
 
 export function EmptyState({
