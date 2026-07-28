@@ -17,22 +17,33 @@ export class UsersService {
 
     const name = decodedToken.name ?? email;
 
-    const user = await this.prisma.user.upsert({
-      where: { firebaseUid: decodedToken.uid },
-      update: { email, name },
-      create: {
-        firebaseUid: decodedToken.uid,
-        email,
-        name,
-        role: UserRole.PLAYER,
-      },
-    });
+    // First try to find by email to gracefully link manually seeded accounts
+    let user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      // If user exists but firebaseUid is outdated (e.g. from local seeds), update it
+      if (user.firebaseUid !== decodedToken.uid) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { firebaseUid: decodedToken.uid, name },
+        });
+      }
+    } else {
+      user = await this.prisma.user.create({
+        data: {
+          firebaseUid: decodedToken.uid,
+          email,
+          name,
+          role: UserRole.PLAYER,
+        },
+      });
+    }
 
     return {
       id: user.id,
       firebaseUid: user.firebaseUid,
       email: user.email,
-      name: user.name,
+      name: user.name ?? user.email,
       role: user.role,
     };
   }
