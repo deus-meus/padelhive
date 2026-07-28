@@ -19,6 +19,7 @@ import {
 import { queryKeys } from "@/lib/queries";
 import { getRefunds, approveRefund, rejectRefund, processRefund, getApiErrorMessage, RefundStatus, ApiRefund, getRefundHistory } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { FilterTabs } from "@/components/ui/filter-tabs";
 
 const formatIDR = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
@@ -117,21 +118,14 @@ export default function RefundsPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="mb-6 flex gap-2 overflow-x-auto no-scrollbar">
-        {(["PENDING", "APPROVED", "REJECTED", "PROCESSED", "ALL"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilter(tab)}
-            className={`label shrink-0 rounded-lg px-4 py-2 transition-all ${
-              filter === tab
-                ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <FilterTabs 
+        tabs={(["PENDING", "APPROVED", "REJECTED", "PROCESSED", "ALL"] as const).map((tab) => ({ 
+          label: tab === "ALL" ? "All" : tab.charAt(0) + tab.slice(1).toLowerCase(), 
+          value: tab 
+        }))} 
+        activeValue={filter} 
+        onChange={(val) => setFilter(val)} 
+      />
 
       {/* Refund list */}
       <div className="flex flex-1 flex-col space-y-3">

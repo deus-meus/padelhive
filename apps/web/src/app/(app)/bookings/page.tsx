@@ -24,6 +24,7 @@ import {
 import { ApiRequestError, cancelBooking, getUserBookings, getMyRefunds, createRefund, ApiBooking, ApiRefund, getMyDisputes, createPlayerDispute, type ApiDispute, type DisputeIssueType, type DisputePriority } from "@/lib/api";
 import { getUserFacingErrorMessage } from "@/lib/errors";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { FilterTabs } from "@/components/ui/filter-tabs";
 import { padelImg } from "@/lib/images";
 
 const IMG = {
@@ -353,27 +354,18 @@ export default function BookingsPage() {
 
       {/* Tabs */}
       <section className="container pb-section-sm">
-        <div className="flex gap-1 border-b border-white/[0.06] mb-8 overflow-x-auto">
-          {TABS.map((tab) => {
+        <FilterTabs 
+          className="mb-8"
+          tabs={TABS.map((tab) => {
             const count = tab === "refunds" ? myRefunds.length : tab === "disputes" ? myDisputes.length : tabData[tab as "upcoming" | "past" | "cancelled"].length;
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`label relative px-5 py-3 transition-colors whitespace-nowrap ${
-                  activeTab === tab
-                    ? "text-[#E6FA50]"
-                    : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
-                }`}
-              >
-                {tab} ({count})
-                {activeTab === tab && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E6FA50]" />
-                )}
-              </button>
-            );
-          })}
-        </div>
+            return {
+              value: tab,
+              label: `${tab.charAt(0).toUpperCase() + tab.slice(1)} (${count})`
+            };
+          })} 
+          activeValue={activeTab} 
+          onChange={(val) => setActiveTab(val)} 
+        />
 
         <div className="space-y-3">
           {activeTab === "refunds" ? (

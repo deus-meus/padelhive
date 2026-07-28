@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getAdminBookings } from "@/lib/api";
 import { ErrorBanner } from "@/components/ui/error-state";
+import { FilterTabs } from "@/components/ui/filter-tabs";
 
 type TabKey = "upcoming" | "completed" | "cancelled";
 
@@ -98,30 +99,28 @@ export default function BookingsManagementPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mt-6 flex items-center gap-1 rounded-xl bg-white/[0.02] p-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`label flex items-center gap-2 rounded-lg px-4 py-2.5 transition-all ${
-                activeTab === tab.key
-                  ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                  : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60"
-              }`}
-            >
-              {tab.label}
-              <span
-                className={`caption rounded-full px-2 py-0.5 ${
-                  activeTab === tab.key
-                    ? "bg-[#E6FA50]/20 text-[#E6FA50]"
-                    : "bg-white/[0.04] text-[#F7F7F7]/25"
-                }`}
-              >
-                {tabCounts[tab.key]}
+        <FilterTabs 
+          className="mt-6 !gap-1 rounded-xl bg-white/[0.02] p-1"
+          tabs={TABS.map((tab) => ({
+            value: tab.key,
+            label: (
+              <span className="flex items-center gap-2">
+                {tab.label}
+                <span
+                  className={`caption rounded-full px-2 py-0.5 ${
+                    activeTab === tab.key
+                      ? "bg-[#E6FA50]/20 text-[#E6FA50]"
+                      : "bg-white/[0.04] text-[#F7F7F7]/25"
+                  }`}
+                >
+                  {tabCounts[tab.key]}
+                </span>
               </span>
-            </button>
-          ))}
-        </div>
+            ),
+          }))} 
+          activeValue={activeTab} 
+          onChange={(val) => setActiveTab(val)} 
+        />
 
         {/* Search */}
         <div className="mt-5 flex items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3">

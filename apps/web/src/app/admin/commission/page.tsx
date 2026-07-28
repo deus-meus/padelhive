@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Coins } from "lucide-react";
 import { queryKeys } from "@/lib/queries";
-import { getCommissionReport } from "@/lib/api";
+import { getCommissionReport, CommissionReport } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { FilterTabs } from "@/components/ui/filter-tabs";
 
 const formatIDR = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
@@ -100,21 +101,11 @@ export default function CommissionPage() {
         )}
       </div>
 
-      <div className="mb-6 flex gap-2 overflow-x-auto no-scrollbar">
-        {(["This month", "Last month", "This year", "All time"] as PeriodPreset[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setPreset(tab)}
-            className={`label shrink-0 rounded-lg px-4 py-2 transition-all ${
-              preset === tab
-                ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <FilterTabs
+        tabs={(["This month", "Last month", "This year", "All time"] as PeriodPreset[]).map(tab => ({ label: tab, value: tab }))}
+        activeValue={preset}
+        onChange={(val) => setPreset(val)}
+      />
 
       {isLoading ? (
         <div className="space-y-6">
