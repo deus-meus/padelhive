@@ -23,6 +23,7 @@ import {
   type DisputeStatus,
 } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { FilterTabs } from "@/components/ui/filter-tabs";
 import { formatShortDate } from "@/lib/format";
 
 const ISSUE_LABELS: Record<ApiDispute["issueType"], string> = {
@@ -116,21 +117,14 @@ export default function DisputesPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="mb-6 flex gap-2 overflow-x-auto">
-        {(["ALL", "OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilter(tab)}
-            className={`label shrink-0 rounded-lg px-4 py-2 capitalize transition-all ${
-              filter === tab
-                ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <FilterTabs 
+        tabs={(["ALL", "OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"] as const).map(tab => ({ 
+          label: tab === "ALL" ? "All" : tab.charAt(0) + tab.slice(1).toLowerCase(), 
+          value: tab 
+        }))} 
+        activeValue={filter} 
+        onChange={(val) => setFilter(val)} 
+      />
 
       {/* Dispute list */}
       <div className="flex flex-1 flex-col space-y-3">

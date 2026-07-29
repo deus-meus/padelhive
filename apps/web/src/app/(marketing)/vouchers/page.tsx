@@ -15,6 +15,7 @@ import {
 import { getVouchers } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
+import { FilterTabs } from "@/components/ui/filter-tabs";
 import { type Voucher } from "@/types";
 
 export default function VouchersPage() {
@@ -74,25 +75,16 @@ export default function VouchersPage() {
       </section>
 
       {/* Tabs */}
-      <section className="container">
-        <div className="flex gap-1 border-b border-white/[0.06]">
-          {(["active", "expired"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`label relative px-5 py-3 uppercase transition-colors ${
-                filter === tab
-                  ? "text-[#E6FA50]"
-                  : "text-[#F7F7F7]/25 hover:text-[#F7F7F7]/60"
-              }`}
-            >
-              {tab} ({tab === "active" ? active.length : expired.length})
-              {filter === tab && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E6FA50]" />
-              )}
-            </button>
-          ))}
-        </div>
+      <section className="container max-w-[1200px]">
+        <FilterTabs 
+          className="mb-8"
+          tabs={(["active", "expired"] as const).map((tab) => ({
+            value: tab,
+            label: `${tab.charAt(0).toUpperCase() + tab.slice(1)} (${tab === "active" ? active.length : expired.length})` 
+          }))} 
+          activeValue={filter} 
+          onChange={(val) => setFilter(val)} 
+        />
       </section>
 
       {/* Voucher Grid */}

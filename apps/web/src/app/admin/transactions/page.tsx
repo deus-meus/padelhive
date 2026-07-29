@@ -6,6 +6,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import { getAdminBookings } from "@/lib/api";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { FilterTabs } from "@/components/ui/filter-tabs";
 import { Receipt, ChevronLeft, ChevronRight } from "lucide-react";
 
 const TABS = [
@@ -61,24 +62,14 @@ export default function AdminTransactionsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex overflow-x-auto border-b border-white/[0.08] no-scrollbar">
-        {TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => {
-              setActiveStatus(tab.value);
-              setPage(1);
-            }}
-            className={`label whitespace-nowrap border-b-2 px-4 py-3 transition-colors ${
-              activeStatus === tab.value
-                ? "border-[#E6FA50] text-[#F7F7F7]"
-                : "border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <FilterTabs 
+        tabs={TABS} 
+        activeValue={activeStatus} 
+        onChange={(val) => {
+          setActiveStatus(val);
+          setPage(1);
+        }} 
+      />
 
       {/* Body States */}
       {isLoading ? (

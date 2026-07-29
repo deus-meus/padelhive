@@ -15,6 +15,7 @@ import { queryKeys } from "@/lib/queries";
 import { getAdminVenues, updateVenueStatus, getApiErrorMessage } from "@/lib/api";
 import { Venue } from "@/types";
 import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { FilterTabs } from "@/components/ui/filter-tabs";
 
 type TabValue = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED" | "ALL";
 
@@ -76,21 +77,11 @@ export default function AdminVenuesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex overflow-x-auto border-b border-white/[0.08] no-scrollbar">
-        {TABS.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            className={`label shrink-0 rounded-lg px-4 py-2 transition-all ${
-              activeTab === tab.value
-                ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <FilterTabs 
+        tabs={TABS} 
+        activeValue={activeTab} 
+        onChange={(val) => setActiveTab(val as TabValue)} 
+      />
 
       {/* Venue List */}
       <div className="flex flex-1 flex-col space-y-4">
