@@ -85,7 +85,7 @@ export default function AdminVouchersPage() {
 
   return (
     <div className="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8">
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="caption text-[#E6FA50]">Marketplace Admin</p>
           <h1 className="heading-1 mt-2 text-[#F7F7F7]">
@@ -94,7 +94,7 @@ export default function AdminVouchersPage() {
         </div>
         <button
           onClick={openCreate}
-          className="btn-lime label flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full px-5 sm:w-auto"
+          className="btn-lime label flex h-10 shrink-0 items-center gap-2 rounded-full px-5"
         >
           <Plus className="h-4 w-4" /> New Voucher
         </button>

@@ -41,16 +41,6 @@ export default function AdminLayout({
     <RequireAuth allowedRoles={["super_admin"]}>
       <Navbar />
       <div className="min-h-screen pt-20">
-        {/* Mobile nav toggle (Top Bar) */}
-        <div className="flex h-16 items-center justify-between border-b border-white/[0.04] bg-[#06121A] px-4 lg:hidden">
-          <span className="font-heading text-lg font-semibold text-[#F7F7F7]">Super Admin</span>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7]"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        </div>
 
         <div className="flex flex-1">
           {/* Sidebar — desktop */}
@@ -77,23 +67,22 @@ export default function AdminLayout({
             </nav>
           </aside>
 
-          {/* Mobile sidebar overlay (Drawer) */}
+          <div className="fixed bottom-6 right-6 z-40 lg:hidden">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E6FA50] text-[#06121A] shadow-lg shadow-[#E6FA50]/20"
+            >
+              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+
           {sidebarOpen && (
-            <div className="fixed inset-0 z-50 lg:hidden">
+            <div className="fixed inset-0 z-30 lg:hidden">
               <div
                 className="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm"
                 onClick={() => setSidebarOpen(false)}
               />
-              <nav className="absolute inset-y-0 left-0 w-[260px] flex flex-col gap-1 border-r border-white/[0.06] bg-[#0C1B26] p-5 shadow-2xl">
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="section-label">Super Admin</p>
-                  <button
-                    onClick={() => setSidebarOpen(false)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-[#F7F7F7]/60 hover:bg-white/[0.05] hover:text-[#F7F7F7]"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+              <nav className="absolute bottom-20 right-6 flex flex-col gap-1 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-4 shadow-2xl">
                 {NAV_ITEMS.map((item) => {
                   const Icon = item.icon;
                   const isActive =
