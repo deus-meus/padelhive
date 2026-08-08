@@ -208,10 +208,10 @@ export default function RefundsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 sm:shrink-0 sm:flex-col sm:items-end">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4 sm:mt-0 sm:shrink-0 sm:flex-col sm:items-end sm:justify-start sm:border-0 sm:pt-0">
                     <p className="price text-[#F7F7F7]">{formatIDR(Number(refund.amount))}</p>
                     {refund.status === "PENDING" && (
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => handleApprove(refund.id)}
                           disabled={actingId !== null}
