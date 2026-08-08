@@ -688,11 +688,14 @@ function BookingRow({
         </p>
       </div>
 
-      <div className="flex items-center gap-2 sm:shrink-0">
-        <p className={`price ${muted ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]"}`}>
-          Rp {(booking.finalAmount / 1000).toFixed(0)}K
-        </p>
-        <div className="flex gap-1.5">
+      <div className="flex flex-col gap-3 border-t border-white/[0.06] pt-3 sm:border-0 sm:pt-0 sm:flex-row sm:items-center sm:gap-2 sm:shrink-0">
+        <div className="flex items-center justify-between sm:block">
+          <span className="caption text-[#F7F7F7]/60 sm:hidden">Total Payment</span>
+          <p className={`price ${muted ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]"}`}>
+            Rp {(booking.finalAmount / 1000).toFixed(0)}K
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
           <Link
             href={`/bookings/${booking.id}`}
             aria-label={`View details for ${venue?.name ?? "booking"}`}
