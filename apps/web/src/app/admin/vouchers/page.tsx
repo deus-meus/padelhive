@@ -85,7 +85,7 @@ export default function AdminVouchersPage() {
 
   return (
     <div className="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8">
-      <div className="mb-8 flex items-end justify-between gap-4">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p className="caption text-[#E6FA50]">Marketplace Admin</p>
           <h1 className="heading-1 mt-2 text-[#F7F7F7]">
@@ -94,7 +94,7 @@ export default function AdminVouchersPage() {
         </div>
         <button
           onClick={openCreate}
-          className="btn-lime label flex h-10 shrink-0 items-center gap-2 rounded-full px-5"
+          className="btn-lime label flex h-10 w-full shrink-0 items-center justify-center gap-2 rounded-full px-5 sm:w-auto"
         >
           <Plus className="h-4 w-4" /> New Voucher
         </button>
@@ -118,10 +118,10 @@ export default function AdminVouchersPage() {
               <div key={v.id} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <h3 className="heading-2 font-mono tracking-wide text-[#F7F7F7]">{v.code}</h3>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                      <h3 className="heading-2 font-mono tracking-wide text-[#F7F7F7] break-all">{v.code}</h3>
                       {status && (
-                        <span className={`caption uppercase ${status.color}`}>{status.label}</span>
+                        <span className={`caption shrink-0 uppercase ${status.color}`}>{status.label}</span>
                       )}
                     </div>
                     <p className="body-sm mt-2 text-[#F7F7F7]/60">
@@ -129,20 +129,20 @@ export default function AdminVouchersPage() {
                       {v.minPurchase != null && ` · min ${formatIDR(v.minPurchase)}`}
                       {v.type === "PERCENTAGE" && v.maxDiscount != null && ` · max ${formatIDR(v.maxDiscount)}`}
                     </p>
-                    <p className="mt-1 caption text-[#F7F7F7]/25">
+                    <p className="caption mt-1 text-[#F7F7F7]/25">
                       {formatDate(v.validFrom)} – {formatDate(v.validUntil)} · Used {v.usedCount}/{v.usageLimit}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4 sm:mt-0 sm:border-0 sm:pt-0">
                     <button
                       onClick={() => openEdit(v)}
-                      className="label flex h-9 items-center gap-1.5 rounded-full border border-white/[0.1] px-4 text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7]"
+                      className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-white/[0.1] px-4 text-[#F7F7F7]/70 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7] sm:flex-none"
                     >
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
                     <button
                       onClick={() => setDeleteTarget(v)}
-                      className="label flex h-9 items-center gap-1.5 rounded-full border border-red-500/40 px-4 text-red-400 transition-colors hover:bg-red-500/10"
+                      className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-red-500/40 px-4 text-red-400 transition-colors hover:bg-red-500/10 sm:flex-none"
                     >
                       <Trash2 className="h-3.5 w-3.5" /> Delete
                     </button>

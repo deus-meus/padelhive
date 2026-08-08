@@ -104,25 +104,27 @@ export default function AdminMetricsPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="col-span-2 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
             <p className="section-label mb-6">12-Month GMV Trend</p>
-            <div className="flex h-64 items-end justify-between gap-2 md:gap-4">
-              {data.monthlySeries.map((m) => {
-                const heightPct = maxGmv > 0 ? (m.gmv / maxGmv) * 100 : 0;
-                const monthName = new Date(`${m.month}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
-                return (
-                  <div key={m.month} className="group relative flex w-full flex-col items-center justify-end h-full">
-                    <div
-                      className="w-full max-w-[40px] rounded-t-sm bg-[#E6FA50] transition-all hover:bg-[#E6FA50]/80"
-                      style={{ height: `${heightPct}%`, minHeight: heightPct > 0 ? "4px" : "0" }}
-                    />
-                    <p className="caption mt-3 text-[#F7F7F7]/40">{monthName}</p>
-                    
-                    {/* Tooltip */}
-                    <div className="caption absolute -top-12 hidden whitespace-nowrap rounded-lg bg-white/[0.1] px-3 py-1.5 text-[#F7F7F7] backdrop-blur-md group-hover:block z-10">
-                      {formatIDR(m.gmv)}
+            <div className="overflow-x-auto pb-2">
+              <div className="flex h-64 min-w-[500px] items-end justify-between gap-2 md:gap-4">
+                {data.monthlySeries.map((m) => {
+                  const heightPct = maxGmv > 0 ? (m.gmv / maxGmv) * 100 : 0;
+                  const monthName = new Date(`${m.month}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+                  return (
+                    <div key={m.month} className="group relative flex w-full flex-col items-center justify-end h-full">
+                      <div
+                        className="w-full max-w-[40px] rounded-t-sm bg-[#E6FA50] transition-all hover:bg-[#E6FA50]/80"
+                        style={{ height: `${heightPct}%`, minHeight: heightPct > 0 ? "4px" : "0" }}
+                      />
+                      <p className="caption mt-3 text-[#F7F7F7]/40">{monthName}</p>
+                      
+                      {/* Tooltip */}
+                      <div className="caption absolute -top-12 hidden whitespace-nowrap rounded-lg bg-white/[0.1] px-3 py-1.5 text-[#F7F7F7] backdrop-blur-md group-hover:block z-10">
+                        {formatIDR(m.gmv)}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
 

@@ -180,7 +180,7 @@ export default function DisputesPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 sm:shrink-0">
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-4 sm:mt-0 sm:shrink-0 sm:border-0 sm:pt-0">
                   {(dispute.status === "OPEN" || dispute.status === "INVESTIGATING") && !dispute.assignedTo && (
                     <button
                       onClick={() => assignMutation.mutate(dispute.id)}

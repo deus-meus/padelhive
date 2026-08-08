@@ -117,26 +117,26 @@ export default function AdminVenuesPage() {
                 key={venue.id}
                 className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all"
               >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <h3 className="heading-2 text-lg text-[#F7F7F7] truncate">
-                        {venue.name}
-                      </h3>
-                      <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${config.bg}`}>
+                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+                      <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 sm:order-last ${config.bg}`}>
                         <StatusIcon className={`h-3 w-3 ${config.color}`} />
                         <span className={`caption rounded-full px-2.5 py-0.5 uppercase tracking-[0.1em] ${config.color}`}>
                           {config.label}
                         </span>
                       </div>
+                      <h3 className="heading-2 text-lg text-[#F7F7F7] break-words w-full sm:w-auto">
+                        {venue.name}
+                      </h3>
                     </div>
-                    <p className="mt-1 flex items-center gap-1.5 text-sm text-[#F7F7F7]/40">
-                      <MapPin className="h-3.5 w-3.5" />
-                      {venue.location} · {venue.city}
+                    <p className="mt-2 flex items-start gap-1.5 text-sm text-[#F7F7F7]/40 sm:mt-1 sm:items-center">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 sm:mt-0" />
+                      <span className="break-words">{venue.location} · {venue.city}</span>
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4 sm:mt-0 sm:shrink-0 sm:border-0 sm:pt-0">
                     {status === "PENDING" && (
                       <>
                         <button
