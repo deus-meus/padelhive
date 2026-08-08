@@ -165,7 +165,7 @@ export default function VenueDetailPage({
   const hasWeeklyHours = venue.weeklyHours && Object.keys(venue.weeklyHours).length > 0;
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-20 pb-24 lg:pb-0">
       {/* ─── IMAGE GALLERY ─── */}
       <section className="container pt-8 pb-10">
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:grid-rows-2">
@@ -567,7 +567,7 @@ export default function VenueDetailPage({
 
                 <Link
                   href={`/venues/${venue.id}/book`}
-                  className="label btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full"
+                  className="label btn-lime mt-6 hidden h-12 w-full items-center justify-center rounded-full lg:flex"
                 >
                   Book Court
                 </Link>
@@ -619,6 +619,24 @@ export default function VenueDetailPage({
           </div>
         </div>
       </section>
+
+      {/* Mobile Sticky Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.06] bg-[#0C1B26] px-6 py-4 lg:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.4)]">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="caption text-[#F7F7F7]/60">Starting from</p>
+            <p className="price text-[#E6FA50]">
+              {minPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K` : "Pricing soon"}
+            </p>
+          </div>
+          <Link
+            href={`/venues/${venue.id}/book`}
+            className="label btn-lime flex h-12 w-32 items-center justify-center rounded-full"
+          >
+            Book Now
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

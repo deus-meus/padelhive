@@ -374,7 +374,7 @@ export default function BookingFlowPage({
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-7xl pb-component pt-28 md:pt-32">
+      <div className="container max-w-7xl pb-32 lg:pb-component pt-28 md:pt-32">
         {apiError && (
           <div className="body-sm mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-red-200/80">
             {apiError}
@@ -817,7 +817,7 @@ export default function BookingFlowPage({
                 <button
                   onClick={handleConfirm}
                   disabled={courts.length === 0 || selectedSlots.length === 0 || confirmState === "submitting"}
-                  className="label btn-lime mt-6 flex h-12 w-full items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-30"
+                  className="label btn-lime mt-6 hidden h-12 w-full items-center justify-center rounded-full lg:flex disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   {confirmState === "submitting" ? "Creating Booking..." : "Continue to Invite & Pay"}
                 </button>
@@ -839,6 +839,27 @@ export default function BookingFlowPage({
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobile Sticky Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.06] bg-[#0C1B26] px-6 py-4 lg:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.4)]">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="caption text-[#F7F7F7]/60">Estimated total</p>
+            <p className="price text-[#E6FA50]">
+              {selectedSlots.length > 0
+                ? `Rp ${discountedTotal.toLocaleString("id-ID")}`
+                : "—"}
+            </p>
+          </div>
+          <button
+            onClick={handleConfirm}
+            disabled={courts.length === 0 || selectedSlots.length === 0 || confirmState === "submitting"}
+            className="label btn-lime flex h-12 w-36 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            {confirmState === "submitting" ? "Creating..." : "Continue"}
+          </button>
         </div>
       </div>
     </div>
