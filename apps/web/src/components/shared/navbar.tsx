@@ -194,19 +194,17 @@ export function Navbar() {
             </Link>
           )}
 
-          {!user && (
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7] md:hidden"
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          )}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7] md:hidden"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
 
-      {mobileOpen && !user && (
+      {mobileOpen && (
         <div className="glass-nav border-t border-white/[0.06] md:hidden">
           <nav className="container flex flex-col gap-1 py-4">
             <MobileNavLink href="/venues" onClick={() => setMobileOpen(false)}>
@@ -218,13 +216,27 @@ export function Navbar() {
             <MobileNavLink href="/#community" onClick={() => setMobileOpen(false)}>
               Community
             </MobileNavLink>
-            <Link
-              href="/auth/login"
-              onClick={() => setMobileOpen(false)}
-              className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full label"
-            >
-              <LogIn className="h-4 w-4" /> Sign In
-            </Link>
+
+            {user && isPlayer && (
+              <>
+                <MobileNavLink href="/bookings" onClick={() => setMobileOpen(false)}>
+                  My Bookings
+                </MobileNavLink>
+                <MobileNavLink href="/vouchers" onClick={() => setMobileOpen(false)}>
+                  My Vouchers
+                </MobileNavLink>
+              </>
+            )}
+
+            {!user && (
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileOpen(false)}
+                className="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full label"
+              >
+                <LogIn className="h-4 w-4" /> Sign In
+              </Link>
+            )}
           </nav>
         </div>
       )}
