@@ -208,14 +208,14 @@ export default function RefundsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4 sm:mt-0 sm:shrink-0 sm:flex-col sm:items-end sm:justify-start sm:border-0 sm:pt-0">
+                  <div className="mt-4 flex flex-col items-start gap-3 border-t border-white/[0.06] pt-4 sm:mt-0 sm:shrink-0 sm:items-end sm:border-0 sm:pt-0">
                     <p className="price text-[#F7F7F7]">{formatIDR(Number(refund.amount))}</p>
                     {refund.status === "PENDING" && (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex w-full gap-2 sm:w-auto">
                         <button
                           onClick={() => handleApprove(refund.id)}
                           disabled={actingId !== null}
-                          className="label flex h-8 min-w-[80px] items-center justify-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50"
+                          className="label flex h-8 min-w-[80px] flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50 sm:flex-none"
                         >
                           {isActing && approveMutation.isPending ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -229,7 +229,7 @@ export default function RefundsPage() {
                             setRejectTarget(refund.id);
                           }}
                           disabled={actingId !== null}
-                          className="label flex h-8 min-w-[80px] items-center justify-center gap-1.5 rounded-lg bg-red-500/10 px-3 text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                          className="label flex h-8 min-w-[80px] flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-500/10 px-3 text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50 sm:flex-none"
                         >
                           {isActing && rejectMutation.isPending ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
