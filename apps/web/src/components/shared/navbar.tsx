@@ -77,7 +77,7 @@ export function Navbar() {
     <header
       className={`fixed top-0 z-50 w-full transition-all duration-300 ease-out ${
         mobileOpen
-          ? "bg-[rgba(6,18,26,0.92)] backdrop-blur-[20px] border-b-0"
+          ? "glass-nav"
           : scrolled
             ? "bg-[#06121A]/90 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
             : "bg-transparent backdrop-blur-none border-b border-transparent shadow-none"
@@ -209,7 +209,7 @@ export function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="glass-nav border-t border-white/[0.06] md:hidden">
+        <div className="border-t border-white/[0.06] md:hidden">
           <nav className="container flex flex-col gap-1 py-4">
             <MobileNavLink href="/venues" onClick={() => setMobileOpen(false)}>
               Venues
