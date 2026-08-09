@@ -167,7 +167,7 @@ export default function OperatingHoursPage() {
   return (
     <div className="py-8">
       <section className="container">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <h1 className="heading-1 text-[#F7F7F7]">
               Operating Hours
@@ -176,14 +176,14 @@ export default function OperatingHoursPage() {
               Set venue-wide open and close times
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex w-full items-center gap-4 sm:w-auto">
             {isDirty && !isPending && !isSuccess && (
               <span className="hidden sm:inline caption text-[#E6FA50]">Unsaved changes</span>
             )}
             <button
               onClick={handleSave}
               disabled={isPending || isLoading || isVenuesError || venues.length === 0 || !isDirty}
-              className={`label flex h-10 items-center gap-2 rounded-full px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${ isSuccess ? "bg-green-400/10 text-green-400 border border-green-400/30" : "btn-lime" }`}
+              className={`label flex h-11 w-full justify-center items-center gap-2 rounded-full px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed sm:h-10 sm:w-auto ${ isSuccess ? "bg-green-400/10 text-green-400 border border-green-400/30" : "btn-lime" }`}
             >
               {isPending ? (
                 <>
