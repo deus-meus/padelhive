@@ -46,10 +46,10 @@ export class AdminController {
   }
 
   @Get("bookings")
-  @Roles(UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: "List all bookings for admin dashboard" })
-  getBookings(@Query() query: GetAdminBookingsDto) {
-    return this.adminService.getBookings(query);
+  @Roles(UserRole.SUPER_ADMIN, UserRole.VENUE_OWNER, UserRole.VENUE_ADMIN)
+  @ApiOperation({ summary: "List all bookings for admin/owner dashboard" })
+  getBookings(@Query() query: GetAdminBookingsDto, @CurrentUser() user: RequestUser) {
+    return this.adminService.getBookings(query, user);
   }
 
   @Get("venues")

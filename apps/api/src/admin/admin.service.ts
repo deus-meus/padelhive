@@ -1,28 +1,40 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { GetAdminBookingsDto } from "./dto/get-admin-bookings.dto";
-import { BookingStatus, PaymentStatus, Prisma, RefundStatus, VenueStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus, Prisma, RefundStatus, VenueStatus, UserRole } from "@prisma/client";
 import { AdminOverviewDto } from "./dto/admin-overview.dto";
 import { utcToWibDateStr } from "../common/pricing.util";
 import { GetCommissionDto } from "./dto/get-commission.dto";
 import { CommissionReportDto, CommissionVenueRowDto } from "./dto/commission-report.dto";
 import { AdminMetricsDto, AdminMetricsMonthDto, AdminMetricsStatusDto } from "./dto/admin-metrics.dto";
+import { RequestUser } from "../auth/types/request-user.type";
 
 @Injectable()
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getBookings(query: GetAdminBookingsDto) {
+  async getBookings(query: GetAdminBookingsDto, user: RequestUser) {
     const { status, venueId, fromDate, toDate, page = 1, pageSize = 20 } = query;
 
     const where: Prisma.BookingWhereInput = {};
 
-    if (status) {
-      where.status = status;
+    if (user.role !== UserRole.SUPER_ADMIN) {
+      if (venueId) {
+        where.venue = {
+          id: venueId,
+          OR: [{ ownerId: user.id }, { admins: { some: { userId: user.id } } }]
+        };
+      } else {
+        where.venue = {
+          OR: [{ ownerId: user.id }, { admins: { some: { userId: user.id } } }]
+        };
+      }
+    } else if (venueId) {
+      where.venueId = venueId;
     }
 
-    if (venueId) {
-      where.venueId = venueId;
+    if (status) {
+      where.status = status;
     }
 
     if (fromDate || toDate) {
