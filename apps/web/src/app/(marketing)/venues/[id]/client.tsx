@@ -203,9 +203,9 @@ export default function VenueDetailPage({
           {/* Left — venue info */}
           <div>
             {/* Header */}
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <h1 className="heading-1 text-[#F7F7F7]">
                     {venue.name}
                   </h1>
@@ -217,11 +217,11 @@ export default function VenueDetailPage({
                   )}
                 </div>
                 <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/40">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {venue.location} · {venue.city}
+                  <MapPin className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{venue.location} · {venue.city}</span>
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 sm:shrink-0">
                 <Star className="h-4 w-4 fill-[#E6FA50] text-[#E6FA50]" />
                 <span className="label text-[#E6FA50]">
                   {venue.rating}
