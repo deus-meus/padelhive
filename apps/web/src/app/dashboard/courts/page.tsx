@@ -119,7 +119,7 @@ export default function CourtsPage() {
     <div className="py-8">
       <section className="container">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <h1 className="heading-1 text-[#F7F7F7]">
               Courts & Pricing
@@ -131,9 +131,9 @@ export default function CourtsPage() {
           <button
             onClick={() => setIsAddModalOpen(true)}
             disabled={!activeVenueId}
-            className="label btn-lime flex h-10 items-center gap-2 rounded-full px-5 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="label btn-lime flex h-11 w-full items-center justify-center gap-2 rounded-full px-5 disabled:opacity-50 disabled:cursor-not-allowed sm:h-10 sm:w-auto"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
             Add Court
           </button>
         </div>

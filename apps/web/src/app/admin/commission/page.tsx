@@ -94,7 +94,7 @@ export default function CommissionPage() {
         {data && data.venues.length > 0 && (
           <button
             onClick={exportCsv}
-            className="label btn-lime inline-flex h-10 items-center justify-center rounded-xl px-6"
+            className="label btn-lime inline-flex h-11 w-full items-center justify-center rounded-xl px-6 sm:h-10 sm:w-auto"
           >
             Export CSV
           </button>

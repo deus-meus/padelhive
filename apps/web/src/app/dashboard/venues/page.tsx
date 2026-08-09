@@ -75,7 +75,7 @@ export default function VenueManagementPage() {
     <div className="py-8">
       <section className="container">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <h1 className="heading-1 text-[#F7F7F7]">
               Venues
@@ -86,9 +86,9 @@ export default function VenueManagementPage() {
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="label btn-lime flex h-10 items-center gap-2 rounded-full px-5"
+            className="label btn-lime flex h-11 w-full items-center justify-center gap-2 rounded-full px-5 sm:h-10 sm:w-auto"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
             Add Venue
           </button>
         </div>
