@@ -76,7 +76,7 @@ export function Navbar() {
   return (
     <header
       className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ease-out ${
-        scrolled
+        scrolled || mobileOpen
           ? "bg-[#06121A]/90 backdrop-blur-xl border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
           : "bg-transparent backdrop-blur-none border-transparent shadow-none"
       }`}
