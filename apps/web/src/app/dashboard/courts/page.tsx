@@ -210,8 +210,8 @@ export default function CourtsPage() {
                 className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6"
               >
                 {/* Court header */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-3">
                     <h3 className="heading-2 text-[#F7F7F7]">
                       {court.name}
                     </h3>
@@ -228,7 +228,7 @@ export default function CourtsPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <button
                       onClick={() => handleToggleActive(court)}
                       disabled={updateMutation.isPending}
