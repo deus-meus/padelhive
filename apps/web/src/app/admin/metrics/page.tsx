@@ -102,7 +102,7 @@ export default function AdminMetricsPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="col-span-2 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+          <div className="col-span-2 min-w-0 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
             <p className="section-label mb-6">12-Month GMV Trend</p>
             <div className="overflow-x-auto pb-2">
               <div className="flex h-64 min-w-[500px] items-end justify-between gap-2 md:gap-4">
