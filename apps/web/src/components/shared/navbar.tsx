@@ -75,10 +75,12 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ease-out ${
-        scrolled || mobileOpen
-          ? "bg-[#06121A]/90 backdrop-blur-xl border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
-          : "bg-transparent backdrop-blur-none border-transparent shadow-none"
+      className={`fixed top-0 z-50 w-full transition-all duration-300 ease-out ${
+        mobileOpen
+          ? "bg-[rgba(6,18,26,0.92)] backdrop-blur-[20px] border-b-0"
+          : scrolled
+            ? "bg-[#06121A]/90 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+            : "bg-transparent backdrop-blur-none border-b border-transparent shadow-none"
       }`}
     >
       <div className="container flex h-20 items-center justify-between">
