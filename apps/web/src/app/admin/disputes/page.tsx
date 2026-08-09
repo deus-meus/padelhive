@@ -185,7 +185,7 @@ export default function DisputesPage() {
                     <button
                       onClick={() => assignMutation.mutate(dispute.id)}
                       disabled={actingId !== null}
-                      className="label flex h-8 items-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50"
+                      className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50 sm:h-8 sm:flex-none"
                     >
                       {actingId === dispute.id && assignMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />} Assign
                     </button>
@@ -197,7 +197,7 @@ export default function DisputesPage() {
                         setResolveTarget(dispute.id);
                       }}
                       disabled={actingId !== null}
-                      className="label flex h-8 items-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50"
+                      className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50 sm:h-8 sm:flex-none"
                     >
                       {actingId === dispute.id && resolveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />} Resolve
                     </button>
@@ -206,7 +206,7 @@ export default function DisputesPage() {
                     <button
                       onClick={() => closeMutation.mutate(dispute.id)}
                       disabled={actingId !== null}
-                      className="label flex h-8 items-center gap-1.5 rounded-lg bg-white/[0.04] px-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7] disabled:opacity-50"
+                      className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-white/[0.04] px-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7] disabled:opacity-50 sm:h-8 sm:flex-none"
                     >
                       {actingId === dispute.id && closeMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />} Close
                     </button>
