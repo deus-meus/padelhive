@@ -27,12 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark overflow-x-hidden">
+    <html lang="en" className="dark">
       <body
-        className={`${fontSans.variable} ${fontHeading.variable} font-sans antialiased min-h-screen flex flex-col overflow-x-hidden`}
+        className={`${fontSans.variable} ${fontHeading.variable} font-sans antialiased min-h-screen flex flex-col`}
       >
         <Providers>
-          {children}
+          <div className="flex flex-col min-h-screen overflow-x-hidden">
+            {children}
+          </div>
         </Providers>
       </body>
     </html>
