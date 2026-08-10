@@ -69,20 +69,12 @@ export function FilterSelect({
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setOpen(false)} />
-          <div
-            role="listbox"
-            className={`z-50 overflow-hidden border border-white/[0.06] bg-[#0C1B26] shadow-xl 
-              fixed bottom-0 left-0 right-0 w-full rounded-t-2xl border-b-0 pb-8 pt-4
-              lg:absolute lg:bottom-auto lg:top-full lg:mt-2 lg:w-max lg:min-w-full lg:rounded-xl lg:border-b lg:p-0 lg:pb-0
-              ${alignRight ? "lg:right-0 lg:origin-top-right" : "lg:left-0 lg:origin-top-left"}
-            `}
-          >
-            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/10 lg:hidden" />
-            <div className="px-4 pb-2 lg:hidden">
-              <p className="caption text-[#F7F7F7]/60">{label}</p>
-            </div>
+        <div
+          role="listbox"
+          className={`absolute top-full z-40 mt-2 w-max min-w-full overflow-hidden rounded-xl border border-white/[0.06] bg-[#0C1B26] shadow-xl ${
+            alignRight ? "right-0 origin-top-right" : "left-0 origin-top-left"
+          }`}
+        >
             
             <div className="max-h-[60vh] overflow-y-auto lg:max-h-none">
               {options.map((opt) => {
@@ -96,7 +88,7 @@ export function FilterSelect({
                       onChange(opt.value);
                       setOpen(false);
                     }}
-                    className={`flex w-full items-center justify-between px-6 py-3.5 lg:px-4 lg:py-2.5 text-left transition-colors ${
+                    className={`flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors ${
                       isSelected ? "bg-white/[0.03] text-[#E6FA50]" : "text-[#F7F7F7] hover:bg-white/[0.06]"
                     }`}
                   >
@@ -106,8 +98,7 @@ export function FilterSelect({
                 );
               })}
             </div>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -172,18 +163,10 @@ export function FilterMultiSelect({
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setOpen(false)} />
-          <div
-            role="listbox"
-            className="z-50 overflow-hidden border border-white/[0.06] bg-[#0C1B26] shadow-xl 
-              fixed bottom-0 left-0 right-0 w-full rounded-t-2xl border-b-0 pb-8 pt-4
-              lg:absolute lg:left-0 lg:top-full lg:bottom-auto lg:mt-2 lg:w-max lg:min-w-[200px] lg:origin-top-left lg:rounded-xl lg:border-b lg:p-0 lg:pb-0"
-          >
-            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/10 lg:hidden" />
-            <div className="px-4 pb-2 lg:hidden">
-              <p className="caption text-[#F7F7F7]/60">{label}</p>
-            </div>
+        <div
+          role="listbox"
+          className="absolute left-0 top-full z-40 mt-2 w-max min-w-[200px] origin-top-left overflow-hidden rounded-xl border border-white/[0.06] bg-[#0C1B26] shadow-xl"
+        >
 
             <div className="max-h-[60vh] lg:max-h-64 overflow-y-auto py-1">
               {options.map((opt) => {
@@ -194,39 +177,33 @@ export function FilterMultiSelect({
                     role="option"
                     aria-selected={isSelected}
                     onClick={() => onToggle(opt)}
-                    className="flex w-full items-center gap-3 px-6 py-3.5 lg:px-4 lg:py-2.5 text-left transition-colors hover:bg-white/[0.06]"
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.06]"
                   >
-                    <div
-                      className={`flex h-4 w-4 lg:h-4 lg:w-4 shrink-0 items-center justify-center rounded border transition-colors ${
-                        isSelected
-                          ? "border-[#E6FA50] bg-[#E6FA50]"
-                          : "border-white/[0.2] bg-transparent"
-                      }`}
-                    >
+                    <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                      isSelected ? "border-[#E6FA50] bg-[#E6FA50]" : "border-white/20 bg-transparent"
+                    }`}>
                       {isSelected && <Check className="h-3 w-3 text-[#06121A]" />}
                     </div>
-                    <span className={`label block truncate ${isSelected ? "text-[#E6FA50]" : "text-[#F7F7F7]"}`}>
-                      {opt}
-                    </span>
+                    <span className="label block truncate">{opt}</span>
                   </button>
                 );
               })}
             </div>
-            {active && onClear && (
-              <div className="border-t border-white/[0.06] p-4 lg:p-2">
+            
+            {selected.length > 0 && (
+              <div className="border-t border-white/[0.06] p-2">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={() => {
                     onClear();
+                    setOpen(false);
                   }}
-                  className="caption w-full rounded-lg bg-white/[0.03] py-2 lg:py-1.5 text-center text-[#F7F7F7] hover:bg-white/[0.06]"
+                  className="label flex w-full items-center justify-center gap-2 rounded-lg py-2 text-[#E6FA50] hover:bg-white/[0.03]"
                 >
-                  Clear all
+                  Clear selection
                 </button>
               </div>
             )}
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
