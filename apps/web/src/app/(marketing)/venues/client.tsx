@@ -140,7 +140,7 @@ export default function VenuesPage() {
             {/* The rest of the filters */}
             <div className={`w-full lg:w-auto flex-wrap gap-2 lg:gap-3 ${showMobileFilters ? "flex" : "hidden lg:flex"}`}>
               {/* Cities */}
-              <div className="flex w-full gap-2 overflow-x-auto pb-2 hide-scrollbar lg:w-auto lg:overflow-x-visible lg:pb-0">
+              <div className="flex w-full flex-wrap gap-2 pb-2 lg:w-auto lg:pb-0">
                 {CITIES.map((c) => (
                   <button
                     key={c}
