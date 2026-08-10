@@ -114,44 +114,38 @@ export default function VenuesPage() {
 
       {/* ─── FILTER BAR ─── */}
       <section className="sticky top-20 z-30 border-b border-white/[0.06] bg-[#06121A]/90 backdrop-blur-xl">
-        <div className="container flex flex-col gap-4 py-4 lg:py-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="flex flex-1 items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3">
-              <Search className="h-4 w-4 shrink-0 text-[#F7F7F7]/25" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search venues..."
-                className="body w-full bg-transparent text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25"
-              />
-            </div>
-
-            <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
-              {CITIES.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setCity(c)}
-                  className={`label shrink-0 rounded-full px-4 py-2 uppercase transition-all duration-200 ${
-                    city === c ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
-                  }`}
-                >{c}</button>
-              ))}
-            </div>
-
-            <div className="shrink-0 lg:w-56 flex justify-end">
-              <FilterSelect
-                icon={ArrowUpDown}
-                value={sort}
-                options={SORTS}
-                onChange={(v) => setSort(v as SortKey)}
-                alignRight
-                className="w-full lg:w-full"
-              />
-            </div>
+        <div className="container flex flex-col gap-3 py-3 lg:py-5">
+          <div className="flex flex-1 items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3">
+            <Search className="h-4 w-4 shrink-0 text-[#F7F7F7]/25" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search venues..."
+              className="body w-full bg-transparent text-[#F7F7F7] outline-none placeholder:text-[#F7F7F7]/25"
+            />
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar lg:flex-wrap lg:overflow-x-visible lg:pb-0">
+          <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar items-center lg:flex-wrap lg:overflow-x-visible lg:pb-0">
+            {/* Cities */}
+            {CITIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCity(c)}
+                className={`label shrink-0 rounded-full px-4 py-2 uppercase transition-all duration-200 ${
+                  city === c ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
+                }`}
+              >{c}</button>
+            ))}
+
+            <div className="mx-1 h-6 w-px shrink-0 bg-white/10 hidden lg:block" />
+
+            <FilterSelect
+              icon={ArrowUpDown}
+              value={sort}
+              options={SORTS}
+              onChange={(v) => setSort(v as SortKey)}
+            />
             <FilterSelect
               value={courtType ?? "all"}
               onChange={(v) => setCourtType(v === "all" ? null : (v as "INDOOR" | "OUTDOOR"))}
@@ -196,7 +190,7 @@ export default function VenuesPage() {
               onClear={() => setFacilities([])}
             />
             {(search || city !== "All" || ratingMin !== null || courtType !== null || facilities.length > 0 || priceMin !== null || priceMax !== null) && (
-               <button onClick={handleClearFilters} className="caption text-[#E6FA50] hover:underline px-3 h-10 flex items-center">
+               <button onClick={handleClearFilters} className="caption shrink-0 text-[#E6FA50] hover:underline px-3 h-10 flex items-center">
                  Clear all filters
                </button>
             )}

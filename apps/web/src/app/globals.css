@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  body {
+    overflow-x: clip;
+  }
+  
   :root {
     --background: 210 50% 6%;
     --foreground: 0 0% 97%;
