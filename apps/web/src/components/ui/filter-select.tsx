@@ -110,12 +110,14 @@ export function FilterMultiSelect({
   selected,
   onToggle,
   onClear,
+  alignRight,
 }: {
   label: string;
   options: string[];
   selected: string[];
   onToggle: (value: string) => void;
   onClear?: () => void;
+  alignRight?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -165,7 +167,9 @@ export function FilterMultiSelect({
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 top-full z-40 mt-2 w-max min-w-[200px] origin-top-left overflow-hidden rounded-xl border border-white/[0.06] bg-[#0C1B26] shadow-xl"
+          className={`absolute top-full z-40 mt-2 w-max min-w-[200px] overflow-hidden rounded-xl border border-white/[0.06] bg-[#0C1B26] shadow-xl ${
+            alignRight ? "right-0 origin-top-right" : "left-0 origin-top-left"
+          }`}
         >
 
             <div className="max-h-[60vh] lg:max-h-64 overflow-y-auto py-1">

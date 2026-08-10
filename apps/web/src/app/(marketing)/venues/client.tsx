@@ -181,6 +181,7 @@ export default function VenuesPage() {
                 ]}
               />
               <FilterSelect
+                alignRight
                 value={priceMin === null && priceMax === null ? "all" : priceMax === 100000 ? "u100" : priceMin === 100000 ? "100-200" : "200"}
                 onChange={(v) => {
                   if (v === "all") { setPriceMin(null); setPriceMax(null); }
@@ -197,6 +198,7 @@ export default function VenuesPage() {
                 ]}
               />
               <FilterMultiSelect
+                alignRight
                 label="Facilities"
                 options={FACILITIES}
                 selected={facilities}
