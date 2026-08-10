@@ -190,7 +190,7 @@ export function FilterMultiSelect({
               })}
             </div>
             
-            {selected.length > 0 && (
+            {selected.length > 0 && onClear && (
               <div className="border-t border-white/[0.06] p-2">
                 <button
                   onClick={() => {
