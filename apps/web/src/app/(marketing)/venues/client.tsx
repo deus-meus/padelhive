@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { MapPin, Star, Search, ArrowUpDown } from "lucide-react";
+import { MapPin, Star, Search, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 import { padelImg } from "@/lib/images";
 import { getVenues } from "@/lib/api";
 import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
@@ -49,6 +49,7 @@ export default function VenuesPage() {
   const [priceMax, setPriceMax] = useState<number | null>(null);
 
   const [sort, setSort] = useState<SortKey>("recommended");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const { data: apiVenues, isLoading: isLoadingVenues, isError: isVenuesError, isFetching } = useQuery({
     queryKey: ["venues", { q: debouncedSearch, city, ratingMin, courtType, facilities, priceMin, priceMax }],
@@ -126,74 +127,88 @@ export default function VenuesPage() {
             />
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar items-center lg:flex-wrap lg:overflow-x-visible lg:pb-0">
-            {/* Cities */}
-            {CITIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCity(c)}
-                className={`label shrink-0 rounded-full px-4 py-2 uppercase transition-all duration-200 ${
-                  city === c ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
-                }`}
-              >{c}</button>
-            ))}
+          <div className="flex flex-wrap gap-2 lg:gap-3 lg:items-center">
+            {/* Mobile "Filters" toggle button */}
+            <button 
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="label flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-white/[0.03] px-4 text-[#F7F7F7]/60 hover:bg-white/[0.06] lg:hidden"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {showMobileFilters ? "Hide Filters" : "Show Filters"}
+            </button>
 
-            <div className="mx-1 h-6 w-px shrink-0 bg-white/10 hidden lg:block" />
+            {/* The rest of the filters */}
+            <div className={`w-full lg:w-auto flex-wrap gap-2 lg:gap-3 ${showMobileFilters ? "flex" : "hidden lg:flex"}`}>
+              {/* Cities */}
+              <div className="flex w-full gap-2 overflow-x-auto pb-2 hide-scrollbar lg:w-auto lg:overflow-x-visible lg:pb-0">
+                {CITIES.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setCity(c)}
+                    className={`label shrink-0 rounded-full px-4 py-2 uppercase transition-all duration-200 ${
+                      city === c ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
+                    }`}
+                  >{c}</button>
+                ))}
+              </div>
 
-            <FilterSelect
-              icon={ArrowUpDown}
-              value={sort}
-              options={SORTS}
-              onChange={(v) => setSort(v as SortKey)}
-            />
-            <FilterSelect
-              value={courtType ?? "all"}
-              onChange={(v) => setCourtType(v === "all" ? null : (v as "INDOOR" | "OUTDOOR"))}
-              active={courtType !== null}
-              options={[
-                { value: "all", label: "All types" },
-                { value: "INDOOR", label: "Indoor" },
-                { value: "OUTDOOR", label: "Outdoor" },
-              ]}
-            />
-            <FilterSelect
-              value={ratingMin === null ? "all" : String(ratingMin)}
-              onChange={(v) => setRatingMin(v === "all" ? null : Number(v))}
-              active={ratingMin !== null}
-              options={[
-                { value: "all", label: "All ratings" },
-                { value: "4", label: "4.0+" },
-                { value: "4.5", label: "4.5+" },
-              ]}
-            />
-            <FilterSelect
-              value={priceMin === null && priceMax === null ? "all" : priceMax === 100000 ? "u100" : priceMin === 100000 ? "100-200" : "200"}
-              onChange={(v) => {
-                if (v === "all") { setPriceMin(null); setPriceMax(null); }
-                else if (v === "u100") { setPriceMin(null); setPriceMax(100000); }
-                else if (v === "100-200") { setPriceMin(100000); setPriceMax(200000); }
-                else if (v === "200") { setPriceMin(200000); setPriceMax(null); }
-              }}
-              active={priceMin !== null || priceMax !== null}
-              options={[
-                { value: "all", label: "All prices" },
-                { value: "u100", label: "Under Rp100K" },
-                { value: "100-200", label: "Rp100–200K" },
-                { value: "200", label: "Above Rp200K" },
-              ]}
-            />
-            <FilterMultiSelect
-              label="Facilities"
-              options={FACILITIES}
-              selected={facilities}
-              onToggle={toggleFacility}
-              onClear={() => setFacilities([])}
-            />
-            {(search || city !== "All" || ratingMin !== null || courtType !== null || facilities.length > 0 || priceMin !== null || priceMax !== null) && (
-               <button onClick={handleClearFilters} className="caption shrink-0 text-[#E6FA50] hover:underline px-3 h-10 flex items-center">
-                 Clear all filters
-               </button>
-            )}
+              <div className="mx-1 h-6 w-px shrink-0 bg-white/10 hidden lg:block" />
+
+              <FilterSelect
+                icon={ArrowUpDown}
+                value={sort}
+                options={SORTS}
+                onChange={(v) => setSort(v as SortKey)}
+              />
+              <FilterSelect
+                value={courtType ?? "all"}
+                onChange={(v) => setCourtType(v === "all" ? null : (v as "INDOOR" | "OUTDOOR"))}
+                active={courtType !== null}
+                options={[
+                  { value: "all", label: "All types" },
+                  { value: "INDOOR", label: "Indoor" },
+                  { value: "OUTDOOR", label: "Outdoor" },
+                ]}
+              />
+              <FilterSelect
+                value={ratingMin === null ? "all" : String(ratingMin)}
+                onChange={(v) => setRatingMin(v === "all" ? null : Number(v))}
+                active={ratingMin !== null}
+                options={[
+                  { value: "all", label: "All ratings" },
+                  { value: "4", label: "4.0+" },
+                  { value: "4.5", label: "4.5+" },
+                ]}
+              />
+              <FilterSelect
+                value={priceMin === null && priceMax === null ? "all" : priceMax === 100000 ? "u100" : priceMin === 100000 ? "100-200" : "200"}
+                onChange={(v) => {
+                  if (v === "all") { setPriceMin(null); setPriceMax(null); }
+                  else if (v === "u100") { setPriceMin(null); setPriceMax(100000); }
+                  else if (v === "100-200") { setPriceMin(100000); setPriceMax(200000); }
+                  else if (v === "200") { setPriceMin(200000); setPriceMax(null); }
+                }}
+                active={priceMin !== null || priceMax !== null}
+                options={[
+                  { value: "all", label: "All prices" },
+                  { value: "u100", label: "Under Rp100K" },
+                  { value: "100-200", label: "Rp100–200K" },
+                  { value: "200", label: "Above Rp200K" },
+                ]}
+              />
+              <FilterMultiSelect
+                label="Facilities"
+                options={FACILITIES}
+                selected={facilities}
+                onToggle={toggleFacility}
+                onClear={() => setFacilities([])}
+              />
+              {(search || city !== "All" || ratingMin !== null || courtType !== null || facilities.length > 0 || priceMin !== null || priceMax !== null) && (
+                 <button onClick={handleClearFilters} className="caption shrink-0 text-[#E6FA50] hover:underline px-3 h-10 flex items-center">
+                   Clear all filters
+                 </button>
+              )}
+            </div>
           </div>
         </div>
       </section>
