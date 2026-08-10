@@ -151,7 +151,7 @@ export default function VenuesPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar lg:flex-wrap lg:overflow-x-visible lg:pb-0">
             <FilterSelect
               value={courtType ?? "all"}
               onChange={(v) => setCourtType(v === "all" ? null : (v as "INDOOR" | "OUTDOOR"))}
