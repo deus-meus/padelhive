@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${fontSans.variable} ${fontHeading.variable} font-sans antialiased min-h-screen flex flex-col`}
+        className={`${fontSans.variable} ${fontHeading.variable} font-sans antialiased min-h-screen flex flex-col overflow-x-hidden`}
       >
         <Providers>
           {children}
