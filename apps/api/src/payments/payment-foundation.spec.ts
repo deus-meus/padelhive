@@ -129,6 +129,7 @@ describe("Payment foundation", () => {
       $transaction: jest.fn(async (callback) => callback({
         payment: { update: txPaymentUpdate },
         booking: { update: txBookingUpdate },
+        bookingCharge: { updateMany: jest.fn() },
       })),
     });
     const mockGateway = { createTransaction: jest.fn() } as never;

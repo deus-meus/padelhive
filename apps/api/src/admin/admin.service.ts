@@ -1,12 +1,26 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { GetAdminBookingsDto } from "./dto/get-admin-bookings.dto";
-import { BookingStatus, PaymentStatus, Prisma, RefundStatus, VenueStatus, UserRole } from "@prisma/client";
+import {
+  BookingStatus,
+  PaymentStatus,
+  Prisma,
+  RefundStatus,
+  VenueStatus,
+  UserRole,
+} from "@prisma/client";
 import { AdminOverviewDto } from "./dto/admin-overview.dto";
 import { utcToWibDateStr } from "../common/pricing.util";
 import { GetCommissionDto } from "./dto/get-commission.dto";
-import { CommissionReportDto, CommissionVenueRowDto } from "./dto/commission-report.dto";
-import { AdminMetricsDto, AdminMetricsMonthDto, AdminMetricsStatusDto } from "./dto/admin-metrics.dto";
+import {
+  CommissionReportDto,
+  CommissionVenueRowDto,
+} from "./dto/commission-report.dto";
+import {
+  AdminMetricsDto,
+  AdminMetricsMonthDto,
+  AdminMetricsStatusDto,
+} from "./dto/admin-metrics.dto";
 import { RequestUser } from "../auth/types/request-user.type";
 
 @Injectable()
@@ -14,7 +28,14 @@ export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getBookings(query: GetAdminBookingsDto, user: RequestUser) {
-    const { status, venueId, fromDate, toDate, page = 1, pageSize = 20 } = query;
+    const {
+      status,
+      venueId,
+      fromDate,
+      toDate,
+      page = 1,
+      pageSize = 20,
+    } = query;
 
     const where: Prisma.BookingWhereInput = {};
 
@@ -22,11 +43,11 @@ export class AdminService {
       if (venueId) {
         where.venue = {
           id: venueId,
-          OR: [{ ownerId: user.id }, { admins: { some: { userId: user.id } } }]
+          OR: [{ ownerId: user.id }, { admins: { some: { userId: user.id } } }],
         };
       } else {
         where.venue = {
-          OR: [{ ownerId: user.id }, { admins: { some: { userId: user.id } } }]
+          OR: [{ ownerId: user.id }, { admins: { some: { userId: user.id } } }],
         };
       }
     } else if (venueId) {
@@ -52,7 +73,8 @@ export class AdminService {
     const rawPage = Number.parseInt(String(page), 10);
     const pageNum = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
     const rawSize = Number.parseInt(String(pageSize), 10);
-    const sizeNumUncapped = Number.isFinite(rawSize) && rawSize > 0 ? rawSize : 20;
+    const sizeNumUncapped =
+      Number.isFinite(rawSize) && rawSize > 0 ? rawSize : 20;
     const sizeNum = Math.min(100, sizeNumUncapped);
 
     const skip = (pageNum - 1) * sizeNum;
@@ -84,7 +106,13 @@ export class AdminService {
             select: { id: true, name: true, email: true },
           },
           payment: {
-            select: { id: true, amount: true, status: true, provider: true, method: true },
+            select: {
+              id: true,
+              amount: true,
+              status: true,
+              provider: true,
+              method: true,
+            },
           },
         },
       }),
@@ -102,7 +130,7 @@ export class AdminService {
   async getOverview(): Promise<AdminOverviewDto> {
     const todayWib = utcToWibDateStr(new Date());
     const monthStart = new Date(`${todayWib.slice(0, 7)}-01T00:00:00.000Z`);
-    
+
     const monthEndExclusive = new Date(monthStart);
     monthEndExclusive.setUTCMonth(monthEndExclusive.getUTCMonth() + 1);
 
@@ -113,18 +141,20 @@ export class AdminService {
       pendingApprovals,
       refundRequests,
       paidCount,
-      failedCount
+      failedCount,
     ] = await Promise.all([
       this.prisma.booking.aggregate({
         where: {
           status: { in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED] },
-          bookingDate: { gte: monthStart, lt: monthEndExclusive }
+          bookingDate: { gte: monthStart, lt: monthEndExclusive },
         },
         _sum: { finalAmount: true, platformFee: true },
-        _count: { _all: true }
+        _count: { _all: true },
       }),
       this.prisma.booking.count({
-        where: { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.EXPIRED] } }
+        where: {
+          status: { notIn: [BookingStatus.CANCELLED, BookingStatus.EXPIRED] },
+        },
       }),
       this.prisma.venue.count({ where: { status: VenueStatus.APPROVED } }),
       this.prisma.venue.count({ where: { status: VenueStatus.PENDING } }),
@@ -137,17 +167,16 @@ export class AdminService {
     const commissionRevenue = monthAggregate._sum.platformFee ?? 0;
     const monthBookings = monthAggregate._count._all;
 
-    const paymentSuccessRate = (paidCount + failedCount) > 0 
-      ? Math.round(paidCount / (paidCount + failedCount) * 100) 
-      : 0;
-    
-    const avgBookingValue = monthBookings > 0 
-      ? Math.round(gmv / monthBookings) 
-      : 0;
+    const paymentSuccessRate =
+      paidCount + failedCount > 0
+        ? Math.round((paidCount / (paidCount + failedCount)) * 100)
+        : 0;
 
-    const avgCommissionRate = gmv > 0 
-      ? Math.round((commissionRevenue / gmv) * 1000) / 10 
-      : 0;
+    const avgBookingValue =
+      monthBookings > 0 ? Math.round(gmv / monthBookings) : 0;
+
+    const avgCommissionRate =
+      gmv > 0 ? Math.round((commissionRevenue / gmv) * 1000) / 10 : 0;
 
     return {
       gmv,
@@ -199,12 +228,13 @@ export class AdminService {
       const venue = venueMap.get(g.venueId);
       const commission = g._sum.platformFee ?? 0;
       const gmv = g._sum.finalAmount ?? 0;
-      
+
       return {
         venueId: g.venueId,
         venueName: venue?.name ?? "Unknown venue",
         city: venue?.city ?? "—",
-        commissionRate: venue?.commissionRate != null ? Number(venue.commissionRate) : 0,
+        commissionRate:
+          venue?.commissionRate != null ? Number(venue.commissionRate) : 0,
         bookings: g._count._all,
         gmv,
         commission,
@@ -217,14 +247,18 @@ export class AdminService {
     const totalCommission = rows.reduce((sum, r) => sum + r.commission, 0);
     const totalGmv = rows.reduce((sum, r) => sum + r.gmv, 0);
     const totalBookings = rows.reduce((sum, r) => sum + r.bookings, 0);
-    const avgCommissionRate = totalGmv > 0 ? Math.round((totalCommission / totalGmv) * 1000) / 10 : 0;
+    const avgCommissionRate =
+      totalGmv > 0 ? Math.round((totalCommission / totalGmv) * 1000) / 10 : 0;
 
     const seriesRows = await this.prisma.booking.findMany({
       where,
       select: { bookingDate: true, platformFee: true, finalAmount: true },
     });
 
-    const seriesMap = new Map<string, { gmv: number; commission: number; bookings: number }>();
+    const seriesMap = new Map<
+      string,
+      { gmv: number; commission: number; bookings: number }
+    >();
     for (const row of seriesRows) {
       const wibDate = utcToWibDateStr(row.bookingDate);
       const month = wibDate.slice(0, 7);
@@ -237,10 +271,12 @@ export class AdminService {
       bucket.bookings += 1;
     }
 
-    const monthlySeries = Array.from(seriesMap.entries()).map(([month, data]) => ({
-      month,
-      ...data,
-    }));
+    const monthlySeries = Array.from(seriesMap.entries()).map(
+      ([month, data]) => ({
+        month,
+        ...data,
+      }),
+    );
     monthlySeries.sort((a, b) => a.month.localeCompare(b.month));
 
     return {
@@ -272,8 +308,11 @@ export class AdminService {
       },
     });
 
-    const monthlyMap = new Map<string, { gmv: number; commission: number; bookings: number }>();
-    
+    const monthlyMap = new Map<
+      string,
+      { gmv: number; commission: number; bookings: number }
+    >();
+
     for (let i = 0; i < 12; i++) {
       const d = new Date(Date.UTC(yy, mm - 1 - 11 + i, 1));
       const mStr = d.toISOString().slice(0, 7);
@@ -290,7 +329,9 @@ export class AdminService {
       }
     }
 
-    const monthlySeries: AdminMetricsMonthDto[] = Array.from(monthlyMap.entries()).map(([month, data]) => ({
+    const monthlySeries: AdminMetricsMonthDto[] = Array.from(
+      monthlyMap.entries(),
+    ).map(([month, data]) => ({
       month,
       ...data,
     }));
@@ -298,7 +339,10 @@ export class AdminService {
     monthlySeries.sort((a, b) => a.month.localeCompare(b.month));
 
     const totalGmv = monthlySeries.reduce((sum, m) => sum + m.gmv, 0);
-    const totalCommission = monthlySeries.reduce((sum, m) => sum + m.commission, 0);
+    const totalCommission = monthlySeries.reduce(
+      (sum, m) => sum + m.commission,
+      0,
+    );
     const totalBookings = monthlySeries.reduce((sum, m) => sum + m.bookings, 0);
     const avgMonthlyGmv = Math.round(totalGmv / 12);
 

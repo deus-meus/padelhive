@@ -2,11 +2,10 @@
 set -e
 
 echo "Running Prisma Migrations..."
-npx prisma migrate deploy
+bunx prisma migrate deploy --schema prisma/schema.prisma
 
 echo "Running Prisma Seeder..."
-# Run the pre-compiled JS seeder
-node prisma/seed.js
+bun prisma/seed.ts
 
 echo "Starting API Server..."
-node dist/src/main.js
+bun dist/src/main.js
