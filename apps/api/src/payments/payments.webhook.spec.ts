@@ -163,7 +163,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
     prisma.$transaction = jest.fn(async (cb) => {
       txPaymentUpdateMock = jest.fn();
       txBookingUpdateMock = jest.fn();
-      await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock } });
+      await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock }, bookingCharge: { updateMany: jest.fn() } });
     });
 
     const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
@@ -198,7 +198,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
     prisma.$transaction = jest.fn(async (cb) => {
       txPaymentUpdateMock = jest.fn();
       txBookingUpdateMock = jest.fn();
-      await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock } });
+      await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock }, bookingCharge: { updateMany: jest.fn() } });
     });
 
     const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);
@@ -235,7 +235,7 @@ describe("Midtrans Webhook and Gateway integration", () => {
     prisma.$transaction = jest.fn(async (cb) => {
       txPaymentUpdateMock = jest.fn();
       txBookingUpdateMock = jest.fn();
-      await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock } });
+      await cb({ payment: { update: txPaymentUpdateMock }, booking: { update: txBookingUpdateMock }, bookingCharge: { updateMany: jest.fn() } });
     });
 
     const service = new PaymentsService(prisma as never, {} as never, { createNotification: jest.fn() } as never);

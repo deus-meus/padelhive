@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app
 RUN apk add --no-cache openssl
@@ -11,21 +11,21 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=${NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
 ENV NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION=${NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION}
 
-# Copy package files
-COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
-COPY apps/web/package*.json ./apps/web/
+# Copy package files and bun lockfile
+COPY package.json bun.lock* ./
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
 
-RUN npm install
+RUN bun install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
 # Build the Web frontend
-RUN npm run build -w @padelhive/web
+RUN bun --filter @padelhive/web build
 
 # Production image
-FROM node:20-alpine AS runner
+FROM oven/bun:1-alpine AS runner
 
 WORKDIR /app
 
@@ -36,9 +36,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files from builder
-# We create a dummy public dir if it doesn't exist so Docker COPY doesn't fail
 RUN mkdir -p /app/apps/web/public
-# Conditionally copy if exists, otherwise copy the empty directory we just created
 COPY --from=builder /app/apps/web/public* ./apps/web/public/
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
@@ -55,5 +53,5 @@ USER nextjs
 
 EXPOSE 3000
 
-# Start the standalone server (from Next.js output standalone feature)
-CMD ["node", "server.js"]
+# Start the standalone server with Bun
+CMD ["bun", "server.js"]

@@ -128,7 +128,6 @@ describe("NotificationsService", () => {
     it("does NOT call mailService for non-allowlisted type", async () => {
       const input = {
         userId: "user-1",
-        // @ts-ignore - using a type not in the allowlist
         type: "DISPUTE_CREATED" as any,
         title: "Dispute",
         body: "A dispute was created",

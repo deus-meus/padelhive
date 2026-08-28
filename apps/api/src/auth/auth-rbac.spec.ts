@@ -96,7 +96,8 @@ describe("UsersService", () => {
   it("creates PLAYER user on first Firebase login", async () => {
     const prisma = {
       user: {
-        upsert: jest.fn().mockResolvedValue({
+        findUnique: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockResolvedValue({
           id: "user-new",
           firebaseUid: "firebase-new",
           email: "new@padelhive.com",
@@ -121,10 +122,11 @@ describe("UsersService", () => {
       role: UserRole.PLAYER,
     });
 
-    expect(prisma.user.upsert).toHaveBeenCalledWith({
-      where: { firebaseUid: "firebase-new" },
-      update: { email: "new@padelhive.com", name: "New Player" },
-      create: {
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { email: "new@padelhive.com" },
+    });
+    expect(prisma.user.create).toHaveBeenCalledWith({
+      data: {
         firebaseUid: "firebase-new",
         email: "new@padelhive.com",
         name: "New Player",
