@@ -1,16 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  DollarSign,
-  TrendingUp,
-  CalendarDays,
-  Users,
-} from "lucide-react";
+import { CalendarDays, DollarSign, TrendingUp, Users } from "lucide-react";
+import { useState } from "react";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { getRevenue } from "@/lib/api";
 import { queryKeys } from "@/lib/queries";
-import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 
 type Period = "weekly" | "monthly";
 
@@ -35,7 +30,10 @@ export default function RevenuePage() {
           {/* Revenue cards skeleton */}
           <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+              <div
+                key={i}
+                className="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+              />
             ))}
           </div>
 
@@ -47,7 +45,10 @@ export default function RevenuePage() {
             <div className="mb-5 h-5 w-32 animate-pulse rounded-md bg-white/[0.04]" />
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-[110px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+                <div
+                  key={i}
+                  className="h-[110px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+                />
               ))}
             </div>
           </div>
@@ -65,9 +66,7 @@ export default function RevenuePage() {
         <section className="container">
           {/* Header */}
           <div>
-            <h1 className="heading-1 text-[#F7F7F7]">
-              Revenue
-            </h1>
+            <h1 className="heading-1 text-[#F7F7F7]">Revenue</h1>
             <p className="body mt-1 text-[#F7F7F7]/40">
               Financial overview and booking statistics
             </p>
@@ -91,9 +90,7 @@ export default function RevenuePage() {
         <section className="container">
           {/* Header */}
           <div>
-            <h1 className="heading-1 text-[#F7F7F7]">
-              Revenue
-            </h1>
+            <h1 className="heading-1 text-[#F7F7F7]">Revenue</h1>
             <p className="body mt-1 text-[#F7F7F7]/40">
               Financial overview and booking statistics
             </p>
@@ -112,19 +109,20 @@ export default function RevenuePage() {
     );
   }
 
-  const chartData = period === "monthly" ? data.monthlySeries : data.weeklySeries;
+  const chartData =
+    period === "monthly" ? data.monthlySeries : data.weeklySeries;
   const maxValue = Math.max(...chartData.map((d) => d.value), 1);
   const totalRevenuePeriod = chartData.reduce((sum, d) => sum + d.value, 0);
-  const avgRevenuePeriod = chartData.length ? Math.round(totalRevenuePeriod / chartData.length) : 0;
+  const avgRevenuePeriod = chartData.length
+    ? Math.round(totalRevenuePeriod / chartData.length)
+    : 0;
 
   return (
     <div className="py-8">
       <section className="container">
         {/* Header */}
         <div>
-          <h1 className="heading-1 text-[#F7F7F7]">
-            Revenue
-          </h1>
+          <h1 className="heading-1 text-[#F7F7F7]">Revenue</h1>
           <p className="body mt-1 text-[#F7F7F7]/40">
             Financial overview and booking statistics
           </p>
@@ -195,7 +193,10 @@ export default function RevenuePage() {
             {chartData.map((d) => {
               const label = "month" in d ? d.month : d.day;
               return (
-                <div key={label} className="flex flex-1 flex-col items-center gap-2">
+                <div
+                  key={label}
+                  className="flex flex-1 flex-col items-center gap-2"
+                >
                   <div className="relative w-full group">
                     <div
                       className="w-full rounded-md bg-[#E6FA50]/15 transition-all duration-200 hover:bg-[#E6FA50]/30"
@@ -216,10 +217,22 @@ export default function RevenuePage() {
         <div className="mt-8">
           <p className="section-label mb-5">Booking Statistics</p>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard label="Total Bookings" value={data.kpis.totalBookings.toString()} />
-            <StatCard label="Avg. Booking Value" value={`Rp ${(data.kpis.avgBookingValue / 1000).toFixed(0)}K`} />
-            <StatCard label="Cancellation Rate" value={`${data.kpis.cancellationRate}%`} />
-            <StatCard label="Repeat Customers" value={`${data.kpis.repeatCustomerRate}%`} />
+            <StatCard
+              label="Total Bookings"
+              value={data.kpis.totalBookings.toString()}
+            />
+            <StatCard
+              label="Avg. Booking Value"
+              value={`Rp ${(data.kpis.avgBookingValue / 1000).toFixed(0)}K`}
+            />
+            <StatCard
+              label="Cancellation Rate"
+              value={`${data.kpis.cancellationRate}%`}
+            />
+            <StatCard
+              label="Repeat Customers"
+              value={`${data.kpis.repeatCustomerRate}%`}
+            />
           </div>
         </div>
 
@@ -237,9 +250,7 @@ export default function RevenuePage() {
                     {i + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="heading-3 text-[#F7F7F7]">
-                      {court.name}
-                    </p>
+                    <p className="heading-3 text-[#F7F7F7]">{court.name}</p>
                     <p className="caption text-[#F7F7F7]/25">{court.venue}</p>
                   </div>
                   <div className="text-right">

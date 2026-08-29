@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, MapPin } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import { EmptyState } from "@/components/ui/error-state";
 
 export function FeaturedVenueEmpty() {

@@ -1,36 +1,36 @@
 "use client";
 
-import Link from "next/link";
-import { formatBookingDate } from "@/lib/format";
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
 import {
-  Star,
-  MapPin,
-  Clock,
-  Users,
-  Shield,
-  Wifi,
   Car,
-  Dumbbell,
+  Clock,
   Coffee,
-  Wind,
-  ShowerHead,
+  Dumbbell,
   Lock,
+  MapPin,
   Navigation,
+  Shield,
+  ShowerHead,
+  Star,
+  Users,
+  Wifi,
+  Wind,
 } from "lucide-react";
-import { padelImg } from "@/lib/images";
-import { getVenue, getVenueCourts, getVenueReviews, ApiRequestError } from "@/lib/api";
+import Link from "next/link";
+import { useMemo } from "react";
 import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
+import {
+  ApiRequestError,
+  getVenue,
+  getVenueCourts,
+  getVenueReviews,
+} from "@/lib/api";
+import { formatBookingDate } from "@/lib/format";
+import { padelImg } from "@/lib/images";
+import { queryKeys } from "@/lib/queries";
 
 const IMG = {
-  gallery: [
-    padelImg(1200, 85),
-    padelImg(600),
-    padelImg(600),
-    padelImg(600),
-  ],
+  gallery: [padelImg(1200, 85), padelImg(600), padelImg(600), padelImg(600)],
 };
 
 const TIME_SLOTS = [
@@ -69,17 +69,32 @@ export default function VenueDetailPage({
 }: {
   params: { id: string };
 }) {
-  const { data: apiVenue, isLoading: isLoadingVenue, isError: isVenueError, error: venueError, refetch: refetchVenue, isFetching: isFetchingVenue } = useQuery({
+  const {
+    data: apiVenue,
+    isLoading: isLoadingVenue,
+    isError: isVenueError,
+    error: venueError,
+    refetch: refetchVenue,
+    isFetching: isFetchingVenue,
+  } = useQuery({
     queryKey: queryKeys.venues.detail(params.id),
     queryFn: () => getVenue(params.id),
   });
 
-  const { data: apiCourts, isLoading: isLoadingCourts, refetch: refetchCourts } = useQuery({
+  const {
+    data: apiCourts,
+    isLoading: isLoadingCourts,
+    refetch: refetchCourts,
+  } = useQuery({
     queryKey: queryKeys.venues.courts(params.id),
     queryFn: () => getVenueCourts(params.id),
   });
 
-  const { data: reviews, isLoading: isLoadingReviews, isError: isReviewsError } = useQuery({
+  const {
+    data: reviews,
+    isLoading: isLoadingReviews,
+    isError: isReviewsError,
+  } = useQuery({
     queryKey: queryKeys.reviews.venue(params.id),
     queryFn: () => getVenueReviews(params.id),
   });
@@ -89,8 +104,18 @@ export default function VenueDetailPage({
 
   const isLoading = isLoadingVenue || isLoadingCourts;
 
-  const minPrice = useMemo(() => (courts.length ? Math.min(...courts.map((c) => c.pricing.weekdayOffPeak)) : 0), [courts]);
-  const maxPrice = useMemo(() => (courts.length ? Math.max(...courts.map((c) => c.pricing.weekendPeak)) : 0), [courts]);
+  const minPrice = useMemo(
+    () =>
+      courts.length
+        ? Math.min(...courts.map((c) => c.pricing.weekdayOffPeak))
+        : 0,
+    [courts],
+  );
+  const maxPrice = useMemo(
+    () =>
+      courts.length ? Math.max(...courts.map((c) => c.pricing.weekendPeak)) : 0,
+    [courts],
+  );
 
   if (isLoading && !venue) {
     return (
@@ -109,7 +134,10 @@ export default function VenueDetailPage({
           </div>
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5 space-y-3">
+              <div
+                key={i}
+                className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5 space-y-3"
+              >
                 <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
                 <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
               </div>
@@ -121,7 +149,9 @@ export default function VenueDetailPage({
   }
 
   const venueNotFound =
-    venueError && venueError instanceof ApiRequestError && venueError.status === 404;
+    venueError &&
+    venueError instanceof ApiRequestError &&
+    venueError.status === 404;
 
   if (!venue && isVenueError && !venueNotFound) {
     return (
@@ -145,13 +175,24 @@ export default function VenueDetailPage({
     return (
       <div className="min-h-screen pt-20">
         <div className="container py-16 text-center">
-          <EmptyState icon={MapPin} title="Venue not found" description="This venue is unavailable or no longer listed." actionLabel="Back to venues" actionHref="/venues" />
+          <EmptyState
+            icon={MapPin}
+            title="Venue not found"
+            description="This venue is unavailable or no longer listed."
+            actionLabel="Back to venues"
+            actionHref="/venues"
+          />
         </div>
       </div>
     );
   }
 
-  const wibShort = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "Asia/Jakarta" }).format(new Date()).toLowerCase();
+  const wibShort = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    timeZone: "Asia/Jakarta",
+  })
+    .format(new Date())
+    .toLowerCase();
   const weekDays = [
     { key: "mon", label: "Monday" },
     { key: "tue", label: "Tuesday" },
@@ -161,7 +202,8 @@ export default function VenueDetailPage({
     { key: "sat", label: "Saturday" },
     { key: "sun", label: "Sunday" },
   ] as const;
-  const hasWeeklyHours = venue.weeklyHours && Object.keys(venue.weeklyHours).length > 0;
+  const hasWeeklyHours =
+    venue.weeklyHours && Object.keys(venue.weeklyHours).length > 0;
 
   return (
     <div className="min-h-screen pt-20 pb-24 lg:pb-0">
@@ -205,9 +247,7 @@ export default function VenueDetailPage({
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="heading-1 text-[#F7F7F7]">
-                    {venue.name}
-                  </h1>
+                  <h1 className="heading-1 text-[#F7F7F7]">{venue.name}</h1>
                   {venue.isVerified && (
                     <span className="caption flex items-center gap-1 rounded-full bg-[#E6FA50] px-2.5 py-0.5 uppercase text-[#06121A]">
                       <Shield className="h-2.5 w-2.5" />
@@ -217,14 +257,14 @@ export default function VenueDetailPage({
                 </div>
                 <p className="mt-2 flex items-center gap-2 caption text-[#F7F7F7]/40">
                   <MapPin className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{venue.location} · {venue.city}</span>
+                  <span className="truncate">
+                    {venue.location} · {venue.city}
+                  </span>
                 </p>
               </div>
               <div className="flex items-center gap-2 sm:shrink-0">
                 <Star className="h-4 w-4 fill-[#E6FA50] text-[#E6FA50]" />
-                <span className="label text-[#E6FA50]">
-                  {venue.rating}
-                </span>
+                <span className="label text-[#E6FA50]">{venue.rating}</span>
                 <span className="caption text-[#F7F7F7]/25">
                   ({venue.reviewCount} reviews)
                 </span>
@@ -232,15 +272,14 @@ export default function VenueDetailPage({
             </div>
 
             {/* Description */}
-            <p className="body mt-6 text-[#F7F7F7]/60">
-              {venue.description}
-            </p>
+            <p className="body mt-6 text-[#F7F7F7]/60">{venue.description}</p>
 
             {/* Operating hours */}
             {!hasWeeklyHours ? (
               <div className="mt-6 flex items-center gap-2 caption text-[#F7F7F7]/40">
                 <Clock className="h-3.5 w-3.5" />
-                Open daily {venue.operatingHours.open} – {venue.operatingHours.close}
+                Open daily {venue.operatingHours.open} –{" "}
+                {venue.operatingHours.close}
               </div>
             ) : (
               <div className="mt-10">
@@ -257,8 +296,13 @@ export default function VenueDetailPage({
                       };
                       const isToday = key === wibShort;
                       return (
-                        <div key={key} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
-                          <span className="caption text-[#F7F7F7]/60">{label}</span>
+                        <div
+                          key={key}
+                          className="flex items-center justify-between py-2 first:pt-0 last:pb-0"
+                        >
+                          <span className="caption text-[#F7F7F7]/60">
+                            {label}
+                          </span>
                           <span
                             className={`caption ${
                               isToday
@@ -268,7 +312,9 @@ export default function VenueDetailPage({
                                   : "text-[#F7F7F7]/60"
                             }`}
                           >
-                            {day.closed ? "Closed" : `${day.open} – ${day.close}`}
+                            {day.closed
+                              ? "Closed"
+                              : `${day.open} – ${day.close}`}
                           </span>
                         </div>
                       );
@@ -302,9 +348,7 @@ export default function VenueDetailPage({
 
             {/* Courts & Pricing */}
             <div className="mt-10">
-              <h2 className="heading-2 text-[#F7F7F7]">
-                Courts & Pricing
-              </h2>
+              <h2 className="heading-2 text-[#F7F7F7]">Courts & Pricing</h2>
               <div className="mt-4 space-y-3">
                 {courts.map((court) => (
                   <div
@@ -313,9 +357,7 @@ export default function VenueDetailPage({
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="heading-3 text-[#F7F7F7]">
-                          {court.name}
-                        </p>
+                        <p className="heading-3 text-[#F7F7F7]">{court.name}</p>
                         <p className="caption mt-0.5 text-[#F7F7F7]/25">
                           {court.type} court
                         </p>
@@ -376,15 +418,14 @@ export default function VenueDetailPage({
                 Today&apos;s Availability
               </h2>
               <p className="caption mt-1 text-[#F7F7F7]/25">
-                {courts[0]?.name ?? "Court A"} ·{" "}
-                {formatBookingDate(new Date())}
+                {courts[0]?.name ?? "Court A"} · {formatBookingDate(new Date())}
               </p>
               <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
                 {TIME_SLOTS.map((slot) => (
                   <button
                     key={slot.time}
                     disabled={!slot.available}
-                    className={`caption rounded-lg py-2.5 text-center transition-all ${ !slot.available ? "bg-white/[0.02] text-[#F7F7F7]/15 cursor-not-allowed" : slot.peak ? "border border-[#E6FA50]/20 bg-[#E6FA50]/5 text-[#E6FA50]/70 hover:border-[#E6FA50]/40 hover:text-[#E6FA50]" : "border border-white/[0.08] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-[#50C8C8]/30 hover:text-[#50C8C8]" }`}
+                    className={`caption rounded-lg py-2.5 text-center transition-all ${!slot.available ? "bg-white/[0.02] text-[#F7F7F7]/15 cursor-not-allowed" : slot.peak ? "border border-[#E6FA50]/20 bg-[#E6FA50]/5 text-[#E6FA50]/70 hover:border-[#E6FA50]/40 hover:text-[#E6FA50]" : "border border-white/[0.08] bg-[#0C1B26] text-[#F7F7F7]/60 hover:border-[#50C8C8]/30 hover:text-[#50C8C8]"}`}
                   >
                     {slot.time}
                   </button>
@@ -393,15 +434,11 @@ export default function VenueDetailPage({
               <div className="mt-3 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-white/[0.08] bg-[#0C1B26]" />
-                  <span className="caption text-[#F7F7F7]/25">
-                    Available
-                  </span>
+                  <span className="caption text-[#F7F7F7]/25">Available</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm border border-[#E6FA50]/20 bg-[#E6FA50]/5" />
-                  <span className="caption text-[#F7F7F7]/25">
-                    Peak Hour
-                  </span>
+                  <span className="caption text-[#F7F7F7]/25">Peak Hour</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-sm bg-white/[0.02]" />
@@ -439,9 +476,7 @@ export default function VenueDetailPage({
 
             {/* Refund Policy */}
             <div className="mt-10">
-              <h2 className="heading-2 text-[#F7F7F7]">
-                Refund Policy
-              </h2>
+              <h2 className="heading-2 text-[#F7F7F7]">Refund Policy</h2>
               <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
@@ -480,7 +515,10 @@ export default function VenueDetailPage({
               {isLoadingReviews ? (
                 <div className="mt-4 space-y-3">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5 space-y-3">
+                    <div
+                      key={i}
+                      className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5 space-y-3"
+                    >
                       <div className="h-4 w-1/3 animate-pulse rounded-full bg-white/[0.04]" />
                       <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/[0.04]" />
                     </div>
@@ -488,24 +526,42 @@ export default function VenueDetailPage({
                 </div>
               ) : isReviewsError || !reviews || reviews.length === 0 ? (
                 <div className="mt-4">
-                  <EmptyState icon={Star} title="No reviews yet" description="Be the first to review this venue after your visit." actionLabel="Book a court" actionHref={`/venues/${venue.id}/book`} />
+                  <EmptyState
+                    icon={Star}
+                    title="No reviews yet"
+                    description="Be the first to review this venue after your visit."
+                    actionLabel="Book a court"
+                    actionHref={`/venues/${venue.id}/book`}
+                  />
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
                   {reviews.map((review) => (
-                    <div key={review.id} className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5">
+                    <div
+                      key={review.id}
+                      className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5"
+                    >
                       <div className="flex items-center justify-between">
-                        <p className="heading-3 text-[#F7F7F7]">{review.authorName}</p>
+                        <p className="heading-3 text-[#F7F7F7]">
+                          {review.authorName}
+                        </p>
                         <div className="flex items-center gap-1">
                           {[1, 2, 3, 4, 5].map((n) => (
-                            <Star key={n} className={`h-3.5 w-3.5 ${n <= review.rating ? "fill-[#E6FA50] text-[#E6FA50]" : "text-[#F7F7F7]/15"}`} />
+                            <Star
+                              key={n}
+                              className={`h-3.5 w-3.5 ${n <= review.rating ? "fill-[#E6FA50] text-[#E6FA50]" : "text-[#F7F7F7]/15"}`}
+                            />
                           ))}
                         </div>
                       </div>
                       {review.comment && (
-                        <p className="body mt-2 text-[#F7F7F7]/60">{review.comment}</p>
+                        <p className="body mt-2 text-[#F7F7F7]/60">
+                          {review.comment}
+                        </p>
                       )}
-                      <p className="caption mt-2 text-[#F7F7F7]/25">{formatBookingDate(review.createdAt)}</p>
+                      <p className="caption mt-2 text-[#F7F7F7]/25">
+                        {formatBookingDate(review.createdAt)}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -520,7 +576,9 @@ export default function VenueDetailPage({
                 <div className="flex items-baseline justify-between">
                   <div>
                     <p className="price text-[#F7F7F7]">
-                      {minPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K` : "Pricing soon"}
+                      {minPrice > 0
+                        ? `Rp ${(minPrice / 1000).toFixed(0)}K`
+                        : "Pricing soon"}
                     </p>
                     <p className="caption mt-0.5 text-[#F7F7F7]/25">
                       per hour, starting from
@@ -531,22 +589,16 @@ export default function VenueDetailPage({
                 <div className="mt-6 space-y-3">
                   <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                     <p className="caption text-[#F7F7F7]/25">Date</p>
-                    <p className="heading-3 mt-1 text-[#F7F7F7]">
-                      Today
-                    </p>
+                    <p className="heading-3 mt-1 text-[#F7F7F7]">Today</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                       <p className="caption text-[#F7F7F7]/25">Start</p>
-                      <p className="heading-3 mt-1 text-[#F7F7F7]">
-                        10:00
-                      </p>
+                      <p className="heading-3 mt-1 text-[#F7F7F7]">10:00</p>
                     </div>
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                       <p className="caption text-[#F7F7F7]/25">End</p>
-                      <p className="heading-3 mt-1 text-[#F7F7F7]">
-                        11:00
-                      </p>
+                      <p className="heading-3 mt-1 text-[#F7F7F7]">11:00</p>
                     </div>
                   </div>
                   <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
@@ -560,7 +612,9 @@ export default function VenueDetailPage({
                 <div className="mt-6 flex items-center justify-between border-t border-white/[0.06] pt-4">
                   <p className="caption text-[#F7F7F7]/40">Total</p>
                   <p className="price text-[#F7F7F7]">
-                    {minPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K` : "Pricing soon"}
+                    {minPrice > 0
+                      ? `Rp ${(minPrice / 1000).toFixed(0)}K`
+                      : "Pricing soon"}
                   </p>
                 </div>
 
@@ -591,7 +645,9 @@ export default function VenueDetailPage({
                       Price range
                     </span>
                     <span className="label text-[#F7F7F7]/60">
-                      {minPrice > 0 && maxPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K – ${(maxPrice / 1000).toFixed(0)}K` : "Pricing soon"}
+                      {minPrice > 0 && maxPrice > 0
+                        ? `Rp ${(minPrice / 1000).toFixed(0)}K – ${(maxPrice / 1000).toFixed(0)}K`
+                        : "Pricing soon"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -625,7 +681,9 @@ export default function VenueDetailPage({
           <div>
             <p className="caption text-[#F7F7F7]/60">Starting from</p>
             <p className="price text-[#E6FA50]">
-              {minPrice > 0 ? `Rp ${(minPrice / 1000).toFixed(0)}K` : "Pricing soon"}
+              {minPrice > 0
+                ? `Rp ${(minPrice / 1000).toFixed(0)}K`
+                : "Pricing soon"}
             </p>
           </div>
           <Link

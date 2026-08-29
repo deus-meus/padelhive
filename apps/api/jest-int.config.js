@@ -1,12 +1,12 @@
 module.exports = {
-  moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: 'src',
-  testRegex: '.*\\.int-spec\\.ts$',
+  moduleFileExtensions: ["js", "json", "ts"],
+  rootDir: "src",
+  testRegex: ".*\\.int-spec\\.ts$",
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    "^.+\\.(t|j)s$": "ts-jest",
   },
-  collectCoverageFrom: ['**/*.(t|j)s'],
-  coverageDirectory: '../coverage',
-  testEnvironment: 'node',
+  collectCoverageFrom: ["**/*.(t|j)s"],
+  coverageDirectory: "../coverage",
+  testEnvironment: "node",
   testTimeout: 60000,
 };

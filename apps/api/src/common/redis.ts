@@ -49,11 +49,16 @@ export class RedisService {
     try {
       await this.publisher.publish(channel, payload);
     } catch (err) {
-      console.error(`[RedisService] Failed to publish message to channel ${channel}: ${err}`);
+      console.error(
+        `[RedisService] Failed to publish message to channel ${channel}: ${err}`,
+      );
     }
   }
 
-  async subscribe(channel: string, handler: (message: string) => void): Promise<void> {
+  async subscribe(
+    channel: string,
+    handler: (message: string) => void,
+  ): Promise<void> {
     if (!this.isEnabled || !this.subscriber) return;
 
     try {
@@ -62,7 +67,9 @@ export class RedisService {
         if (chan === channel) handler(message);
       });
     } catch (err) {
-      console.error(`[RedisService] Failed to subscribe to channel ${channel}: ${err}`);
+      console.error(
+        `[RedisService] Failed to subscribe to channel ${channel}: ${err}`,
+      );
     }
   }
 

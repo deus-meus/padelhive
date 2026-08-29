@@ -1,5 +1,5 @@
-import { t, Static } from "elysia";
 import { BookingStatus, SplitShareStatus } from "@prisma/client";
+import { type Static, t } from "elysia";
 
 export const BookingStatusEnum = t.Enum(BookingStatus);
 export const SplitShareStatusEnum = t.Enum(SplitShareStatus);
@@ -48,6 +48,8 @@ export const CreateChargePaymentSchema = t.Object({
 export type CreateBookingInput = Static<typeof CreateBookingSchema>;
 export type RescheduleBookingInput = Static<typeof RescheduleBookingSchema>;
 export type SetBookingSplitInput = Static<typeof SetBookingSplitSchema>;
-export type UpdateSplitShareStatusInput = Static<typeof UpdateSplitShareStatusSchema>;
+export type UpdateSplitShareStatusInput = Static<
+  typeof UpdateSplitShareStatusSchema
+>;
 export type CreateSharePaymentInput = Static<typeof CreateSharePaymentSchema>;
 export type CreateChargePaymentInput = Static<typeof CreateChargePaymentSchema>;

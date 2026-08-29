@@ -1,19 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  Building2,
-  Receipt,
-  Percent,
-  RotateCcw,
   AlertTriangle,
   BarChart3,
+  Building2,
+  LayoutDashboard,
   Menu,
-  X,
+  Percent,
+  Receipt,
+  RotateCcw,
   Ticket,
+  X,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { Navbar } from "@/components/shared/navbar";
@@ -41,7 +41,6 @@ export default function AdminLayout({
     <RequireAuth allowedRoles={["super_admin"]}>
       <Navbar />
       <div className="min-h-screen pt-20">
-
         <div className="flex flex-1">
           {/* Sidebar — desktop */}
           <aside className="hidden lg:flex lg:w-[240px] lg:shrink-0 lg:flex-col lg:border-r lg:border-white/[0.04]">
@@ -57,7 +56,7 @@ export default function AdminLayout({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`label flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-150 ${ isActive ? "bg-[#E6FA50]/10 text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60" }`}
+                    className={`label flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-150 ${isActive ? "bg-[#E6FA50]/10 text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60"}`}
                   >
                     <Icon className="h-4 w-4" />
                     {item.label}
@@ -72,7 +71,11 @@ export default function AdminLayout({
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E6FA50] text-[#06121A] shadow-lg shadow-[#E6FA50]/20"
             >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {sidebarOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
 

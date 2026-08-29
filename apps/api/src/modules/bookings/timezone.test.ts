@@ -15,7 +15,12 @@ describe("Booking timezone classification", () => {
         findMany: jest.fn().mockResolvedValue([]),
       },
     };
-    service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, {} as never);
+    service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      {} as never,
+    );
   });
 
   describe("findBookingsForUser", () => {
@@ -29,7 +34,9 @@ describe("Booking timezone classification", () => {
       expect(prisma.booking.findMany).toHaveBeenCalledWith({
         where: {
           hostUserId: "user-1",
-          status: { in: [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT] },
+          status: {
+            in: [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT],
+          },
           endsAt: { gt: now },
         },
         orderBy: { startsAt: "asc" },

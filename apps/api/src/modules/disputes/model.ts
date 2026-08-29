@@ -1,5 +1,9 @@
-import { t, Static } from "elysia";
-import { DisputeIssueType, DisputePriority, DisputeStatus } from "@prisma/client";
+import {
+  DisputeIssueType,
+  DisputePriority,
+  DisputeStatus,
+} from "@prisma/client";
+import { type Static, t } from "elysia";
 
 export const DisputeIssueTypeEnum = t.Enum(DisputeIssueType);
 export const DisputePriorityEnum = t.Enum(DisputePriority);

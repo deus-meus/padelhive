@@ -1,8 +1,7 @@
 "use client";
 
-import { AlertTriangle, RotateCw, Inbox } from "lucide-react";
+import { AlertTriangle, Inbox, RotateCw } from "lucide-react";
 import Link from "next/link";
-import { getApiErrorMessage } from "@/lib/api";
 export function ErrorState({
   title = "Couldn't load data",
   description = "We couldn't reach the server. Check your connection and try again.",
@@ -17,7 +16,9 @@ export function ErrorState({
   className?: string;
 }) {
   return (
-    <div className={`mx-auto flex max-w-md flex-col items-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center md:py-20 ${className}`}>
+    <div
+      className={`mx-auto flex max-w-md flex-col items-center rounded-2xl border border-white/[0.06] bg-[#0C1B26] px-6 py-16 text-center md:py-20 ${className}`}
+    >
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6FA50]/10">
         <AlertTriangle className="h-6 w-6 text-[#E6FA50]" />
       </div>
@@ -30,7 +31,9 @@ export function ErrorState({
           disabled={isRetrying}
           className="btn-lime mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-xl px-6 label disabled:opacity-60"
         >
-          <RotateCw className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`} />
+          <RotateCw
+            className={`h-3.5 w-3.5 ${isRetrying ? "animate-spin" : ""}`}
+          />
           {isRetrying ? "Retrying..." : "Try again"}
         </button>
       )}
@@ -82,9 +85,13 @@ export function EmptyState({
       ) : null}
       {actionLabel ? (
         actionHref ? (
-          <Link href={actionHref} className={actionClass}>{actionLabel}</Link>
+          <Link href={actionHref} className={actionClass}>
+            {actionLabel}
+          </Link>
         ) : (
-          <button onClick={onAction} className={actionClass}>{actionLabel}</button>
+          <button onClick={onAction} className={actionClass}>
+            {actionLabel}
+          </button>
         )
       ) : null}
     </div>

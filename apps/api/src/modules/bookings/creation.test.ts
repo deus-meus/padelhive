@@ -1,12 +1,29 @@
-import { BadRequestException, ConflictException, NotFoundException } from "../../common/errors";
-import { BookingStatus, CourtType, PaymentStatus, RefundStatus, VenueStatus } from "@prisma/client";
+import {
+  BookingStatus,
+  CourtType,
+  PaymentStatus,
+  RefundStatus,
+  VenueStatus,
+} from "@prisma/client";
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from "../../common/errors";
 import { BookingsService } from "./service";
 
 const splitMock = {
-  refundPaidShares: jest.fn().mockResolvedValue({ refundedCount: 0, failedCount: 0 }),
+  refundPaidShares: jest
+    .fn()
+    .mockResolvedValue({ refundedCount: 0, failedCount: 0 }),
 };
 
-const approvedVenue = { id: "venue-1", name: "Padel Bali", city: "Bali", status: VenueStatus.APPROVED };
+const approvedVenue = {
+  id: "venue-1",
+  name: "Padel Bali",
+  city: "Bali",
+  status: VenueStatus.APPROVED,
+};
 const activeCourt = {
   id: "court-1",
   venueId: "venue-1",
@@ -58,10 +75,17 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
     court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
     host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
   });
-  const defaultBookingUpdate = jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED });
+  const defaultBookingUpdate = jest.fn().mockResolvedValue({
+    ...cancellableBooking,
+    status: BookingStatus.CANCELLED,
+  });
 
-  const bookingCreate = (overrides.booking as Record<string, unknown>)?.create ?? defaultBookingCreate;
-  const bookingUpdate = (overrides.booking as Record<string, unknown>)?.update ?? defaultBookingUpdate;
+  const bookingCreate =
+    (overrides.booking as Record<string, unknown>)?.create ??
+    defaultBookingCreate;
+  const bookingUpdate =
+    (overrides.booking as Record<string, unknown>)?.update ??
+    defaultBookingUpdate;
 
   return {
     venue: { findFirst: jest.fn().mockResolvedValue(approvedVenue) },
@@ -72,12 +96,16 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
       update: bookingUpdate,
     },
     refund: { create: jest.fn().mockResolvedValue({ id: "refund-1" }) },
-    $transaction: overrides.$transaction ?? jest.fn(async (callback) => callback({
-      booking: { create: bookingCreate, update: bookingUpdate },
-      refund: { create: jest.fn().mockResolvedValue({ id: "refund-1" }) },
-      invite: { create: jest.fn().mockResolvedValue({ id: "invite-1" }) },
-      voucher: { update: jest.fn(), updateMany: jest.fn() },
-    })),
+    $transaction:
+      overrides.$transaction ??
+      jest.fn(async (callback) =>
+        callback({
+          booking: { create: bookingCreate, update: bookingUpdate },
+          refund: { create: jest.fn().mockResolvedValue({ id: "refund-1" }) },
+          invite: { create: jest.fn().mockResolvedValue({ id: "invite-1" }) },
+          voucher: { update: jest.fn(), updateMany: jest.fn() },
+        }),
+      ),
     ...overrides,
   };
 }
@@ -85,7 +113,12 @@ function createPrisma(overrides: Record<string, unknown> = {}) {
 describe("Booking creation API", () => {
   it("creates a pending-payment booking with server-side pricing", async () => {
     const prisma = createPrisma();
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
     await service.createBookingForUser("user-1", {
       venueId: "venue-1",
@@ -98,11 +131,24 @@ describe("Booking creation API", () => {
 
     expect(prisma.venue.findFirst).toHaveBeenCalledWith({
       where: { id: "venue-1", status: VenueStatus.APPROVED },
-      select: { id: true, name: true, city: true, status: true, openTime: true, closeTime: true, weeklyHours: true },
+      select: {
+        id: true,
+        name: true,
+        city: true,
+        status: true,
+        openTime: true,
+        closeTime: true,
+        weeklyHours: true,
+      },
     });
     expect(prisma.court.findFirst).toHaveBeenCalledWith({
       where: { id: "court-1", venueId: "venue-1", isActive: true },
-      select: expect.objectContaining({ weekdayPeak: true, weekdayOffPeak: true, weekendPeak: true, weekendOffPeak: true }),
+      select: expect.objectContaining({
+        weekdayPeak: true,
+        weekdayOffPeak: true,
+        weekendPeak: true,
+        weekendOffPeak: true,
+      }),
     });
     expect(prisma.booking.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -122,67 +168,135 @@ describe("Booking creation API", () => {
   });
 
   it("rejects missing or non-approved venue", async () => {
-    const prisma = createPrisma({ venue: { findFirst: jest.fn().mockResolvedValue(null) } });
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const prisma = createPrisma({
+      venue: { findFirst: jest.fn().mockResolvedValue(null) },
+    });
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    await expect(service.createBookingForUser("user-1", {
-      venueId: "venue-pending",
-      courtId: "court-1",
-      bookingDate: "2099-06-01",
-      startsAt: "09:00",
-      endsAt: "10:00",
-    })).rejects.toThrow(NotFoundException);
+    await expect(
+      service.createBookingForUser("user-1", {
+        venueId: "venue-pending",
+        courtId: "court-1",
+        bookingDate: "2099-06-01",
+        startsAt: "09:00",
+        endsAt: "10:00",
+      }),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it("rejects inactive or wrong-venue court", async () => {
-    const prisma = createPrisma({ court: { findFirst: jest.fn().mockResolvedValue(null) } });
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const prisma = createPrisma({
+      court: { findFirst: jest.fn().mockResolvedValue(null) },
+    });
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    await expect(service.createBookingForUser("user-1", {
-      venueId: "venue-1",
-      courtId: "court-inactive",
-      bookingDate: "2099-06-01",
-      startsAt: "09:00",
-      endsAt: "10:00",
-    })).rejects.toThrow(NotFoundException);
+    await expect(
+      service.createBookingForUser("user-1", {
+        venueId: "venue-1",
+        courtId: "court-inactive",
+        bookingDate: "2099-06-01",
+        startsAt: "09:00",
+        endsAt: "10:00",
+      }),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it("rejects invalid dates and non-whole-hour times", async () => {
-    const service = new BookingsService(createPrisma() as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      createPrisma() as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    await expect(service.createBookingForUser("user-1", { venueId: "venue-1", courtId: "court-1", bookingDate: "2099-02-31", startsAt: "09:00", endsAt: "10:00" })).rejects.toThrow(BadRequestException);
-    await expect(service.createBookingForUser("user-1", { venueId: "venue-1", courtId: "court-1", bookingDate: "2099-06-01", startsAt: "09:30", endsAt: "10:00" })).rejects.toThrow(BadRequestException);
-    await expect(service.createBookingForUser("user-1", { venueId: "venue-1", courtId: "court-1", bookingDate: "2099-06-01", startsAt: "11:00", endsAt: "10:00" })).rejects.toThrow(BadRequestException);
+    await expect(
+      service.createBookingForUser("user-1", {
+        venueId: "venue-1",
+        courtId: "court-1",
+        bookingDate: "2099-02-31",
+        startsAt: "09:00",
+        endsAt: "10:00",
+      }),
+    ).rejects.toThrow(BadRequestException);
+    await expect(
+      service.createBookingForUser("user-1", {
+        venueId: "venue-1",
+        courtId: "court-1",
+        bookingDate: "2099-06-01",
+        startsAt: "09:30",
+        endsAt: "10:00",
+      }),
+    ).rejects.toThrow(BadRequestException);
+    await expect(
+      service.createBookingForUser("user-1", {
+        venueId: "venue-1",
+        courtId: "court-1",
+        bookingDate: "2099-06-01",
+        startsAt: "11:00",
+        endsAt: "10:00",
+      }),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it("rejects past booking starts", async () => {
-    const service = new BookingsService(createPrisma() as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      createPrisma() as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    await expect(service.createBookingForUser("user-1", {
-      venueId: "venue-1",
-      courtId: "court-1",
-      bookingDate: "2000-01-01",
-      startsAt: "09:00",
-      endsAt: "10:00",
-    })).rejects.toThrow(BadRequestException);
+    await expect(
+      service.createBookingForUser("user-1", {
+        venueId: "venue-1",
+        courtId: "court-1",
+        bookingDate: "2000-01-01",
+        startsAt: "09:00",
+        endsAt: "10:00",
+      }),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it("rejects overlapping pending-payment or confirmed bookings", async () => {
-    const prisma = createPrisma({ booking: { findFirst: jest.fn().mockResolvedValue({ id: "booking-existing" }), create: jest.fn() } });
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const prisma = createPrisma({
+      booking: {
+        findFirst: jest.fn().mockResolvedValue({ id: "booking-existing" }),
+        create: jest.fn(),
+      },
+    });
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    await expect(service.createBookingForUser("user-1", {
-      venueId: "venue-1",
-      courtId: "court-1",
-      bookingDate: "2099-06-01",
-      startsAt: "09:00",
-      endsAt: "10:00",
-    })).rejects.toThrow(ConflictException);
+    await expect(
+      service.createBookingForUser("user-1", {
+        venueId: "venue-1",
+        courtId: "court-1",
+        bookingDate: "2099-06-01",
+        startsAt: "09:00",
+        endsAt: "10:00",
+      }),
+    ).rejects.toThrow(ConflictException);
 
     expect(prisma.booking.findFirst).toHaveBeenCalledWith({
       where: {
         courtId: "court-1",
-        status: { in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED] },
+        status: {
+          in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED],
+        },
         startsAt: { lt: new Date("2099-06-01T03:00:00.000Z") },
         endsAt: { gt: new Date("2099-06-01T02:00:00.000Z") },
       },
@@ -192,7 +306,11 @@ describe("Booking creation API", () => {
   });
 
   it("lets the owner cancel and creates pending refund for paid eligible bookings", async () => {
-    const txBookingUpdate = jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED, cancelledAt: new Date("2099-05-31T02:00:00.000Z") });
+    const txBookingUpdate = jest.fn().mockResolvedValue({
+      ...cancellableBooking,
+      status: BookingStatus.CANCELLED,
+      cancelledAt: new Date("2099-05-31T02:00:00.000Z"),
+    });
     const txRefundCreate = jest.fn().mockResolvedValue({ id: "refund-1" });
     const prisma = createPrisma({
       booking: {
@@ -200,16 +318,27 @@ describe("Booking creation API", () => {
         create: jest.fn(),
         update: jest.fn(),
       },
-      $transaction: jest.fn(async (callback) => callback({
-        booking: { update: txBookingUpdate },
-        refund: { create: txRefundCreate },
-        voucher: { updateMany: jest.fn() },
-      })),
+      $transaction: jest.fn(async (callback) =>
+        callback({
+          booking: { update: txBookingUpdate },
+          refund: { create: txRefundCreate },
+          voucher: { updateMany: jest.fn() },
+        }),
+      ),
     });
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
     const now = new Date("2099-05-31T02:00:00.000Z");
 
-    const result = await service.cancelBookingForUser("booking-1", "user-1", now);
+    const result = await service.cancelBookingForUser(
+      "booking-1",
+      "user-1",
+      now,
+    );
 
     expect(prisma.booking.findFirst).toHaveBeenCalledWith({
       where: { id: "booking-1", hostUserId: "user-1" },
@@ -226,7 +355,8 @@ describe("Booking creation API", () => {
         bookingId: "booking-1",
         paymentId: "payment-1",
         amount: 420000,
-        reason: "Full refund eligible: cancelled at least 24 hours before booking start.",
+        reason:
+          "Full refund eligible: cancelled at least 24 hours before booking start.",
         status: RefundStatus.PENDING,
       },
     });
@@ -236,42 +366,113 @@ describe("Booking creation API", () => {
   });
 
   it("rejects cancel for missing or non-owned bookings", async () => {
-    const service = new BookingsService(createPrisma({
-      booking: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn(), update: jest.fn() },
-    }) as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      createPrisma({
+        booking: {
+          findFirst: jest.fn().mockResolvedValue(null),
+          create: jest.fn(),
+          update: jest.fn(),
+        },
+      }) as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    await expect(service.cancelBookingForUser("booking-1", "user-2", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(NotFoundException);
+    await expect(
+      service.cancelBookingForUser(
+        "booking-1",
+        "user-2",
+        new Date("2099-05-31T02:00:00.000Z"),
+      ),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it("rejects completed bookings", async () => {
-    const service = new BookingsService(createPrisma({
-      booking: { findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.COMPLETED }), create: jest.fn(), update: jest.fn() },
-    }) as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      createPrisma({
+        booking: {
+          findFirst: jest.fn().mockResolvedValue({
+            ...cancellableBooking,
+            status: BookingStatus.COMPLETED,
+          }),
+          create: jest.fn(),
+          update: jest.fn(),
+        },
+      }) as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(BadRequestException);
+    await expect(
+      service.cancelBookingForUser(
+        "booking-1",
+        "user-1",
+        new Date("2099-05-31T02:00:00.000Z"),
+      ),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it("rejects already cancelled bookings", async () => {
-    const service = new BookingsService(createPrisma({
-      booking: { findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }), create: jest.fn(), update: jest.fn() },
-    }) as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      createPrisma({
+        booking: {
+          findFirst: jest.fn().mockResolvedValue({
+            ...cancellableBooking,
+            status: BookingStatus.CANCELLED,
+          }),
+          create: jest.fn(),
+          update: jest.fn(),
+        },
+      }) as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    await expect(service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"))).rejects.toThrow(BadRequestException);
+    await expect(
+      service.cancelBookingForUser(
+        "booking-1",
+        "user-1",
+        new Date("2099-05-31T02:00:00.000Z"),
+      ),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it("does not create refund when cancellation is less than 24 hours before start", async () => {
     const txRefundCreate = jest.fn();
     const prisma = createPrisma({
-      booking: { findFirst: jest.fn().mockResolvedValue(cancellableBooking), create: jest.fn(), update: jest.fn() },
-      $transaction: jest.fn(async (callback) => callback({
-        booking: { update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }) },
-        refund: { create: txRefundCreate },
-        voucher: { updateMany: jest.fn() },
-      })),
+      booking: {
+        findFirst: jest.fn().mockResolvedValue(cancellableBooking),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+      $transaction: jest.fn(async (callback) =>
+        callback({
+          booking: {
+            update: jest.fn().mockResolvedValue({
+              ...cancellableBooking,
+              status: BookingStatus.CANCELLED,
+            }),
+          },
+          refund: { create: txRefundCreate },
+          voucher: { updateMany: jest.fn() },
+        }),
+      ),
     });
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:01.000Z"));
+    const result = await service.cancelBookingForUser(
+      "booking-1",
+      "user-1",
+      new Date("2099-05-31T02:00:01.000Z"),
+    );
 
     expect(result.isRefundEligible).toBe(false);
     expect(result.refundAmount).toBe(0);
@@ -282,19 +483,41 @@ describe("Booking creation API", () => {
     const txRefundCreate = jest.fn();
     const prisma = createPrisma({
       booking: {
-        findFirst: jest.fn().mockResolvedValue({ ...cancellableBooking, payment: { ...cancellableBooking.payment, status: PaymentStatus.PENDING } }),
+        findFirst: jest.fn().mockResolvedValue({
+          ...cancellableBooking,
+          payment: {
+            ...cancellableBooking.payment,
+            status: PaymentStatus.PENDING,
+          },
+        }),
         create: jest.fn(),
         update: jest.fn(),
       },
-      $transaction: jest.fn(async (callback) => callback({
-        booking: { update: jest.fn().mockResolvedValue({ ...cancellableBooking, status: BookingStatus.CANCELLED }) },
-        refund: { create: txRefundCreate },
-        voucher: { updateMany: jest.fn() },
-      })),
+      $transaction: jest.fn(async (callback) =>
+        callback({
+          booking: {
+            update: jest.fn().mockResolvedValue({
+              ...cancellableBooking,
+              status: BookingStatus.CANCELLED,
+            }),
+          },
+          refund: { create: txRefundCreate },
+          voucher: { updateMany: jest.fn() },
+        }),
+      ),
     });
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
-    const result = await service.cancelBookingForUser("booking-1", "user-1", new Date("2099-05-31T02:00:00.000Z"));
+    const result = await service.cancelBookingForUser(
+      "booking-1",
+      "user-1",
+      new Date("2099-05-31T02:00:00.000Z"),
+    );
 
     expect(result.isRefundEligible).toBe(true);
     expect(result.refundAmount).toBe(0);
@@ -303,7 +526,12 @@ describe("Booking creation API", () => {
 
   it("prices correctly near weekend boundary and does not shift bookingDate off WIB day", async () => {
     const prisma = createPrisma();
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, splitMock as never);
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      splitMock as never,
+    );
 
     await service.createBookingForUser("user-1", {
       venueId: "venue-1",

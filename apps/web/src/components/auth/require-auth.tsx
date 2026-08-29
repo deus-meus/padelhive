@@ -1,13 +1,14 @@
 "use client";
 
+import { Loader2, LogIn } from "lucide-react";
 import Link from "next/link";
-import { LogIn, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import type { UserRole } from "@/types";
 
 function getRoleDestination(role: UserRole) {
   if (role === "super_admin") return { href: "/admin", label: "Go to Admin" };
-  if (role === "venue_owner" || role === "venue_admin") return { href: "/dashboard", label: "Go to Dashboard" };
+  if (role === "venue_owner" || role === "venue_admin")
+    return { href: "/dashboard", label: "Go to Dashboard" };
   return { href: "/bookings", label: "Go to My Bookings" };
 }
 
@@ -59,7 +60,8 @@ export function RequireAuth({
         <div className="w-full max-w-sm text-center">
           <h2 className="heading-2 text-[#F7F7F7] mb-2">Access denied</h2>
           <p className="body text-[#F7F7F7]/40 mb-6">
-            Your current role cannot view this page. Continue to your workspace instead.
+            Your current role cannot view this page. Continue to your workspace
+            instead.
           </p>
           <Link
             href={destination.href}

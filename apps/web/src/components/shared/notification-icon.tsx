@@ -1,16 +1,16 @@
 import {
-  CheckCircle2,
-  XCircle,
-  CreditCard,
-  Wallet,
-  RotateCcw,
   AlertTriangle,
-  UserCheck,
   Archive,
-  Building2,
   Bell,
+  Building2,
+  CheckCircle2,
+  CreditCard,
+  RotateCcw,
+  UserCheck,
+  Wallet,
+  XCircle,
 } from "lucide-react";
-import { NotificationType } from "@/lib/api";
+import type { NotificationType } from "@/lib/api";
 
 export function NotificationIcon({ type }: { type: NotificationType }) {
   let Icon = Bell;

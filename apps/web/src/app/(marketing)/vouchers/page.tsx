@@ -1,28 +1,32 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
 import {
-  Ticket,
-  Percent,
-  DollarSign,
   Calendar,
-  Copy,
   CheckCircle2,
+  Copy,
+  DollarSign,
+  Percent,
+  Ticket,
   X,
 } from "lucide-react";
-import { getVouchers } from "@/lib/api";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
 import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { FilterTabs } from "@/components/ui/filter-tabs";
-import { type Voucher } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getVouchers } from "@/lib/api";
+import { queryKeys } from "@/lib/queries";
+import type { Voucher } from "@/types";
 
 export default function VouchersPage() {
   const [filter, setFilter] = useState<"active" | "expired">("active");
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const { data, isLoading: isLoadingVouchers, isError } = useQuery({
+  const {
+    data,
+    isLoading: isLoadingVouchers,
+    isError,
+  } = useQuery({
     queryKey: queryKeys.vouchers.all(),
     queryFn: getVouchers,
   });
@@ -42,11 +46,14 @@ export default function VouchersPage() {
   }
 
   function copyCode(code: string) {
-    navigator.clipboard.writeText(code).then(() => {
-      showToast(`Copied "${code}" to clipboard`);
-    }).catch(() => {
-      showToast(`Code: ${code}`);
-    });
+    navigator.clipboard
+      .writeText(code)
+      .then(() => {
+        showToast(`Copied "${code}" to clipboard`);
+      })
+      .catch(() => {
+        showToast(`Code: ${code}`);
+      });
   }
 
   function formatDiscount(voucher: Voucher): string {
@@ -76,14 +83,14 @@ export default function VouchersPage() {
 
       {/* Tabs */}
       <section className="container max-w-[1200px]">
-        <FilterTabs 
+        <FilterTabs
           className="mb-8"
           tabs={(["active", "expired"] as const).map((tab) => ({
             value: tab,
-            label: `${tab.charAt(0).toUpperCase() + tab.slice(1)} (${tab === "active" ? active.length : expired.length})` 
-          }))} 
-          activeValue={filter} 
-          onChange={(val) => setFilter(val)} 
+            label: `${tab.charAt(0).toUpperCase() + tab.slice(1)} (${tab === "active" ? active.length : expired.length})`,
+          }))}
+          activeValue={filter}
+          onChange={(val) => setFilter(val)}
         />
       </section>
 
@@ -92,7 +99,10 @@ export default function VouchersPage() {
         {shouldShowLoading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+              <div
+                key={i}
+                className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <Skeleton className="h-[26px] w-[72px] rounded-full" />
                 </div>
@@ -106,93 +116,108 @@ export default function VouchersPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((voucher) => (
-            <div
-              key={voucher.id}
-              className={`group relative overflow-hidden rounded-2xl border p-6 transition-all duration-200 ${
-                voucher.isActive
-                  ? "border-white/[0.06] bg-[#0C1B26] hover:border-[#E6FA50]/15"
-                  : "border-white/[0.03] bg-[#0C1B26]/50 opacity-60"
-              }`}
-            >
-              {/* Discount badge */}
-              <div className="flex items-center justify-between mb-4">
-                <div className={`flex items-center gap-2 rounded-full px-3 py-1 ${
-                  voucher.type === "percentage"
-                    ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                    : "bg-[#50C8C8]/10 text-[#50C8C8]"
-                }`}>
-                  {voucher.type === "percentage"
-                    ? <Percent className="h-3.5 w-3.5" />
-                    : <DollarSign className="h-3.5 w-3.5" />
-                  }
-                  <span className="label">{formatDiscount(voucher)}</span>
-                </div>
-                {voucher.isActive && (
-                  <span className="h-2 w-2 rounded-full bg-[#E6FA50] animate-pulse" />
-                )}
-              </div>
-
-              {/* Code */}
-              <div className="flex items-center gap-2 mb-3">
-                <code className="heading-3 text-[#F7F7F7]">{voucher.code}</code>
-                {voucher.isActive && (
-                  <button
-                    onClick={() => copyCode(voucher.code)}
-                    className="flex h-6 w-6 items-center justify-center rounded-md bg-white/[0.04] text-[#F7F7F7]/25 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/60"
-                  >
-                    <Copy className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-
-              {/* Details */}
-              <div className="space-y-1.5">
-                {voucher.minPurchase && (
-                  <p className="caption text-[#F7F7F7]/25">
-                    Min. spend Rp {(voucher.minPurchase / 1000).toFixed(0)}K
-                  </p>
-                )}
-                {voucher.maxDiscount && (
-                  <p className="caption text-[#F7F7F7]/25">
-                    Max discount Rp {(voucher.maxDiscount / 1000).toFixed(0)}K
-                  </p>
-                )}
-                <p className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                  <Calendar className="h-3 w-3" />
-                  Valid until {voucher.validUntil}
-                </p>
-              </div>
-
-              {/* Usage bar */}
-              <div className="mt-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="caption text-[#F7F7F7]/25">Usage</span>
-                  <span className="caption text-[#F7F7F7]/25">{voucher.usedCount}/{voucher.usageLimit}</span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-white/[0.04]">
-                  <div
-                    className="h-full rounded-full bg-[#E6FA50]/40 transition-all"
-                    style={{ width: `${(voucher.usedCount / voucher.usageLimit) * 100}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* View details */}
-              <button
-                onClick={() => setSelectedVoucher(voucher)}
-                className="label mt-4 w-full rounded-xl border border-white/[0.06] py-2 text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+            {filtered.map((voucher) => (
+              <div
+                key={voucher.id}
+                className={`group relative overflow-hidden rounded-2xl border p-6 transition-all duration-200 ${
+                  voucher.isActive
+                    ? "border-white/[0.06] bg-[#0C1B26] hover:border-[#E6FA50]/15"
+                    : "border-white/[0.03] bg-[#0C1B26]/50 opacity-60"
+                }`}
               >
-                View Details
-              </button>
-            </div>
-          ))}
-        </div>
+                {/* Discount badge */}
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className={`flex items-center gap-2 rounded-full px-3 py-1 ${
+                      voucher.type === "percentage"
+                        ? "bg-[#E6FA50]/10 text-[#E6FA50]"
+                        : "bg-[#50C8C8]/10 text-[#50C8C8]"
+                    }`}
+                  >
+                    {voucher.type === "percentage" ? (
+                      <Percent className="h-3.5 w-3.5" />
+                    ) : (
+                      <DollarSign className="h-3.5 w-3.5" />
+                    )}
+                    <span className="label">{formatDiscount(voucher)}</span>
+                  </div>
+                  {voucher.isActive && (
+                    <span className="h-2 w-2 rounded-full bg-[#E6FA50] animate-pulse" />
+                  )}
+                </div>
+
+                {/* Code */}
+                <div className="flex items-center gap-2 mb-3">
+                  <code className="heading-3 text-[#F7F7F7]">
+                    {voucher.code}
+                  </code>
+                  {voucher.isActive && (
+                    <button
+                      onClick={() => copyCode(voucher.code)}
+                      className="flex h-6 w-6 items-center justify-center rounded-md bg-white/[0.04] text-[#F7F7F7]/25 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7]/60"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Details */}
+                <div className="space-y-1.5">
+                  {voucher.minPurchase && (
+                    <p className="caption text-[#F7F7F7]/25">
+                      Min. spend Rp {(voucher.minPurchase / 1000).toFixed(0)}K
+                    </p>
+                  )}
+                  {voucher.maxDiscount && (
+                    <p className="caption text-[#F7F7F7]/25">
+                      Max discount Rp {(voucher.maxDiscount / 1000).toFixed(0)}K
+                    </p>
+                  )}
+                  <p className="caption flex items-center gap-1 text-[#F7F7F7]/25">
+                    <Calendar className="h-3 w-3" />
+                    Valid until {voucher.validUntil}
+                  </p>
+                </div>
+
+                {/* Usage bar */}
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="caption text-[#F7F7F7]/25">Usage</span>
+                    <span className="caption text-[#F7F7F7]/25">
+                      {voucher.usedCount}/{voucher.usageLimit}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-white/[0.04]">
+                    <div
+                      className="h-full rounded-full bg-[#E6FA50]/40 transition-all"
+                      style={{
+                        width: `${(voucher.usedCount / voucher.usageLimit) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* View details */}
+                <button
+                  onClick={() => setSelectedVoucher(voucher)}
+                  className="label mt-4 w-full rounded-xl border border-white/[0.06] py-2 text-[#F7F7F7]/40 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
+                >
+                  View Details
+                </button>
+              </div>
+            ))}
+          </div>
         )}
 
         {filtered.length === 0 && !isError && (
           <div className="py-16 text-center">
-            <EmptyState icon={Ticket} title={`No ${filter} vouchers found`} description={`There are no ${filter} vouchers available.`} actionLabel="Browse venues" actionHref="/venues" />
+            <EmptyState
+              icon={Ticket}
+              title={`No ${filter} vouchers found`}
+              description={`There are no ${filter} vouchers available.`}
+              actionLabel="Browse venues"
+              actionHref="/venues"
+            />
           </div>
         )}
       </section>
@@ -200,7 +225,10 @@ export default function VouchersPage() {
       {/* Detail Modal */}
       {selectedVoucher && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm" onClick={() => setSelectedVoucher(null)} />
+          <div
+            className="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm"
+            onClick={() => setSelectedVoucher(null)}
+          />
           <div className="relative w-full max-w-md rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 shadow-2xl">
             <button
               onClick={() => setSelectedVoucher(null)}
@@ -209,40 +237,68 @@ export default function VouchersPage() {
               <X className="h-4 w-4" />
             </button>
 
-            <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 ${
-              selectedVoucher.type === "percentage"
-                ? "bg-[#E6FA50]/10 text-[#E6FA50]"
-                : "bg-[#50C8C8]/10 text-[#50C8C8]"
-            }`}>
-              {selectedVoucher.type === "percentage"
-                ? <Percent className="h-3.5 w-3.5" />
-                : <DollarSign className="h-3.5 w-3.5" />
-              }
+            <div
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 ${
+                selectedVoucher.type === "percentage"
+                  ? "bg-[#E6FA50]/10 text-[#E6FA50]"
+                  : "bg-[#50C8C8]/10 text-[#50C8C8]"
+              }`}
+            >
+              {selectedVoucher.type === "percentage" ? (
+                <Percent className="h-3.5 w-3.5" />
+              ) : (
+                <DollarSign className="h-3.5 w-3.5" />
+              )}
               <span className="label">{formatDiscount(selectedVoucher)}</span>
             </div>
 
-            <h2 className="heading-2 text-[#F7F7F7] mb-1">{selectedVoucher.code}</h2>
+            <h2 className="heading-2 text-[#F7F7F7] mb-1">
+              {selectedVoucher.code}
+            </h2>
             <p className="caption text-[#F7F7F7]/25 mb-5">
-              {selectedVoucher.type === "percentage" ? "Percentage discount" : "Fixed amount discount"}
+              {selectedVoucher.type === "percentage"
+                ? "Percentage discount"
+                : "Fixed amount discount"}
             </p>
 
             <div className="space-y-3 mb-6">
-              <DetailRow label="Discount" value={formatDiscount(selectedVoucher)} />
+              <DetailRow
+                label="Discount"
+                value={formatDiscount(selectedVoucher)}
+              />
               {selectedVoucher.minPurchase && (
-                <DetailRow label="Min. Spend" value={`Rp ${(selectedVoucher.minPurchase / 1000).toFixed(0)}K`} />
+                <DetailRow
+                  label="Min. Spend"
+                  value={`Rp ${(selectedVoucher.minPurchase / 1000).toFixed(0)}K`}
+                />
               )}
               {selectedVoucher.maxDiscount && (
-                <DetailRow label="Max Discount" value={`Rp ${(selectedVoucher.maxDiscount / 1000).toFixed(0)}K`} />
+                <DetailRow
+                  label="Max Discount"
+                  value={`Rp ${(selectedVoucher.maxDiscount / 1000).toFixed(0)}K`}
+                />
               )}
               <DetailRow label="Valid From" value={selectedVoucher.validFrom} />
-              <DetailRow label="Valid Until" value={selectedVoucher.validUntil} />
-              <DetailRow label="Usage" value={`${selectedVoucher.usedCount} / ${selectedVoucher.usageLimit}`} />
-              <DetailRow label="Status" value={selectedVoucher.isActive ? "Active" : "Expired"} />
+              <DetailRow
+                label="Valid Until"
+                value={selectedVoucher.validUntil}
+              />
+              <DetailRow
+                label="Usage"
+                value={`${selectedVoucher.usedCount} / ${selectedVoucher.usageLimit}`}
+              />
+              <DetailRow
+                label="Status"
+                value={selectedVoucher.isActive ? "Active" : "Expired"}
+              />
             </div>
 
             {selectedVoucher.isActive && (
               <button
-                onClick={() => { copyCode(selectedVoucher.code); setSelectedVoucher(null); }}
+                onClick={() => {
+                  copyCode(selectedVoucher.code);
+                  setSelectedVoucher(null);
+                }}
                 className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3"
               >
                 <Copy className="h-4 w-4" /> Copy Code

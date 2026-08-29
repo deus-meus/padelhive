@@ -1,4 +1,4 @@
-import { t, Static } from "elysia";
+import { type Static, t } from "elysia";
 
 export const HomeStatsSchema = t.Object({
   players: t.Number(),
@@ -6,7 +6,9 @@ export const HomeStatsSchema = t.Object({
   matchesThisMonth: t.Number(),
   hoursPlayed: t.Number(),
   cityCounts: t.Array(t.Object({ city: t.String(), count: t.Number() })),
-  recentUsers: t.Array(t.Object({ name: t.String(), avatarUrl: t.Nullable(t.String()) })),
+  recentUsers: t.Array(
+    t.Object({ name: t.String(), avatarUrl: t.Nullable(t.String()) }),
+  ),
   matchRate: t.Number(),
   newUsersThisMonth: t.Number(),
 });

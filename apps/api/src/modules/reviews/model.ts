@@ -1,4 +1,4 @@
-import { t, Static } from "elysia";
+import { type Static, t } from "elysia";
 
 export const CreateReviewSchema = t.Object({
   bookingId: t.String(),

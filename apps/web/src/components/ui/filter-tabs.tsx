@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export interface FilterTab<T extends string> {
   label: ReactNode;
@@ -13,9 +13,17 @@ export interface FilterTabsProps<T extends string> {
   tabClassName?: string;
 }
 
-export function FilterTabs<T extends string>({ tabs, activeValue, onChange, className = "", tabClassName = "" }: FilterTabsProps<T>) {
+export function FilterTabs<T extends string>({
+  tabs,
+  activeValue,
+  onChange,
+  className = "",
+  tabClassName = "",
+}: FilterTabsProps<T>) {
   return (
-    <div className={`mb-6 flex gap-2 overflow-x-auto no-scrollbar ${className}`}>
+    <div
+      className={`mb-6 flex gap-2 overflow-x-auto no-scrollbar ${className}`}
+    >
       {tabs.map((tab) => (
         <button
           key={tab.value}

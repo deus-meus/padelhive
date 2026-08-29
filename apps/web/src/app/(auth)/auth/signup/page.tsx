@@ -1,19 +1,21 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2, Mail, User as UserIcon } from "lucide-react";
 import Link from "next/link";
-import { Mail, User as UserIcon, Loader2 } from "lucide-react";
-import { useAuthStore } from "@/stores/auth-store";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { getUserFacingErrorMessage } from "@/lib/errors";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#E6FA50]" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-[#E6FA50]" />
+        </div>
+      }
+    >
       <SignupContent />
     </Suspense>
   );
@@ -24,7 +26,7 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
   const { registerWithEmail, isLoading } = useAuthStore();
-  
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -114,14 +116,21 @@ function SignupContent() {
               disabled={isLoading}
               className="label btn-lime w-full flex items-center justify-center gap-2 rounded-xl py-3 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
             >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign Up"}
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Sign Up"
+              )}
             </button>
           </form>
 
           <div className="body mt-4 flex flex-col items-center gap-2">
             <div className="text-[#F7F7F7]/40">
               Already have an account?{" "}
-              <Link href={`/auth/login${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} className="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">
+              <Link
+                href={`/auth/login${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`}
+                className="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors"
+              >
                 Sign in
               </Link>
             </div>

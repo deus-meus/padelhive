@@ -1,21 +1,56 @@
-import { BookingStatus, CourtType, PaymentStatus, RefundStatus, RefundType, VenueStatus, NotificationType, Prisma, UserRole } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { CreateBookingInput, RescheduleBookingInput } from "./model";
-import { getSlotPrice, isWeekendWib, utcToWibDateStr, wibHourFromUtc, isOvernight, parseHour, resolveSlotUtc } from "../../common/pricing.util";
-import { VouchersService, vouchersService as defaultVouchers } from "../vouchers/service";
-import { NotificationsService, notificationsService as defaultNotifications, CreateNotificationInput } from "../notifications/service";
-import { BookingSplitService, bookingSplitService as defaultSplitService } from "./split.service";
-import { BadRequestException, ConflictException, NotFoundException } from "../../common/errors";
 import {
+  BookingStatus,
+  type CourtType,
+  NotificationType,
+  PaymentStatus,
+  type Prisma,
+  RefundStatus,
+  RefundType,
+  UserRole,
+  VenueStatus,
+} from "@prisma/client";
+import {
+  INSURANCE_REFUND_ELIGIBLE_REASON,
+  INSURANCE_REFUND_INELIGIBLE_REASON,
+  INSURANCE_REFUND_WINDOW_MS,
   PENDING_PAYMENT_TTL_MS,
-  REFUND_WINDOW_MS,
   REFUND_ELIGIBLE_REASON,
   REFUND_ELIGIBLE_UNPAID_REASON,
   REFUND_INELIGIBLE_REASON,
-  INSURANCE_REFUND_WINDOW_MS,
-  INSURANCE_REFUND_ELIGIBLE_REASON,
-  INSURANCE_REFUND_INELIGIBLE_REASON,
+  REFUND_WINDOW_MS,
 } from "../../common/constants";
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from "../../common/errors";
+import {
+  getSlotPrice,
+  isOvernight,
+  isWeekendWib,
+  parseHour,
+  resolveSlotUtc,
+  utcToWibDateStr,
+  wibHourFromUtc,
+} from "../../common/pricing.util";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import {
+  type CreateNotificationInput,
+  notificationsService as defaultNotifications,
+  type NotificationsService,
+} from "../notifications/service";
+import {
+  vouchersService as defaultVouchers,
+  type VouchersService,
+} from "../vouchers/service";
+import type { CreateBookingInput, RescheduleBookingInput } from "./model";
+import {
+  type BookingSplitService,
+  bookingSplitService as defaultSplitService,
+} from "./split.service";
 
 type BookingFilter = "upcoming" | "past" | "cancelled";
 
@@ -101,7 +136,12 @@ type CancellableBooking = {
   court: { id: string; name: string; type: CourtType };
   host: { id: string; name: string | null; email: string };
   payment: { id: string; amount: number; status: PaymentStatus } | null;
-  charges: { id: string; amount: number; reason: string; status: PaymentStatus }[];
+  charges: {
+    id: string;
+    amount: number;
+    reason: string;
+    status: PaymentStatus;
+  }[];
 };
 
 type RefundDecision = {
@@ -134,29 +174,48 @@ export class BookingsService {
     private readonly prisma: PrismaService = defaultPrisma,
     private readonly vouchersService: VouchersService = defaultVouchers,
     private readonly notifications: NotificationsService = defaultNotifications,
-    private readonly bookingSplitService: BookingSplitService = defaultSplitService
+    private readonly bookingSplitService: BookingSplitService = defaultSplitService,
   ) {}
 
   private async safeNotify(input: CreateNotificationInput) {
     try {
       await this.notifications.createNotification(input);
     } catch (err) {
-      console.warn(`[BookingsService] Failed to emit notification: ${String(err)}`);
+      console.warn(
+        `[BookingsService] Failed to emit notification: ${String(err)}`,
+      );
     }
   }
 
   async createBookingForUser(hostUserId: string, body: CreateBookingInput) {
     const venue = await this.prisma.venue.findFirst({
       where: { id: body.venueId, status: VenueStatus.APPROVED },
-      select: { id: true, name: true, city: true, status: true, openTime: true, closeTime: true, weeklyHours: true },
+      select: {
+        id: true,
+        name: true,
+        city: true,
+        status: true,
+        openTime: true,
+        closeTime: true,
+        weeklyHours: true,
+      },
     });
 
     if (!venue) {
       throw new NotFoundException("Venue not found");
     }
 
-    const { openHour, closeHour } = this.resolveDayHours(venue, body.bookingDate);
-    const parsedTime = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt, openHour, closeHour);
+    const { openHour, closeHour } = this.resolveDayHours(
+      venue,
+      body.bookingDate,
+    );
+    const parsedTime = this.parseBookingTime(
+      body.bookingDate,
+      body.startsAt,
+      body.endsAt,
+      openHour,
+      closeHour,
+    );
 
     const court = await this.prisma.court.findFirst({
       where: { id: body.courtId, venueId: body.venueId, isActive: true },
@@ -177,16 +236,26 @@ export class BookingsService {
       throw new NotFoundException("Court not found or not active");
     }
 
-    const isAvailable = await this.isCourtAvailable(court.id, parsedTime.startsAt, parsedTime.endsAt);
+    const isAvailable = await this.isCourtAvailable(
+      court.id,
+      parsedTime.startsAt,
+      parsedTime.endsAt,
+    );
     if (!isAvailable) {
       throw new ConflictException("Court is already booked for this time");
     }
 
-    const { courtAmount, platformFee, voucherDiscount, finalAmount, voucherId } = await this.calculatePricing(
+    const {
+      courtAmount,
+      platformFee,
+      voucherDiscount,
+      finalAmount,
+      voucherId,
+    } = await this.calculatePricing(
       court,
       parsedTime.startsAt,
       parsedTime.durationMinutes,
-      body.voucherCode
+      body.voucherCode,
     );
 
     const insuranceAmount = body.hasInsurance ? 25000 : 0;
@@ -253,7 +322,11 @@ export class BookingsService {
     return booking;
   }
 
-  async rescheduleBookingForUser(bookingId: string, hostUserId: string, body: RescheduleBookingInput) {
+  async rescheduleBookingForUser(
+    bookingId: string,
+    hostUserId: string,
+    body: RescheduleBookingInput,
+  ) {
     const booking = await this.prisma.booking.findFirst({
       where: { id: bookingId, hostUserId },
       select: reschedulableBookingSelect,
@@ -263,20 +336,40 @@ export class BookingsService {
       throw new NotFoundException("Booking not found");
     }
 
-    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PENDING_PAYMENT) {
-      throw new BadRequestException("Only confirmed or pending-payment bookings can be rescheduled");
+    if (
+      booking.status !== BookingStatus.CONFIRMED &&
+      booking.status !== BookingStatus.PENDING_PAYMENT
+    ) {
+      throw new BadRequestException(
+        "Only confirmed or pending-payment bookings can be rescheduled",
+      );
     }
 
-    const hasSplitShares = (await this.prisma.bookingSplitShare.count({ where: { bookingId } })) > 0;
+    const hasSplitShares =
+      (await this.prisma.bookingSplitShare.count({ where: { bookingId } })) > 0;
     if (hasSplitShares) {
       throw new BadRequestException("Split bookings cannot be rescheduled");
     }
 
     const venue = booking.venue;
-    const { openHour, closeHour } = this.resolveDayHours(venue, body.bookingDate);
-    const parsedTime = this.parseBookingTime(body.bookingDate, body.startsAt, body.endsAt, openHour, closeHour);
+    const { openHour, closeHour } = this.resolveDayHours(
+      venue,
+      body.bookingDate,
+    );
+    const parsedTime = this.parseBookingTime(
+      body.bookingDate,
+      body.startsAt,
+      body.endsAt,
+      openHour,
+      closeHour,
+    );
 
-    const isAvailable = await this.isCourtAvailable(booking.courtId, parsedTime.startsAt, parsedTime.endsAt, bookingId);
+    const isAvailable = await this.isCourtAvailable(
+      booking.courtId,
+      parsedTime.startsAt,
+      parsedTime.endsAt,
+      bookingId,
+    );
     if (!isAvailable) {
       throw new ConflictException("Court is already booked for this time");
     }
@@ -284,22 +377,29 @@ export class BookingsService {
     const { courtAmount, platformFee } = this.calculateCourtPricing(
       booking.court,
       parsedTime.startsAt,
-      parsedTime.durationMinutes
+      parsedTime.durationMinutes,
     );
     const newSubtotal = courtAmount + platformFee;
 
     let voucherDiscount = 0;
     if (booking.voucherId) {
-      voucherDiscount = await this.vouchersService.repriceVoucherById(booking.voucherId, newSubtotal);
+      voucherDiscount = await this.vouchersService.repriceVoucherById(
+        booking.voucherId,
+        newSubtotal,
+      );
     }
 
     const newFinalAmount = Math.max(0, newSubtotal - voucherDiscount);
     const oldFinalAmount = booking.finalAmount;
     const priceDelta = newFinalAmount - oldFinalAmount;
 
-    const createRefundPending = priceDelta < 0 && booking.payment && booking.payment.status === PaymentStatus.PAID;
+    const createRefundPending =
+      priceDelta < 0 &&
+      booking.payment &&
+      booking.payment.status === PaymentStatus.PAID;
     const refundAmount = createRefundPending ? Math.abs(priceDelta) : 0;
-    const createTopUpCharge = priceDelta > 0 && booking.status === BookingStatus.CONFIRMED;
+    const createTopUpCharge =
+      priceDelta > 0 && booking.status === BookingStatus.CONFIRMED;
 
     try {
       const updated = await this.prisma.$transaction(async (tx) => {
@@ -356,7 +456,11 @@ export class BookingsService {
         try {
           const venueData = await this.prisma.venue.findUnique({
             where: { id: booking.venueId },
-            select: { name: true, ownerId: true, admins: { select: { userId: true } } },
+            select: {
+              name: true,
+              ownerId: true,
+              admins: { select: { userId: true } },
+            },
           });
 
           if (venueData) {
@@ -376,8 +480,8 @@ export class BookingsService {
                     title: "New refund request",
                     body: "A partial refund from reschedule is awaiting review.",
                     linkUrl: `/admin/refunds`,
-                  })
-                )
+                  }),
+                ),
             );
 
             const venueTeamIds = new Set([
@@ -395,12 +499,14 @@ export class BookingsService {
                     title: "New refund request",
                     body: `A partial refund from reschedule for ${venueData.name} needs review.`,
                     linkUrl: `/dashboard/refunds`,
-                  })
-                )
+                  }),
+                ),
             );
           }
         } catch (err) {
-          console.warn(`Best-effort reschedule refund notifications failed for booking ${booking.id}: ${String(err)}`);
+          console.warn(
+            `Best-effort reschedule refund notifications failed for booking ${booking.id}: ${String(err)}`,
+          );
         }
       }
 
@@ -416,7 +522,10 @@ export class BookingsService {
 
       return { ...updated, priceDelta };
     } catch (error) {
-      const e = error as { message?: string; meta?: { message?: string; target?: unknown } };
+      const e = error as {
+        message?: string;
+        meta?: { message?: string; target?: unknown };
+      };
       const msg = e?.message || "";
       const metaMsg = e?.meta?.message || "";
       const target = e?.meta?.target || [];
@@ -424,9 +533,13 @@ export class BookingsService {
       if (
         msg.includes("Exclusive overlap constraint violation") ||
         metaMsg.includes("Exclusive overlap constraint violation") ||
-        (Array.isArray(target) && target.includes("courtId") && target.includes("startsAt"))
+        (Array.isArray(target) &&
+          target.includes("courtId") &&
+          target.includes("startsAt"))
       ) {
-        throw new ConflictException("Court is unavailable for the requested time");
+        throw new ConflictException(
+          "Court is unavailable for the requested time",
+        );
       }
       throw error;
     }
@@ -444,18 +557,25 @@ export class BookingsService {
     } else if (filter === "past") {
       where.status = BookingStatus.COMPLETED;
     } else {
-      where.status = { in: [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT] };
+      where.status = {
+        in: [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT],
+      };
       where.endsAt = { gt: now };
     }
 
     const bookings = await this.prisma.booking.findMany({
       where,
-      orderBy: { startsAt: filter === "past" || filter === "cancelled" ? "desc" : "asc" },
+      orderBy: {
+        startsAt: filter === "past" || filter === "cancelled" ? "desc" : "asc",
+      },
       select: cancellableBookingSelect,
     });
 
     return bookings.map((booking) => {
-      const decision = this.calculateRefundDecision(booking as CancellableBooking, now);
+      const decision = this.calculateRefundDecision(
+        booking as CancellableBooking,
+        now,
+      );
       return this.withRefundDecision(booking as CancellableBooking, decision);
     });
   }
@@ -471,8 +591,14 @@ export class BookingsService {
     }
 
     const now = new Date();
-    const decision = this.calculateRefundDecision(booking as CancellableBooking, now);
-    const enriched = this.withRefundDecision(booking as CancellableBooking, decision);
+    const decision = this.calculateRefundDecision(
+      booking as CancellableBooking,
+      now,
+    );
+    const enriched = this.withRefundDecision(
+      booking as CancellableBooking,
+      decision,
+    );
 
     const pendingCharge = await this.prisma.bookingCharge.findFirst({
       where: { bookingId: id, status: PaymentStatus.PENDING },
@@ -496,11 +622,19 @@ export class BookingsService {
       throw new BadRequestException("Booking is already cancelled");
     }
 
-    if (booking.status === BookingStatus.COMPLETED || booking.status === BookingStatus.EXPIRED) {
-      throw new BadRequestException("Booking cannot be cancelled in its current status");
+    if (
+      booking.status === BookingStatus.COMPLETED ||
+      booking.status === BookingStatus.EXPIRED
+    ) {
+      throw new BadRequestException(
+        "Booking cannot be cancelled in its current status",
+      );
     }
 
-    const refundDecision = this.calculateRefundDecision(booking as CancellableBooking, now);
+    const refundDecision = this.calculateRefundDecision(
+      booking as CancellableBooking,
+      now,
+    );
 
     const cancelledBooking = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.booking.update({
@@ -519,7 +653,11 @@ export class BookingsService {
         });
       }
 
-      if (refundDecision.isRefundEligible && booking.payment && refundDecision.refundAmount > 0) {
+      if (
+        refundDecision.isRefundEligible &&
+        booking.payment &&
+        refundDecision.refundAmount > 0
+      ) {
         await tx.refund.create({
           data: {
             bookingId: booking.id,
@@ -544,38 +682,72 @@ export class BookingsService {
 
     if (refundDecision.isRefundEligible) {
       try {
-        await this.bookingSplitService.refundPaidShares(booking.id, { notifyHostUserId: hostUserId });
+        await this.bookingSplitService.refundPaidShares(booking.id, {
+          notifyHostUserId: hostUserId,
+        });
       } catch (err) {
-        console.warn(`Best-effort split share refund failed during cancel for booking ${booking.id}: ${String(err)}`);
+        console.warn(
+          `Best-effort split share refund failed during cancel for booking ${booking.id}: ${String(err)}`,
+        );
       }
     }
 
-    return this.withRefundDecision(cancelledBooking as CancellableBooking, refundDecision);
+    return this.withRefundDecision(
+      cancelledBooking as CancellableBooking,
+      refundDecision,
+    );
   }
 
-  private calculateRefundDecision(booking: CancellableBooking, now: Date): RefundDecision {
+  private calculateRefundDecision(
+    booking: CancellableBooking,
+    now: Date,
+  ): RefundDecision {
     const hasInsurance = booking.charges?.some(
-      (c) => c.reason === "Refund Protection Insurance" && c.status === PaymentStatus.PAID
+      (c) =>
+        c.reason === "Refund Protection Insurance" &&
+        c.status === PaymentStatus.PAID,
     );
 
-    const windowLimit = hasInsurance ? INSURANCE_REFUND_WINDOW_MS : REFUND_WINDOW_MS;
-    const isRefundEligible = booking.startsAt.getTime() - now.getTime() >= windowLimit;
+    const windowLimit = hasInsurance
+      ? INSURANCE_REFUND_WINDOW_MS
+      : REFUND_WINDOW_MS;
+    const isRefundEligible =
+      booking.startsAt.getTime() - now.getTime() >= windowLimit;
     const hasPaidPayment = booking.payment?.status === PaymentStatus.PAID;
 
     if (isRefundEligible && hasPaidPayment) {
-      const reason = hasInsurance ? INSURANCE_REFUND_ELIGIBLE_REASON : REFUND_ELIGIBLE_REASON;
-      return { isRefundEligible: true, refundAmount: booking.finalAmount, refundPolicyReason: reason };
+      const reason = hasInsurance
+        ? INSURANCE_REFUND_ELIGIBLE_REASON
+        : REFUND_ELIGIBLE_REASON;
+      return {
+        isRefundEligible: true,
+        refundAmount: booking.finalAmount,
+        refundPolicyReason: reason,
+      };
     }
 
     if (isRefundEligible && !hasPaidPayment) {
-      return { isRefundEligible: true, refundAmount: 0, refundPolicyReason: REFUND_ELIGIBLE_UNPAID_REASON };
+      return {
+        isRefundEligible: true,
+        refundAmount: 0,
+        refundPolicyReason: REFUND_ELIGIBLE_UNPAID_REASON,
+      };
     }
 
-    const reason = hasInsurance ? INSURANCE_REFUND_INELIGIBLE_REASON : REFUND_INELIGIBLE_REASON;
-    return { isRefundEligible: false, refundAmount: 0, refundPolicyReason: reason };
+    const reason = hasInsurance
+      ? INSURANCE_REFUND_INELIGIBLE_REASON
+      : REFUND_INELIGIBLE_REASON;
+    return {
+      isRefundEligible: false,
+      refundAmount: 0,
+      refundPolicyReason: reason,
+    };
   }
 
-  private withRefundDecision(booking: CancellableBooking, refundDecision: RefundDecision) {
+  private withRefundDecision(
+    booking: CancellableBooking,
+    refundDecision: RefundDecision,
+  ) {
     const { voucherId: _vId, charges: _charges, ...rest } = booking;
     return {
       ...rest,
@@ -585,15 +757,31 @@ export class BookingsService {
     };
   }
 
-  private resolveDayHours(venue: { openTime: string; closeTime: string; weeklyHours?: Prisma.JsonValue | null }, dateStr: string) {
+  private resolveDayHours(
+    venue: {
+      openTime: string;
+      closeTime: string;
+      weeklyHours?: Prisma.JsonValue | null;
+    },
+    dateStr: string,
+  ) {
     const dayIdx = new Date(`${dateStr}T12:00:00Z`).getUTCDay();
     const key = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][dayIdx];
 
     let openTime = venue.openTime;
     let closeTime = venue.closeTime;
 
-    if (venue.weeklyHours && typeof venue.weeklyHours === "object" && key in venue.weeklyHours) {
-      const entry = (venue.weeklyHours as Record<string, { open?: string; close?: string; closed?: boolean }>)[key];
+    if (
+      venue.weeklyHours &&
+      typeof venue.weeklyHours === "object" &&
+      key in venue.weeklyHours
+    ) {
+      const entry = (
+        venue.weeklyHours as Record<
+          string,
+          { open?: string; close?: string; closed?: boolean }
+        >
+      )[key];
       if (entry.closed === true) {
         throw new BadRequestException("Venue is closed on this day");
       }
@@ -612,22 +800,30 @@ export class BookingsService {
     startsAtStr: string,
     endsAtStr: string,
     openHour: number,
-    closeHour: number
+    closeHour: number,
   ): ParsedBookingTime {
     const bookingDate = new Date(`${dateStr}T00:00:00.000Z`);
-    if (!DATE_PATTERN.test(dateStr) || Number.isNaN(bookingDate.getTime()) || bookingDate.toISOString().slice(0, 10) !== dateStr) {
+    if (
+      !DATE_PATTERN.test(dateStr) ||
+      Number.isNaN(bookingDate.getTime()) ||
+      bookingDate.toISOString().slice(0, 10) !== dateStr
+    ) {
       throw new BadRequestException("bookingDate must use YYYY-MM-DD format");
     }
 
     if (!TIME_PATTERN.test(startsAtStr) || !TIME_PATTERN.test(endsAtStr)) {
-      throw new BadRequestException("startsAt and endsAt must use whole-hour HH:00 format");
+      throw new BadRequestException(
+        "startsAt and endsAt must use whole-hour HH:00 format",
+      );
     }
 
     const startHour = parseInt(startsAtStr.split(":")[0], 10);
     const endHour = parseInt(endsAtStr.split(":")[0], 10);
 
     const overnight = isOvernight(openHour, closeHour);
-    const totalVenueHours = overnight ? 24 - openHour + closeHour : closeHour - openHour;
+    const totalVenueHours = overnight
+      ? 24 - openHour + closeHour
+      : closeHour - openHour;
 
     const startOffset = overnight
       ? startHour >= openHour
@@ -641,11 +837,15 @@ export class BookingsService {
       : endHour - openHour;
 
     if (startOffset < 0 || startOffset >= totalVenueHours) {
-      throw new BadRequestException("startsAt is outside the venue operating hours");
+      throw new BadRequestException(
+        "startsAt is outside the venue operating hours",
+      );
     }
 
     if (endOffset <= startOffset || endOffset > totalVenueHours) {
-      throw new BadRequestException("endsAt must be after startsAt and within operating hours");
+      throw new BadRequestException(
+        "endsAt must be after startsAt and within operating hours",
+      );
     }
 
     const durationHours = endOffset - startOffset;
@@ -666,12 +866,19 @@ export class BookingsService {
     };
   }
 
-  private async isCourtAvailable(courtId: string, startsAt: Date, endsAt: Date, excludeBookingId?: string): Promise<boolean> {
+  private async isCourtAvailable(
+    courtId: string,
+    startsAt: Date,
+    endsAt: Date,
+    excludeBookingId?: string,
+  ): Promise<boolean> {
     const conflictingBooking = await this.prisma.booking.findFirst({
       where: {
         courtId,
         id: excludeBookingId ? { not: excludeBookingId } : undefined,
-        status: { in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED] },
+        status: {
+          in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED],
+        },
         startsAt: { lt: endsAt },
         endsAt: { gt: startsAt },
       },
@@ -681,7 +888,11 @@ export class BookingsService {
     return !conflictingBooking;
   }
 
-  private calculateCourtPricing(court: SelectedCourt, startsAtUtc: Date, durationMinutes: number) {
+  private calculateCourtPricing(
+    court: SelectedCourt,
+    startsAtUtc: Date,
+    durationMinutes: number,
+  ) {
     const durationHours = durationMinutes / 60;
     let courtAmount = 0;
 
@@ -701,17 +912,24 @@ export class BookingsService {
     court: SelectedCourt,
     startsAtUtc: Date,
     durationMinutes: number,
-    voucherCode?: string
+    voucherCode?: string,
   ) {
-    const { courtAmount, platformFee } = this.calculateCourtPricing(court, startsAtUtc, durationMinutes);
+    const { courtAmount, platformFee } = this.calculateCourtPricing(
+      court,
+      startsAtUtc,
+      durationMinutes,
+    );
     const subtotal = courtAmount + platformFee;
 
     let voucherDiscount = 0;
     let voucherId: string | null = null;
 
-    if (voucherCode && voucherCode.trim()) {
+    if (voucherCode?.trim()) {
       const cleanCode = voucherCode.trim().toUpperCase();
-      const voucherResult = await this.vouchersService.priceVoucher(cleanCode, subtotal);
+      const voucherResult = await this.vouchersService.priceVoucher(
+        cleanCode,
+        subtotal,
+      );
       voucherDiscount = voucherResult.discount;
       voucherId = voucherResult.voucherId;
     }
@@ -729,7 +947,9 @@ export class BookingsService {
 
   async getOwnerDashboard(userId: string, isSuperAdmin: boolean) {
     const venues = await this.prisma.venue.findMany({
-      where: isSuperAdmin ? {} : { OR: [{ ownerId: userId }, { admins: { some: { userId } } }] },
+      where: isSuperAdmin
+        ? {}
+        : { OR: [{ ownerId: userId }, { admins: { some: { userId } } }] },
       select: { id: true },
     });
 
@@ -754,9 +974,14 @@ export class BookingsService {
     const todayWibStr = utcToWibDateStr(todayDate);
     const todayUtcDate = new Date(`${todayWibStr}T00:00:00.000Z`);
 
-    const weekStartDate = new Date(todayUtcDate.getTime() - 6 * 24 * 60 * 60 * 1000);
+    const weekStartDate = new Date(
+      todayUtcDate.getTime() - 6 * 24 * 60 * 60 * 1000,
+    );
     const dateLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const revenueSeriesMap = new Map<string, { date: string; label: string; value: number }>();
+    const revenueSeriesMap = new Map<
+      string,
+      { date: string; label: string; value: number }
+    >();
 
     for (let i = 6; i >= 0; i--) {
       const d = new Date(todayUtcDate.getTime() - i * 24 * 60 * 60 * 1000);
@@ -791,10 +1016,16 @@ export class BookingsService {
     const courtBookingsMap = new Map<string, number>();
 
     for (const b of windowBookings) {
-      if (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.COMPLETED) {
+      if (
+        b.status === BookingStatus.CONFIRMED ||
+        b.status === BookingStatus.COMPLETED
+      ) {
         weeklyRevenue += b.finalAmount;
         weeklyBookings += 1;
-        courtBookingsMap.set(b.courtId, (courtBookingsMap.get(b.courtId) || 0) + 1);
+        courtBookingsMap.set(
+          b.courtId,
+          (courtBookingsMap.get(b.courtId) || 0) + 1,
+        );
 
         const wibDateStr = utcToWibDateStr(b.bookingDate);
         const seriesItem = revenueSeriesMap.get(wibDateStr);
@@ -810,7 +1041,10 @@ export class BookingsService {
     });
 
     const maxSlotsPerWeek = activeCourts.length * 16 * 7;
-    const occupancyRate = maxSlotsPerWeek > 0 ? Math.round((weeklyBookings / maxSlotsPerWeek) * 100) : 0;
+    const occupancyRate =
+      maxSlotsPerWeek > 0
+        ? Math.round((weeklyBookings / maxSlotsPerWeek) * 100)
+        : 0;
 
     const courtUtilization = activeCourts.map((c) => {
       const count = courtBookingsMap.get(c.id) || 0;
@@ -826,7 +1060,12 @@ export class BookingsService {
     });
 
     const todaysSchedule = windowBookings
-      .filter((b) => b.bookingDate.getTime() === todayUtcDate.getTime() && (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.PENDING_PAYMENT))
+      .filter(
+        (b) =>
+          b.bookingDate.getTime() === todayUtcDate.getTime() &&
+          (b.status === BookingStatus.CONFIRMED ||
+            b.status === BookingStatus.PENDING_PAYMENT),
+      )
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
       .map((b) => ({
         bookingId: b.id,
@@ -878,15 +1117,30 @@ export class BookingsService {
 
   async getRevenue(userId: string, isSuperAdmin: boolean) {
     const venues = await this.prisma.venue.findMany({
-      where: isSuperAdmin ? {} : {
-        OR: [{ ownerId: userId }, { admins: { some: { userId } } }]
-      },
+      where: isSuperAdmin
+        ? {}
+        : {
+            OR: [{ ownerId: userId }, { admins: { some: { userId } } }],
+          },
       select: { id: true },
     });
 
     if (venues.length === 0) {
       const emptyMonthly = [];
-      const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const shortMonths = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
       const dateLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const todayDate = new Date();
       const todayWibStr = utcToWibDateStr(todayDate);
@@ -955,8 +1209,24 @@ export class BookingsService {
       },
     });
 
-    const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const monthlySeriesMap = new Map<string, { month: string; value: number }>();
+    const shortMonths = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const monthlySeriesMap = new Map<
+      string,
+      { month: string; value: number }
+    >();
     for (let i = 11; i >= 0; i--) {
       let m = month - i;
       let y = year;
@@ -986,13 +1256,28 @@ export class BookingsService {
     let totalBookings = 0;
     let cancelledCount = 0;
     const uniquePlayersMap = new Map<string, number>();
-    const topCourtsMap = new Map<string, { courtId: string; name: string; venue: string; bookings: number; revenue: number }>();
+    const topCourtsMap = new Map<
+      string,
+      {
+        courtId: string;
+        name: string;
+        venue: string;
+        bookings: number;
+        revenue: number;
+      }
+    >();
 
     for (const b of windowBookings) {
-      if (b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.COMPLETED) {
+      if (
+        b.status === BookingStatus.CONFIRMED ||
+        b.status === BookingStatus.COMPLETED
+      ) {
         totalRevenue += b.finalAmount;
         totalBookings += 1;
-        uniquePlayersMap.set(b.hostUserId, (uniquePlayersMap.get(b.hostUserId) || 0) + 1);
+        uniquePlayersMap.set(
+          b.hostUserId,
+          (uniquePlayersMap.get(b.hostUserId) || 0) + 1,
+        );
 
         const wibDateStr = utcToWibDateStr(b.bookingDate);
         const monthKey = wibDateStr.slice(0, 7);
@@ -1024,17 +1309,24 @@ export class BookingsService {
       }
     }
 
-    const avgBookingValue = totalBookings > 0 ? Math.round(totalRevenue / totalBookings) : 0;
+    const avgBookingValue =
+      totalBookings > 0 ? Math.round(totalRevenue / totalBookings) : 0;
     const uniquePlayers = uniquePlayersMap.size;
-    const cancellationRate = totalBookings + cancelledCount > 0
-      ? Math.round((cancelledCount / (totalBookings + cancelledCount)) * 1000) / 10
-      : 0;
+    const cancellationRate =
+      totalBookings + cancelledCount > 0
+        ? Math.round(
+            (cancelledCount / (totalBookings + cancelledCount)) * 1000,
+          ) / 10
+        : 0;
 
     let repeatCustomers = 0;
     for (const count of uniquePlayersMap.values()) {
       if (count >= 2) repeatCustomers++;
     }
-    const repeatCustomerRate = uniquePlayers > 0 ? Math.round((repeatCustomers / uniquePlayers) * 100) : 0;
+    const repeatCustomerRate =
+      uniquePlayers > 0
+        ? Math.round((repeatCustomers / uniquePlayers) * 100)
+        : 0;
 
     const topCourts = Array.from(topCourtsMap.values())
       .sort((a, b) => b.revenue - a.revenue)

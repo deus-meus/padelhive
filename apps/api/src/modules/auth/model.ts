@@ -1,5 +1,5 @@
-import { t, Static } from "elysia";
 import { UserRole } from "@prisma/client";
+import { type Static, t } from "elysia";
 
 export const UserRoleEnum = t.Enum(UserRole);
 

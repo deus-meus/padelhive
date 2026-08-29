@@ -24,7 +24,10 @@ export interface Venue {
     open: string;
     close: string;
   };
-  weeklyHours?: Record<string, { open: string; close: string; closed?: boolean }> | null;
+  weeklyHours?: Record<
+    string,
+    { open: string; close: string; closed?: boolean }
+  > | null;
   rating: number;
   reviewCount: number;
   isVerified: boolean;

@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { NotificationIcon } from "@/components/shared/notification-icon";
+import { useNotificationStream } from "@/hooks/use-notification-stream";
 import {
   getNotifications,
   getUnreadNotificationCount,
-  markNotificationRead,
   markAllNotificationsRead,
+  markNotificationRead,
 } from "@/lib/api";
-import Link from "next/link";
 import { formatRelativeTime } from "@/lib/format";
-import { NotificationIcon } from "@/components/shared/notification-icon";
-import { useNotificationStream } from "@/hooks/use-notification-stream";
+import { queryKeys } from "@/lib/queries";
 
 export function NotificationBell({ enabled }: { enabled: boolean }) {
   const router = useRouter();
@@ -41,16 +41,24 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
   const markReadMutation = useMutation({
     mutationFn: markNotificationRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unreadCount(),
+      });
     },
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: markAllNotificationsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unreadCount(),
+      });
     },
   });
 
@@ -64,7 +72,11 @@ export function NotificationBell({ enabled }: { enabled: boolean }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleItemClick = (id: string, isRead: boolean, linkUrl: string | null) => {
+  const handleItemClick = (
+    id: string,
+    isRead: boolean,
+    linkUrl: string | null,
+  ) => {
     if (!isRead) {
       markReadMutation.mutate(id);
     }

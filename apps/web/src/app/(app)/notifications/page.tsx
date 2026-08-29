@@ -1,18 +1,18 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bell } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { NotificationIcon } from "@/components/shared/notification-icon";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import {
   getNotifications,
   getUnreadNotificationCount,
-  markNotificationRead,
   markAllNotificationsRead,
+  markNotificationRead,
 } from "@/lib/api";
-import { useRouter } from "next/navigation";
-import { Bell } from "lucide-react";
-import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
 import { formatRelativeTime } from "@/lib/format";
-import { NotificationIcon } from "@/components/shared/notification-icon";
+import { queryKeys } from "@/lib/queries";
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -23,7 +23,14 @@ export default function NotificationsPage() {
     queryFn: getUnreadNotificationCount,
   });
 
-  const { data: notifications = [], isLoading, isError, error: queryError, refetch, isFetching } = useQuery({
+  const {
+    data: notifications = [],
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: queryKeys.notifications.list(),
     queryFn: getNotifications,
   });
@@ -31,20 +38,32 @@ export default function NotificationsPage() {
   const markReadMutation = useMutation({
     mutationFn: markNotificationRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unreadCount(),
+      });
     },
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: markAllNotificationsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unreadCount(),
+      });
     },
   });
 
-  const handleItemClick = (id: string, isRead: boolean, linkUrl: string | null) => {
+  const handleItemClick = (
+    id: string,
+    isRead: boolean,
+    linkUrl: string | null,
+  ) => {
     if (!isRead) {
       markReadMutation.mutate(id);
     }
@@ -72,7 +91,10 @@ export default function NotificationsPage() {
                 Stay updated with your latest alerts.
               </p>
             </div>
-            <button disabled className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 opacity-40">
+            <button
+              disabled
+              className="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 opacity-40"
+            >
               Mark all as read
             </button>
           </div>
@@ -80,7 +102,10 @@ export default function NotificationsPage() {
         <section className="container pb-10">
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-24 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+              <div
+                key={i}
+                className="h-24 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+              />
             ))}
           </div>
         </section>
@@ -147,7 +172,9 @@ export default function NotificationsPage() {
                 key={n.id}
                 onClick={() => handleItemClick(n.id, n.isRead, n.linkUrl)}
                 className={`w-full flex items-start gap-4 rounded-xl border p-4 text-left transition-colors ${
-                  !n.isRead ? "border-white/[0.06] bg-[#0C1B26]" : "border-white/[0.03] bg-white/[0.01]"
+                  !n.isRead
+                    ? "border-white/[0.06] bg-[#0C1B26]"
+                    : "border-white/[0.03] bg-white/[0.01]"
                 } hover:bg-white/[0.03]`}
               >
                 <div className="relative shrink-0">
@@ -157,8 +184,14 @@ export default function NotificationsPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`label ${!n.isRead ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{n.title}</p>
-                  <p className={`caption mt-1 ${!n.isRead ? "text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>
+                  <p
+                    className={`label ${!n.isRead ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}
+                  >
+                    {n.title}
+                  </p>
+                  <p
+                    className={`caption mt-1 ${!n.isRead ? "text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}
+                  >
                     {n.body}
                   </p>
                   <p className="caption mt-1.5 text-[#F7F7F7]/25">

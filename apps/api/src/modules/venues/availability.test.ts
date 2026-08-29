@@ -1,6 +1,6 @@
+import { CourtType, VenueStatus } from "@prisma/client";
+import type { PrismaService } from "../../common/prisma";
 import { AvailabilityService } from "./service";
-import { PrismaService } from "../../common/prisma";
-import { VenueStatus, CourtType } from "@prisma/client";
 
 describe("Availability Pricing", () => {
   let service: AvailabilityService;
@@ -39,7 +39,11 @@ describe("Availability Pricing", () => {
   });
 
   it("classifies and prices weekday slots correctly across UTC boundary", async () => {
-    const result = await service.getVenueAvailability("venue-1", "2099-06-01", "court-1");
+    const result = await service.getVenueAvailability(
+      "venue-1",
+      "2099-06-01",
+      "court-1",
+    );
 
     const slot18 = result.courts[0].slots.find((s) => s.startsAt === "18:00");
     expect(slot18).toBeDefined();
@@ -53,7 +57,11 @@ describe("Availability Pricing", () => {
   });
 
   it("classifies and prices weekend slots correctly", async () => {
-    const result = await service.getVenueAvailability("venue-1", "2099-06-06", "court-1");
+    const result = await service.getVenueAvailability(
+      "venue-1",
+      "2099-06-06",
+      "court-1",
+    );
 
     const slot08 = result.courts[0].slots.find((s) => s.startsAt === "08:00");
     expect(slot08!.isPeak).toBe(true);

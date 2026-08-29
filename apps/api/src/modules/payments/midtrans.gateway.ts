@@ -13,12 +13,20 @@ export interface CreateTransactionResult {
 }
 
 export interface PaymentGateway {
-  createTransaction(params: CreateTransactionParams): Promise<CreateTransactionResult>;
-  refundPayment(orderId: string, amount: number, refundKey: string): Promise<void>;
+  createTransaction(
+    params: CreateTransactionParams,
+  ): Promise<CreateTransactionResult>;
+  refundPayment(
+    orderId: string,
+    amount: number,
+    refundKey: string,
+  ): Promise<void>;
 }
 
 export class MidtransGateway implements PaymentGateway {
-  async createTransaction(params: CreateTransactionParams): Promise<CreateTransactionResult> {
+  async createTransaction(
+    params: CreateTransactionParams,
+  ): Promise<CreateTransactionResult> {
     const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
     const serverKey = process.env.MIDTRANS_SERVER_KEY || "";
 
@@ -47,10 +55,16 @@ export class MidtransGateway implements PaymentGateway {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new HttpException(500, `Midtrans transaction failed: ${response.status} ${errorText}`);
+      throw new HttpException(
+        500,
+        `Midtrans transaction failed: ${response.status} ${errorText}`,
+      );
     }
 
-    const data = (await response.json()) as { redirect_url?: string; token?: string };
+    const data = (await response.json()) as {
+      redirect_url?: string;
+      token?: string;
+    };
 
     return {
       providerReference: params.orderId,
@@ -59,7 +73,11 @@ export class MidtransGateway implements PaymentGateway {
     };
   }
 
-  async refundPayment(orderId: string, amount: number, refundKey: string): Promise<void> {
+  async refundPayment(
+    orderId: string,
+    amount: number,
+    refundKey: string,
+  ): Promise<void> {
     const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
     const serverKey = process.env.MIDTRANS_SERVER_KEY || "";
 
@@ -86,7 +104,10 @@ export class MidtransGateway implements PaymentGateway {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new HttpException(502, `Midtrans refund failed: ${response.status} ${errorText}`);
+      throw new HttpException(
+        502,
+        `Midtrans refund failed: ${response.status} ${errorText}`,
+      );
     }
   }
 }

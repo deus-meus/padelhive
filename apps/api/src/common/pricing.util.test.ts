@@ -1,11 +1,11 @@
 import {
-  wibToUtc,
-  utcToWibDateStr,
-  getWibHour,
-  isWeekendWib,
-  isPeakHour,
+  type CourtPricing,
   getSlotPrice,
-  CourtPricing,
+  getWibHour,
+  isPeakHour,
+  isWeekendWib,
+  utcToWibDateStr,
+  wibToUtc,
 } from "./pricing.util";
 
 describe("pricing.util", () => {

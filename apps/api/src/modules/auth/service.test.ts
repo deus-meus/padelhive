@@ -1,8 +1,8 @@
 import { UserRole } from "@prisma/client";
-import { UsersService } from "../users/service";
-import { RequestUser } from "./model";
 import { ensureAuth, ensureRoles } from "../../common/auth.util";
 import { ForbiddenException, UnauthorizedException } from "../../common/errors";
+import { UsersService } from "../users/service";
+import type { RequestUser } from "./model";
 
 const playerUser: RequestUser = {
   id: "user-player",
@@ -78,6 +78,8 @@ describe("Auth Plugin Guards", () => {
   });
 
   it("ensureRoles rejects PLAYER access to SUPER_ADMIN routes", () => {
-    expect(() => ensureRoles(playerUser, UserRole.SUPER_ADMIN)).toThrow(ForbiddenException);
+    expect(() => ensureRoles(playerUser, UserRole.SUPER_ADMIN)).toThrow(
+      ForbiddenException,
+    );
   });
 });

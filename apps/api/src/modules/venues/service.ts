@@ -1,9 +1,39 @@
-import { Prisma, VenueStatus, CourtType, NotificationType, UserRole, BookingStatus } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { NotificationsService, notificationsService as defaultNotifications } from "../notifications/service";
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from "../../common/errors";
-import { CreateVenueInput, UpdateVenueInput, VenueFilterInput } from "./model";
-import { getSlotPrice, isPeakHour, isWeekendWib, wibToUtc, isOvernight, utcToWibDateStr, wibHourFromUtc } from "../../common/pricing.util";
+import {
+  BookingStatus,
+  type CourtType,
+  NotificationType,
+  Prisma,
+  UserRole,
+  VenueStatus,
+} from "@prisma/client";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from "../../common/errors";
+import {
+  getSlotPrice,
+  isOvernight,
+  isPeakHour,
+  isWeekendWib,
+  utcToWibDateStr,
+  wibHourFromUtc,
+  wibToUtc,
+} from "../../common/pricing.util";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import {
+  notificationsService as defaultNotifications,
+  type NotificationsService,
+} from "../notifications/service";
+import type {
+  CreateVenueInput,
+  UpdateVenueInput,
+  VenueFilterInput,
+} from "./model";
 
 const venueSelect = {
   id: true,
@@ -59,11 +89,11 @@ export class VenuesService {
   async findApprovedVenues(filters?: VenueFilterInput) {
     const where: Prisma.VenueWhereInput = { status: VenueStatus.APPROVED };
 
-    if (filters?.q && filters.q.trim()) {
+    if (filters?.q?.trim()) {
       where.name = { contains: filters.q.trim(), mode: "insensitive" };
     }
 
-    if (filters?.city && filters.city.trim() && filters.city.trim() !== "All") {
+    if (filters?.city?.trim() && filters.city.trim() !== "All") {
       where.city = { equals: filters.city.trim(), mode: "insensitive" };
     }
 
@@ -75,14 +105,19 @@ export class VenuesService {
     }
 
     if (filters?.facilities) {
-      const list = filters.facilities.split(",").map((f: string) => f.trim()).filter((f: string) => f.length > 0);
+      const list = filters.facilities
+        .split(",")
+        .map((f: string) => f.trim())
+        .filter((f: string) => f.length > 0);
       if (list.length > 0) {
         where.facilities = { hasEvery: list };
       }
     }
 
     if (filters?.type === "INDOOR" || filters?.type === "OUTDOOR") {
-      where.courts = { some: { isActive: true, type: filters.type as CourtType } };
+      where.courts = {
+        some: { isActive: true, type: filters.type as CourtType },
+      };
     }
 
     const venues = await this.prisma.venue.findMany({
@@ -91,14 +126,22 @@ export class VenuesService {
       select: venueSelect,
     });
 
-    let mapped = venues.map((venue) => this.toVenueResponse(venue as SelectedVenue));
+    let mapped = venues.map((venue) =>
+      this.toVenueResponse(venue as SelectedVenue),
+    );
 
     if (filters?.priceMin || filters?.priceMax) {
       const pMin = filters.priceMin ? parseInt(filters.priceMin, 10) : null;
       const pMax = filters.priceMax ? parseInt(filters.priceMax, 10) : null;
 
-      const validPMin = pMin !== null && Number.isFinite(pMin) && !isNaN(pMin) ? pMin : null;
-      const validPMax = pMax !== null && Number.isFinite(pMax) && !isNaN(pMax) ? pMax : null;
+      const validPMin =
+        pMin !== null && Number.isFinite(pMin) && !Number.isNaN(pMin)
+          ? pMin
+          : null;
+      const validPMax =
+        pMax !== null && Number.isFinite(pMax) && !Number.isNaN(pMax)
+          ? pMax
+          : null;
 
       mapped = mapped.filter((v) => {
         const passMin = validPMin === null || v.priceFrom >= validPMin;
@@ -127,31 +170,68 @@ export class VenuesService {
     const { courts, _count, ...rest } = venue;
     return {
       ...rest,
-      weeklyHours: venue.weeklyHours ? (venue.weeklyHours as Record<string, { open: string; close: string; closed?: boolean }>) : null,
-      rating: typeof venue.rating === "number" ? venue.rating : venue.rating.toNumber(),
+      weeklyHours: venue.weeklyHours
+        ? (venue.weeklyHours as Record<
+            string,
+            { open: string; close: string; closed?: boolean }
+          >)
+        : null,
+      rating:
+        typeof venue.rating === "number"
+          ? venue.rating
+          : venue.rating.toNumber(),
       courtCount: _count.courts,
-      priceFrom: courts.length > 0 ? Math.min(...courts.map((c) => c.weekdayOffPeak)) : 0,
+      priceFrom:
+        courts.length > 0
+          ? Math.min(...courts.map((c) => c.weekdayOffPeak))
+          : 0,
     };
   }
 
-  private async assertVenueManageable(venueId: string, userId: string, isSuperAdmin: boolean): Promise<void> {
+  private async assertVenueManageable(
+    venueId: string,
+    userId: string,
+    isSuperAdmin: boolean,
+  ): Promise<void> {
     const venue = await this.prisma.venue.findUnique({
       where: { id: venueId },
-      select: { id: true, ownerId: true, admins: { where: { userId }, select: { id: true } } },
+      select: {
+        id: true,
+        ownerId: true,
+        admins: { where: { userId }, select: { id: true } },
+      },
     });
     if (!venue) throw new NotFoundException("Venue not found");
-    if (!isSuperAdmin && venue.ownerId !== userId && venue.admins.length === 0) {
+    if (
+      !isSuperAdmin &&
+      venue.ownerId !== userId &&
+      venue.admins.length === 0
+    ) {
       throw new ForbiddenException("You don't have access to this venue");
     }
   }
 
-  private validateVenueFields(fields: Record<string, unknown>, { partial }: { partial: boolean }): void {
-    if (partial && Object.keys(fields).length === 0) throw new BadRequestException("No fields to update");
+  private validateVenueFields(
+    fields: Record<string, unknown>,
+    { partial }: { partial: boolean },
+  ): void {
+    if (partial && Object.keys(fields).length === 0)
+      throw new BadRequestException("No fields to update");
 
-    const stringFields = ["name", "location", "city", "description", "openTime", "closeTime"];
+    const stringFields = [
+      "name",
+      "location",
+      "city",
+      "description",
+      "openTime",
+      "closeTime",
+    ];
     for (const field of stringFields) {
       if (!partial || fields[field] !== undefined) {
-        if (typeof fields[field] !== "string" || (fields[field] as string).trim() === "") {
+        if (
+          typeof fields[field] !== "string" ||
+          (fields[field] as string).trim() === ""
+        ) {
           throw new BadRequestException(`${field} is required`);
         }
       }
@@ -162,7 +242,9 @@ export class VenuesService {
       const close = fields.closeTime as string;
       if (/^\d{2}:\d{2}$/.test(open) && /^\d{2}:\d{2}$/.test(close)) {
         if (open === close) {
-          throw new BadRequestException("openTime and closeTime cannot be equal");
+          throw new BadRequestException(
+            "openTime and closeTime cannot be equal",
+          );
         }
       }
     }
@@ -174,31 +256,57 @@ export class VenuesService {
     const arrayFields = ["photos", "facilities"];
     for (const field of arrayFields) {
       if (fields[field] !== undefined) {
-        if (!Array.isArray(fields[field]) || !(fields[field] as unknown[]).every((item) => typeof item === "string")) {
+        if (
+          !Array.isArray(fields[field]) ||
+          !(fields[field] as unknown[]).every(
+            (item) => typeof item === "string",
+          )
+        ) {
           throw new BadRequestException(`${field} must be an array of strings`);
         }
       }
     }
 
     if (fields.weeklyHours !== undefined && fields.weeklyHours !== null) {
-      if (typeof fields.weeklyHours !== "object" || Array.isArray(fields.weeklyHours)) {
+      if (
+        typeof fields.weeklyHours !== "object" ||
+        Array.isArray(fields.weeklyHours)
+      ) {
         throw new BadRequestException("weeklyHours must be an object");
       }
       const validKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-      for (const [key, val] of Object.entries(fields.weeklyHours as Record<string, unknown>)) {
+      for (const [key, val] of Object.entries(
+        fields.weeklyHours as Record<string, unknown>,
+      )) {
         if (!validKeys.includes(key)) {
           throw new BadRequestException(`Unknown key in weeklyHours: ${key}`);
         }
-        const value = val as { open?: string; close?: string; closed?: boolean };
+        const value = val as {
+          open?: string;
+          close?: string;
+          closed?: boolean;
+        };
         if (value.closed !== true) {
-          if (typeof value.open !== "string" || !/^\d{2}:\d{2}$/.test(value.open)) {
-            throw new BadRequestException("weeklyHours open must be HH:MM string");
+          if (
+            typeof value.open !== "string" ||
+            !/^\d{2}:\d{2}$/.test(value.open)
+          ) {
+            throw new BadRequestException(
+              "weeklyHours open must be HH:MM string",
+            );
           }
-          if (typeof value.close !== "string" || !/^\d{2}:\d{2}$/.test(value.close)) {
-            throw new BadRequestException("weeklyHours close must be HH:MM string");
+          if (
+            typeof value.close !== "string" ||
+            !/^\d{2}:\d{2}$/.test(value.close)
+          ) {
+            throw new BadRequestException(
+              "weeklyHours close must be HH:MM string",
+            );
           }
           if (value.close === value.open) {
-            throw new BadRequestException("weeklyHours open and close cannot be equal");
+            throw new BadRequestException(
+              "weeklyHours open and close cannot be equal",
+            );
           }
         }
       }
@@ -206,12 +314,20 @@ export class VenuesService {
   }
 
   private async generateUniqueSlug(name: string): Promise<string> {
-    const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "venue";
+    const base =
+      name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "venue";
     let slug = base;
     let counter = 2;
     let isUnique = false;
     while (!isUnique) {
-      const existing = await this.prisma.venue.findUnique({ where: { slug }, select: { id: true } });
+      const existing = await this.prisma.venue.findUnique({
+        where: { slug },
+        select: { id: true },
+      });
       if (!existing) {
         isUnique = true;
         return slug;
@@ -222,7 +338,10 @@ export class VenuesService {
     return slug;
   }
 
-  private async notifySuperAdminsVenueSubmitted(ownerId: string, venueName: string): Promise<void> {
+  private async notifySuperAdminsVenueSubmitted(
+    ownerId: string,
+    venueName: string,
+  ): Promise<void> {
     try {
       const superAdmins = await this.prisma.user.findMany({
         where: { role: UserRole.SUPER_ADMIN },
@@ -238,16 +357,20 @@ export class VenuesService {
               title: "New venue submitted",
               body: `A new venue "${venueName}" is awaiting approval.`,
               linkUrl: `/admin/venues`,
-            })
-          )
+            }),
+          ),
       );
     } catch (err) {
-      console.warn(`[VenuesService] Failed to emit venue-submitted notifications: ${String(err)}`);
+      console.warn(
+        `[VenuesService] Failed to emit venue-submitted notifications: ${String(err)}`,
+      );
     }
   }
 
   async findVenuesForManagement(userId: string, isSuperAdmin: boolean) {
-    const where = isSuperAdmin ? {} : { OR: [{ ownerId: userId }, { admins: { some: { userId } } }] };
+    const where = isSuperAdmin
+      ? {}
+      : { OR: [{ ownerId: userId }, { admins: { some: { userId } } }] };
     const venues = await this.prisma.venue.findMany({
       where,
       orderBy: [{ createdAt: "desc" }],
@@ -257,7 +380,9 @@ export class VenuesService {
   }
 
   async createVenue(userId: string, dto: CreateVenueInput) {
-    this.validateVenueFields(dto as unknown as Record<string, unknown>, { partial: false });
+    this.validateVenueFields(dto as unknown as Record<string, unknown>, {
+      partial: false,
+    });
     const slug = await this.generateUniqueSlug(dto.name);
 
     try {
@@ -275,38 +400,56 @@ export class VenuesService {
           facilities: dto.facilities ?? [],
           openTime: dto.openTime.trim(),
           closeTime: dto.closeTime.trim(),
-          weeklyHours: dto.weeklyHours ? (dto.weeklyHours as Prisma.InputJsonValue) : Prisma.JsonNull,
+          weeklyHours: dto.weeklyHours
+            ? (dto.weeklyHours as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
         },
         select: venueSelect,
       });
       await this.notifySuperAdminsVenueSubmitted(userId, venue.name);
       return this.toVenueResponse(venue as SelectedVenue);
     } catch (error: unknown) {
-      if (error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "P2002") {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        (error as { code?: string }).code === "P2002"
+      ) {
         throw new ConflictException("A venue with this name already exists");
       }
       throw error;
     }
   }
 
-  async updateVenue(id: string, userId: string, isSuperAdmin: boolean, dto: UpdateVenueInput) {
+  async updateVenue(
+    id: string,
+    userId: string,
+    isSuperAdmin: boolean,
+    dto: UpdateVenueInput,
+  ) {
     await this.assertVenueManageable(id, userId, isSuperAdmin);
 
-    const fieldsToValidate = Object.fromEntries(Object.entries(dto).filter(([, v]) => v !== undefined));
+    const fieldsToValidate = Object.fromEntries(
+      Object.entries(dto).filter(([, v]) => v !== undefined),
+    );
     this.validateVenueFields(fieldsToValidate, { partial: true });
 
     const data: Prisma.VenueUpdateInput = {};
     if (dto.name !== undefined) data.name = dto.name.trim();
     if (dto.location !== undefined) data.location = dto.location.trim();
     if (dto.city !== undefined) data.city = dto.city.trim();
-    if (dto.description !== undefined) data.description = dto.description.trim();
+    if (dto.description !== undefined)
+      data.description = dto.description.trim();
     if (dto.imageUrl !== undefined) data.imageUrl = dto.imageUrl.trim() || null;
     if (dto.photos !== undefined) data.photos = dto.photos;
     if (dto.facilities !== undefined) data.facilities = dto.facilities;
     if (dto.openTime !== undefined) data.openTime = dto.openTime.trim();
     if (dto.closeTime !== undefined) data.closeTime = dto.closeTime.trim();
     if (dto.weeklyHours !== undefined) {
-      data.weeklyHours = dto.weeklyHours === null ? Prisma.JsonNull : (dto.weeklyHours as Prisma.InputJsonValue);
+      data.weeklyHours =
+        dto.weeklyHours === null
+          ? Prisma.JsonNull
+          : (dto.weeklyHours as Prisma.InputJsonValue);
     }
 
     try {
@@ -317,7 +460,12 @@ export class VenuesService {
       });
       return this.toVenueResponse(venue as SelectedVenue);
     } catch (error: unknown) {
-      if (error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "P2002") {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        (error as { code?: string }).code === "P2002"
+      ) {
         throw new ConflictException("A venue with this name already exists");
       }
       throw error;
@@ -325,7 +473,8 @@ export class VenuesService {
   }
 
   async findVenuesForAdmin(status?: VenueStatus) {
-    const where: Prisma.VenueWhereInput = status && Object.values(VenueStatus).includes(status) ? { status } : {};
+    const where: Prisma.VenueWhereInput =
+      status && Object.values(VenueStatus).includes(status) ? { status } : {};
     const venues = await this.prisma.venue.findMany({
       where,
       orderBy: [{ createdAt: "desc" }],
@@ -335,8 +484,12 @@ export class VenuesService {
   }
 
   async setVenueStatus(id: string, status: VenueStatus) {
-    if (!Object.values(VenueStatus).includes(status)) throw new BadRequestException("Invalid status");
-    const existing = await this.prisma.venue.findUnique({ where: { id }, select: { id: true } });
+    if (!Object.values(VenueStatus).includes(status))
+      throw new BadRequestException("Invalid status");
+    const existing = await this.prisma.venue.findUnique({
+      where: { id },
+      select: { id: true },
+    });
     if (!existing) throw new NotFoundException("Venue not found");
     const venue = await this.prisma.venue.update({
       where: { id },
@@ -357,7 +510,11 @@ const TIMEZONE = "Asia/Jakarta";
 export class AvailabilityService {
   constructor(private readonly prisma: PrismaService = defaultPrisma) {}
 
-  async getVenueAvailability(venueId: string, dateStr: string, courtId?: string) {
+  async getVenueAvailability(
+    venueId: string,
+    dateStr: string,
+    courtId?: string,
+  ) {
     if (!DATE_PATTERN.test(dateStr)) {
       throw new BadRequestException("date must use YYYY-MM-DD format");
     }
@@ -371,25 +528,38 @@ export class AvailabilityService {
       throw new NotFoundException("Venue not found");
     }
 
-    const dayIdx = new Date(dateStr + "T12:00:00Z").getUTCDay();
+    const dayIdx = new Date(`${dateStr}T12:00:00Z`).getUTCDay();
     const key = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][dayIdx];
 
     let startHour = this.parseOperatingHour(venue.openTime, DEFAULT_OPEN_HOUR);
     let endHour = this.parseOperatingHour(venue.closeTime, DEFAULT_CLOSE_HOUR);
     let isClosed = false;
 
-    if (venue.weeklyHours && typeof venue.weeklyHours === "object" && key in venue.weeklyHours) {
-      const entry = (venue.weeklyHours as Record<string, { open?: string; close?: string; closed?: boolean }>)[key];
+    if (
+      venue.weeklyHours &&
+      typeof venue.weeklyHours === "object" &&
+      key in venue.weeklyHours
+    ) {
+      const entry = (
+        venue.weeklyHours as Record<
+          string,
+          { open?: string; close?: string; closed?: boolean }
+        >
+      )[key];
       if (entry.closed === true) {
         isClosed = true;
       } else {
-        if (entry.open) startHour = this.parseOperatingHour(entry.open, DEFAULT_OPEN_HOUR);
-        if (entry.close) endHour = this.parseOperatingHour(entry.close, DEFAULT_CLOSE_HOUR);
+        if (entry.open)
+          startHour = this.parseOperatingHour(entry.open, DEFAULT_OPEN_HOUR);
+        if (entry.close)
+          endHour = this.parseOperatingHour(entry.close, DEFAULT_CLOSE_HOUR);
       }
     }
 
     const overnight = isOvernight(startHour, endHour);
-    const totalHours = overnight ? 24 - startHour + endHour : endHour - startHour;
+    const totalHours = overnight
+      ? 24 - startHour + endHour
+      : endHour - startHour;
 
     if (!isClosed && totalHours <= 0) {
       isClosed = true;
@@ -432,7 +602,10 @@ export class AvailabilityService {
     }
 
     const bookingDate = new Date(`${dateStr}T00:00:00.000Z`);
-    const sessionStartUtc = wibToUtc(dateStr, `${String(startHour).padStart(2, "0")}:00`);
+    const sessionStartUtc = wibToUtc(
+      dateStr,
+      `${String(startHour).padStart(2, "0")}:00`,
+    );
     const dayStart = sessionStartUtc;
     const dayEnd = new Date(sessionStartUtc.getTime() + totalHours * 3600000);
 
@@ -443,7 +616,9 @@ export class AvailabilityService {
         venueId,
         courtId: { in: courtIds },
         bookingDate,
-        status: { in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED] },
+        status: {
+          in: [BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED],
+        },
         startsAt: { lt: dayEnd },
         endsAt: { gt: dayStart },
       },
@@ -456,7 +631,12 @@ export class AvailabilityService {
 
     const courtDtos = courts.map((court) => {
       const courtBookings = bookings.filter((b) => b.courtId === court.id);
-      const slots = this.generateSlots(court, sessionStartUtc, totalHours, courtBookings);
+      const slots = this.generateSlots(
+        court,
+        sessionStartUtc,
+        totalHours,
+        courtBookings,
+      );
       return {
         id: court.id,
         name: court.name,
@@ -488,7 +668,7 @@ export class AvailabilityService {
     },
     sessionStartUtc: Date,
     totalHours: number,
-    bookings: { courtId: string; startsAt: Date; endsAt: Date }[]
+    bookings: { courtId: string; startsAt: Date; endsAt: Date }[],
   ) {
     const slots = [];
 
@@ -504,7 +684,9 @@ export class AvailabilityService {
       const startsAt = `${String(wibHour).padStart(2, "0")}:00`;
       const endsAt = `${String((wibHour + 1) % 24).padStart(2, "0")}:00`;
 
-      const available = !bookings.some((b) => b.startsAt < slotEnd && b.endsAt > slotStart);
+      const available = !bookings.some(
+        (b) => b.startsAt < slotEnd && b.endsAt > slotStart,
+      );
 
       slots.push({
         startsAt,

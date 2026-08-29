@@ -1,34 +1,41 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
-import Image from "next/image";
-import { useParams } from "next/navigation";
-import Link from "next/link";
 import {
-  MapPin,
-  Clock,
+  ArrowLeft,
+  CalendarClock,
   CalendarDays,
-  Timer,
-  Users,
+  Clock,
+  Copy,
   CreditCard,
+  MapPin,
   Share2,
-  XCircle,
-  CheckCircle2,
   ShieldCheck,
   ShieldX,
-  Ticket,
-  ArrowLeft,
-  Copy,
   Star,
-  CalendarClock,
+  Ticket,
+  Timer,
+  XCircle,
 } from "lucide-react";
-import { ApiRequestError, cancelBooking, getBookingById, createReview, rescheduleBooking, getVenueAvailability, payRescheduleCharge, markRescheduleChargePaid } from "@/lib/api";
-import { queryKeys } from "@/lib/queries";
-import { getUserFacingErrorMessage } from "@/lib/errors";
-import { padelImg } from "@/lib/images";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { ErrorBanner } from "@/components/ui/error-state";
+import {
+  ApiRequestError,
+  cancelBooking,
+  createReview,
+  getBookingById,
+  getVenueAvailability,
+  markRescheduleChargePaid,
+  payRescheduleCharge,
+  rescheduleBooking,
+} from "@/lib/api";
+import { getUserFacingErrorMessage } from "@/lib/errors";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
+import { padelImg } from "@/lib/images";
+import { queryKeys } from "@/lib/queries";
 
 export default function BookingDetailPage() {
   const params = useParams();
@@ -51,12 +58,20 @@ export default function BookingDetailPage() {
   const [rescheduleDate, setRescheduleDate] = useState<string>(() => {
     return new Date().toISOString().split("T")[0]; // Simple YYYY-MM-DD
   });
-  const [rescheduleStartHour, setRescheduleStartHour] = useState<string | null>(null);
+  const [rescheduleStartHour, setRescheduleStartHour] = useState<string | null>(
+    null,
+  );
 
   const [topupMethod, setTopupMethod] = useState("card");
   const [isPayingTopUp, setIsPayingTopUp] = useState(false);
 
-  const { data: booking, isLoading, error, refetch, isFetching } = useQuery({
+  const {
+    data: booking,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: queryKeys.bookings.detail(bookingId),
     queryFn: () => getBookingById(bookingId),
   });
@@ -64,10 +79,20 @@ export default function BookingDetailPage() {
   const venue = booking?.venue;
   const court = booking?.court;
 
-  const { data: availabilityResponse, isFetching: isAvailabilityFetching, isLoading: isAvailabilityLoading, isError: isAvailabilityError } = useQuery({
-    queryKey: queryKeys.venues.availability(venue?.id ?? "", rescheduleDate, court?.id ?? ""),
+  const {
+    data: availabilityResponse,
+    isFetching: isAvailabilityFetching,
+    isLoading: isAvailabilityLoading,
+    isError: isAvailabilityError,
+  } = useQuery({
+    queryKey: queryKeys.venues.availability(
+      venue?.id ?? "",
+      rescheduleDate,
+      court?.id ?? "",
+    ),
     queryFn: () => getVenueAvailability(venue!.id, rescheduleDate, court!.id),
-    enabled: showRescheduleModal && !!venue?.id && !!court?.id && !!rescheduleDate,
+    enabled:
+      showRescheduleModal && !!venue?.id && !!court?.id && !!rescheduleDate,
   });
 
   const timeSlots = useMemo(() => {
@@ -98,7 +123,10 @@ export default function BookingDetailPage() {
         <div className="min-h-screen pt-28">
           <div className="container py-16 text-center">
             <p className="body text-[#F7F7F7]/25">Booking not found.</p>
-            <Link href="/bookings" className="label mt-4 inline-flex items-center gap-2 text-[#E6FA50] hover:underline">
+            <Link
+              href="/bookings"
+              className="label mt-4 inline-flex items-center gap-2 text-[#E6FA50] hover:underline"
+            >
               <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
             </Link>
           </div>
@@ -108,12 +136,20 @@ export default function BookingDetailPage() {
     return (
       <div className="min-h-screen pt-28 pb-16">
         <section className="container pb-6">
-          <Link href="/bookings" className="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
+          <Link
+            href="/bookings"
+            className="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60"
+          >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
           </Link>
         </section>
         <section className="container">
-          <ErrorBanner title="Couldn't load booking" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+          <ErrorBanner
+            title="Couldn't load booking"
+            error={error}
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+          />
         </section>
       </div>
     );
@@ -132,11 +168,14 @@ export default function BookingDetailPage() {
 
   function handleShareInvite() {
     const url = `${window.location.origin}/booking/${bookingId}/invite`;
-    navigator.clipboard.writeText(url).then(() => {
-      showToast("Invite link copied to clipboard");
-    }).catch(() => {
-      showToast(`Share this invite link: ${url}`);
-    });
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        showToast("Invite link copied to clipboard");
+      })
+      .catch(() => {
+        showToast(`Share this invite link: ${url}`);
+      });
   }
 
   function getBookingStart(): Date {
@@ -144,7 +183,8 @@ export default function BookingDetailPage() {
   }
 
   function getRefundNote(): string {
-    const isEligible = getBookingStart().getTime() - Date.now() >= 24 * 60 * 60 * 1000;
+    const isEligible =
+      getBookingStart().getTime() - Date.now() >= 24 * 60 * 60 * 1000;
     if (isEligible && currentBooking.payment?.status === "PAID") {
       return "Full refund eligible. A pending refund request will be created after cancellation.";
     }
@@ -154,8 +194,16 @@ export default function BookingDetailPage() {
     return "Non-refundable: less than 24 hours before booking start.";
   }
 
-  function getSuccessMessage(result: { isRefundEligible?: boolean; refundAmount?: number; refundPolicyReason?: string }): string {
-    if (result.isRefundEligible && result.refundAmount && result.refundAmount > 0) {
+  function getSuccessMessage(result: {
+    isRefundEligible?: boolean;
+    refundAmount?: number;
+    refundPolicyReason?: string;
+  }): string {
+    if (
+      result.isRefundEligible &&
+      result.refundAmount &&
+      result.refundAmount > 0
+    ) {
       return `Booking cancelled. Pending refund: Rp ${result.refundAmount.toLocaleString("id-ID")}.`;
     }
     return `Booking cancelled. ${result.refundPolicyReason ?? "No refund record needed."}`;
@@ -182,7 +230,10 @@ export default function BookingDetailPage() {
         if (error.status === 404) {
           showToast("Booking was not found for this account.");
         } else if (error.status === 400) {
-          showToast(getUserFacingErrorMessage(error) || "This booking cannot be cancelled.");
+          showToast(
+            getUserFacingErrorMessage(error) ||
+              "This booking cannot be cancelled.",
+          );
         } else {
           showToast(getUserFacingErrorMessage(error));
         }
@@ -199,7 +250,11 @@ export default function BookingDetailPage() {
     setIsSubmittingReview(true);
     setReviewError(null);
     try {
-      await createReview({ bookingId, rating: reviewRating, comment: reviewComment.trim() || undefined });
+      await createReview({
+        bookingId,
+        rating: reviewRating,
+        comment: reviewComment.trim() || undefined,
+      });
       setReviewSubmitted(true);
       showToast("Thanks for your review!");
     } catch (error) {
@@ -216,7 +271,7 @@ export default function BookingDetailPage() {
 
   async function confirmReschedule() {
     if (isRescheduling || !rescheduleStartHour || !currentBooking) return;
-    
+
     setIsRescheduling(true);
     const startHourNum = parseInt(rescheduleStartHour.split(":")[0], 10);
     const durationHours = currentBooking.durationMinutes / 60;
@@ -229,7 +284,7 @@ export default function BookingDetailPage() {
         endsAt,
       });
       setShowRescheduleModal(false);
-      
+
       let toastMsg = "Jadwal diperbarui.";
       if (result.priceDelta && result.priceDelta > 0) {
         const absDelta = result.priceDelta.toLocaleString("id-ID");
@@ -240,7 +295,13 @@ export default function BookingDetailPage() {
       }
       showToast(toastMsg);
       refetch();
-      queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue!.id, rescheduleDate, court!.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.venues.availability(
+          venue!.id,
+          rescheduleDate,
+          court!.id,
+        ),
+      });
     } catch (error) {
       if (error instanceof ApiRequestError) {
         if (error.status === 409) {
@@ -258,20 +319,22 @@ export default function BookingDetailPage() {
 
   function toggleRescheduleSlot(time: string) {
     if (isRescheduling) return;
-    
+
     const startHourNum = parseInt(time.split(":")[0], 10);
     const durationHours = currentBooking.durationMinutes / 60;
-    
-    const isConsecutiveAvailable = Array.from({ length: durationHours }).every((_, i) => {
-      const h = `${String(startHourNum + i).padStart(2, "0")}:00`;
-      const slot = timeSlots.find((s) => s.startsAt === h);
-      return slot && slot.available;
-    });
+
+    const isConsecutiveAvailable = Array.from({ length: durationHours }).every(
+      (_, i) => {
+        const h = `${String(startHourNum + i).padStart(2, "0")}:00`;
+        const slot = timeSlots.find((s) => s.startsAt === h);
+        return slot?.available;
+      },
+    );
 
     if (!isConsecutiveAvailable) {
       return;
     }
-    
+
     setRescheduleStartHour(time === rescheduleStartHour ? null : time);
   }
 
@@ -298,7 +361,10 @@ export default function BookingDetailPage() {
     <div className="min-h-screen pt-28 pb-16">
       {/* Back nav */}
       <section className="container pb-6">
-        <Link href="/bookings" className="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
+        <Link
+          href="/bookings"
+          className="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60"
+        >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to bookings
         </Link>
       </section>
@@ -308,8 +374,22 @@ export default function BookingDetailPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <StatusBadge status={isCancelled ? "cancelled" : currentBooking.status.toLowerCase()} />
-              {currentBooking.payment && <PaymentBadge status={isCancelled ? "refunded" : currentBooking.payment.status.toLowerCase()} />}
+              <StatusBadge
+                status={
+                  isCancelled
+                    ? "cancelled"
+                    : currentBooking.status.toLowerCase()
+                }
+              />
+              {currentBooking.payment && (
+                <PaymentBadge
+                  status={
+                    isCancelled
+                      ? "refunded"
+                      : currentBooking.payment.status.toLowerCase()
+                  }
+                />
+              )}
             </div>
             <h1 className="heading-1 text-[#F7F7F7]">
               {venue?.name ?? "Unknown Venue"}
@@ -351,12 +431,19 @@ export default function BookingDetailPage() {
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-3">
                   <CalendarDays className="h-3.5 w-3.5 text-[#50C8C8]" />
-                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">{formatBookingDate(currentBooking.bookingDate)}</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">
+                    {formatBookingDate(currentBooking.bookingDate)}
+                  </p>
                   <p className="caption mt-0.5 text-[#F7F7F7]/25">Date</p>
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-3">
                   <Clock className="h-3.5 w-3.5 text-[#50C8C8]" />
-                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">{formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)}</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7] break-all">
+                    {formatBookingTimeRange(
+                      currentBooking.startsAt,
+                      currentBooking.endsAt,
+                    )}
+                  </p>
                   <p className="caption mt-0.5 text-[#F7F7F7]/25">Time</p>
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-3">
@@ -373,13 +460,23 @@ export default function BookingDetailPage() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="rounded-xl bg-white/[0.02] p-4">
                   <ShieldCheck className="h-4 w-4 text-[#E6FA50]" />
-                  <p className="heading-3 mt-1.5 text-[#F7F7F7]">Full refund before H-1</p>
-                  <p className="caption mt-1 text-[#F7F7F7]/25">Cancel 24+ hours before your booking date — the full amount is returned to your original payment method.</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7]">
+                    Full refund before H-1
+                  </p>
+                  <p className="caption mt-1 text-[#F7F7F7]/25">
+                    Cancel 24+ hours before your booking date — the full amount
+                    is returned to your original payment method.
+                  </p>
                 </div>
                 <div className="rounded-xl bg-white/[0.02] p-4">
                   <ShieldX className="h-4 w-4 text-red-400" />
-                  <p className="heading-3 mt-1.5 text-[#F7F7F7]">Non-refundable after H-1</p>
-                  <p className="caption mt-1 text-[#F7F7F7]/25">Cancelling less than 24 hours before the start time isn&apos;t eligible for a refund.</p>
+                  <p className="heading-3 mt-1.5 text-[#F7F7F7]">
+                    Non-refundable after H-1
+                  </p>
+                  <p className="caption mt-1 text-[#F7F7F7]/25">
+                    Cancelling less than 24 hours before the start time
+                    isn&apos;t eligible for a refund.
+                  </p>
                 </div>
               </div>
             </div>
@@ -389,14 +486,23 @@ export default function BookingDetailPage() {
                 <p className="section-label mb-4">Leave a Review</p>
                 {reviewSubmitted ? (
                   <div className="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-4">
-                    <p className="body text-[#E6FA50]">{reviewError ?? "Thanks! Your review has been submitted."}</p>
+                    <p className="body text-[#E6FA50]">
+                      {reviewError ?? "Thanks! Your review has been submitted."}
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center gap-1.5">
                       {[1, 2, 3, 4, 5].map((n) => (
-                        <button key={n} type="button" onClick={() => setReviewRating(n)} className="transition-transform hover:scale-110">
-                          <Star className={`h-6 w-6 ${n <= reviewRating ? "fill-[#E6FA50] text-[#E6FA50]" : "text-[#F7F7F7]/20"}`} />
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setReviewRating(n)}
+                          className="transition-transform hover:scale-110"
+                        >
+                          <Star
+                            className={`h-6 w-6 ${n <= reviewRating ? "fill-[#E6FA50] text-[#E6FA50]" : "text-[#F7F7F7]/20"}`}
+                          />
                         </button>
                       ))}
                     </div>
@@ -410,7 +516,9 @@ export default function BookingDetailPage() {
                     />
                     {reviewError && (
                       <div className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3">
-                        <p className="caption text-amber-300/80">{reviewError}</p>
+                        <p className="caption text-amber-300/80">
+                          {reviewError}
+                        </p>
                       </div>
                     )}
                     <button
@@ -429,10 +537,16 @@ export default function BookingDetailPage() {
           {/* Summary sidebar (sticky) */}
           <div className="space-y-6 lg:sticky lg:top-24">
             {/* Payment */}
-            <div id="payment" className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <div
+              id="payment"
+              className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6"
+            >
               <p className="section-label mb-4">Payment</p>
               <div className="space-y-3 mb-4">
-                <PaymentRow label="Court fee" value={`Rp ${(currentBooking.courtAmount / 1000).toFixed(0)}K`} />
+                <PaymentRow
+                  label="Court fee"
+                  value={`Rp ${(currentBooking.courtAmount / 1000).toFixed(0)}K`}
+                />
                 {currentBooking.voucherDiscount > 0 && (
                   <PaymentRow
                     label="Voucher"
@@ -440,7 +554,10 @@ export default function BookingDetailPage() {
                     highlight
                   />
                 )}
-                <PaymentRow label="Platform fee" value={`Rp ${(currentBooking.platformFee / 1000).toFixed(0)}K`} />
+                <PaymentRow
+                  label="Platform fee"
+                  value={`Rp ${(currentBooking.platformFee / 1000).toFixed(0)}K`}
+                />
                 <div className="flex items-center justify-between border-t border-white/[0.04] pt-3">
                   <span className="body text-[#F7F7F7]/60">Total</span>
                   <span className="price text-[#F7F7F7]">{`Rp ${(currentBooking.finalAmount / 1000).toFixed(0)}K`}</span>
@@ -450,11 +567,20 @@ export default function BookingDetailPage() {
               <div className="space-y-2 rounded-xl bg-white/[0.02] p-3">
                 <div className="flex items-center justify-between">
                   <span className="caption text-[#F7F7F7]/25">Status</span>
-                  <PaymentBadge status={isCancelled ? "refunded" : (currentBooking.payment?.status.toLowerCase() ?? "pending")} />
+                  <PaymentBadge
+                    status={
+                      isCancelled
+                        ? "refunded"
+                        : (currentBooking.payment?.status.toLowerCase() ??
+                          "pending")
+                    }
+                  />
                 </div>
                 {refundMessage && (
                   <div className="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-3">
-                    <p className="text-xs leading-5 text-[#E6FA50]">{refundMessage}</p>
+                    <p className="text-xs leading-5 text-[#E6FA50]">
+                      {refundMessage}
+                    </p>
                   </div>
                 )}
               </div>
@@ -499,7 +625,7 @@ export default function BookingDetailPage() {
                   </>
                 )}
               </div>
-              
+
               {currentBooking.balanceDue && currentBooking.balanceDue > 0 && (
                 <div className="mt-6 rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/5 p-4">
                   <p className="body mb-3 text-[#F7F7F7]">Top-up required</p>
@@ -519,7 +645,9 @@ export default function BookingDetailPage() {
                     disabled={isPayingTopUp}
                     className="label w-full rounded-lg bg-[#E6FA50] py-2.5 text-[#06121A] transition-colors hover:bg-[#E6FA50]/90 disabled:opacity-50"
                   >
-                    {isPayingTopUp ? "Processing..." : `Bayar selisih Rp ${currentBooking.balanceDue.toLocaleString("id-ID")}`}
+                    {isPayingTopUp
+                      ? "Processing..."
+                      : `Bayar selisih Rp ${currentBooking.balanceDue.toLocaleString("id-ID")}`}
                   </button>
                 </div>
               )}
@@ -543,11 +671,14 @@ export default function BookingDetailPage() {
             <p className="section-label">Reschedule Booking</p>
             <h2 className="heading-2 mt-3 text-[#F7F7F7]">Choose a new time</h2>
             <p className="body mt-2 text-[#F7F7F7]/40">
-              You are rescheduling a {currentBooking.durationMinutes}-minute booking.
+              You are rescheduling a {currentBooking.durationMinutes}-minute
+              booking.
             </p>
-            
+
             <div className="mt-6">
-              <label className="caption block mb-2 text-[#F7F7F7]/60">Date</label>
+              <label className="caption block mb-2 text-[#F7F7F7]/60">
+                Date
+              </label>
               <input
                 type="date"
                 min={new Date().toISOString().split("T")[0]}
@@ -561,27 +692,40 @@ export default function BookingDetailPage() {
             </div>
 
             <div className="mt-6">
-              <label className="caption block mb-2 text-[#F7F7F7]/60">Available time slots</label>
+              <label className="caption block mb-2 text-[#F7F7F7]/60">
+                Available time slots
+              </label>
               <div className="grid grid-cols-4 gap-2">
                 {isAvailabilityLoading || isAvailabilityFetching ? (
-                  <p className="caption col-span-full py-4 text-[#F7F7F7]/40">Loading availability...</p>
+                  <p className="caption col-span-full py-4 text-[#F7F7F7]/40">
+                    Loading availability...
+                  </p>
                 ) : isAvailabilityError ? (
-                  <p className="caption col-span-full py-4 text-red-400/80">Failed to load availability.</p>
+                  <p className="caption col-span-full py-4 text-red-400/80">
+                    Failed to load availability.
+                  </p>
                 ) : timeSlots.length === 0 ? (
-                  <p className="caption col-span-full py-4 text-[#F7F7F7]/40">No available slots for this date.</p>
+                  <p className="caption col-span-full py-4 text-[#F7F7F7]/40">
+                    No available slots for this date.
+                  </p>
                 ) : (
                   timeSlots.map((slot) => {
                     const isSelected = rescheduleStartHour === slot.startsAt;
-                    
-                    const startHourNum = parseInt(slot.startsAt.split(":")[0], 10);
+
+                    const startHourNum = parseInt(
+                      slot.startsAt.split(":")[0],
+                      10,
+                    );
                     const durationHours = currentBooking.durationMinutes / 60;
-                    
-                    const isConsecutiveAvailable = Array.from({ length: durationHours }).every((_, i) => {
+
+                    const isConsecutiveAvailable = Array.from({
+                      length: durationHours,
+                    }).every((_, i) => {
                       const h = `${String(startHourNum + i).padStart(2, "0")}:00`;
                       const s = timeSlots.find((ts) => ts.startsAt === h);
-                      return s && s.available;
+                      return s?.available;
                     });
-                    
+
                     const isDisabled = !isConsecutiveAvailable;
 
                     return (
@@ -590,14 +734,16 @@ export default function BookingDetailPage() {
                         disabled={isDisabled}
                         onClick={() => toggleRescheduleSlot(slot.startsAt)}
                         className={`relative flex min-h-[48px] w-full flex-col items-center justify-center rounded-xl border p-2 text-center transition-all ${
-                          isDisabled 
-                            ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed" 
-                            : isSelected 
-                              ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]" 
+                          isDisabled
+                            ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed"
+                            : isSelected
+                              ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]"
                               : "border-white/[0.08] bg-[#0C1B26] hover:border-[#50C8C8]/40"
                         }`}
                       >
-                        <span className={`label ${isDisabled ? "text-[#F7F7F7]/25" : isSelected ? "text-[#E6FA50]" : "text-[#F7F7F7]/80"}`}>
+                        <span
+                          className={`label ${isDisabled ? "text-[#F7F7F7]/25" : isSelected ? "text-[#E6FA50]" : "text-[#F7F7F7]/80"}`}
+                        >
                           {slot.startsAt}
                         </span>
                       </button>
@@ -634,13 +780,17 @@ export default function BookingDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
             <p className="section-label">Cancel Booking</p>
-            <h2 className="heading-2 mt-3 text-[#F7F7F7]">Cancel this booking?</h2>
+            <h2 className="heading-2 mt-3 text-[#F7F7F7]">
+              Cancel this booking?
+            </h2>
             <p className="body mt-2 text-[#F7F7F7]/40">
               This will cancel your booking and release the court time.
             </p>
             <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
               <p className="body text-[#F7F7F7]/60">Refund eligibility</p>
-              <p className="body-sm mt-1 text-[#F7F7F7]/40">{getRefundNote()}</p>
+              <p className="body-sm mt-1 text-[#F7F7F7]/40">
+                {getRefundNote()}
+              </p>
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
@@ -672,15 +822,29 @@ export default function BookingDetailPage() {
   );
 }
 
-
-
-
-
-function PaymentRow({ label, value, highlight, bold }: { label: string; value: string; highlight?: boolean; bold?: boolean }) {
+function PaymentRow({
+  label,
+  value,
+  highlight,
+  bold,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+  bold?: boolean;
+}) {
   return (
     <div className="flex items-center justify-between">
-      <span className={`caption ${bold ? "text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}>{label}</span>
-      <span className={`price ${highlight ? "text-[#E6FA50]" : bold ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}>{value}</span>
+      <span
+        className={`caption ${bold ? "text-[#F7F7F7]/60" : "text-[#F7F7F7]/40"}`}
+      >
+        {label}
+      </span>
+      <span
+        className={`price ${highlight ? "text-[#E6FA50]" : bold ? "text-[#F7F7F7]" : "text-[#F7F7F7]/60"}`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -693,7 +857,9 @@ function StatusBadge({ status }: { status: string }) {
     cancelled: "bg-red-500/10 text-red-400/70",
   };
   return (
-    <span className={`caption rounded-full px-2.5 py-0.5 ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/25"}`}>
+    <span
+      className={`caption rounded-full px-2.5 py-0.5 ${styles[status] ?? "bg-white/5 text-[#F7F7F7]/25"}`}
+    >
       {status}
     </span>
   );
@@ -707,7 +873,9 @@ function PaymentBadge({ status }: { status: string }) {
     refunded: "bg-[#50C8C8]/10 text-[#50C8C8]",
   };
   return (
-    <span className={`caption rounded-full px-2.5 py-0.5 ${styles[status] ?? ""}`}>
+    <span
+      className={`caption rounded-full px-2.5 py-0.5 ${styles[status] ?? ""}`}
+    >
       {status}
     </span>
   );

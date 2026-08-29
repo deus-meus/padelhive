@@ -1,30 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
-  UserCircle,
   Building2,
-  Flag,
   CheckCircle2,
+  Flag,
+  Loader2,
+  UserCircle,
   UserPlus,
   XCircle,
-  Loader2,
 } from "lucide-react";
-import { queryKeys } from "@/lib/queries";
-import {
-  getAdminDisputes,
-  assignDispute,
-  resolveDispute,
-  closeDispute,
-  getApiErrorMessage,
-  type ApiDispute,
-  type DisputeStatus,
-} from "@/lib/api";
-import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { useState } from "react";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { FilterTabs } from "@/components/ui/filter-tabs";
+import {
+  type ApiDispute,
+  assignDispute,
+  closeDispute,
+  type DisputeStatus,
+  getAdminDisputes,
+  getApiErrorMessage,
+  resolveDispute,
+} from "@/lib/api";
 import { formatShortDate } from "@/lib/format";
+import { queryKeys } from "@/lib/queries";
 
 const ISSUE_LABELS: Record<ApiDispute["issueType"], string> = {
   COURT_UNAVAILABLE: "Court Unavailable",
@@ -85,7 +85,8 @@ export default function DisputesPage() {
   });
 
   const resolveMutation = useMutation({
-    mutationFn: ({ id, notes }: { id: string; notes?: string }) => resolveDispute(id, notes),
+    mutationFn: ({ id, notes }: { id: string; notes?: string }) =>
+      resolveDispute(id, notes),
     onMutate: (vars) => setActingId(vars.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "disputes"] });
@@ -117,34 +118,52 @@ export default function DisputesPage() {
       </div>
 
       {/* Filter tabs */}
-      <FilterTabs 
-        tabs={(["ALL", "OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"] as const).map(tab => ({ 
-          label: tab === "ALL" ? "All" : tab.charAt(0) + tab.slice(1).toLowerCase(), 
-          value: tab 
-        }))} 
-        activeValue={filter} 
-        onChange={(val) => setFilter(val)} 
+      <FilterTabs
+        tabs={(
+          ["ALL", "OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"] as const
+        ).map((tab) => ({
+          label:
+            tab === "ALL" ? "All" : tab.charAt(0) + tab.slice(1).toLowerCase(),
+          value: tab,
+        }))}
+        activeValue={filter}
+        onChange={(val) => setFilter(val)}
       />
 
       {/* Dispute list */}
       <div className="flex flex-1 flex-col space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
+            <div
+              key={i}
+              className="h-32 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+            />
           ))
         ) : isError ? (
-          <ErrorBanner title="Couldn't load disputes" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+          <ErrorBanner
+            title="Couldn't load disputes"
+            error={error}
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+          />
         ) : disputes.length === 0 ? (
           <EmptyState
             icon={AlertTriangle}
             title="No disputes"
-            description={filter === "ALL" ? "There are no disputes right now." : `No ${filter.toLowerCase()} disputes in this category.`}
+            description={
+              filter === "ALL"
+                ? "There are no disputes right now."
+                : `No ${filter.toLowerCase()} disputes in this category.`
+            }
             actionLabel="Refresh"
             onAction={() => refetch()}
           />
         ) : (
           disputes.map((dispute) => (
-            <div key={dispute.id} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
+            <div
+              key={dispute.id}
+              className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+            >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-500/10">
@@ -152,45 +171,64 @@ export default function DisputesPage() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`caption rounded-full px-2.5 py-0.5 uppercase ${STATUS_STYLES[dispute.status]}`}>
+                      <span
+                        className={`caption rounded-full px-2.5 py-0.5 uppercase ${STATUS_STYLES[dispute.status]}`}
+                      >
                         {dispute.status}
                       </span>
-                      <span className={`caption rounded-full px-2.5 py-0.5 uppercase ${PRIORITY_STYLES[dispute.priority]}`}>
+                      <span
+                        className={`caption rounded-full px-2.5 py-0.5 uppercase ${PRIORITY_STYLES[dispute.priority]}`}
+                      >
                         {dispute.priority}
                       </span>
                       <span className="caption rounded-full bg-white/[0.04] px-2.5 py-0.5 text-[#F7F7F7]/40">
                         {ISSUE_LABELS[dispute.issueType]}
                       </span>
                     </div>
-                    <p className="body-sm mt-2 text-[#F7F7F7]/80">{dispute.description}</p>
+                    <p className="body-sm mt-2 text-[#F7F7F7]/80">
+                      {dispute.description}
+                    </p>
                     <div className="mt-3 flex flex-wrap items-center gap-4">
                       <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/25">
-                        <UserCircle className="h-3.5 w-3.5" /> {dispute.user.name}
+                        <UserCircle className="h-3.5 w-3.5" />{" "}
+                        {dispute.user.name}
                       </span>
                       <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/25">
-                        <Building2 className="h-3.5 w-3.5" /> {dispute.venue.name}
+                        <Building2 className="h-3.5 w-3.5" />{" "}
+                        {dispute.venue.name}
                       </span>
                       <span className="caption flex items-center gap-1.5 text-[#F7F7F7]/25">
-                        <Flag className="h-3.5 w-3.5" /> {formatShortDate(dispute.createdAt)}
+                        <Flag className="h-3.5 w-3.5" />{" "}
+                        {formatShortDate(dispute.createdAt)}
                       </span>
                     </div>
                     {dispute.assignedTo && (
-                      <p className="caption mt-2 text-[#50C8C8]">Assigned to: {dispute.assignedTo.name}</p>
+                      <p className="caption mt-2 text-[#50C8C8]">
+                        Assigned to: {dispute.assignedTo.name}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-4 sm:mt-0 sm:shrink-0 sm:border-0 sm:pt-0">
-                  {(dispute.status === "OPEN" || dispute.status === "INVESTIGATING") && !dispute.assignedTo && (
-                    <button
-                      onClick={() => assignMutation.mutate(dispute.id)}
-                      disabled={actingId !== null}
-                      className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50 sm:h-8 sm:flex-none"
-                    >
-                      {actingId === dispute.id && assignMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />} Assign
-                    </button>
-                  )}
-                  {(dispute.status === "OPEN" || dispute.status === "INVESTIGATING") && (
+                  {(dispute.status === "OPEN" ||
+                    dispute.status === "INVESTIGATING") &&
+                    !dispute.assignedTo && (
+                      <button
+                        onClick={() => assignMutation.mutate(dispute.id)}
+                        disabled={actingId !== null}
+                        className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#50C8C8]/10 px-3 text-[#50C8C8] transition-colors hover:bg-[#50C8C8]/20 disabled:opacity-50 sm:h-8 sm:flex-none"
+                      >
+                        {actingId === dispute.id && assignMutation.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <UserPlus className="h-3.5 w-3.5" />
+                        )}{" "}
+                        Assign
+                      </button>
+                    )}
+                  {(dispute.status === "OPEN" ||
+                    dispute.status === "INVESTIGATING") && (
                     <button
                       onClick={() => {
                         setResolveNotes("");
@@ -199,7 +237,12 @@ export default function DisputesPage() {
                       disabled={actingId !== null}
                       className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#E6FA50]/10 px-3 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/20 disabled:opacity-50 sm:h-8 sm:flex-none"
                     >
-                      {actingId === dispute.id && resolveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />} Resolve
+                      {actingId === dispute.id && resolveMutation.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      )}{" "}
+                      Resolve
                     </button>
                   )}
                   {dispute.status !== "CLOSED" && (
@@ -208,7 +251,12 @@ export default function DisputesPage() {
                       disabled={actingId !== null}
                       className="label flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-white/[0.04] px-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.08] hover:text-[#F7F7F7] disabled:opacity-50 sm:h-8 sm:flex-none"
                     >
-                      {actingId === dispute.id && closeMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />} Close
+                      {actingId === dispute.id && closeMutation.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5" />
+                      )}{" "}
+                      Close
                     </button>
                   )}
                 </div>
@@ -239,11 +287,18 @@ export default function DisputesPage() {
                 Cancel
               </button>
               <button
-                onClick={() => resolveMutation.mutate({ id: resolveTarget, notes: resolveNotes.trim() || undefined })}
+                onClick={() =>
+                  resolveMutation.mutate({
+                    id: resolveTarget,
+                    notes: resolveNotes.trim() || undefined,
+                  })
+                }
                 disabled={resolveMutation.isPending}
                 className="label flex items-center gap-2 rounded-lg bg-[#E6FA50]/10 px-4 py-2 text-[#E6FA50] hover:bg-[#E6FA50]/20 disabled:opacity-50"
               >
-                {resolveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {resolveMutation.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                 Confirm Resolve
               </button>
             </div>

@@ -1,8 +1,11 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { BookingStatus, InviteStatus } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { CreateInviteInput, RsvpInviteInput } from "./model";
 import { BadRequestException, NotFoundException } from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import type { CreateInviteInput, RsvpInviteInput } from "./model";
 
 const inviteSelect = {
   id: true,
@@ -36,7 +39,11 @@ const inviteDetailsSelect = {
 export class InvitesService {
   constructor(private readonly prisma: PrismaService = defaultPrisma) {}
 
-  async createInviteForBooking(userId: string, bookingId: string, body: CreateInviteInput) {
+  async createInviteForBooking(
+    userId: string,
+    bookingId: string,
+    body: CreateInviteInput,
+  ) {
     const booking = await this.findOwnedInvitableBooking(userId, bookingId);
     const email = this.normalizeEmail(body.email);
     const existing = await this.prisma.invite.findUnique({
@@ -101,7 +108,10 @@ export class InvitesService {
       throw new BadRequestException("Host cannot RSVP");
     }
 
-    if (invite.booking.status !== BookingStatus.PENDING_PAYMENT && invite.booking.status !== BookingStatus.CONFIRMED) {
+    if (
+      invite.booking.status !== BookingStatus.PENDING_PAYMENT &&
+      invite.booking.status !== BookingStatus.CONFIRMED
+    ) {
       throw new BadRequestException("Booking cannot accept RSVPs");
     }
 
@@ -123,7 +133,10 @@ export class InvitesService {
     });
   }
 
-  private async findOwnedBooking(userId: string, bookingId: string): Promise<{ id: string; status: BookingStatus }> {
+  private async findOwnedBooking(
+    userId: string,
+    bookingId: string,
+  ): Promise<{ id: string; status: BookingStatus }> {
     const booking = await this.prisma.booking.findFirst({
       where: { id: bookingId, hostUserId: userId },
       select: { id: true, status: true },
@@ -132,9 +145,15 @@ export class InvitesService {
     return booking;
   }
 
-  private async findOwnedInvitableBooking(userId: string, bookingId: string): Promise<{ id: string; status: BookingStatus }> {
+  private async findOwnedInvitableBooking(
+    userId: string,
+    bookingId: string,
+  ): Promise<{ id: string; status: BookingStatus }> {
     const booking = await this.findOwnedBooking(userId, bookingId);
-    if (booking.status !== BookingStatus.PENDING_PAYMENT && booking.status !== BookingStatus.CONFIRMED) {
+    if (
+      booking.status !== BookingStatus.PENDING_PAYMENT &&
+      booking.status !== BookingStatus.CONFIRMED
+    ) {
       throw new BadRequestException("Booking cannot accept invites");
     }
     return booking;
@@ -155,7 +174,10 @@ export class InvitesService {
   private async generateUniqueToken(): Promise<string> {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const token = randomBytes(24).toString("hex");
-      const existing = await this.prisma.invite.findUnique({ where: { token }, select: { id: true } });
+      const existing = await this.prisma.invite.findUnique({
+        where: { token },
+        select: { id: true },
+      });
       if (!existing) return token;
     }
     throw new BadRequestException("Could not generate invite token");

@@ -1,5 +1,5 @@
-import { NotFoundException } from "../../common/errors";
 import { BookingStatus, CourtType } from "@prisma/client";
+import { NotFoundException } from "../../common/errors";
 import { BookingsService } from "./service";
 
 describe("Read-only bookings API", () => {
@@ -19,14 +19,23 @@ describe("Read-only bookings API", () => {
           finalAmount: 210000,
           venue: { id: "venue-1", name: "Padel Bali", city: "Bali" },
           court: { id: "court-1", name: "Court A", type: CourtType.OUTDOOR },
-          host: { id: "user-1", name: "Player One", email: "player@padelhive.com" },
+          host: {
+            id: "user-1",
+            name: "Player One",
+            email: "player@padelhive.com",
+          },
         }),
       },
       bookingCharge: {
         findFirst: jest.fn().mockResolvedValue(null),
       },
     };
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, {} as never);
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      {} as never,
+    );
 
     const booking = await service.findBookingForUser("booking-1", "user-1");
 
@@ -43,8 +52,15 @@ describe("Read-only bookings API", () => {
         findFirst: jest.fn().mockResolvedValue(null),
       },
     };
-    const service = new BookingsService(prisma as never, {} as never, { createNotification: jest.fn() } as never, {} as never);
+    const service = new BookingsService(
+      prisma as never,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      {} as never,
+    );
 
-    await expect(service.findBookingForUser("booking-2", "user-1")).rejects.toThrow(NotFoundException);
+    await expect(
+      service.findBookingForUser("booking-2", "user-1"),
+    ).rejects.toThrow(NotFoundException);
   });
 });

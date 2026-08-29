@@ -1,9 +1,19 @@
-import { BookingStatus, Prisma } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { CreateReviewInput } from "./model";
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from "../../common/errors";
+import { BookingStatus, type Prisma } from "@prisma/client";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import type { CreateReviewInput } from "./model";
 
-type ReviewWithAuthor = Prisma.ReviewGetPayload<{ include: { author: { select: { name: true; avatarUrl: true } } } }>;
+type ReviewWithAuthor = Prisma.ReviewGetPayload<{
+  include: { author: { select: { name: true; avatarUrl: true } } };
+}>;
 
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService = defaultPrisma) {}
@@ -11,7 +21,9 @@ export class ReviewsService {
   async createReview(userId: string, dto: CreateReviewInput) {
     const rating = Number(dto.rating);
     if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-      throw new BadRequestException("Rating must be an integer between 1 and 5");
+      throw new BadRequestException(
+        "Rating must be an integer between 1 and 5",
+      );
     }
     const comment = dto.comment?.trim() || null;
     if (comment && comment.length > 1000) {
@@ -26,13 +38,18 @@ export class ReviewsService {
       throw new NotFoundException("Booking not found");
     }
     if (booking.hostUserId !== userId) {
-      throw new ForbiddenException("Only the booking host can review this booking");
+      throw new ForbiddenException(
+        "Only the booking host can review this booking",
+      );
     }
     if (booking.status !== BookingStatus.COMPLETED) {
       throw new BadRequestException("Only completed bookings can be reviewed");
     }
 
-    const existing = await this.prisma.review.findUnique({ where: { bookingId: booking.id }, select: { id: true } });
+    const existing = await this.prisma.review.findUnique({
+      where: { bookingId: booking.id },
+      select: { id: true },
+    });
     if (existing) {
       throw new ConflictException("This booking has already been reviewed");
     }

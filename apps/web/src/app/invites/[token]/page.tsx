@@ -1,26 +1,39 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
-import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
-import Link from "next/link";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
   Clock,
-
   MapPin,
   User,
   XCircle,
 } from "lucide-react";
-import { ApiRequestError, getInvite, rsvpInvite, type InviteDetails } from "@/lib/api";
+import Link from "next/link";
+import { useState } from "react";
 import { ErrorState } from "@/components/ui/error-state";
+import {
+  ApiRequestError,
+  getInvite,
+  type InviteDetails,
+  rsvpInvite,
+} from "@/lib/api";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
+import { queryKeys } from "@/lib/queries";
 
 type RsvpStatus = "ACCEPTED" | "DECLINED";
 
-const STATUS_COPY: Record<RsvpStatus, { title: string; body: string; icon: typeof CheckCircle2; color: string; bg: string }> = {
+const STATUS_COPY: Record<
+  RsvpStatus,
+  {
+    title: string;
+    body: string;
+    icon: typeof CheckCircle2;
+    color: string;
+    bg: string;
+  }
+> = {
   ACCEPTED: {
     title: "You’re in",
     body: "Your RSVP has been marked as accepted. Coordinate payment with your host for now.",
@@ -37,13 +50,23 @@ const STATUS_COPY: Record<RsvpStatus, { title: string; body: string; icon: typeo
   },
 };
 
-
-
-export default function InviteRsvpPage({ params }: { params: { token: string } }) {
-  const [submittedStatus, setSubmittedStatus] = useState<RsvpStatus | null>(null);
+export default function InviteRsvpPage({
+  params,
+}: {
+  params: { token: string };
+}) {
+  const [submittedStatus, setSubmittedStatus] = useState<RsvpStatus | null>(
+    null,
+  );
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { data: invite, isLoading, isError, error: queryError, refetch } = useQuery({
+  const {
+    data: invite,
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useQuery({
     queryKey: queryKeys.invites.detail(params.token),
     queryFn: () => getInvite(params.token),
   });
@@ -62,8 +85,10 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
       setSubmitError(null);
     },
     onSuccess: (updatedInvite, status) => {
-      queryClient.setQueryData(queryKeys.invites.detail(params.token), (current: InviteDetails | undefined) => 
-        current ? { ...current, ...updatedInvite } : current
+      queryClient.setQueryData(
+        queryKeys.invites.detail(params.token),
+        (current: InviteDetails | undefined) =>
+          current ? { ...current, ...updatedInvite } : current,
       );
       setSubmittedStatus(status);
     },
@@ -75,7 +100,7 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
       } else {
         setSubmitError("Could not save your RSVP. Please try again.");
       }
-    }
+    },
   });
 
   async function handleRsvp(status: RsvpStatus) {
@@ -92,12 +117,12 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
             <div className="h-7 w-3/4 animate-pulse rounded-full bg-white/[0.04]" />
             <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/[0.04]" />
             <div className="h-3 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
-            
+
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-3">
               <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
               <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
             </div>
-            
+
             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-3">
               <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
               <div className="h-4 w-1/2 animate-pulse rounded-full bg-white/[0.04]" />
@@ -117,7 +142,14 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
     return (
       <div className="min-h-screen pt-20">
         <div className="container flex min-h-[60vh] max-w-xl items-center justify-center py-12">
-          <ErrorState title="Invite unavailable" description={errorMessage ?? "This invite link is invalid or no longer available."} onRetry={() => refetch()} />
+          <ErrorState
+            title="Invite unavailable"
+            description={
+              errorMessage ??
+              "This invite link is invalid or no longer available."
+            }
+            onRetry={() => refetch()}
+          />
         </div>
       </div>
     );
@@ -154,29 +186,44 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
           </div>
 
           <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
-            <h2 className="heading-3 uppercase text-[#F7F7F7]/60">Booking Details</h2>
+            <h2 className="heading-3 uppercase text-[#F7F7F7]/60">
+              Booking Details
+            </h2>
             <div className="mt-4 space-y-4">
               <div className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 text-[#50C8C8]" />
                 <div>
-                  <p className="body text-[#F7F7F7]/80">{invite.booking.venue.name}</p>
-                  <p className="caption text-[#F7F7F7]/40">{invite.booking.venue.city}</p>
+                  <p className="body text-[#F7F7F7]/80">
+                    {invite.booking.venue.name}
+                  </p>
+                  <p className="caption text-[#F7F7F7]/40">
+                    {invite.booking.venue.city}
+                  </p>
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
                   <p className="caption uppercase text-[#F7F7F7]/25">Court</p>
-                  <p className="body mt-1 text-[#F7F7F7]/80">{invite.booking.court.name}</p>
+                  <p className="body mt-1 text-[#F7F7F7]/80">
+                    {invite.booking.court.name}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
                   <p className="caption uppercase text-[#F7F7F7]/25">Time</p>
-                  <p className="body mt-1 text-[#F7F7F7]/80">{formatBookingTimeRange(invite.booking.startsAt, invite.booking.endsAt)}</p>
+                  <p className="body mt-1 text-[#F7F7F7]/80">
+                    {formatBookingTimeRange(
+                      invite.booking.startsAt,
+                      invite.booking.endsAt,
+                    )}
+                  </p>
                 </div>
               </div>
               <div className="rounded-xl border border-white/[0.06] bg-[#06121A]/40 p-4">
                 <div className="flex items-center gap-2 text-[#F7F7F7]/80">
                   <Clock className="h-4 w-4 text-[#E6FA50]" />
-                  <span className="body">{formatBookingDate(invite.booking.bookingDate)}</span>
+                  <span className="body">
+                    {formatBookingDate(invite.booking.bookingDate)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -196,9 +243,13 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
           </div>
 
           {resultCopy && ResultIcon ? (
-            <div className={`mt-6 rounded-2xl border border-white/[0.06] ${resultCopy.bg} p-5 text-center`}>
+            <div
+              className={`mt-6 rounded-2xl border border-white/[0.06] ${resultCopy.bg} p-5 text-center`}
+            >
               <ResultIcon className={`mx-auto h-10 w-10 ${resultCopy.color}`} />
-              <h2 className="heading-2 mt-4 text-[#F7F7F7]">{resultCopy.title}</h2>
+              <h2 className="heading-2 mt-4 text-[#F7F7F7]">
+                {resultCopy.title}
+              </h2>
               <p className="body mt-2 text-[#F7F7F7]/60">{resultCopy.body}</p>
             </div>
           ) : (
@@ -208,14 +259,18 @@ export default function InviteRsvpPage({ params }: { params: { token: string } }
                 disabled={rsvpMutation.isPending}
                 className="label btn-lime flex h-12 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {rsvpMutation.isPending && rsvpMutation.variables === "ACCEPTED" ? "Saving..." : "Accept Invite"}
+                {rsvpMutation.isPending && rsvpMutation.variables === "ACCEPTED"
+                  ? "Saving..."
+                  : "Accept Invite"}
               </button>
               <button
                 onClick={() => handleRsvp("DECLINED")}
                 disabled={rsvpMutation.isPending}
                 className="label flex h-12 items-center justify-center rounded-full border border-white/[0.08] uppercase text-[#F7F7F7]/60 transition-colors hover:border-red-300/30 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {rsvpMutation.isPending && rsvpMutation.variables === "DECLINED" ? "Saving..." : "Decline"}
+                {rsvpMutation.isPending && rsvpMutation.variables === "DECLINED"
+                  ? "Saving..."
+                  : "Decline"}
               </button>
             </div>
           )}

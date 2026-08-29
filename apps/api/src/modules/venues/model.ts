@@ -1,5 +1,5 @@
-import { t, Static } from "elysia";
-import { VenueStatus, CourtType } from "@prisma/client";
+import { CourtType, VenueStatus } from "@prisma/client";
+import { type Static, t } from "elysia";
 
 export const VenueStatusEnum = t.Enum(VenueStatus);
 export const CourtTypeEnum = t.Enum(CourtType);
@@ -11,8 +11,8 @@ export const WeeklyHoursSchema = t.Nullable(
       open: t.Optional(t.String()),
       close: t.Optional(t.String()),
       closed: t.Optional(t.Boolean()),
-    })
-  )
+    }),
+  ),
 );
 
 export const CreateVenueSchema = t.Object({

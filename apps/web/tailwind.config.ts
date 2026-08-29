@@ -2,9 +2,7 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: "class",
-  content: [
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ["./src/**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -50,12 +48,12 @@ const config: Config = {
         },
       },
       spacing: {
-        "section": "120px",
+        section: "120px",
         "section-sm": "80px",
-        "subsection": "64px",
-        "component": "32px",
-        "element": "16px",
-        "tight": "8px",
+        subsection: "64px",
+        component: "32px",
+        element: "16px",
+        tight: "8px",
       },
       borderRadius: {
         lg: "var(--radius)",

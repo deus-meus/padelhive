@@ -1,22 +1,46 @@
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { BookingStatus, PaymentStatus, RefundStatus, Prisma, NotificationType, UserRole, RefundType } from "@prisma/client";
-import { CreateRefundInput } from "./model";
-import { PaymentGateway, midtransGateway as defaultGateway } from "../payments/midtrans.gateway";
-import { NotificationsService, notificationsService as defaultNotifications, CreateNotificationInput } from "../notifications/service";
-import { BadRequestException, ConflictException, NotFoundException } from "../../common/errors";
+import {
+  BookingStatus,
+  NotificationType,
+  PaymentStatus,
+  Prisma,
+  RefundStatus,
+  RefundType,
+  UserRole,
+} from "@prisma/client";
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import {
+  type CreateNotificationInput,
+  notificationsService as defaultNotifications,
+  type NotificationsService,
+} from "../notifications/service";
+import {
+  midtransGateway as defaultGateway,
+  type PaymentGateway,
+} from "../payments/midtrans.gateway";
+import type { CreateRefundInput } from "./model";
 
 export class RefundsService {
   constructor(
     private readonly prisma: PrismaService = defaultPrisma,
     private readonly paymentGateway: PaymentGateway = defaultGateway,
-    private readonly notifications: NotificationsService = defaultNotifications
+    private readonly notifications: NotificationsService = defaultNotifications,
   ) {}
 
   private async safeNotify(input: CreateNotificationInput) {
     try {
       await this.notifications.createNotification(input);
     } catch (err) {
-      console.warn(`[RefundsService] Failed to emit notification: ${String(err)}`);
+      console.warn(
+        `[RefundsService] Failed to emit notification: ${String(err)}`,
+      );
     }
   }
 
@@ -27,7 +51,11 @@ export class RefundsService {
 
     const booking = await this.prisma.booking.findFirst({
       where: { id: dto.bookingId, hostUserId: userId },
-      include: { payment: true, refunds: true, venue: { include: { admins: true } } },
+      include: {
+        payment: true,
+        refunds: true,
+        venue: { include: { admins: true } },
+      },
     });
 
     if (!booking) {
@@ -43,7 +71,9 @@ export class RefundsService {
     }
 
     if (booking.refunds && booking.refunds.length > 0) {
-      throw new BadRequestException("A refund request already exists for this payment");
+      throw new BadRequestException(
+        "A refund request already exists for this payment",
+      );
     }
 
     try {
@@ -86,8 +116,8 @@ export class RefundsService {
               title: "New refund request",
               body: "A refund request is awaiting review.",
               linkUrl: `/admin/refunds`,
-            })
-          )
+            }),
+          ),
       );
 
       const venueTeamIds = new Set([
@@ -105,14 +135,19 @@ export class RefundsService {
               title: "New refund request",
               body: `A new refund request for ${booking.venue.name} needs review.`,
               linkUrl: `/dashboard/refunds`,
-            })
-          )
+            }),
+          ),
       );
 
       return refund;
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new ConflictException("A refund request already exists for this payment");
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ConflictException(
+          "A refund request already exists for this payment",
+        );
       }
       throw error;
     }
@@ -158,14 +193,22 @@ export class RefundsService {
     return refund;
   }
 
-  async findAllRefunds(userId: string, isSuperAdmin: boolean, status?: RefundStatus) {
+  async findAllRefunds(
+    userId: string,
+    isSuperAdmin: boolean,
+    status?: RefundStatus,
+  ) {
     return this.prisma.refund.findMany({
       where: {
         ...(status ? { status } : {}),
         ...(isSuperAdmin
           ? {}
           : {
-              booking: { venue: { OR: [{ ownerId: userId }, { admins: { some: { userId } } }] } },
+              booking: {
+                venue: {
+                  OR: [{ ownerId: userId }, { admins: { some: { userId } } }],
+                },
+              },
             }),
       },
       include: {
@@ -189,12 +232,19 @@ export class RefundsService {
     });
   }
 
-  async approveRefund(id: string, adminUserId: string, isSuperAdmin: boolean, adminNotes?: string) {
+  async approveRefund(
+    id: string,
+    adminUserId: string,
+    isSuperAdmin: boolean,
+    adminNotes?: string,
+  ) {
     const refund = await this.prisma.refund.findUnique({
       where: { id },
       include: {
         booking: {
-          include: { venue: { include: { admins: { where: { userId: adminUserId } } } } },
+          include: {
+            venue: { include: { admins: { where: { userId: adminUserId } } } },
+          },
         },
       },
     });
@@ -208,7 +258,9 @@ export class RefundsService {
     }
 
     if (refund.status !== RefundStatus.PENDING) {
-      throw new BadRequestException(`Cannot approve refund in status ${refund.status}`);
+      throw new BadRequestException(
+        `Cannot approve refund in status ${refund.status}`,
+      );
     }
 
     const updatedRefund = await this.prisma.refund.update({
@@ -238,16 +290,25 @@ export class RefundsService {
     return updatedRefund;
   }
 
-  async rejectRefund(id: string, adminUserId: string, isSuperAdmin: boolean, adminNotes: string) {
+  async rejectRefund(
+    id: string,
+    adminUserId: string,
+    isSuperAdmin: boolean,
+    adminNotes: string,
+  ) {
     if (!adminNotes || adminNotes.trim() === "") {
-      throw new BadRequestException("adminNotes is required to reject a refund");
+      throw new BadRequestException(
+        "adminNotes is required to reject a refund",
+      );
     }
 
     const refund = await this.prisma.refund.findUnique({
       where: { id },
       include: {
         booking: {
-          include: { venue: { include: { admins: { where: { userId: adminUserId } } } } },
+          include: {
+            venue: { include: { admins: { where: { userId: adminUserId } } } },
+          },
         },
       },
     });
@@ -261,7 +322,9 @@ export class RefundsService {
     }
 
     if (refund.status !== RefundStatus.PENDING) {
-      throw new BadRequestException(`Cannot reject refund in status ${refund.status}`);
+      throw new BadRequestException(
+        `Cannot reject refund in status ${refund.status}`,
+      );
     }
 
     const updatedRefund = await this.prisma.refund.update({
@@ -295,7 +358,12 @@ export class RefundsService {
     const refund = await this.prisma.refund.findUnique({
       where: { id },
       include: {
-        booking: { include: { venue: { include: { admins: { where: { userId: adminUserId } } } }, payment: true } },
+        booking: {
+          include: {
+            venue: { include: { admins: { where: { userId: adminUserId } } } },
+            payment: true,
+          },
+        },
         payment: true,
       },
     });
@@ -309,12 +377,18 @@ export class RefundsService {
     }
 
     if (refund.status !== RefundStatus.APPROVED) {
-      throw new BadRequestException(`Cannot process refund in status ${refund.status}`);
+      throw new BadRequestException(
+        `Cannot process refund in status ${refund.status}`,
+      );
     }
 
     const gatewayPayment = refund.payment ?? refund.booking.payment;
     if (gatewayPayment && gatewayPayment.provider === "midtrans") {
-      await this.paymentGateway.refundPayment(gatewayPayment.id, refund.amount, refund.id);
+      await this.paymentGateway.refundPayment(
+        gatewayPayment.id,
+        refund.amount,
+        refund.id,
+      );
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -327,7 +401,9 @@ export class RefundsService {
       });
 
       if (updateResult.count === 0) {
-        throw new BadRequestException("Refund already processed or status changed");
+        throw new BadRequestException(
+          "Refund already processed or status changed",
+        );
       }
 
       await tx.refundEvent.create({
@@ -346,7 +422,10 @@ export class RefundsService {
         });
       }
 
-      if (refund.booking.status === BookingStatus.CONFIRMED && refund.type !== RefundType.RESCHEDULE_DIFF) {
+      if (
+        refund.booking.status === BookingStatus.CONFIRMED &&
+        refund.type !== RefundType.RESCHEDULE_DIFF
+      ) {
         await tx.booking.update({
           where: { id: refund.bookingId },
           data: {

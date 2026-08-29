@@ -1,5 +1,5 @@
-import { NotFoundException } from "../../common/errors";
 import { VenueStatus } from "@prisma/client";
+import { NotFoundException } from "../../common/errors";
 import { VenuesService } from "./service";
 
 describe("VenuesService", () => {
@@ -78,6 +78,8 @@ describe("VenuesService", () => {
     const notifications = { createNotification: jest.fn() };
     const service = new VenuesService(prisma as never, notifications as never);
 
-    await expect(service.findApprovedVenueById("venue-pending")).rejects.toThrow(NotFoundException);
+    await expect(
+      service.findApprovedVenueById("venue-pending"),
+    ).rejects.toThrow(NotFoundException);
   });
 });

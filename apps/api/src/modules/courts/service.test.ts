@@ -1,5 +1,5 @@
-import { NotFoundException } from "../../common/errors";
 import { VenueStatus } from "@prisma/client";
+import { NotFoundException } from "../../common/errors";
 import { CourtsService } from "./service";
 
 describe("CourtsService", () => {
@@ -10,7 +10,9 @@ describe("CourtsService", () => {
     };
     const service = new CourtsService(prisma as never);
 
-    await expect(service.findActiveCourtsForApprovedVenue("venue-pending")).rejects.toThrow(NotFoundException);
+    await expect(
+      service.findActiveCourtsForApprovedVenue("venue-pending"),
+    ).rejects.toThrow(NotFoundException);
     expect(prisma.court.findMany).not.toHaveBeenCalled();
   });
 

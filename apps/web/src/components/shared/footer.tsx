@@ -18,9 +18,7 @@ export function Footer() {
               matches, meet players.
             </p>
             <div className="mt-8">
-              <p className="section-label">
-                Stay in the loop
-              </p>
+              <p className="section-label">Stay in the loop</p>
               <div className="mt-3 flex max-w-[280px]">
                 <input
                   type="email"
@@ -61,10 +59,18 @@ export function Footer() {
           <div>
             <h4 className="section-label mb-5">Social</h4>
             <ul className="space-y-3.5">
-              <FooterLink href="https://instagram.com" external>Instagram</FooterLink>
-              <FooterLink href="https://tiktok.com" external>TikTok</FooterLink>
-              <FooterLink href="https://wa.me" external>WhatsApp</FooterLink>
-              <FooterLink href="https://t.me" external>Telegram</FooterLink>
+              <FooterLink href="https://instagram.com" external>
+                Instagram
+              </FooterLink>
+              <FooterLink href="https://tiktok.com" external>
+                TikTok
+              </FooterLink>
+              <FooterLink href="https://wa.me" external>
+                WhatsApp
+              </FooterLink>
+              <FooterLink href="https://t.me" external>
+                Telegram
+              </FooterLink>
             </ul>
           </div>
         </div>
@@ -102,7 +108,15 @@ export function Footer() {
   );
 }
 
-function FooterLink({ href, children, external }: { href: string; children: React.ReactNode; external?: boolean }) {
+function FooterLink({
+  href,
+  children,
+  external,
+}: {
+  href: string;
+  children: React.ReactNode;
+  external?: boolean;
+}) {
   if (external) {
     return (
       <li>

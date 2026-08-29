@@ -1,28 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
-import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ErrorBanner } from "@/components/ui/error-state";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft,
-  Copy,
-  Check,
-  UserPlus,
-  Mail,
-  Clock,
-  CheckCircle2,
-  Share2,
-  Users,
   AlertCircle,
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  Clock,
+  Copy,
+  Mail,
+  Share2,
+  UserPlus,
+  Users,
   XCircle,
 } from "lucide-react";
-import { ApiRequestError, createBookingInvite, getBookingInvites, type InviteSummary } from "@/lib/api";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { ErrorBanner } from "@/components/ui/error-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ApiRequestError,
+  createBookingInvite,
+  getBookingInvites,
+  type InviteSummary,
+} from "@/lib/api";
 import { getUserFacingErrorMessage } from "@/lib/errors";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
+import { queryKeys } from "@/lib/queries";
 
 const STATUS_CONFIG = {
   ACCEPTED: {
@@ -52,7 +57,9 @@ const STATUS_CONFIG = {
 };
 
 function getInviteStatusConfig(status: InviteSummary["status"]) {
-  return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.PENDING;
+  return (
+    STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.PENDING
+  );
 }
 
 export default function InviteFriendsPage({
@@ -60,14 +67,20 @@ export default function InviteFriendsPage({
 }: {
   params: { id: string };
 }) {
-  const router = useRouter();
+  const _router = useRouter();
   const searchParams = useSearchParams();
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { data: invites = [], isLoading, isError, error: queryError, refetch } = useQuery({
+  const {
+    data: invites = [],
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useQuery({
     queryKey: queryKeys.bookings.invites(params.id),
     queryFn: () => getBookingInvites(params.id),
   });
@@ -90,8 +103,12 @@ export default function InviteFriendsPage({
   const amount = searchParams.get("amount") ?? "300000";
   const venueId = searchParams.get("venueId") ?? "venue-1";
 
-  const firstInviteLink = invites[0] ? buildInviteLink(invites[0].token) : "Add a friend to generate an invite link";
-  const acceptedCount = invites.filter((invite) => invite.status === "ACCEPTED").length;
+  const firstInviteLink = invites[0]
+    ? buildInviteLink(invites[0].token)
+    : "Add a friend to generate an invite link";
+  const acceptedCount = invites.filter(
+    (invite) => invite.status === "ACCEPTED",
+  ).length;
 
   const formattedDate = formatBookingDate(date);
 
@@ -99,8 +116,6 @@ export default function InviteFriendsPage({
     if (typeof window === "undefined") return `/invites/${token}`;
     return `${window.location.origin}/invites/${token}`;
   }
-
-
 
   async function handleCopy(token?: string) {
     if (!token) return;
@@ -120,7 +135,7 @@ export default function InviteFriendsPage({
           if (!old) return [invite];
           const withoutDuplicate = old.filter((item) => item.id !== invite.id);
           return [...withoutDuplicate, invite];
-        }
+        },
       );
       setEmailInput("");
       setSuccessMessage(`Invite ready for ${invite.email}.`);
@@ -129,18 +144,25 @@ export default function InviteFriendsPage({
     onError: (error) => {
       if (error instanceof ApiRequestError) {
         if (error.status === 400) {
-          setSubmitError(getUserFacingErrorMessage(error) || "Enter a valid email for an invitable booking.");
+          setSubmitError(
+            getUserFacingErrorMessage(error) ||
+              "Enter a valid email for an invitable booking.",
+          );
         } else if (error.status === 401 || error.status === 403) {
-          setSubmitError("Sign in with the booking owner account to invite friends.");
+          setSubmitError(
+            "Sign in with the booking owner account to invite friends.",
+          );
         } else if (error.status === 404) {
-          setSubmitError("Booking was not found or does not belong to this account.");
+          setSubmitError(
+            "Booking was not found or does not belong to this account.",
+          );
         } else {
           setSubmitError(getUserFacingErrorMessage(error));
         }
       } else {
         setSubmitError(getUserFacingErrorMessage(error));
       }
-    }
+    },
   });
 
   async function handleAddFriend() {
@@ -167,9 +189,7 @@ export default function InviteFriendsPage({
 
         {/* Header */}
         <div className="mt-6">
-          <h1 className="heading-1 text-[#F7F7F7]">
-            Invite Friends
-          </h1>
+          <h1 className="heading-1 text-[#F7F7F7]">Invite Friends</h1>
           <p className="body-sm mt-2 text-[#F7F7F7]/40">
             Share your booking and play together
           </p>
@@ -223,7 +243,8 @@ export default function InviteFriendsPage({
             </button>
           </div>
           <p className="caption mt-2 text-[#F7F7F7]/25">
-            Invite links are generated after adding a friend. Each friend gets a unique RSVP token.
+            Invite links are generated after adding a friend. Each friend gets a
+            unique RSVP token.
           </p>
         </div>
 
@@ -265,7 +286,11 @@ export default function InviteFriendsPage({
           )}
           {errorMessage && !isLoading && (
             <div className="mt-3">
-              <ErrorBanner title="Couldn't load invites" description={errorMessage} onRetry={() => refetch()} />
+              <ErrorBanner
+                title="Couldn't load invites"
+                description={errorMessage}
+                onRetry={() => refetch()}
+              />
             </div>
           )}
         </div>
@@ -286,7 +311,10 @@ export default function InviteFriendsPage({
             {isLoading ? (
               <div className="space-y-3">
                 {[...Array(2)].map((_, i) => (
-                  <div key={i} className="flex flex-col gap-4 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div
+                    key={i}
+                    className="flex flex-col gap-4 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
                     <div className="flex min-w-0 items-center gap-3">
                       <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
                       <div className="min-w-0 space-y-1.5">
@@ -304,7 +332,9 @@ export default function InviteFriendsPage({
             ) : invites.length === 0 ? (
               <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] p-6 text-center">
                 <Mail className="mx-auto h-8 w-8 text-[#50C8C8]/60" />
-                <h3 className="heading-3 mt-3 text-[#F7F7F7]/60">No invites yet</h3>
+                <h3 className="heading-3 mt-3 text-[#F7F7F7]/60">
+                  No invites yet
+                </h3>
                 <p className="caption mt-1 text-[#F7F7F7]/25">
                   Add a friend by email to generate RSVP link for this booking.
                 </p>
@@ -333,7 +363,9 @@ export default function InviteFriendsPage({
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-3 sm:justify-end">
-                      <div className={`caption flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}>
+                      <div
+                        className={`caption flex items-center gap-1.5 rounded-full px-3 py-1.5 ${config.bg}`}
+                      >
                         <StatusIcon className={`h-3.5 w-3.5 ${config.color}`} />
                         <span className={`${config.color}`}>
                           {config.label}
@@ -343,7 +375,11 @@ export default function InviteFriendsPage({
                         onClick={() => handleCopy(invite.token)}
                         className="label flex h-9 items-center gap-2 rounded-full border border-white/[0.06] px-3 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/80"
                       >
-                        {isCopied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                        {isCopied ? (
+                          <Check className="h-3.5 w-3.5 text-green-400" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
                         {isCopied ? "Copied" : "Copy Link"}
                       </button>
                     </div>
@@ -365,7 +401,8 @@ export default function InviteFriendsPage({
         </div>
 
         <p className="caption mt-4 text-center text-[#F7F7F7]/25">
-          Friends can RSVP from their invite link. Split the bill on the payment page after booking.
+          Friends can RSVP from their invite link. Split the bill on the payment
+          page after booking.
         </p>
       </div>
     </div>

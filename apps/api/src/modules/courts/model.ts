@@ -1,5 +1,5 @@
-import { t, Static } from "elysia";
 import { CourtType } from "@prisma/client";
+import { type Static, t } from "elysia";
 
 export const CourtTypeEnum = t.Enum(CourtType);
 

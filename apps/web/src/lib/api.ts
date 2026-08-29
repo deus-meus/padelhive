@@ -1,9 +1,10 @@
-import { padelImg } from "@/lib/images";
-import { formatShortDate } from "@/lib/format";
-import { Court, Venue, Voucher } from "@/types";
 import { getIdToken } from "@/lib/auth-client";
+import { formatShortDate } from "@/lib/format";
+import { padelImg } from "@/lib/images";
+import type { Court, Venue, Voucher } from "@/types";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 type ApiVenue = {
   id: string;
@@ -22,7 +23,10 @@ type ApiVenue = {
   status: "APPROVED" | string;
   courtCount?: number;
   priceFrom?: number;
-  weeklyHours?: Record<string, { open: string; close: string; closed?: boolean }> | null;
+  weeklyHours?: Record<
+    string,
+    { open: string; close: string; closed?: boolean }
+  > | null;
 };
 
 type ApiCourt = {
@@ -221,7 +225,7 @@ export class ApiRequestError extends Error {
   constructor(
     message: string,
     readonly status?: number,
-    readonly statusText?: string
+    readonly statusText?: string,
   ) {
     super(message);
     this.name = "ApiRequestError";
@@ -253,9 +257,12 @@ export function getApiErrorMessage(error: unknown): string {
 
 type ApiFetchOptions = RequestInit;
 
-async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<T> {
+async function apiFetch<T>(
+  path: string,
+  options: ApiFetchOptions = {},
+): Promise<T> {
   const { headers, body, ...requestOptions } = options;
-  
+
   let token: string | null = null;
   try {
     token = await getIdToken();
@@ -268,8 +275,8 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<
     ...requestOptions,
     headers: {
       Accept: "application/json",
-      ...(body ? { "Content-Type": "application/json" } :{}),
-      ...(token ? { Authorization: `Bearer ${token}` } :{}),
+      ...(body ? { "Content-Type": "application/json" } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     body,
@@ -279,7 +286,9 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<
   if (!response.ok) {
     let message = `API request failed: ${response.status} ${response.statusText}`;
     try {
-      const payload = (await response.json()) as { message?: string | string[] };
+      const payload = (await response.json()) as {
+        message?: string | string[];
+      };
       if (Array.isArray(payload.message)) {
         message = payload.message.join(" ");
       } else if (payload.message) {
@@ -295,8 +304,22 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions ={}): Promise<
   return response.json() as Promise<T>;
 }
 
-export async function getMe(): Promise<{ id: string; firebaseUid?: string; email: string; name: string; role: string; avatarUrl?: string }> {
-  const me = await apiFetch<{ id: string; firebaseUid?: string; email: string; name: string; role: string; avatarUrl?: string }>("/auth/me");
+export async function getMe(): Promise<{
+  id: string;
+  firebaseUid?: string;
+  email: string;
+  name: string;
+  role: string;
+  avatarUrl?: string;
+}> {
+  const me = await apiFetch<{
+    id: string;
+    firebaseUid?: string;
+    email: string;
+    name: string;
+    role: string;
+    avatarUrl?: string;
+  }>("/auth/me");
   return { ...me, role: me.role.toLowerCase() };
 }
 
@@ -309,7 +332,9 @@ export type UploadSignatureResponse = {
 };
 
 export async function getUploadSignature(): Promise<UploadSignatureResponse> {
-  return apiFetch<UploadSignatureResponse>("/uploads/signature", { method: "POST" });
+  return apiFetch<UploadSignatureResponse>("/uploads/signature", {
+    method: "POST",
+  });
 }
 
 export async function uploadVenueImage(file: File): Promise<string> {
@@ -321,7 +346,7 @@ export async function uploadVenueImage(file: File): Promise<string> {
   }
 
   const sig = await getUploadSignature();
-  
+
   const formData = new FormData();
   formData.append("file", file);
   formData.append("api_key", sig.apiKey);
@@ -329,10 +354,13 @@ export async function uploadVenueImage(file: File): Promise<string> {
   formData.append("signature", sig.signature);
   formData.append("folder", sig.folder);
 
-  const response = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
-    method: "POST",
-    body: formData,
-  });
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
 
   if (!response.ok) {
     throw new Error("Failed to upload image to Cloudinary");
@@ -419,16 +447,23 @@ export async function getVenues(params?: {
   facilities?: string[];
   revalidate?: number;
 }): Promise<Venue[]> {
-  const options = typeof params?.revalidate === "number" ? { next: { revalidate: params.revalidate } } : {};
+  const options =
+    typeof params?.revalidate === "number"
+      ? { next: { revalidate: params.revalidate } }
+      : {};
   const query = new URLSearchParams();
 
   if (params?.q) query.set("q", params.q);
   if (params?.city && params.city !== "All") query.set("city", params.city);
-  if (params?.priceMin !== undefined && params.priceMin !== null) query.set("priceMin", params.priceMin.toString());
-  if (params?.priceMax !== undefined && params.priceMax !== null) query.set("priceMax", params.priceMax.toString());
-  if (params?.rating !== undefined && params.rating !== null) query.set("rating", params.rating.toString());
+  if (params?.priceMin !== undefined && params.priceMin !== null)
+    query.set("priceMin", params.priceMin.toString());
+  if (params?.priceMax !== undefined && params.priceMax !== null)
+    query.set("priceMax", params.priceMax.toString());
+  if (params?.rating !== undefined && params.rating !== null)
+    query.set("rating", params.rating.toString());
   if (params?.type) query.set("type", params.type);
-  if (params?.facilities && params.facilities.length > 0) query.set("facilities", params.facilities.join(","));
+  if (params?.facilities && params.facilities.length > 0)
+    query.set("facilities", params.facilities.join(","));
 
   const qs = query.toString();
   const endpoint = qs ? `/venues?${qs}` : "/venues";
@@ -436,8 +471,14 @@ export async function getVenues(params?: {
   return venues.map(mapVenue);
 }
 
-export async function getVenue(id: string, opts?: { revalidate?: number }): Promise<Venue> {
-  const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
+export async function getVenue(
+  id: string,
+  opts?: { revalidate?: number },
+): Promise<Venue> {
+  const options =
+    typeof opts?.revalidate === "number"
+      ? { next: { revalidate: opts.revalidate } }
+      : {};
   const venue = await apiFetch<ApiVenue>(`/venues/${id}`, options);
   return mapVenue(venue);
 }
@@ -452,7 +493,10 @@ export type VenueInput = {
   imageUrl?: string;
   photos?: string[];
   facilities?: string[];
-  weeklyHours?: Record<string, { open: string; close: string; closed?: boolean }>;
+  weeklyHours?: Record<
+    string,
+    { open: string; close: string; closed?: boolean }
+  >;
 };
 
 export type UpdateVenueInput = Partial<VenueInput>;
@@ -470,7 +514,10 @@ export async function createVenue(input: VenueInput): Promise<Venue> {
   return mapVenue(v);
 }
 
-export async function updateVenue(id: string, input: UpdateVenueInput): Promise<Venue> {
+export async function updateVenue(
+  id: string,
+  input: UpdateVenueInput,
+): Promise<Venue> {
   const v = await apiFetch<ApiVenue>(`/venues/${id}`, {
     method: "PATCH",
     body: JSON.stringify(input),
@@ -478,9 +525,18 @@ export async function updateVenue(id: string, input: UpdateVenueInput): Promise<
   return mapVenue(v);
 }
 
-export async function getVenueCourts(venueId: string, opts?: { revalidate?: number }): Promise<Court[]> {
-  const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
-  const courts = await apiFetch<ApiCourt[]>(`/venues/${venueId}/courts`, options);
+export async function getVenueCourts(
+  venueId: string,
+  opts?: { revalidate?: number },
+): Promise<Court[]> {
+  const options =
+    typeof opts?.revalidate === "number"
+      ? { next: { revalidate: opts.revalidate } }
+      : {};
+  const courts = await apiFetch<ApiCourt[]>(
+    `/venues/${venueId}/courts`,
+    options,
+  );
   return courts.map((court) => mapCourt(court, venueId));
 }
 
@@ -501,7 +557,10 @@ export async function getVenueCourtsManage(venueId: string): Promise<Court[]> {
   return courts.map((c) => mapCourt(c, venueId));
 }
 
-export async function createCourt(venueId: string, input: CreateCourtInput): Promise<Court> {
+export async function createCourt(
+  venueId: string,
+  input: CreateCourtInput,
+): Promise<Court> {
   const c = await apiFetch<ApiCourt>(`/venues/${venueId}/courts`, {
     method: "POST",
     body: JSON.stringify(input),
@@ -509,7 +568,11 @@ export async function createCourt(venueId: string, input: CreateCourtInput): Pro
   return mapCourt(c, venueId);
 }
 
-export async function updateCourt(venueId: string, courtId: string, input: UpdateCourtInput): Promise<Court> {
+export async function updateCourt(
+  venueId: string,
+  courtId: string,
+  input: UpdateCourtInput,
+): Promise<Court> {
   const c = await apiFetch<ApiCourt>(`/venues/${venueId}/courts/${courtId}`, {
     method: "PATCH",
     body: JSON.stringify(input),
@@ -529,7 +592,10 @@ export type VoucherValidationResult = {
   finalAmount: number;
 };
 
-export async function validateVoucher(code: string, amount: number): Promise<VoucherValidationResult> {
+export async function validateVoucher(
+  code: string,
+  amount: number,
+): Promise<VoucherValidationResult> {
   return apiFetch<VoucherValidationResult>("/vouchers/validate", {
     method: "POST",
     body: JSON.stringify({ code, amount }),
@@ -566,20 +632,33 @@ export async function getAdminVouchers(): Promise<AdminVoucher[]> {
   return apiFetch<AdminVoucher[]>("/admin/vouchers");
 }
 
-export async function createAdminVoucher(input: AdminVoucherInput): Promise<AdminVoucher> {
-  return apiFetch<AdminVoucher>("/admin/vouchers", { method: "POST", body: JSON.stringify(input) });
+export async function createAdminVoucher(
+  input: AdminVoucherInput,
+): Promise<AdminVoucher> {
+  return apiFetch<AdminVoucher>("/admin/vouchers", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
-export async function updateAdminVoucher(id: string, input: Partial<AdminVoucherInput>): Promise<AdminVoucher> {
-  return apiFetch<AdminVoucher>(`/admin/vouchers/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export async function updateAdminVoucher(
+  id: string,
+  input: Partial<AdminVoucherInput>,
+): Promise<AdminVoucher> {
+  return apiFetch<AdminVoucher>(`/admin/vouchers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
 }
 
 export async function deleteAdminVoucher(id: string): Promise<{ id: string }> {
-  return apiFetch<{ id: string }>(`/admin/vouchers/${id}`, { method: "DELETE" });
+  return apiFetch<{ id: string }>(`/admin/vouchers/${id}`, {
+    method: "DELETE",
+  });
 }
 
 export async function createBooking(
-  input: CreateBookingInput
+  input: CreateBookingInput,
 ): Promise<BookingSummary> {
   return apiFetch<ApiBooking>("/bookings", {
     method: "POST",
@@ -587,14 +666,22 @@ export async function createBooking(
   });
 }
 
-export async function cancelBooking(bookingId: string): Promise<BookingSummary> {
+export async function cancelBooking(
+  bookingId: string,
+): Promise<BookingSummary> {
   return apiFetch<ApiBooking>(`/bookings/${bookingId}/cancel`, {
     method: "PATCH",
   });
 }
 
-export async function rescheduleBooking(bookingId: string, body: { bookingDate: string; startsAt: string; endsAt: string }): Promise<BookingSummary> {
-  return apiFetch<ApiBooking>(`/bookings/${bookingId}/reschedule`, { method: "PATCH", body: JSON.stringify(body) });
+export async function rescheduleBooking(
+  bookingId: string,
+  body: { bookingDate: string; startsAt: string; endsAt: string },
+): Promise<BookingSummary> {
+  return apiFetch<ApiBooking>(`/bookings/${bookingId}/reschedule`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
 }
 
 export type ApiBookingCharge = {
@@ -610,14 +697,19 @@ export type ApiBookingCharge = {
   paidAt?: string | null;
 };
 
-export async function payRescheduleCharge(bookingId: string, method: string): Promise<ApiBookingCharge> {
+export async function payRescheduleCharge(
+  bookingId: string,
+  method: string,
+): Promise<ApiBookingCharge> {
   return apiFetch<ApiBookingCharge>(`/bookings/${bookingId}/charge/pay`, {
     method: "POST",
     body: JSON.stringify({ method }),
   });
 }
 
-export async function markRescheduleChargePaid(bookingId: string): Promise<ApiBookingCharge> {
+export async function markRescheduleChargePaid(
+  bookingId: string,
+): Promise<ApiBookingCharge> {
   return apiFetch<ApiBookingCharge>(`/bookings/${bookingId}/charge/mark-paid`, {
     method: "PATCH",
   });
@@ -626,7 +718,7 @@ export async function markRescheduleChargePaid(bookingId: string): Promise<ApiBo
 export type BookingFilter = "upcoming" | "past" | "cancelled";
 
 export async function getUserBookings(
-  filter: BookingFilter
+  filter: BookingFilter,
 ): Promise<ApiBooking[]> {
   return apiFetch<ApiBooking[]>(`/bookings/me?filter=${filter}`);
 }
@@ -655,11 +747,17 @@ export type CreateReviewInput = {
   comment?: string;
 };
 
-export async function getVenueReviews(venueId: string): Promise<ReviewSummary[]> {
-  return apiFetch<ApiReview[]>(`/reviews?venueId=${encodeURIComponent(venueId)}`);
+export async function getVenueReviews(
+  venueId: string,
+): Promise<ReviewSummary[]> {
+  return apiFetch<ApiReview[]>(
+    `/reviews?venueId=${encodeURIComponent(venueId)}`,
+  );
 }
 
-export async function createReview(input: CreateReviewInput): Promise<ReviewSummary> {
+export async function createReview(
+  input: CreateReviewInput,
+): Promise<ReviewSummary> {
   return apiFetch<ApiReview>("/reviews", {
     method: "POST",
     body: JSON.stringify(input),
@@ -669,16 +767,18 @@ export async function createReview(input: CreateReviewInput): Promise<ReviewSumm
 export async function getVenueAvailability(
   venueId: string,
   date: string,
-  courtId?: string
+  courtId?: string,
 ): Promise<ApiAvailabilityResponse> {
   const query = new URLSearchParams();
   query.set("date", date);
   if (courtId) query.set("courtId", courtId);
-  return apiFetch<ApiAvailabilityResponse>(`/venues/${venueId}/availability?${query.toString()}`);
+  return apiFetch<ApiAvailabilityResponse>(
+    `/venues/${venueId}/availability?${query.toString()}`,
+  );
 }
 
 export async function createPaymentIntent(
-  input: CreatePaymentIntentInput
+  input: CreatePaymentIntentInput,
 ): Promise<PaymentSummary> {
   return apiFetch<ApiPayment>("/payments/intents", {
     method: "POST",
@@ -690,7 +790,9 @@ export async function getPayment(id: string): Promise<PaymentSummary> {
   return apiFetch<ApiPayment>(`/payments/${id}`);
 }
 
-export async function markPaymentPaid(paymentId: string): Promise<PaymentSummary> {
+export async function markPaymentPaid(
+  paymentId: string,
+): Promise<PaymentSummary> {
   return apiFetch<ApiPayment>(`/payments/${paymentId}/mark-paid`, {
     method: "PATCH",
   });
@@ -700,13 +802,15 @@ export async function getInvite(token: string): Promise<InviteDetails> {
   return apiFetch<ApiInviteDetails>(`/invites/${token}`);
 }
 
-export async function getBookingInvites(bookingId: string): Promise<InviteSummary[]> {
+export async function getBookingInvites(
+  bookingId: string,
+): Promise<InviteSummary[]> {
   return apiFetch<ApiInvite[]>(`/bookings/${bookingId}/invites`);
 }
 
 export async function createBookingInvite(
   bookingId: string,
-  input: CreateInviteInput
+  input: CreateInviteInput,
 ): Promise<InviteSummary> {
   return apiFetch<ApiInvite>(`/bookings/${bookingId}/invites`, {
     method: "POST",
@@ -714,15 +818,23 @@ export async function createBookingInvite(
   });
 }
 
-export async function rsvpInvite(token: string, input: RsvpInviteInput): Promise<InviteSummary> {
+export async function rsvpInvite(
+  token: string,
+  input: RsvpInviteInput,
+): Promise<InviteSummary> {
   return apiFetch<ApiInvite>(`/invites/${token}/rsvp`, {
     method: "PATCH",
     body: JSON.stringify(input),
   });
 }
 
-export async function createRefund(input: CreateRefundInput): Promise<ApiRefund> {
-  return apiFetch<ApiRefund>("/refunds", { method: "POST", body: JSON.stringify(input) });
+export async function createRefund(
+  input: CreateRefundInput,
+): Promise<ApiRefund> {
+  return apiFetch<ApiRefund>("/refunds", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
 export async function getMyRefunds(): Promise<ApiRefund[]> {
@@ -742,12 +854,24 @@ export async function getRefundHistory(id: string): Promise<ApiRefundEvent[]> {
   return apiFetch<ApiRefundEvent[]>(`/refunds/${id}/history`);
 }
 
-export async function approveRefund(id: string, adminNotes?: string): Promise<ApiRefund> {
-  return apiFetch<ApiRefund>(`/refunds/${id}/approve`, { method: "PATCH", body: JSON.stringify({ adminNotes }) });
+export async function approveRefund(
+  id: string,
+  adminNotes?: string,
+): Promise<ApiRefund> {
+  return apiFetch<ApiRefund>(`/refunds/${id}/approve`, {
+    method: "PATCH",
+    body: JSON.stringify({ adminNotes }),
+  });
 }
 
-export async function rejectRefund(id: string, adminNotes?: string): Promise<ApiRefund> {
-  return apiFetch<ApiRefund>(`/refunds/${id}/reject`, { method: "PATCH", body: JSON.stringify({ adminNotes }) });
+export async function rejectRefund(
+  id: string,
+  adminNotes?: string,
+): Promise<ApiRefund> {
+  return apiFetch<ApiRefund>(`/refunds/${id}/reject`, {
+    method: "PATCH",
+    body: JSON.stringify({ adminNotes }),
+  });
 }
 
 export async function processRefund(id: string): Promise<ApiRefund> {
@@ -755,7 +879,12 @@ export async function processRefund(id: string): Promise<ApiRefund> {
 }
 
 export type DisputeStatus = "OPEN" | "INVESTIGATING" | "RESOLVED" | "CLOSED";
-export type DisputeIssueType = "COURT_UNAVAILABLE" | "FACILITY_MISMATCH" | "PAYMENT_ISSUE" | "SAFETY_CONCERN" | "STAFF_BEHAVIOR";
+export type DisputeIssueType =
+  | "COURT_UNAVAILABLE"
+  | "FACILITY_MISMATCH"
+  | "PAYMENT_ISSUE"
+  | "SAFETY_CONCERN"
+  | "STAFF_BEHAVIOR";
 export type DisputePriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 export type ApiDispute = {
@@ -773,18 +902,30 @@ export type ApiDispute = {
   assignedTo: { id: string; name: string } | null;
 };
 
-export async function getAdminDisputes(status?: DisputeStatus): Promise<ApiDispute[]> {
+export async function getAdminDisputes(
+  status?: DisputeStatus,
+): Promise<ApiDispute[]> {
   const query = status ? `?status=${status}` : "";
   return apiFetch<ApiDispute[]>(`/admin/disputes${query}`);
 }
 export async function assignDispute(id: string): Promise<ApiDispute> {
-  return apiFetch<ApiDispute>(`/admin/disputes/${id}/assign`, { method: "PATCH" });
+  return apiFetch<ApiDispute>(`/admin/disputes/${id}/assign`, {
+    method: "PATCH",
+  });
 }
-export async function resolveDispute(id: string, resolutionNotes?: string): Promise<ApiDispute> {
-  return apiFetch<ApiDispute>(`/admin/disputes/${id}/resolve`, { method: "PATCH", body: JSON.stringify({ resolutionNotes }) });
+export async function resolveDispute(
+  id: string,
+  resolutionNotes?: string,
+): Promise<ApiDispute> {
+  return apiFetch<ApiDispute>(`/admin/disputes/${id}/resolve`, {
+    method: "PATCH",
+    body: JSON.stringify({ resolutionNotes }),
+  });
 }
 export async function closeDispute(id: string): Promise<ApiDispute> {
-  return apiFetch<ApiDispute>(`/admin/disputes/${id}/close`, { method: "PATCH" });
+  return apiFetch<ApiDispute>(`/admin/disputes/${id}/close`, {
+    method: "PATCH",
+  });
 }
 
 export type CreatePlayerDisputeInput = {
@@ -793,19 +934,33 @@ export type CreatePlayerDisputeInput = {
   description: string;
   priority?: DisputePriority;
 };
-export async function createPlayerDispute(input: CreatePlayerDisputeInput): Promise<ApiDispute> {
-  return apiFetch<ApiDispute>("/disputes", { method: "POST", body: JSON.stringify(input) });
+export async function createPlayerDispute(
+  input: CreatePlayerDisputeInput,
+): Promise<ApiDispute> {
+  return apiFetch<ApiDispute>("/disputes", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 export async function getMyDisputes(): Promise<ApiDispute[]> {
   return apiFetch<ApiDispute[]>("/disputes/me");
 }
 
 export type NotificationType =
-  | "BOOKING_CONFIRMED" | "BOOKING_CANCELLED"
-  | "PAYMENT_SUCCESS" | "PAYMENT_FAILED"
-  | "REFUND_REQUESTED" | "REFUND_APPROVED" | "REFUND_REJECTED" | "REFUND_PROCESSED"
-  | "DISPUTE_CREATED" | "DISPUTE_ASSIGNED" | "DISPUTE_RESOLVED" | "DISPUTE_CLOSED"
-  | "VENUE_SUBMITTED" | "BALANCE_DUE";
+  | "BOOKING_CONFIRMED"
+  | "BOOKING_CANCELLED"
+  | "PAYMENT_SUCCESS"
+  | "PAYMENT_FAILED"
+  | "REFUND_REQUESTED"
+  | "REFUND_APPROVED"
+  | "REFUND_REJECTED"
+  | "REFUND_PROCESSED"
+  | "DISPUTE_CREATED"
+  | "DISPUTE_ASSIGNED"
+  | "DISPUTE_RESOLVED"
+  | "DISPUTE_CLOSED"
+  | "VENUE_SUBMITTED"
+  | "BALANCE_DUE";
 
 export type ApiNotification = {
   id: string;
@@ -825,11 +980,17 @@ export async function getUnreadNotificationCount(): Promise<number> {
   const res = await apiFetch<{ count: number }>("/notifications/unread-count");
   return res.count;
 }
-export async function markNotificationRead(id: string): Promise<ApiNotification> {
-  return apiFetch<ApiNotification>(`/notifications/${id}/read`, { method: "PATCH" });
+export async function markNotificationRead(
+  id: string,
+): Promise<ApiNotification> {
+  return apiFetch<ApiNotification>(`/notifications/${id}/read`, {
+    method: "PATCH",
+  });
 }
 export async function markAllNotificationsRead(): Promise<{ updated: number }> {
-  return apiFetch<{ updated: number }>("/notifications/read-all", { method: "PATCH" });
+  return apiFetch<{ updated: number }>("/notifications/read-all", {
+    method: "PATCH",
+  });
 }
 
 export type HomeStats = {
@@ -843,8 +1004,13 @@ export type HomeStats = {
   newUsersThisMonth: number;
 };
 
-export async function getHomeStats(opts?: { revalidate?: number }): Promise<HomeStats> {
-  const options = typeof opts?.revalidate === "number" ? { next: { revalidate: opts.revalidate } } : {};
+export async function getHomeStats(opts?: {
+  revalidate?: number;
+}): Promise<HomeStats> {
+  const options =
+    typeof opts?.revalidate === "number"
+      ? { next: { revalidate: opts.revalidate } }
+      : {};
   return apiFetch<HomeStats>("/stats/home", options);
 }
 
@@ -857,9 +1023,27 @@ export type OwnerDashboard = {
     pendingPayments: number;
   };
   revenueSeries: Array<{ date: string; label: string; value: number }>;
-  courtUtilization: Array<{ courtId: string; name: string; occupancyRate: number }>;
-  todaysSchedule: Array<{ bookingId: string; time: string; court: string; player: string; status: string }>;
-  recentBookings: Array<{ id: string; venueName: string; courtName: string; bookingDate: string; time: string; finalAmount: number; status: string }>;
+  courtUtilization: Array<{
+    courtId: string;
+    name: string;
+    occupancyRate: number;
+  }>;
+  todaysSchedule: Array<{
+    bookingId: string;
+    time: string;
+    court: string;
+    player: string;
+    status: string;
+  }>;
+  recentBookings: Array<{
+    id: string;
+    venueName: string;
+    courtName: string;
+    bookingDate: string;
+    time: string;
+    finalAmount: number;
+    status: string;
+  }>;
 };
 
 export async function getOwnerDashboard(): Promise<OwnerDashboard> {
@@ -877,7 +1061,13 @@ export type OwnerRevenue = {
     cancellationRate: number;
     repeatCustomerRate: number;
   };
-  topCourts: Array<{ courtId: string; name: string; venue: string; bookings: number; revenue: number }>;
+  topCourts: Array<{
+    courtId: string;
+    name: string;
+    venue: string;
+    bookings: number;
+    revenue: number;
+  }>;
 };
 
 export function getRevenue() {
@@ -914,7 +1104,13 @@ export type AdminBookingItem = {
   venue: { id: string; name: string; city: string };
   court: { id: string; name: string; type: string };
   host: { id: string; name: string | null; email: string };
-  payment: { id: string; amount: number; status: string; provider: string; method: string } | null;
+  payment: {
+    id: string;
+    amount: number;
+    status: string;
+    provider: string;
+    method: string;
+  } | null;
 };
 
 export type AdminBookingsResponse = {
@@ -933,7 +1129,9 @@ export type GetAdminBookingsParams = {
   pageSize?: number;
 };
 
-export async function getAdminBookings(params: GetAdminBookingsParams = {}): Promise<AdminBookingsResponse> {
+export async function getAdminBookings(
+  params: GetAdminBookingsParams = {},
+): Promise<AdminBookingsResponse> {
   const q = new URLSearchParams();
   if (params.status) q.set("status", params.status);
   if (params.venueId) q.set("venueId", params.venueId);
@@ -942,18 +1140,25 @@ export async function getAdminBookings(params: GetAdminBookingsParams = {}): Pro
   if (params.page) q.set("page", String(params.page));
   if (params.pageSize) q.set("pageSize", String(params.pageSize));
   const qs = q.toString();
-  return apiFetch<AdminBookingsResponse>(`/admin/bookings${qs ? `?${qs}` : ""}`);
+  return apiFetch<AdminBookingsResponse>(
+    `/admin/bookings${qs ? `?${qs}` : ""}`,
+  );
 }
 
 type VenueStatusValue = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
 
-export async function getAdminVenues(status?: VenueStatusValue): Promise<Venue[]> {
+export async function getAdminVenues(
+  status?: VenueStatusValue,
+): Promise<Venue[]> {
   const q = status ? `?status=${status}` : "";
   const venues = await apiFetch<ApiVenue[]>(`/admin/venues${q}`);
   return venues.map(mapVenue);
 }
 
-export async function updateVenueStatus(id: string, status: VenueStatusValue): Promise<Venue> {
+export async function updateVenueStatus(
+  id: string,
+  status: VenueStatusValue,
+): Promise<Venue> {
   const v = await apiFetch<ApiVenue>(`/admin/venues/${id}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
@@ -961,11 +1166,37 @@ export async function updateVenueStatus(id: string, status: VenueStatusValue): P
   return mapVenue(v);
 }
 
-export interface CommissionVenueRow { venueId: string; venueName: string; city: string; commissionRate: number; bookings: number; gmv: number; commission: number; effectiveRate: number; }
-export interface CommissionMonth { month: string; commission: number; gmv: number; bookings: number; }
-export interface CommissionReport { totalCommission: number; totalGmv: number; totalBookings: number; avgCommissionRate: number; venues: CommissionVenueRow[]; monthlySeries: CommissionMonth[]; }
-export interface GetCommissionParams { fromDate?: string; toDate?: string; }
-export async function getCommissionReport(params: GetCommissionParams = {}): Promise<CommissionReport> {
+export interface CommissionVenueRow {
+  venueId: string;
+  venueName: string;
+  city: string;
+  commissionRate: number;
+  bookings: number;
+  gmv: number;
+  commission: number;
+  effectiveRate: number;
+}
+export interface CommissionMonth {
+  month: string;
+  commission: number;
+  gmv: number;
+  bookings: number;
+}
+export interface CommissionReport {
+  totalCommission: number;
+  totalGmv: number;
+  totalBookings: number;
+  avgCommissionRate: number;
+  venues: CommissionVenueRow[];
+  monthlySeries: CommissionMonth[];
+}
+export interface GetCommissionParams {
+  fromDate?: string;
+  toDate?: string;
+}
+export async function getCommissionReport(
+  params: GetCommissionParams = {},
+): Promise<CommissionReport> {
   const sp = new URLSearchParams();
   if (params.fromDate) sp.set("fromDate", params.fromDate);
   if (params.toDate) sp.set("toDate", params.toDate);
@@ -973,19 +1204,60 @@ export async function getCommissionReport(params: GetCommissionParams = {}): Pro
   return apiFetch<CommissionReport>(`/admin/commission${qs ? `?${qs}` : ""}`);
 }
 
-export interface AdminMetricsMonth { month: string; gmv: number; commission: number; bookings: number; }
-export interface AdminMetricsStatus { status: string; count: number; }
-export interface AdminMetrics { totalGmv: number; totalCommission: number; totalBookings: number; avgMonthlyGmv: number; monthlySeries: AdminMetricsMonth[]; statusBreakdown: AdminMetricsStatus[]; }
+export interface AdminMetricsMonth {
+  month: string;
+  gmv: number;
+  commission: number;
+  bookings: number;
+}
+export interface AdminMetricsStatus {
+  status: string;
+  count: number;
+}
+export interface AdminMetrics {
+  totalGmv: number;
+  totalCommission: number;
+  totalBookings: number;
+  avgMonthlyGmv: number;
+  monthlySeries: AdminMetricsMonth[];
+  statusBreakdown: AdminMetricsStatus[];
+}
 
 export async function getAdminMetrics(): Promise<AdminMetrics> {
   return apiFetch<AdminMetrics>("/admin/metrics");
 }
 
 export type SplitShareStatus = "PENDING" | "PAID" | "REFUNDED";
-export type BookingSplitShare = { id: string; name: string; email: string | null; userId: string | null; inviteId: string | null; amount: number; status: SplitShareStatus; paidAt: string | null; refundedAt?: string | null };
-export type BookingSplit = { bookingId: string; totalAmount: number; splitTotal: number; paidAmount: number; shareCount: number; shares: BookingSplitShare[] };
-export type SplitParticipantInput = { name: string; email?: string; userId?: string; inviteId?: string; amount?: number };
-export type SetBookingSplitInput = { mode: "equal" | "custom"; participants: SplitParticipantInput[] };
+export type BookingSplitShare = {
+  id: string;
+  name: string;
+  email: string | null;
+  userId: string | null;
+  inviteId: string | null;
+  amount: number;
+  status: SplitShareStatus;
+  paidAt: string | null;
+  refundedAt?: string | null;
+};
+export type BookingSplit = {
+  bookingId: string;
+  totalAmount: number;
+  splitTotal: number;
+  paidAmount: number;
+  shareCount: number;
+  shares: BookingSplitShare[];
+};
+export type SplitParticipantInput = {
+  name: string;
+  email?: string;
+  userId?: string;
+  inviteId?: string;
+  amount?: number;
+};
+export type SetBookingSplitInput = {
+  mode: "equal" | "custom";
+  participants: SplitParticipantInput[];
+};
 
 export type SharePaymentIntent = {
   shareId: string;
@@ -997,11 +1269,16 @@ export type SharePaymentIntent = {
   token: string | null;
 };
 
-export async function getBookingSplit(bookingId: string): Promise<BookingSplit> {
+export async function getBookingSplit(
+  bookingId: string,
+): Promise<BookingSplit> {
   return apiFetch<BookingSplit>(`/bookings/${bookingId}/split`);
 }
 
-export async function setBookingSplit(bookingId: string, input: SetBookingSplitInput): Promise<BookingSplit> {
+export async function setBookingSplit(
+  bookingId: string,
+  input: SetBookingSplitInput,
+): Promise<BookingSplit> {
   return apiFetch<BookingSplit>(`/bookings/${bookingId}/split`, {
     method: "PUT",
     body: JSON.stringify(input),
@@ -1014,16 +1291,27 @@ export async function clearBookingSplit(bookingId: string): Promise<void> {
   });
 }
 
-export async function setSplitShareStatus(bookingId: string, shareId: string, status: SplitShareStatus): Promise<BookingSplit> {
+export async function setSplitShareStatus(
+  bookingId: string,
+  shareId: string,
+  status: SplitShareStatus,
+): Promise<BookingSplit> {
   return apiFetch<BookingSplit>(`/bookings/${bookingId}/split/${shareId}`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
 }
 
-export async function createSharePaymentIntent(bookingId: string, shareId: string, method: "va" | "ewallet" | "card"): Promise<SharePaymentIntent> {
-  return apiFetch<SharePaymentIntent>(`/bookings/${bookingId}/split/${shareId}/pay`, {
-    method: "POST",
-    body: JSON.stringify({ method }),
-  });
+export async function createSharePaymentIntent(
+  bookingId: string,
+  shareId: string,
+  method: "va" | "ewallet" | "card",
+): Promise<SharePaymentIntent> {
+  return apiFetch<SharePaymentIntent>(
+    `/bookings/${bookingId}/split/${shareId}/pay`,
+    {
+      method: "POST",
+      body: JSON.stringify({ method }),
+    },
+  );
 }

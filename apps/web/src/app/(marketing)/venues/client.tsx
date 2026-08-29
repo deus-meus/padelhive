@@ -1,17 +1,33 @@
 "use client";
 
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  ArrowUpDown,
+  MapPin,
+  Search,
+  SlidersHorizontal,
+  Star,
+} from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { MapPin, Star, Search, ArrowUpDown, SlidersHorizontal } from "lucide-react";
-import { padelImg } from "@/lib/images";
-import { getVenues } from "@/lib/api";
+import { useEffect, useMemo, useState } from "react";
 import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
-import { FilterSelect, FilterMultiSelect } from "@/components/ui/filter-select";
+import { FilterMultiSelect, FilterSelect } from "@/components/ui/filter-select";
+import { getVenues } from "@/lib/api";
+import { padelImg } from "@/lib/images";
 
 const CITIES = ["All", "Bali", "Jakarta", "Surabaya"];
-const FACILITIES = ["Parking", "Shower", "Locker", "Pro Shop", "Cafe", "WiFi", "AC", "Coaching", "Equipment Rental"];
+const FACILITIES = [
+  "Parking",
+  "Shower",
+  "Locker",
+  "Pro Shop",
+  "Cafe",
+  "WiFi",
+  "AC",
+  "Coaching",
+  "Equipment Rental",
+];
 
 type SortKey = "recommended" | "rating" | "price";
 const SORTS: { value: SortKey; label: string }[] = [
@@ -30,7 +46,7 @@ export default function VenuesPage() {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
-  
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
@@ -51,17 +67,34 @@ export default function VenuesPage() {
   const [sort, setSort] = useState<SortKey>("recommended");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const { data: apiVenues, isLoading: isLoadingVenues, isError: isVenuesError, isFetching } = useQuery({
-    queryKey: ["venues", { q: debouncedSearch, city, ratingMin, courtType, facilities, priceMin, priceMax }],
-    queryFn: () => getVenues({
-      q: debouncedSearch,
-      city,
-      rating: ratingMin ?? undefined,
-      type: courtType ?? undefined,
-      facilities: facilities.length > 0 ? facilities : undefined,
-      priceMin: priceMin ?? undefined,
-      priceMax: priceMax ?? undefined,
-    }),
+  const {
+    data: apiVenues,
+    isLoading: isLoadingVenues,
+    isError: isVenuesError,
+    isFetching,
+  } = useQuery({
+    queryKey: [
+      "venues",
+      {
+        q: debouncedSearch,
+        city,
+        ratingMin,
+        courtType,
+        facilities,
+        priceMin,
+        priceMax,
+      },
+    ],
+    queryFn: () =>
+      getVenues({
+        q: debouncedSearch,
+        city,
+        rating: ratingMin ?? undefined,
+        type: courtType ?? undefined,
+        facilities: facilities.length > 0 ? facilities : undefined,
+        priceMin: priceMin ?? undefined,
+        priceMax: priceMax ?? undefined,
+      }),
     placeholderData: keepPreviousData,
   });
 
@@ -70,7 +103,7 @@ export default function VenuesPage() {
 
   const filteredVenues = useMemo(() => {
     const list = apiVenues ?? [];
-    
+
     const sorted = [...list];
     if (sort === "rating") {
       sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
@@ -85,7 +118,9 @@ export default function VenuesPage() {
   }, [apiVenues, sort]);
 
   const toggleFacility = (f: string) => {
-    setFacilities(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
+    setFacilities((prev) =>
+      prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f],
+    );
   };
 
   const handleClearFilters = () => {
@@ -129,7 +164,7 @@ export default function VenuesPage() {
 
           <div className="flex flex-wrap gap-2 lg:gap-3 lg:items-center">
             {/* Mobile "Filters" toggle button */}
-            <button 
+            <button
               onClick={() => setShowMobileFilters(!showMobileFilters)}
               className="label flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-white/[0.03] px-4 text-[#F7F7F7]/60 hover:bg-white/[0.06] lg:hidden"
             >
@@ -138,7 +173,9 @@ export default function VenuesPage() {
             </button>
 
             {/* The rest of the filters */}
-            <div className={`w-full lg:w-auto flex-wrap gap-2 lg:gap-3 ${showMobileFilters ? "flex" : "hidden lg:flex"}`}>
+            <div
+              className={`w-full lg:w-auto flex-wrap gap-2 lg:gap-3 ${showMobileFilters ? "flex" : "hidden lg:flex"}`}
+            >
               {/* Cities */}
               <div className="flex w-full flex-wrap gap-2 pb-2 lg:w-auto lg:pb-0">
                 {CITIES.map((c) => (
@@ -146,9 +183,13 @@ export default function VenuesPage() {
                     key={c}
                     onClick={() => setCity(c)}
                     className={`label shrink-0 rounded-full px-4 py-2 uppercase transition-all duration-200 ${
-                      city === c ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
+                      city === c
+                        ? "bg-[#E6FA50] text-[#06121A]"
+                        : "bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60"
                     }`}
-                  >{c}</button>
+                  >
+                    {c}
+                  </button>
                 ))}
               </div>
 
@@ -162,7 +203,9 @@ export default function VenuesPage() {
               />
               <FilterSelect
                 value={courtType ?? "all"}
-                onChange={(v) => setCourtType(v === "all" ? null : (v as "INDOOR" | "OUTDOOR"))}
+                onChange={(v) =>
+                  setCourtType(v === "all" ? null : (v as "INDOOR" | "OUTDOOR"))
+                }
                 active={courtType !== null}
                 options={[
                   { value: "all", label: "All types" },
@@ -182,12 +225,29 @@ export default function VenuesPage() {
               />
               <FilterSelect
                 alignRight
-                value={priceMin === null && priceMax === null ? "all" : priceMax === 100000 ? "u100" : priceMin === 100000 ? "100-200" : "200"}
+                value={
+                  priceMin === null && priceMax === null
+                    ? "all"
+                    : priceMax === 100000
+                      ? "u100"
+                      : priceMin === 100000
+                        ? "100-200"
+                        : "200"
+                }
                 onChange={(v) => {
-                  if (v === "all") { setPriceMin(null); setPriceMax(null); }
-                  else if (v === "u100") { setPriceMin(null); setPriceMax(100000); }
-                  else if (v === "100-200") { setPriceMin(100000); setPriceMax(200000); }
-                  else if (v === "200") { setPriceMin(200000); setPriceMax(null); }
+                  if (v === "all") {
+                    setPriceMin(null);
+                    setPriceMax(null);
+                  } else if (v === "u100") {
+                    setPriceMin(null);
+                    setPriceMax(100000);
+                  } else if (v === "100-200") {
+                    setPriceMin(100000);
+                    setPriceMax(200000);
+                  } else if (v === "200") {
+                    setPriceMin(200000);
+                    setPriceMax(null);
+                  }
                 }}
                 active={priceMin !== null || priceMax !== null}
                 options={[
@@ -205,10 +265,19 @@ export default function VenuesPage() {
                 onToggle={toggleFacility}
                 onClear={() => setFacilities([])}
               />
-              {(search || city !== "All" || ratingMin !== null || courtType !== null || facilities.length > 0 || priceMin !== null || priceMax !== null) && (
-                 <button onClick={handleClearFilters} className="caption shrink-0 text-[#E6FA50] hover:underline px-3 h-10 flex items-center">
-                   Clear all filters
-                 </button>
+              {(search ||
+                city !== "All" ||
+                ratingMin !== null ||
+                courtType !== null ||
+                facilities.length > 0 ||
+                priceMin !== null ||
+                priceMax !== null) && (
+                <button
+                  onClick={handleClearFilters}
+                  className="caption shrink-0 text-[#E6FA50] hover:underline px-3 h-10 flex items-center"
+                >
+                  Clear all filters
+                </button>
               )}
             </div>
           </div>
@@ -221,7 +290,10 @@ export default function VenuesPage() {
           {shouldShowLoading && (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]">
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+                >
                   <div className="aspect-[16/10] w-full animate-pulse bg-white/[0.04]" />
                   <div className="p-6 space-y-3">
                     <div className="h-3 w-24 animate-pulse rounded-full bg-white/[0.04]" />
@@ -244,38 +316,64 @@ export default function VenuesPage() {
           {!shouldShowLoading && (
             <>
               <p className="caption mb-6 text-[#F7F7F7]/40">
-                {filteredVenues.length} {filteredVenues.length === 1 ? "venue" : "venues"}
+                {filteredVenues.length}{" "}
+                {filteredVenues.length === 1 ? "venue" : "venues"}
                 {city !== "All" ? ` in ${city}` : ""}
               </p>
 
-              <div className={`grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 transition-opacity duration-300 ${isFetching ? "opacity-60" : "opacity-100"}`}>
+              <div
+                className={`grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 transition-opacity duration-300 ${isFetching ? "opacity-60" : "opacity-100"}`}
+              >
                 {filteredVenues.map((venue, i) => {
                   const price = venue.priceFrom ?? 0;
                   const courtCount = venue.courtCount ?? 0;
                   const images = [IMG.venue1, IMG.venue2, IMG.venue3];
 
                   return (
-                    <Link key={venue.id} href={`/venues/${venue.id}`} className="group block">
+                    <Link
+                      key={venue.id}
+                      href={`/venues/${venue.id}`}
+                      className="group block"
+                    >
                       <article className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] transition-all duration-200 group-hover:border-[#E6FA50]/15">
                         <div className="relative aspect-[16/10] overflow-hidden">
-                          <img src={images[i % images.length]} alt={venue.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                          <img
+                            src={images[i % images.length]}
+                            alt={venue.name}
+                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                          />
                           {venue.isVerified && (
-                            <span className="caption absolute left-3 top-3 rounded-full bg-[#E6FA50] px-2.5 py-0.5 uppercase text-[#06121A]">Verified</span>
+                            <span className="caption absolute left-3 top-3 rounded-full bg-[#E6FA50] px-2.5 py-0.5 uppercase text-[#06121A]">
+                              Verified
+                            </span>
                           )}
                         </div>
                         <div className="p-6">
                           <div className="flex items-center gap-2">
                             <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
-                            <span className="label text-[#E6FA50]">{venue.rating}</span>
-                            <span className="caption text-[#F7F7F7]/25">({venue.reviewCount})</span>
+                            <span className="label text-[#E6FA50]">
+                              {venue.rating}
+                            </span>
+                            <span className="caption text-[#F7F7F7]/25">
+                              ({venue.reviewCount})
+                            </span>
                           </div>
-                          <h3 className="heading-3 mt-2 text-[#F7F7F7]">{venue.name}</h3>
+                          <h3 className="heading-3 mt-2 text-[#F7F7F7]">
+                            {venue.name}
+                          </h3>
                           <p className="mt-1 flex items-center gap-1.5 caption text-[#F7F7F7]/25">
-                            <MapPin className="h-3 w-3" />{venue.city}
+                            <MapPin className="h-3 w-3" />
+                            {venue.city}
                           </p>
                           <div className="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-3">
-                            <span className="price text-[#50C8C8]">{price > 0 ? `Rp ${(price / 1000).toFixed(0)}K/hr` : "Pricing soon"}</span>
-                            <span className="caption text-[#F7F7F7]/25">{courtCount} courts</span>
+                            <span className="price text-[#50C8C8]">
+                              {price > 0
+                                ? `Rp ${(price / 1000).toFixed(0)}K/hr`
+                                : "Pricing soon"}
+                            </span>
+                            <span className="caption text-[#F7F7F7]/25">
+                              {courtCount} courts
+                            </span>
                           </div>
                         </div>
                       </article>
@@ -287,7 +385,13 @@ export default function VenuesPage() {
           )}
 
           {filteredVenues.length === 0 && !shouldShowLoading && (
-            <EmptyState icon={Search} title="No venues found" description="Try adjusting your search or filters." actionLabel="Browse all venues" actionHref="/venues" />
+            <EmptyState
+              icon={Search}
+              title="No venues found"
+              description="Try adjusting your search or filters."
+              actionLabel="Browse all venues"
+              actionHref="/venues"
+            />
           )}
         </div>
       </section>

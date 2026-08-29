@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
-import { Clock, ChevronDown } from "lucide-react";
+import { ChevronDown, Clock } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type TimeSelectProps = {
   value: string;
@@ -14,7 +14,7 @@ type TimeSelectProps = {
 function formatTo12Hour(time24: string): string {
   if (!time24) return "";
   const [h24, m] = time24.split(":").map(Number);
-  if (isNaN(h24) || isNaN(m)) return time24;
+  if (Number.isNaN(h24) || Number.isNaN(m)) return time24;
   const ampm = h24 >= 12 ? "PM" : "AM";
   const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
   return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
@@ -74,14 +74,11 @@ function ThemedSelect({
       </button>
 
       {open && (
-        <ul
-          role="listbox"
-          className="absolute left-0 right-0 top-full z-20 mt-1 max-h-44 overflow-y-auto rounded-lg border border-white/[0.08] bg-[#0C1B26] py-1 shadow-2xl shadow-black/40 no-scrollbar"
-        >
+        <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-44 overflow-y-auto rounded-lg border border-white/[0.08] bg-[#0C1B26] py-1 shadow-2xl shadow-black/40 no-scrollbar">
           {options.map((opt) => {
             const isSel = opt === value;
             return (
-              <li key={opt} role="option" aria-selected={isSel}>
+              <li key={opt} aria-selected={isSel}>
                 <button
                   type="button"
                   ref={isSel ? selectedRef : undefined}
@@ -128,7 +125,7 @@ export function TimeSelect({
   useEffect(() => {
     if (isOpen && value) {
       const [h24, m] = value.split(":").map(Number);
-      if (!isNaN(h24) && !isNaN(m)) {
+      if (!Number.isNaN(h24) && !Number.isNaN(m)) {
         setStagedAmpm(h24 >= 12 ? "PM" : "AM");
         setStagedHour(h24 % 12 === 0 ? 12 : h24 % 12);
         setStagedMinute(String(m).padStart(2, "0"));
@@ -149,7 +146,10 @@ export function TimeSelect({
   // Click outside closes without saving
   useEffect(() => {
     function handleMousedown(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -192,18 +192,23 @@ export function TimeSelect({
   }, [minuteStep, stagedMinute]);
 
   return (
-    <div className="relative w-full" ref={containerRef} onKeyDown={handleKeyDown}>
+    <div
+      className="relative w-full"
+      ref={containerRef}
+      onKeyDown={handleKeyDown}
+    >
       <button
         ref={triggerRef}
         type="button"
-        role="button"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-label={ariaLabel || "Select time"}
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between bg-[#06121A] border border-white/[0.08] rounded-lg px-3 py-2 label text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none transition-colors ${
-          disabled ? "opacity-30 cursor-not-allowed" : "hover:border-white/[0.15]"
+          disabled
+            ? "opacity-30 cursor-not-allowed"
+            : "hover:border-white/[0.15]"
         }`}
       >
         <div className="flex items-center gap-2">
@@ -231,13 +236,35 @@ export function TimeSelect({
 
           <div className="mt-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ThemedSelect ariaLabel="Hour" value={String(stagedHour)} options={hourOptions.map(String)} onChange={(v) => setStagedHour(Number(v))} />
+              <ThemedSelect
+                ariaLabel="Hour"
+                value={String(stagedHour)}
+                options={hourOptions.map(String)}
+                onChange={(v) => setStagedHour(Number(v))}
+              />
               <span className="text-[#F7F7F7]/40">:</span>
-              <ThemedSelect ariaLabel="Minute" value={stagedMinute} options={minuteOptions} onChange={(v) => setStagedMinute(v)} />
+              <ThemedSelect
+                ariaLabel="Minute"
+                value={stagedMinute}
+                options={minuteOptions}
+                onChange={(v) => setStagedMinute(v)}
+              />
             </div>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => setStagedAmpm("AM")} className={`px-2 py-1 label transition-colors ${stagedAmpm === "AM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}>AM</button>
-              <button type="button" onClick={() => setStagedAmpm("PM")} className={`px-2 py-1 label transition-colors ${stagedAmpm === "PM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}>PM</button>
+              <button
+                type="button"
+                onClick={() => setStagedAmpm("AM")}
+                className={`px-2 py-1 label transition-colors ${stagedAmpm === "AM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}
+              >
+                AM
+              </button>
+              <button
+                type="button"
+                onClick={() => setStagedAmpm("PM")}
+                className={`px-2 py-1 label transition-colors ${stagedAmpm === "PM" ? "text-[#E6FA50]" : "text-[#F7F7F7]/40 hover:text-[#F7F7F7]/70"}`}
+              >
+                PM
+              </button>
             </div>
           </div>
 

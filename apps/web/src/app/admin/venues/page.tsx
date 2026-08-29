@@ -1,29 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   CheckCircle2,
   Clock,
-  MapPin,
-  XCircle,
   Loader2,
   type LucideIcon,
+  MapPin,
+  XCircle,
 } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
-import { getAdminVenues, updateVenueStatus, getApiErrorMessage } from "@/lib/api";
-import { Venue } from "@/types";
-import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { useState } from "react";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { FilterTabs } from "@/components/ui/filter-tabs";
+import {
+  getAdminVenues,
+  getApiErrorMessage,
+  updateVenueStatus,
+} from "@/lib/api";
+import { queryKeys } from "@/lib/queries";
 
 type TabValue = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED" | "ALL";
 
-const STATUS_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string; bg: string }> = {
-  APPROVED: { label: "Approved", icon: CheckCircle2, color: "text-green-400", bg: "bg-green-400/10" },
-  PENDING: { label: "Pending Review", icon: Clock, color: "text-yellow-400", bg: "bg-yellow-400/10" },
-  REJECTED: { label: "Rejected", icon: XCircle, color: "text-red-400", bg: "bg-red-400/10" },
-  SUSPENDED: { label: "Suspended", icon: XCircle, color: "text-orange-400", bg: "bg-orange-400/10" },
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; icon: LucideIcon; color: string; bg: string }
+> = {
+  APPROVED: {
+    label: "Approved",
+    icon: CheckCircle2,
+    color: "text-green-400",
+    bg: "bg-green-400/10",
+  },
+  PENDING: {
+    label: "Pending Review",
+    icon: Clock,
+    color: "text-yellow-400",
+    bg: "bg-yellow-400/10",
+  },
+  REJECTED: {
+    label: "Rejected",
+    icon: XCircle,
+    color: "text-red-400",
+    bg: "bg-red-400/10",
+  },
+  SUSPENDED: {
+    label: "Suspended",
+    icon: XCircle,
+    color: "text-orange-400",
+    bg: "bg-orange-400/10",
+  },
 };
 
 const TABS: { label: string; value: TabValue }[] = [
@@ -40,13 +66,22 @@ export default function AdminVenuesPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [inFlightId, setInFlightId] = useState<string | null>(null);
 
-  const { data: venues = [], isLoading, isError, error, refetch, isFetching } = useQuery({
+  const {
+    data: venues = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: queryKeys.admin.venues(activeTab),
-    queryFn: () => getAdminVenues(activeTab === "ALL" ? undefined : (activeTab as any)),
+    queryFn: () =>
+      getAdminVenues(activeTab === "ALL" ? undefined : (activeTab as any)),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: any }) => updateVenueStatus(id, status),
+    mutationFn: ({ id, status }: { id: string; status: any }) =>
+      updateVenueStatus(id, status),
     onMutate: (vars) => setInFlightId(vars.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "venues"] });
@@ -77,22 +112,28 @@ export default function AdminVenuesPage() {
       </div>
 
       {/* Tabs */}
-      <FilterTabs 
-        tabs={TABS} 
-        activeValue={activeTab} 
-        onChange={(val) => setActiveTab(val as TabValue)} 
+      <FilterTabs
+        tabs={TABS}
+        activeValue={activeTab}
+        onChange={(val) => setActiveTab(val as TabValue)}
       />
 
       {/* Venue List */}
       <div className="flex flex-1 flex-col space-y-4">
         {isLoading ? (
-          <>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
-            ))}
-          </>
+          [...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="h-32 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+            />
+          ))
         ) : isError ? (
-          <ErrorBanner title="Couldn't load venues" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+          <ErrorBanner
+            title="Couldn't load venues"
+            error={error}
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+          />
         ) : venues.length === 0 ? (
           <EmptyState
             icon={Building2}
@@ -109,7 +150,7 @@ export default function AdminVenuesPage() {
           venues.map((venue) => {
             const isUpdating = inFlightId === venue.id;
             const status = venue.status ?? "PENDING";
-            const config = STATUS_CONFIG[status] ?? STATUS_CONFIG["PENDING"];
+            const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.PENDING;
             const StatusIcon = config.icon;
 
             return (
@@ -120,9 +161,13 @@ export default function AdminVenuesPage() {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-                      <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 sm:order-last ${config.bg}`}>
+                      <div
+                        className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 sm:order-last ${config.bg}`}
+                      >
                         <StatusIcon className={`h-3 w-3 ${config.color}`} />
-                        <span className={`caption rounded-full px-2.5 py-0.5 uppercase tracking-[0.1em] ${config.color}`}>
+                        <span
+                          className={`caption rounded-full px-2.5 py-0.5 uppercase tracking-[0.1em] ${config.color}`}
+                        >
                           {config.label}
                         </span>
                       </div>
@@ -132,7 +177,9 @@ export default function AdminVenuesPage() {
                     </div>
                     <p className="mt-2 flex items-start gap-1.5 text-sm text-[#F7F7F7]/40 sm:mt-1 sm:items-center">
                       <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 sm:mt-0" />
-                      <span className="break-words">{venue.location} · {venue.city}</span>
+                      <span className="break-words">
+                        {venue.location} · {venue.city}
+                      </span>
                     </p>
                   </div>
 
@@ -140,46 +187,91 @@ export default function AdminVenuesPage() {
                     {status === "PENDING" && (
                       <>
                         <button
-                          onClick={() => updateMutation.mutate({ id: venue.id, status: "REJECTED" })}
+                          onClick={() =>
+                            updateMutation.mutate({
+                              id: venue.id,
+                              status: "REJECTED",
+                            })
+                          }
                           disabled={isUpdating}
                           className="label flex h-9 items-center justify-center rounded-lg border border-red-500/50 px-5 text-red-400 transition-colors hover:bg-red-500/10 disabled:opacity-50"
                         >
-                          {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Reject"}
+                          {isUpdating ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            "Reject"
+                          )}
                         </button>
                         <button
-                          onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
+                          onClick={() =>
+                            updateMutation.mutate({
+                              id: venue.id,
+                              status: "APPROVED",
+                            })
+                          }
                           disabled={isUpdating}
                           className="label btn-lime flex h-9 items-center justify-center rounded-lg px-5 disabled:opacity-50"
                         >
-                          {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Approve"}
+                          {isUpdating ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            "Approve"
+                          )}
                         </button>
                       </>
                     )}
                     {status === "APPROVED" && (
                       <button
-                        onClick={() => updateMutation.mutate({ id: venue.id, status: "SUSPENDED" })}
+                        onClick={() =>
+                          updateMutation.mutate({
+                            id: venue.id,
+                            status: "SUSPENDED",
+                          })
+                        }
                         disabled={isUpdating}
                         className="flex h-9 items-center justify-center rounded-full border border-orange-500/50 px-5 text-[11px] font-semibold text-orange-400 transition-colors hover:bg-orange-500/10 disabled:opacity-50"
                       >
-                        {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Suspend"}
+                        {isUpdating ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          "Suspend"
+                        )}
                       </button>
                     )}
                     {status === "REJECTED" && (
                       <button
-                        onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
+                        onClick={() =>
+                          updateMutation.mutate({
+                            id: venue.id,
+                            status: "APPROVED",
+                          })
+                        }
                         disabled={isUpdating}
                         className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold tracking-[0.08em] disabled:opacity-50"
                       >
-                        {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Approve"}
+                        {isUpdating ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          "Approve"
+                        )}
                       </button>
                     )}
                     {status === "SUSPENDED" && (
                       <button
-                        onClick={() => updateMutation.mutate({ id: venue.id, status: "APPROVED" })}
+                        onClick={() =>
+                          updateMutation.mutate({
+                            id: venue.id,
+                            status: "APPROVED",
+                          })
+                        }
                         disabled={isUpdating}
                         className="btn-lime flex h-9 items-center justify-center rounded-full px-5 text-[11px] font-semibold tracking-[0.08em] disabled:opacity-50"
                       >
-                        {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Reactivate"}
+                        {isUpdating ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          "Reactivate"
+                        )}
                       </button>
                     )}
                   </div>

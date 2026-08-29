@@ -1,13 +1,16 @@
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { AdminBookingsQueryInput, CommissionQueryInput } from "./model";
 import {
   BookingStatus,
-  Prisma,
-  VenueStatus,
+  type Prisma,
   UserRole,
+  VenueStatus,
 } from "@prisma/client";
 import { utcToWibDateStr } from "../../common/pricing.util";
-import { RequestUser } from "../auth/model";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import type { RequestUser } from "../auth/model";
+import type { AdminBookingsQueryInput, CommissionQueryInput } from "./model";
 
 export class AdminService {
   constructor(private readonly prisma: PrismaService = defaultPrisma) {}
@@ -58,7 +61,8 @@ export class AdminService {
     const rawPage = Number.parseInt(String(page), 10);
     const pageNum = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
     const rawSize = Number.parseInt(String(pageSize), 10);
-    const sizeNumUncapped = Number.isFinite(rawSize) && rawSize > 0 ? rawSize : 20;
+    const sizeNumUncapped =
+      Number.isFinite(rawSize) && rawSize > 0 ? rawSize : 20;
     const sizeNum = Math.min(100, sizeNumUncapped);
 
     const skip = (pageNum - 1) * sizeNum;
@@ -257,7 +261,7 @@ export class AdminService {
       ([month, data]) => ({
         month,
         ...data,
-      })
+      }),
     );
     monthlySeries.sort((a, b) => a.month.localeCompare(b.month));
 
@@ -279,7 +283,7 @@ export class AdminService {
 
     const windowStartDate = new Date(Date.UTC(yy, mm - 1 - 11, 1));
     const windowStart = new Date(
-      `${windowStartDate.toISOString().slice(0, 7)}-01T00:00:00.000Z`
+      `${windowStartDate.toISOString().slice(0, 7)}-01T00:00:00.000Z`,
     );
 
     const bookings = await this.prisma.booking.findMany({
@@ -320,7 +324,7 @@ export class AdminService {
       ([month, data]) => ({
         month,
         ...data,
-      })
+      }),
     );
 
     monthlySeries.sort((a, b) => a.month.localeCompare(b.month));
@@ -328,7 +332,7 @@ export class AdminService {
     const totalGmv = monthlySeries.reduce((sum, m) => sum + m.gmv, 0);
     const totalCommission = monthlySeries.reduce(
       (sum, m) => sum + m.commission,
-      0
+      0,
     );
     const totalBookings = monthlySeries.reduce((sum, m) => sum + m.bookings, 0);
     const avgMonthlyGmv = Math.round(totalGmv / 12);

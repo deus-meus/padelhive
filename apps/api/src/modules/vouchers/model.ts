@@ -1,5 +1,5 @@
-import { t, Static } from "elysia";
 import { VoucherType } from "@prisma/client";
+import { type Static, t } from "elysia";
 
 export const VoucherTypeEnum = t.Enum(VoucherType);
 

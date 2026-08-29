@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Save, CheckCircle2, Building2, Loader2, Clock, Copy } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
-import { getVenuesManage, updateVenue, getApiErrorMessage } from "@/lib/api";
-import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Building2,
+  CheckCircle2,
+  Clock,
+  Copy,
+  Loader2,
+  Save,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { TimeSelect } from "@/components/ui/time-select";
+import { getApiErrorMessage, getVenuesManage, updateVenue } from "@/lib/api";
+import { queryKeys } from "@/lib/queries";
 
 const DAYS = [
   { key: "mon", label: "Monday" },
@@ -28,13 +35,21 @@ type DaySchedule = {
 
 export default function OperatingHoursPage() {
   const queryClient = useQueryClient();
-  const { data: venues = [], isLoading, isError: isVenuesError, error: venuesError, refetch: refetchVenues, isFetching: isVenuesFetching } = useQuery({
+  const {
+    data: venues = [],
+    isLoading,
+    isError: isVenuesError,
+    error: venuesError,
+    refetch: refetchVenues,
+    isFetching: isVenuesFetching,
+  } = useQuery({
     queryKey: queryKeys.venues.manage(),
     queryFn: getVenuesManage,
   });
 
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
-  const activeVenueId = selectedVenueId || (venues.length > 0 ? venues[0].id : null);
+  const activeVenueId =
+    selectedVenueId || (venues.length > 0 ? venues[0].id : null);
   const venue = venues.find((v) => v.id === activeVenueId);
 
   const [schedule, setSchedule] = useState<DaySchedule[]>([]);
@@ -52,7 +67,11 @@ export default function OperatingHoursPage() {
       if (venue.weeklyHours) {
         setSchedule(
           DAYS.map((d) => {
-            const entry = venue.weeklyHours![d.key] || { open: "06:00", close: "22:00", closed: false };
+            const entry = venue.weeklyHours![d.key] || {
+              open: "06:00",
+              close: "22:00",
+              closed: false,
+            };
             return {
               key: d.key,
               label: d.label,
@@ -60,7 +79,7 @@ export default function OperatingHoursPage() {
               close: entry.close || "22:00",
               closed: !!entry.closed,
             };
-          })
+          }),
         );
       } else {
         setSchedule(
@@ -70,7 +89,7 @@ export default function OperatingHoursPage() {
             open: venue.operatingHours.open,
             close: venue.operatingHours.close,
             closed: false,
-          }))
+          })),
         );
       }
       setErrorMsg(null);
@@ -80,13 +99,26 @@ export default function OperatingHoursPage() {
 
   useEffect(() => {
     if (!venue || schedule.length === 0) return;
-    const isDifferent = schedule.some(day => {
+    const isDifferent = schedule.some((day) => {
       if (venue.weeklyHours) {
         const entry = venue.weeklyHours[day.key];
-        if (!entry) return day.open !== venue.operatingHours.open || day.close !== venue.operatingHours.close || day.closed !== false;
-        return day.open !== entry.open || day.close !== entry.close || day.closed !== !!entry.closed;
+        if (!entry)
+          return (
+            day.open !== venue.operatingHours.open ||
+            day.close !== venue.operatingHours.close ||
+            day.closed !== false
+          );
+        return (
+          day.open !== entry.open ||
+          day.close !== entry.close ||
+          day.closed !== !!entry.closed
+        );
       } else {
-        return day.open !== venue.operatingHours.open || day.close !== venue.operatingHours.close || day.closed !== false;
+        return (
+          day.open !== venue.operatingHours.open ||
+          day.close !== venue.operatingHours.close ||
+          day.closed !== false
+        );
       }
     });
     setIsDirty(isDifferent);
@@ -98,14 +130,21 @@ export default function OperatingHoursPage() {
   }
 
   const { mutate, isPending, isSuccess, reset } = useMutation({
-    mutationFn: (data: { weeklyHours: Record<string, { open: string; close: string; closed: boolean }> }) => {
+    mutationFn: (data: {
+      weeklyHours: Record<
+        string,
+        { open: string; close: string; closed: boolean }
+      >;
+    }) => {
       if (!activeVenueId) throw new Error("No venue selected");
       return updateVenue(activeVenueId, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.venues.manage() });
       if (activeVenueId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.venues.detail(activeVenueId) });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.venues.detail(activeVenueId),
+        });
       }
       setIsDirty(false);
       showToast("Operating hours saved");
@@ -122,7 +161,9 @@ export default function OperatingHoursPage() {
     for (const day of schedule) {
       if (!day.closed) {
         if (!day.open || !day.close) {
-          setErrorMsg("Both open and close times are required for all open days.");
+          setErrorMsg(
+            "Both open and close times are required for all open days.",
+          );
           return;
         }
         if (day.close <= day.open) {
@@ -133,15 +174,26 @@ export default function OperatingHoursPage() {
     }
     setErrorMsg(null);
 
-    const weeklyHours: Record<string, { open: string; close: string; closed: boolean }> = {};
+    const weeklyHours: Record<
+      string,
+      { open: string; close: string; closed: boolean }
+    > = {};
     schedule.forEach((day) => {
-      weeklyHours[day.key] = { open: day.open, close: day.close, closed: day.closed };
+      weeklyHours[day.key] = {
+        open: day.open,
+        close: day.close,
+        closed: day.closed,
+      };
     });
 
     mutate({ weeklyHours });
   }
 
-  function handleDayChange(index: number, field: keyof DaySchedule, value: string | boolean) {
+  function handleDayChange(
+    index: number,
+    field: keyof DaySchedule,
+    value: string | boolean,
+  ) {
     setSchedule((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: value };
@@ -158,32 +210,43 @@ export default function OperatingHoursPage() {
         open: mon.open,
         close: mon.close,
         closed: mon.closed,
-      }))
+      })),
     );
   }
 
-  const wibKey = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "Asia/Jakarta" }).format(new Date()).toLowerCase();
+  const wibKey = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    timeZone: "Asia/Jakarta",
+  })
+    .format(new Date())
+    .toLowerCase();
 
   return (
     <div className="py-8">
       <section className="container">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <h1 className="heading-1 text-[#F7F7F7]">
-              Operating Hours
-            </h1>
+            <h1 className="heading-1 text-[#F7F7F7]">Operating Hours</h1>
             <p className="body mt-1 text-[#F7F7F7]/40">
               Set venue-wide open and close times
             </p>
           </div>
           <div className="flex w-full items-center gap-4 sm:w-auto">
             {isDirty && !isPending && !isSuccess && (
-              <span className="hidden sm:inline caption text-[#E6FA50]">Unsaved changes</span>
+              <span className="hidden sm:inline caption text-[#E6FA50]">
+                Unsaved changes
+              </span>
             )}
             <button
               onClick={handleSave}
-              disabled={isPending || isLoading || isVenuesError || venues.length === 0 || !isDirty}
-              className={`label flex h-11 w-full justify-center items-center gap-2 rounded-full px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed sm:h-10 sm:w-auto ${ isSuccess ? "bg-green-400/10 text-green-400 border border-green-400/30" : "btn-lime" }`}
+              disabled={
+                isPending ||
+                isLoading ||
+                isVenuesError ||
+                venues.length === 0 ||
+                !isDirty
+              }
+              className={`label flex h-11 w-full justify-center items-center gap-2 rounded-full px-5 transition-all disabled:opacity-50 disabled:cursor-not-allowed sm:h-10 sm:w-auto ${isSuccess ? "bg-green-400/10 text-green-400 border border-green-400/30" : "btn-lime"}`}
             >
               {isPending ? (
                 <>
@@ -209,7 +272,10 @@ export default function OperatingHoursPage() {
           <>
             <div className="mt-6 flex gap-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-9 w-24 animate-pulse rounded-full bg-white/[0.04]" />
+                <div
+                  key={i}
+                  className="h-9 w-24 animate-pulse rounded-full bg-white/[0.04]"
+                />
               ))}
             </div>
             <div className="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
@@ -218,11 +284,22 @@ export default function OperatingHoursPage() {
           </>
         ) : isVenuesError ? (
           <div className="mt-6">
-            <ErrorBanner title="Couldn't load venues" error={venuesError} onRetry={() => refetchVenues()} isRetrying={isVenuesFetching} />
+            <ErrorBanner
+              title="Couldn't load venues"
+              error={venuesError}
+              onRetry={() => refetchVenues()}
+              isRetrying={isVenuesFetching}
+            />
           </div>
         ) : venues.length === 0 ? (
           <div className="mt-6">
-            <EmptyState icon={Building2} title="No venues yet" description="Add a venue first to set its operating hours." actionLabel="Go to Venues" actionHref="/dashboard/venues" />
+            <EmptyState
+              icon={Building2}
+              title="No venues yet"
+              description="Add a venue first to set its operating hours."
+              actionLabel="Go to Venues"
+              actionHref="/dashboard/venues"
+            />
           </div>
         ) : (
           <>
@@ -250,7 +327,9 @@ export default function OperatingHoursPage() {
                   </div>
                   <div>
                     <h3 className="heading-3 text-[#F7F7F7]">Venue Hours</h3>
-                    <p className="body-sm text-[#F7F7F7]/40 mt-0.5">Applies to all courts in this venue.</p>
+                    <p className="body-sm text-[#F7F7F7]/40 mt-0.5">
+                      Applies to all courts in this venue.
+                    </p>
                   </div>
                 </div>
                 <button
@@ -272,32 +351,45 @@ export default function OperatingHoursPage() {
                 {schedule.map((day, index) => {
                   const isToday = day.key === wibKey;
                   return (
-                    <div key={day.key} className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] transition-all ${isToday ? "border-l-2 border-l-[#E6FA50]/60 bg-[#E6FA50]/[0.02]" : ""}`}>
+                    <div
+                      key={day.key}
+                      className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] transition-all ${isToday ? "border-l-2 border-l-[#E6FA50]/60 bg-[#E6FA50]/[0.02]" : ""}`}
+                    >
                       <div className="flex items-center justify-between sm:w-32 shrink-0">
                         <span className="body text-[#F7F7F7]/80 flex items-center gap-2">
                           {day.label}
-                          {isToday && <span className="caption rounded bg-[#E6FA50]/10 px-1.5 py-0.5 text-[#E6FA50]">Today</span>}
+                          {isToday && (
+                            <span className="caption rounded bg-[#E6FA50]/10 px-1.5 py-0.5 text-[#E6FA50]">
+                              Today
+                            </span>
+                          )}
                         </span>
                         <label className="flex items-center gap-2 cursor-pointer sm:hidden">
-                          <span className="label text-[#F7F7F7]/40">Closed</span>
+                          <span className="label text-[#F7F7F7]/40">
+                            Closed
+                          </span>
                           <button
                             type="button"
                             role="switch"
                             aria-checked={day.closed}
-                            onClick={() => handleDayChange(index, "closed", !day.closed)}
+                            onClick={() =>
+                              handleDayChange(index, "closed", !day.closed)
+                            }
                             className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
                               day.closed ? "bg-[#E6FA50]" : "bg-white/[0.08]"
                             }`}
                           >
                             <span
                               className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${
-                                day.closed ? "translate-x-4 bg-[#06121A]" : "translate-x-1 bg-[#F7F7F7]/80"
+                                day.closed
+                                  ? "translate-x-4 bg-[#06121A]"
+                                  : "translate-x-1 bg-[#F7F7F7]/80"
                               }`}
                             />
                           </button>
                         </label>
                       </div>
-                      
+
                       <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         {day.closed ? (
                           <div className="body w-full sm:max-w-xs rounded-lg bg-white/[0.02] px-3 py-2 text-center sm:text-left text-[#F7F7F7]/40 border border-white/[0.04]">
@@ -306,28 +398,48 @@ export default function OperatingHoursPage() {
                         ) : (
                           <div className="flex items-center gap-3 w-full sm:w-auto">
                             <div className="w-full sm:w-32">
-                              <TimeSelect value={day.open} onChange={(v) => handleDayChange(index, "open", v)} disabled={day.closed} ariaLabel={`${day.label} opening time`} />
+                              <TimeSelect
+                                value={day.open}
+                                onChange={(v) =>
+                                  handleDayChange(index, "open", v)
+                                }
+                                disabled={day.closed}
+                                ariaLabel={`${day.label} opening time`}
+                              />
                             </div>
                             <span className="text-[#F7F7F7]/40">–</span>
                             <div className="w-full sm:w-32">
-                              <TimeSelect value={day.close} onChange={(v) => handleDayChange(index, "close", v)} disabled={day.closed} ariaLabel={`${day.label} closing time`} />
+                              <TimeSelect
+                                value={day.close}
+                                onChange={(v) =>
+                                  handleDayChange(index, "close", v)
+                                }
+                                disabled={day.closed}
+                                ariaLabel={`${day.label} closing time`}
+                              />
                             </div>
                           </div>
                         )}
                         <label className="hidden sm:flex items-center gap-3 cursor-pointer shrink-0">
-                          <span className="label text-[#F7F7F7]/40">Closed</span>
+                          <span className="label text-[#F7F7F7]/40">
+                            Closed
+                          </span>
                           <button
                             type="button"
                             role="switch"
                             aria-checked={day.closed}
-                            onClick={() => handleDayChange(index, "closed", !day.closed)}
+                            onClick={() =>
+                              handleDayChange(index, "closed", !day.closed)
+                            }
                             className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
                               day.closed ? "bg-[#E6FA50]" : "bg-white/[0.08]"
                             }`}
                           >
                             <span
                               className={`pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition duration-200 ease-in-out ${
-                                day.closed ? "translate-x-4 bg-[#06121A]" : "translate-x-1 bg-[#F7F7F7]/80"
+                                day.closed
+                                  ? "translate-x-4 bg-[#06121A]"
+                                  : "translate-x-1 bg-[#F7F7F7]/80"
                               }`}
                             />
                           </button>
@@ -341,7 +453,7 @@ export default function OperatingHoursPage() {
           </>
         )}
       </section>
-      
+
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40 transition-all">
           <p className="body text-[#F7F7F7]/60">{toast}</p>

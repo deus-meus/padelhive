@@ -1,10 +1,14 @@
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
-import { Metadata } from "next";
-import { getVenues } from "@/lib/api";
-import VenuesClient from "./client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getVenues } from "@/lib/api";
+import { queryKeys } from "@/lib/queries";
+import VenuesClient from "./client";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +61,10 @@ function VenuesSkeleton() {
         <div className="container">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]">
+              <div
+                key={i}
+                className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+              >
                 <Skeleton className="aspect-[16/10] w-full rounded-none" />
                 <div className="p-6 space-y-3">
                   <Skeleton className="h-3 w-24 rounded-full" />

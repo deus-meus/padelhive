@@ -1,1 +1,1 @@
-export { RequestUserSchema, type RequestUser } from "../auth/model";
+export { type RequestUser, RequestUserSchema } from "../auth/model";

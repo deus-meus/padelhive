@@ -1,5 +1,5 @@
-import { App, cert, getApps, initializeApp } from "firebase-admin/app";
-import { Auth, DecodedIdToken, getAuth } from "firebase-admin/auth";
+import { type App, cert, getApps, initializeApp } from "firebase-admin/app";
+import { type Auth, type DecodedIdToken, getAuth } from "firebase-admin/auth";
 
 export class FirebaseAuthService {
   private readonly app: App;
@@ -34,7 +34,7 @@ export class FirebaseAuthService {
       if (!privateKey.includes("\n")) {
         privateKey = privateKey.replace(
           /(-----BEGIN PRIVATE KEY-----)\s*(.*)\s*(-----END PRIVATE KEY-----)/,
-          "$1\n$2\n$3"
+          "$1\n$2\n$3",
         );
         privateKey = privateKey
           .split("\n")

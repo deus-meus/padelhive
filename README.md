@@ -5,7 +5,7 @@ Padel court booking platform. Monorepo containing an ElysiaJS API and a Next.js 
 ## Tech stack
 - **API (apps/api):** ElysiaJS, Prisma, PostgreSQL 16, Firebase Admin, Bun
 - **Web (apps/web):** Next.js 14 (App Router), React Query, Zustand, Firebase client
-- **Tooling:** Bun workspaces, Jest, ESLint, Docker Compose
+- **Tooling:** Bun workspaces, BiomeJS, Jest, Docker Compose
 
 ## Project structure
 ```text

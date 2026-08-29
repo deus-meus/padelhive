@@ -1,15 +1,20 @@
+import { ArrowRight, MapPin, Star } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { Metadata } from "next";
-import { Star, MapPin, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "PadelHive - Play. Compete. Connect.",
-  description: "Indonesia's premier padel community. Book courts, join matches, meet players.",
+  description:
+    "Indonesia's premier padel community. Book courts, join matches, meet players.",
 };
-import { getVenues, getHomeStats } from "@/lib/api";
+
+import {
+  AllVenuesEmpty,
+  FeaturedVenueEmpty,
+} from "@/components/home/home-empty-states";
 import { HomeSearchBar } from "@/components/home/home-search-bar";
+import { getHomeStats, getVenues } from "@/lib/api";
 import { padelImg } from "@/lib/images";
-import { FeaturedVenueEmpty, AllVenuesEmpty } from "@/components/home/home-empty-states";
 
 const IMG = {
   hero: padelImg(1920, 85),
@@ -26,7 +31,7 @@ const IMG = {
 export default async function HomePage() {
   let venues: Awaited<ReturnType<typeof getVenues>> = [];
   let stats: Awaited<ReturnType<typeof getHomeStats>> | null = null;
-  
+
   try {
     const [fetchedVenues, fetchedStats] = await Promise.all([
       getVenues({ revalidate: 60 }).catch((e) => {
@@ -44,13 +49,15 @@ export default async function HomePage() {
     ]);
     venues = fetchedVenues;
     stats = fetchedStats;
-  } catch (error) {
+  } catch (_error) {
     // Promise.all catches are handled inline
   }
 
   const getCityCount = (cityName: string) => {
     if (!stats) return 0;
-    const match = stats.cityCounts.find((c) => c.city.toLowerCase() === cityName.toLowerCase());
+    const match = stats.cityCounts.find(
+      (c) => c.city.toLowerCase() === cityName.toLowerCase(),
+    );
     return match ? match.count : 0;
   };
 
@@ -81,8 +88,8 @@ export default async function HomePage() {
 
           <div className="mt-10 flex flex-col gap-6 md:mt-12 md:flex-row md:items-end md:justify-between">
             <p className="body-lg max-w-md text-[#F7F7F7]/60">
-              Indonesia&apos;s padel community. Book courts, join matches,
-              meet players.
+              Indonesia&apos;s padel community. Book courts, join matches, meet
+              players.
             </p>
 
             <div className="flex flex-wrap gap-3">
@@ -101,7 +108,6 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-
       </section>
 
       {/* ─── STATS ─── */}
@@ -111,9 +117,16 @@ export default async function HomePage() {
           <div className="h-4 w-px bg-white/[0.08]" />
           <StatInline value={formatStat(stats?.venues ?? 0)} label="Venues" />
           <div className="h-4 w-px bg-white/[0.08]" />
-          <StatInline value={formatStat(stats?.matchesThisMonth ?? 0)} label="Matches/mo" />
+          <StatInline
+            value={formatStat(stats?.matchesThisMonth ?? 0)}
+            label="Matches/mo"
+          />
           <div className="hidden h-4 w-px bg-white/[0.08] md:block" />
-          <StatInline value={formatStat(stats?.hoursPlayed ?? 0)} label="Hours Played" className="hidden md:flex" />
+          <StatInline
+            value={formatStat(stats?.hoursPlayed ?? 0)}
+            label="Hours Played"
+            className="hidden md:flex"
+          />
         </div>
       </section>
 
@@ -154,8 +167,12 @@ export default async function HomePage() {
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-2">
                     <Star className="h-4 w-4 fill-[#E6FA50] text-[#E6FA50]" />
-                    <span className="label text-[#E6FA50]">{featuredVenue.rating}</span>
-                    <span className="caption text-[#F7F7F7]/25">· {featuredVenue.reviewCount} reviews</span>
+                    <span className="label text-[#E6FA50]">
+                      {featuredVenue.rating}
+                    </span>
+                    <span className="caption text-[#F7F7F7]/25">
+                      · {featuredVenue.reviewCount} reviews
+                    </span>
                   </div>
 
                   <h3 className="heading-2 mt-4 text-[#F7F7F7]">
@@ -253,16 +270,14 @@ export default async function HomePage() {
                   className="h-full w-full object-cover"
                 />
               </div>
-
-
             </div>
 
             {/* Content */}
             <div className="flex flex-col justify-center">
               <p className="body-lg max-w-md text-[#F7F7F7]/60">
-                Padelhive is where Indonesia&apos;s padel community lives.
-                Join open matches, find partners at your level, split costs,
-                and grow your network.
+                Padelhive is where Indonesia&apos;s padel community lives. Join
+                open matches, find partners at your level, split costs, and grow
+                your network.
               </p>
 
               {/* Avatar stack — always show 5 slots */}
@@ -270,7 +285,13 @@ export default async function HomePage() {
                 <div className="flex -space-x-2">
                   {Array.from({ length: 5 }).map((_, i) => {
                     const user = (stats?.recentUsers ?? [])[i];
-                    const colors = ["#E6FA50", "#50C8C8", "#BFEF2E", "#2EADAD", "#7BCE3A"];
+                    const colors = [
+                      "#E6FA50",
+                      "#50C8C8",
+                      "#BFEF2E",
+                      "#2EADAD",
+                      "#7BCE3A",
+                    ];
                     return user?.avatarUrl ? (
                       <img
                         key={i}
@@ -297,15 +318,21 @@ export default async function HomePage() {
               {/* Stats row — full width, 3 equal columns */}
               <div className="mt-10 grid w-full max-w-md grid-cols-3">
                 <div>
-                  <p className="metric text-[#E6FA50]">{formatStat(stats?.players ?? 0)}</p>
+                  <p className="metric text-[#E6FA50]">
+                    {formatStat(stats?.players ?? 0)}
+                  </p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Players</p>
                 </div>
                 <div className="text-center">
-                  <p className="metric text-[#F7F7F7]">{formatStat(stats?.matchesThisMonth ?? 0)}</p>
+                  <p className="metric text-[#F7F7F7]">
+                    {formatStat(stats?.matchesThisMonth ?? 0)}
+                  </p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Matches/mo</p>
                 </div>
                 <div className="text-right">
-                  <p className="metric text-[#F7F7F7]">{stats?.matchRate ?? 0}%</p>
+                  <p className="metric text-[#F7F7F7]">
+                    {stats?.matchRate ?? 0}%
+                  </p>
                   <p className="caption mt-2 text-[#F7F7F7]/25">Match rate</p>
                 </div>
               </div>
@@ -323,7 +350,10 @@ export default async function HomePage() {
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section id="how-it-works" className="py-section border-t border-white/[0.04]">
+      <section
+        id="how-it-works"
+        className="py-section border-t border-white/[0.04]"
+      >
         <div className="container">
           <div className="mb-subsection text-center">
             <h2 className="display-xl text-[#F7F7F7]">
@@ -334,10 +364,26 @@ export default async function HomePage() {
           </div>
 
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-x-12 gap-y-2 md:grid-cols-2">
-            <Step number="01" title="Book a Court" description="Browse premium venues. Check real-time availability. Reserve your court in seconds." />
-            <Step number="02" title="Invite Your Crew" description="Share your booking link. Friends RSVP instantly. Build your squad for every session." />
-            <Step number="03" title="Split the Cost" description="Everyone pays their share automatically. No awkward conversations." />
-            <Step number="04" title="Play" description="Show up. Compete. Connect. Build your padel story." />
+            <Step
+              number="01"
+              title="Book a Court"
+              description="Browse premium venues. Check real-time availability. Reserve your court in seconds."
+            />
+            <Step
+              number="02"
+              title="Invite Your Crew"
+              description="Share your booking link. Friends RSVP instantly. Build your squad for every session."
+            />
+            <Step
+              number="03"
+              title="Split the Cost"
+              description="Everyone pays their share automatically. No awkward conversations."
+            />
+            <Step
+              number="04"
+              title="Play"
+              description="Show up. Compete. Connect. Build your padel story."
+            />
           </div>
         </div>
       </section>
@@ -366,7 +412,11 @@ export default async function HomePage() {
                 const images = [IMG.venue1, IMG.venue2, IMG.venue3];
 
                 return (
-                  <Link key={venue.id} href={`/venues/${venue.id}`} className="group block">
+                  <Link
+                    key={venue.id}
+                    href={`/venues/${venue.id}`}
+                    className="group block"
+                  >
                     <article className="grid grid-cols-1 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] transition-all duration-300 group-hover:border-[#E6FA50]/15 md:grid-cols-[1fr_1fr]">
                       <div className="relative aspect-[4/3] overflow-hidden md:aspect-[16/10]">
                         <img
@@ -383,8 +433,12 @@ export default async function HomePage() {
                       <div className="flex flex-col justify-center p-8 md:p-10">
                         <div className="flex items-center gap-2">
                           <Star className="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
-                          <span className="label text-[#E6FA50]">{venue.rating}</span>
-                          <span className="caption text-[#F7F7F7]/25">· {venue.reviewCount} reviews</span>
+                          <span className="label text-[#E6FA50]">
+                            {venue.rating}
+                          </span>
+                          <span className="caption text-[#F7F7F7]/25">
+                            · {venue.reviewCount} reviews
+                          </span>
                         </div>
                         <h3 className="heading-3 mt-3 text-[#F7F7F7]">
                           {venue.name}
@@ -421,7 +475,15 @@ function formatStat(n: number): string {
   return n.toLocaleString("en-US");
 }
 
-function StatInline({ value, label, className = "" }: { value: string; label: string; className?: string }) {
+function StatInline({
+  value,
+  label,
+  className = "",
+}: {
+  value: string;
+  label: string;
+  className?: string;
+}) {
   return (
     <div className={`flex items-baseline gap-2 ${className}`}>
       <span className="metric text-[#E6FA50]">{value}</span>
@@ -467,10 +529,21 @@ function CityBlock({
   );
 }
 
-function Step({ number, title, description }: { number: string; title: string; description: string }) {
+function Step({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
   return (
     <div className="group flex gap-8 py-8 md:gap-12 md:py-10">
-      <span className="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20" style={{ fontVariantNumeric: "tabular-nums" }}>
+      <span
+        className="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20"
+        style={{ fontVariantNumeric: "tabular-nums" }}
+      >
         {number}
       </span>
       <div className="flex flex-col justify-center">

@@ -1,4 +1,10 @@
-import { BookingStatus, PaymentStatus, NotificationType, RefundType, RefundStatus } from "@prisma/client";
+import {
+  BookingStatus,
+  NotificationType,
+  PaymentStatus,
+  RefundStatus,
+  RefundType,
+} from "@prisma/client";
 import { BookingExpiryService } from "./expiry.service";
 
 describe("BookingExpiryService", () => {
@@ -42,14 +48,25 @@ describe("BookingExpiryService", () => {
           payment: { updateMany: txPaymentUpdateManyMock },
           voucher: { updateMany: txVoucherUpdateManyMock },
           bookingCharge: { updateMany: txBookingChargeUpdateManyMock },
-          refund: { findFirst: txRefundFindFirstMock, create: txRefundCreateMock },
+          refund: {
+            findFirst: txRefundFindFirstMock,
+            create: txRefundCreateMock,
+          },
         });
       }),
     };
 
     notificationsMock = { createNotification: jest.fn() };
-    const splitMock = { refundPaidShares: jest.fn().mockResolvedValue({ refundedCount: 0, failedCount: 0 }) };
-    service = new BookingExpiryService(prisma as never, splitMock as never, notificationsMock as never);
+    const splitMock = {
+      refundPaidShares: jest
+        .fn()
+        .mockResolvedValue({ refundedCount: 0, failedCount: 0 }),
+    };
+    service = new BookingExpiryService(
+      prisma as never,
+      splitMock as never,
+      notificationsMock as never,
+    );
     loggerLogSpy = jest.spyOn(console, "log").mockImplementation();
   });
 
@@ -58,7 +75,10 @@ describe("BookingExpiryService", () => {
   });
 
   it("expires only due PENDING_PAYMENT bookings and fails their pending payments", async () => {
-    prisma.booking.findMany.mockResolvedValue([{ id: "booking-1" }, { id: "booking-2" }]);
+    prisma.booking.findMany.mockResolvedValue([
+      { id: "booking-1" },
+      { id: "booking-2" },
+    ]);
 
     await service.sweepExpiredBookings();
 
@@ -86,7 +106,9 @@ describe("BookingExpiryService", () => {
       },
       data: { status: PaymentStatus.FAILED, failedAt: expect.any(Date) },
     });
-    expect(loggerLogSpy).toHaveBeenCalledWith(expect.stringContaining("Expired 2 stale pending-payment bookings."));
+    expect(loggerLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Expired 2 stale pending-payment bookings."),
+    );
   });
 
   it("leaves not-yet-due, CONFIRMED, and already-EXPIRED untouched (no-op when no bookings found)", async () => {
@@ -129,7 +151,11 @@ describe("BookingExpiryService", () => {
           booking: {
             id: "booking-1",
             hostUserId: "host-1",
-            payment: { id: "payment-1", amount: 150000, status: PaymentStatus.PAID },
+            payment: {
+              id: "payment-1",
+              amount: 150000,
+              status: PaymentStatus.PAID,
+            },
           },
         },
       ]);
@@ -141,13 +167,16 @@ describe("BookingExpiryService", () => {
         expect.objectContaining({
           where: { id: "charge-1", status: PaymentStatus.PENDING },
           data: { status: PaymentStatus.FAILED, failedAt: expect.any(Date) },
-        })
+        }),
       );
       expect(txBookingUpdateManyMock).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: "booking-1", status: BookingStatus.CONFIRMED },
-          data: { status: BookingStatus.CANCELLED, cancelledAt: expect.any(Date) },
-        })
+          data: {
+            status: BookingStatus.CANCELLED,
+            cancelledAt: expect.any(Date),
+          },
+        }),
       );
       expect(txRefundCreateMock).toHaveBeenCalledWith({
         data: {
@@ -163,7 +192,7 @@ describe("BookingExpiryService", () => {
         expect.objectContaining({
           userId: "host-1",
           type: NotificationType.BOOKING_CANCELLED,
-        })
+        }),
       );
     });
 

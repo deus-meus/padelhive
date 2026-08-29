@@ -1,9 +1,12 @@
-import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { VenueStatus, CourtType } from "@prisma/client";
-import { BookingsService } from "../../src/modules/bookings/service";
-import { PrismaService } from "../../src/common/prisma";
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
+import { CourtType, VenueStatus } from "@prisma/client";
+import {
+  PostgreSqlContainer,
+  type StartedPostgreSqlContainer,
+} from "@testcontainers/postgresql";
 import { ConflictException } from "../../src/common/errors";
+import { PrismaService } from "../../src/common/prisma";
+import { BookingsService } from "../../src/modules/bookings/service";
 
 describe("Booking Concurrency (Integration)", () => {
   let container: StartedPostgreSqlContainer;
@@ -71,7 +74,12 @@ describe("Booking Concurrency (Integration)", () => {
       },
     });
 
-    service = new BookingsService(prisma, {} as never, { createNotification: jest.fn() } as never, {} as never);
+    service = new BookingsService(
+      prisma,
+      {} as never,
+      { createNotification: jest.fn() } as never,
+      {} as never,
+    );
   });
 
   afterAll(async () => {
@@ -94,7 +102,10 @@ describe("Booking Concurrency (Integration)", () => {
     } as never);
 
     const b = await prisma.booking.findFirst();
-    await prisma.booking.update({ where: { id: b!.id }, data: { status: "CANCELLED" } });
+    await prisma.booking.update({
+      where: { id: b!.id },
+      data: { status: "CANCELLED" },
+    });
 
     const newBooking = await service.createBookingForUser("user-int", {
       venueId: "venue-int",
@@ -153,7 +164,9 @@ describe("Booking Concurrency (Integration)", () => {
     const results = await Promise.allSettled([promise1, promise2]);
 
     const fulfilled = results.filter((r) => r.status === "fulfilled");
-    const rejected = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+    const rejected = results.filter(
+      (r) => r.status === "rejected",
+    ) as PromiseRejectedResult[];
 
     expect(fulfilled.length).toBe(1);
     expect(rejected.length).toBe(1);

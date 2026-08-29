@@ -1,8 +1,8 @@
+import { type Notification, NotificationType } from "@prisma/client";
+import type { PrismaService } from "../../common/prisma";
+import type { RedisService } from "../../common/redis";
+import type { MailService } from "../mail/service";
 import { NotificationsService } from "./service";
-import { PrismaService } from "../../common/prisma";
-import { NotificationType, Notification } from "@prisma/client";
-import { MailService } from "../mail/service";
-import { RedisService } from "../../common/redis";
 
 describe("NotificationsService", () => {
   let service: NotificationsService;
@@ -52,11 +52,18 @@ describe("NotificationsService", () => {
       const userReceivedEvents: Notification[] = [];
       const otherReceivedEvents: Notification[] = [];
 
-      const userSub = service.streamForUser(mockUserId).subscribe((n) => userReceivedEvents.push(n));
-      const otherSub = service.streamForUser(otherUserId).subscribe((n) => otherReceivedEvents.push(n));
+      const userSub = service
+        .streamForUser(mockUserId)
+        .subscribe((n) => userReceivedEvents.push(n));
+      const otherSub = service
+        .streamForUser(otherUserId)
+        .subscribe((n) => otherReceivedEvents.push(n));
 
       // Emit
-      jest.spyOn(prisma.user, "findUnique").mockResolvedValue({ email: "test@example.com", name: "Test User" } as any);
+      jest.spyOn(prisma.user, "findUnique").mockResolvedValue({
+        email: "test@example.com",
+        name: "Test User",
+      } as any);
       await service.createNotification({
         userId: mockUserId,
         type: NotificationType.BOOKING_CONFIRMED,
@@ -76,7 +83,9 @@ describe("NotificationsService", () => {
 
   describe("createNotification - email triggers", () => {
     it("calls mailService.sendNotificationEmail for allowlisted type when user has email", async () => {
-      jest.spyOn(prisma.user, "findUnique").mockResolvedValue({ email: "user@example.com", name: "User" } as any);
+      jest
+        .spyOn(prisma.user, "findUnique")
+        .mockResolvedValue({ email: "user@example.com", name: "User" } as any);
 
       const input = {
         userId: "user-1",
@@ -117,8 +126,12 @@ describe("NotificationsService", () => {
     });
 
     it("resolves and returns notification even if mailService throws", async () => {
-      jest.spyOn(prisma.user, "findUnique").mockResolvedValue({ email: "user@example.com", name: "User" } as any);
-      jest.spyOn(mailService, "sendNotificationEmail").mockRejectedValue(new Error("Send failed"));
+      jest
+        .spyOn(prisma.user, "findUnique")
+        .mockResolvedValue({ email: "user@example.com", name: "User" } as any);
+      jest
+        .spyOn(mailService, "sendNotificationEmail")
+        .mockRejectedValue(new Error("Send failed"));
 
       const input = {
         userId: "user-1",

@@ -1,4 +1,10 @@
-import { BookingStatus, CourtType, PaymentStatus, RefundStatus, RefundType } from "@prisma/client";
+import {
+  BookingStatus,
+  CourtType,
+  PaymentStatus,
+  RefundStatus,
+  RefundType,
+} from "@prisma/client";
 import { BookingsService } from "./service";
 
 describe("BookingsService - rescheduleBookingForUser", () => {
@@ -9,7 +15,15 @@ describe("BookingsService - rescheduleBookingForUser", () => {
 
   beforeEach(() => {
     prismaMock = {
-      venue: { findFirst: jest.fn(), findUnique: jest.fn().mockResolvedValue({ id: "venue-1", name: "Venue 1", ownerId: "owner-1", admins: [] }) },
+      venue: {
+        findFirst: jest.fn(),
+        findUnique: jest.fn().mockResolvedValue({
+          id: "venue-1",
+          name: "Venue 1",
+          ownerId: "owner-1",
+          admins: [],
+        }),
+      },
       court: { findFirst: jest.fn() },
       booking: {
         findFirst: jest.fn(),
@@ -41,9 +55,11 @@ describe("BookingsService - rescheduleBookingForUser", () => {
       prismaMock as any,
       vouchersMock as any,
       { createNotification: jest.fn() } as any,
-      { refundPaidShares: jest.fn() } as any
+      { refundPaidShares: jest.fn() } as any,
     );
-    safeNotifySpy = jest.spyOn(service as any, 'safeNotify').mockResolvedValue(undefined);
+    safeNotifySpy = jest
+      .spyOn(service as any, "safeNotify")
+      .mockResolvedValue(undefined);
   });
 
   const reschedulableBooking = {
@@ -54,7 +70,12 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     finalAmount: 190000,
     courtId: "court-1",
     venueId: "venue-1",
-    payment: { id: "payment-1", status: PaymentStatus.PAID, provider: "midtrans", method: "card" },
+    payment: {
+      id: "payment-1",
+      status: PaymentStatus.PAID,
+      provider: "midtrans",
+      method: "card",
+    },
     venue: {
       openTime: "06:00",
       closeTime: "22:00",
@@ -78,19 +99,25 @@ describe("BookingsService - rescheduleBookingForUser", () => {
 
   it("creates top-up charge on paid CONFIRMED booking when price increases", async () => {
     prismaMock.booking.findFirst
-      .mockResolvedValueOnce(reschedulableBooking) 
-      .mockResolvedValueOnce(null); 
+      .mockResolvedValueOnce(reschedulableBooking)
+      .mockResolvedValueOnce(null);
 
-    // new courtAmount = 200000. platform fee = 10000. subtotal = 210000. 
+    // new courtAmount = 200000. platform fee = 10000. subtotal = 210000.
     // mock voucher giving 0 discount -> finalAmount = 210000 (increase from 190000)
     vouchersMock.repriceVoucherById.mockResolvedValue(0);
 
     const updatedMock = { id: "booking-1", finalAmount: 210000 };
     prismaMock.booking.update.mockResolvedValue(updatedMock);
 
-    const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
+    const result = await service.rescheduleBookingForUser(
+      "booking-1",
+      "user-1",
+      rescheduleBody,
+    );
 
-    expect(prismaMock.bookingCharge.deleteMany).toHaveBeenCalledWith({ where: { bookingId: "booking-1", status: PaymentStatus.PENDING } });
+    expect(prismaMock.bookingCharge.deleteMany).toHaveBeenCalledWith({
+      where: { bookingId: "booking-1", status: PaymentStatus.PENDING },
+    });
     expect(prismaMock.bookingCharge.create).toHaveBeenCalledWith({
       data: {
         bookingId: "booking-1",
@@ -117,7 +144,11 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     const updatedMock = { id: "booking-1", finalAmount: 180000 };
     prismaMock.booking.update.mockResolvedValue(updatedMock);
 
-    const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
+    const result = await service.rescheduleBookingForUser(
+      "booking-1",
+      "user-1",
+      rescheduleBody,
+    );
 
     expect(prismaMock.refund.create).toHaveBeenCalledWith({
       data: {
@@ -148,7 +179,11 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     prismaMock.user.findMany.mockRejectedValueOnce(new Error("DB error"));
     const warnSpy = jest.spyOn(console, "warn").mockImplementation();
 
-    const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
+    const result = await service.rescheduleBookingForUser(
+      "booking-1",
+      "user-1",
+      rescheduleBody,
+    );
     warnSpy.mockRestore();
 
     expect(prismaMock.refund.create).toHaveBeenCalled();
@@ -157,10 +192,14 @@ describe("BookingsService - rescheduleBookingForUser", () => {
 
   it("does not create refund if payment is PENDING (no paid payment)", async () => {
     prismaMock.booking.findFirst
-      .mockResolvedValueOnce({ 
-        ...reschedulableBooking, 
+      .mockResolvedValueOnce({
+        ...reschedulableBooking,
         status: BookingStatus.PENDING_PAYMENT,
-        payment: { id: "payment-1", status: PaymentStatus.PENDING, provider: "midtrans" }
+        payment: {
+          id: "payment-1",
+          status: PaymentStatus.PENDING,
+          provider: "midtrans",
+        },
       })
       .mockResolvedValueOnce(null);
 
@@ -170,7 +209,11 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     const updatedMock = { id: "booking-1", finalAmount: 180000 };
     prismaMock.booking.update.mockResolvedValue(updatedMock);
 
-    const result = await service.rescheduleBookingForUser("booking-1", "user-1", rescheduleBody);
+    const result = await service.rescheduleBookingForUser(
+      "booking-1",
+      "user-1",
+      rescheduleBody,
+    );
 
     expect(prismaMock.refund.create).not.toHaveBeenCalled();
     expect(result.priceDelta).toBe(-10000);

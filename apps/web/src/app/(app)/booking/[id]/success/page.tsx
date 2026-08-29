@@ -1,20 +1,39 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Loader2,
+  MapPin,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CalendarDays, CheckCircle2, Clock, CreditCard, MapPin, Loader2, XCircle } from "lucide-react";
-import { getBookingById, getPayment } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
-import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorBanner } from "@/components/ui/error-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getBookingById, getPayment } from "@/lib/api";
+import { formatBookingDate, formatBookingTimeRange } from "@/lib/format";
+import { queryKeys } from "@/lib/queries";
 
-export default function BookingSuccessPage({ params }: { params: { id: string } }) {
+export default function BookingSuccessPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const searchParams = useSearchParams();
   const paymentId = searchParams.get("paymentId");
 
-  const { data: booking, isLoading: isBookingLoading, isError: isBookingError, error: bookingError, refetch: refetchBooking, isFetching: isFetchingBooking } = useQuery({
+  const {
+    data: booking,
+    isLoading: isBookingLoading,
+    isError: isBookingError,
+    error: bookingError,
+    refetch: refetchBooking,
+    isFetching: isFetchingBooking,
+  } = useQuery({
     queryKey: queryKeys.bookings.detail(params.id),
     queryFn: () => getBookingById(params.id),
   });
@@ -25,8 +44,8 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
     enabled: !!paymentId,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      return (status === "PAID" || status === "FAILED") ? false : 3000;
-    }
+      return status === "PAID" || status === "FAILED" ? false : 3000;
+    },
   });
 
   const venue = booking?.venue.name ?? "—";
@@ -34,10 +53,11 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
   const date = booking?.bookingDate;
   const start = booking?.startsAt;
   const end = booking?.endsAt;
-  const amount = payment?.amount ?? booking?.payment?.amount ?? booking?.courtAmount ?? 0;
+  const amount =
+    payment?.amount ?? booking?.payment?.amount ?? booking?.courtAmount ?? 0;
 
   const resolvedPaymentStatus = payment?.status ?? booking?.payment?.status;
-  
+
   let isPaid = false;
   let isFailed = false;
   let displayStatus = "PENDING";
@@ -85,7 +105,12 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
     return (
       <div className="min-h-screen pt-20">
         <div className="container max-w-2xl py-12">
-          <ErrorBanner title="Couldn't load booking" error={bookingError} onRetry={() => refetchBooking()} isRetrying={isFetchingBooking} />
+          <ErrorBanner
+            title="Couldn't load booking"
+            error={bookingError}
+            onRetry={() => refetchBooking()}
+            isRetrying={isFetchingBooking}
+          />
         </div>
       </div>
     );
@@ -95,7 +120,6 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
     <div className="min-h-screen pt-20">
       <div className="container max-w-2xl py-12">
         <div className="rounded-3xl border border-white/[0.06] bg-[#0C1B26] p-6 text-center md:p-8">
-          
           {isPaid ? (
             <>
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#E6FA50]/10">
@@ -116,9 +140,7 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10">
                 <XCircle className="h-10 w-10 text-red-500" />
               </div>
-              <p className="mt-6 section-label text-red-500">
-                Payment Failed
-              </p>
+              <p className="mt-6 section-label text-red-500">Payment Failed</p>
               <h1 className="heading-1 mt-3 text-[#F7F7F7]">
                 Payment could not be processed
               </h1>
@@ -138,7 +160,8 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
                 Waiting for confirmation
               </h1>
               <p className="body mx-auto mt-3 max-w-md text-[#F7F7F7]/40">
-                We are waiting for the payment provider to confirm your payment. This screen will update automatically.
+                We are waiting for the payment provider to confirm your payment.
+                This screen will update automatically.
               </p>
             </>
           )}
@@ -149,7 +172,9 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
                 <p className="section-label text-[#F7F7F7]/40">Booking ID</p>
                 <p className="body mt-1 text-[#F7F7F7]/80">{params.id}</p>
               </div>
-              <span className={`caption rounded-full px-3 py-1 ${isPaid ? "bg-[#E6FA50]/10 text-[#E6FA50]" : isFailed ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"}`}>
+              <span
+                className={`caption rounded-full px-3 py-1 ${isPaid ? "bg-[#E6FA50]/10 text-[#E6FA50]" : isFailed ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"}`}
+              >
                 {displayStatus}
               </span>
             </div>
@@ -169,7 +194,9 @@ export default function BookingSuccessPage({ params }: { params: { id: string } 
                   <CalendarDays className="h-3.5 w-3.5" />
                   Date
                 </div>
-                <p className="body mt-2 text-[#F7F7F7]/80">{formatBookingDate(date)}</p>
+                <p className="body mt-2 text-[#F7F7F7]/80">
+                  {formatBookingDate(date)}
+                </p>
               </div>
 
               <div className="rounded-xl bg-white/[0.03] p-4">

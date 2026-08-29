@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Check } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 export function FilterSelect({
   label,
@@ -49,7 +49,10 @@ export function FilterSelect({
   const selectedOption = options.find((o) => o.value === value);
 
   return (
-    <div className={`relative inline-block text-left shrink-0 ${className}`} ref={ref}>
+    <div
+      className={`relative inline-block text-left shrink-0 ${className}`}
+      ref={ref}
+    >
       <button
         type="button"
         aria-haspopup="listbox"
@@ -75,29 +78,32 @@ export function FilterSelect({
             alignRight ? "right-0 origin-top-right" : "left-0 origin-top-left"
           }`}
         >
-            
-            <div className="max-h-[60vh] overflow-y-auto lg:max-h-none">
-              {options.map((opt) => {
-                const isSelected = opt.value === value;
-                return (
-                  <button
-                    key={opt.value}
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      onChange(opt.value);
-                      setOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors ${
-                      isSelected ? "bg-white/[0.03] text-[#E6FA50]" : "text-[#F7F7F7] hover:bg-white/[0.06]"
-                    }`}
-                  >
-                    <span className="label block truncate pr-4">{opt.label}</span>
-                    {isSelected && <Check className="h-4 w-4 shrink-0 text-[#E6FA50]" />}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="max-h-[60vh] overflow-y-auto lg:max-h-none">
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <button
+                  key={opt.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors ${
+                    isSelected
+                      ? "bg-white/[0.03] text-[#E6FA50]"
+                      : "text-[#F7F7F7] hover:bg-white/[0.06]"
+                  }`}
+                >
+                  <span className="label block truncate pr-4">{opt.label}</span>
+                  {isSelected && (
+                    <Check className="h-4 w-4 shrink-0 text-[#E6FA50]" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -171,42 +177,45 @@ export function FilterMultiSelect({
             alignRight ? "right-0 origin-top-right" : "left-0 origin-top-left"
           }`}
         >
-
-            <div className="max-h-[60vh] lg:max-h-64 overflow-y-auto py-1">
-              {options.map((opt) => {
-                const isSelected = selected.includes(opt);
-                return (
-                  <button
-                    key={opt}
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => onToggle(opt)}
-                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.06]"
-                  >
-                    <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
-                      isSelected ? "border-[#E6FA50] bg-[#E6FA50]" : "border-white/20 bg-transparent"
-                    }`}>
-                      {isSelected && <Check className="h-3 w-3 text-[#06121A]" />}
-                    </div>
-                    <span className="label block truncate">{opt}</span>
-                  </button>
-                );
-              })}
-            </div>
-            
-            {selected.length > 0 && onClear && (
-              <div className="border-t border-white/[0.06] p-2">
+          <div className="max-h-[60vh] lg:max-h-64 overflow-y-auto py-1">
+            {options.map((opt) => {
+              const isSelected = selected.includes(opt);
+              return (
                 <button
-                  onClick={() => {
-                    onClear?.();
-                    setOpen(false);
-                  }}
-                  className="label flex w-full items-center justify-center gap-2 rounded-lg py-2 text-[#E6FA50] hover:bg-white/[0.03]"
+                  key={opt}
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => onToggle(opt)}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.06]"
                 >
-                  Clear selection
+                  <div
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                      isSelected
+                        ? "border-[#E6FA50] bg-[#E6FA50]"
+                        : "border-white/20 bg-transparent"
+                    }`}
+                  >
+                    {isSelected && <Check className="h-3 w-3 text-[#06121A]" />}
+                  </div>
+                  <span className="label block truncate">{opt}</span>
                 </button>
-              </div>
-            )}
+              );
+            })}
+          </div>
+
+          {selected.length > 0 && onClear && (
+            <div className="border-t border-white/[0.06] p-2">
+              <button
+                onClick={() => {
+                  onClear?.();
+                  setOpen(false);
+                }}
+                className="label flex w-full items-center justify-center gap-2 rounded-lg py-2 text-[#E6FA50] hover:bg-white/[0.03]"
+              >
+                Clear selection
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

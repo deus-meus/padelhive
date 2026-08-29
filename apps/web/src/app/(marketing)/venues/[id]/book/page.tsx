@@ -1,26 +1,39 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { formatBookingDate, formatBookingTimeRange, formatShortWeekday, formatDayNumber } from "@/lib/format";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
-import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Calendar,
-  Clock,
-  MapPin,
   ChevronLeft,
   ChevronRight,
-  Users,
+  Clock,
   Info,
+  MapPin,
   Tag,
+  Users,
   X,
 } from "lucide-react";
-import { ApiRequestError, createBooking, getVenue, getVenueCourts, getVenueAvailability, ApiAvailabilitySlot, validateVoucher, getApiErrorMessage } from "@/lib/api";
-import { Court, Venue } from "@/types";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ApiRequestError,
+  createBooking,
+  getApiErrorMessage,
+  getVenue,
+  getVenueAvailability,
+  getVenueCourts,
+  validateVoucher,
+} from "@/lib/api";
+import {
+  formatBookingDate,
+  formatBookingTimeRange,
+  formatDayNumber,
+  formatShortWeekday,
+} from "@/lib/format";
+import { queryKeys } from "@/lib/queries";
+import type { Court } from "@/types";
 
 function SelectionTile({
   isSelected,
@@ -41,14 +54,20 @@ function SelectionTile({
     <button
       disabled={isDisabled}
       onClick={onClick}
-      className={`relative flex min-h-[64px] w-full flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${ isDisabled ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed" : isSelected ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]" : "border-white/[0.08] bg-[#0C1B26] hover:border-[#50C8C8]/40" } ${className}`}
+      className={`relative flex min-h-[64px] w-full flex-col items-center justify-center rounded-xl border p-3 text-center transition-all ${isDisabled ? "border-transparent bg-white/[0.02] text-[#F7F7F7]/25 line-through cursor-not-allowed" : isSelected ? "border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-[0_0_12px_rgba(230,250,80,0.1)]" : "border-white/[0.08] bg-[#0C1B26] hover:border-[#50C8C8]/40"} ${className}`}
     >
-      <span className={`label ${isDisabled ? "text-[#F7F7F7]/25" : isSelected ? "text-[#E6FA50]" : "text-[#F7F7F7]/80"}`}>
+      <span
+        className={`label ${isDisabled ? "text-[#F7F7F7]/25" : isSelected ? "text-[#E6FA50]" : "text-[#F7F7F7]/80"}`}
+      >
         {primaryText}
       </span>
       <span
         className={`caption mt-0.5 block ${
-          isSelected ? "text-[#E6FA50]/70" : isDisabled ? "text-[#F7F7F7]/25" : "text-[#F7F7F7]/60"
+          isSelected
+            ? "text-[#E6FA50]/70"
+            : isDisabled
+              ? "text-[#F7F7F7]/25"
+              : "text-[#F7F7F7]/60"
         }`}
       >
         {secondaryText}
@@ -78,8 +97,7 @@ function generateDates() {
   return dates;
 }
 
-
-function isWeekend(date: Date) {
+function _isWeekend(date: Date) {
   return date.getDay() === 0 || date.getDay() === 6;
 }
 
@@ -97,7 +115,9 @@ function areConsecutiveSlots(slots: string[]): boolean {
     .map((slot) => parseInt(slot.split(":")[0], 10))
     .sort((a, b) => a - b);
 
-  return hours.every((hour, index) => index === 0 || hour === hours[index - 1] + 1);
+  return hours.every(
+    (hour, index) => index === 0 || hour === hours[index - 1] + 1,
+  );
 }
 
 export default function BookingFlowPage({
@@ -106,62 +126,98 @@ export default function BookingFlowPage({
   params: { id: string };
 }) {
   const router = useRouter();
-  const { data: venue, isLoading: isLoadingVenue, isError: isVenueError } = useQuery({
+  const {
+    data: venue,
+    isLoading: isLoadingVenue,
+    isError: isVenueError,
+  } = useQuery({
     queryKey: queryKeys.venues.detail(params.id),
     queryFn: () => getVenue(params.id),
   });
 
-  const { data: apiCourts, isLoading: isLoadingCourts, isError: isCourtsError } = useQuery({
+  const {
+    data: apiCourts,
+    isLoading: isLoadingCourts,
+    isError: isCourtsError,
+  } = useQuery({
     queryKey: queryKeys.venues.courts(params.id),
     queryFn: () => getVenueCourts(params.id),
   });
 
-  const courts = useMemo(() => apiCourts && apiCourts.length > 0 ? apiCourts : [], [apiCourts]);
+  const courts = useMemo(
+    () => (apiCourts && apiCourts.length > 0 ? apiCourts : []),
+    [apiCourts],
+  );
 
   const isLoadingApiData = isLoadingVenue || isLoadingCourts;
-  const apiError = isVenueError || isCourtsError ? "Could not reach the live court API." : null;
+  const apiError =
+    isVenueError || isCourtsError
+      ? "Could not reach the live court API."
+      : null;
 
   const dates = useMemo(() => generateDates(), []);
 
   const [selectedDate, setSelectedDate] = useState<Date>(dates[0]);
-  const [selectedCourt, setSelectedCourt] = useState<Court | null>(courts[0] ?? null);
+  const [selectedCourt, setSelectedCourt] = useState<Court | null>(
+    courts[0] ?? null,
+  );
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [rangeError, setRangeError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (courts.length > 0 && (!selectedCourt || !courts.some((c) => c.id === selectedCourt.id))) {
+    if (
+      courts.length > 0 &&
+      (!selectedCourt || !courts.some((c) => c.id === selectedCourt.id))
+    ) {
       setSelectedCourt(courts[0]);
       setSelectedSlots([]);
       setRangeError(null);
     }
   }, [courts, selectedCourt]);
   const [dateScrollStart, setDateScrollStart] = useState(0);
-  const [confirmState, setConfirmState] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [submitError, setSubmitError] = useState<BookingSubmitError | null>(null);
+  const [confirmState, setConfirmState] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+  const [submitError, setSubmitError] = useState<BookingSubmitError | null>(
+    null,
+  );
 
   const [voucherInput, setVoucherInput] = useState("");
-  const [appliedVoucher, setAppliedVoucher] = useState<{ code: string; discount: number } | null>(null);
+  const [appliedVoucher, setAppliedVoucher] = useState<{
+    code: string;
+    discount: number;
+  } | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [voucherChecking, setVoucherChecking] = useState(false);
   const [hasInsurance, setHasInsurance] = useState(false);
-  
-  const apiDateStr = useMemo(() => getIsoDateString(selectedDate), [selectedDate]);
-  
-  const { 
-    data: availabilityResponse, 
+
+  const apiDateStr = useMemo(
+    () => getIsoDateString(selectedDate),
+    [selectedDate],
+  );
+
+  const {
+    data: availabilityResponse,
     isError: isAvailabilityError,
     isLoading: isAvailabilityLoading,
     isFetching: isAvailabilityFetching,
-    refetch: refetchAvailability
+    refetch: refetchAvailability,
   } = useQuery({
-    queryKey: queryKeys.venues.availability(venue?.id ?? "", apiDateStr, selectedCourt?.id ?? ""),
-    queryFn: () => getVenueAvailability(venue!.id, apiDateStr, selectedCourt!.id),
+    queryKey: queryKeys.venues.availability(
+      venue?.id ?? "",
+      apiDateStr,
+      selectedCourt?.id ?? "",
+    ),
+    queryFn: () =>
+      getVenueAvailability(venue!.id, apiDateStr, selectedCourt!.id),
     enabled: !!(venue?.id && selectedCourt?.id && apiDateStr),
   });
 
   const timeSlots = useMemo(() => {
     if (availabilityResponse && !isAvailabilityError && selectedCourt) {
-      const court = availabilityResponse.courts.find((c) => c.id === selectedCourt.id);
+      const court = availabilityResponse.courts.find(
+        (c) => c.id === selectedCourt.id,
+      );
       if (court) return court.slots;
     }
     return [];
@@ -201,14 +257,16 @@ export default function BookingFlowPage({
 
         const allAvailable = range.every((h) => {
           const slot = timeSlots.find((s) => s.startsAt === h);
-          return slot && slot.available;
+          return slot?.available;
         });
 
         if (allAvailable) {
           setRangeError(null);
           return range.sort();
         } else {
-          setRangeError("That range includes a booked slot — pick a clear range.");
+          setRangeError(
+            "That range includes a booked slot — pick a clear range.",
+          );
           return [anchor];
         }
       }
@@ -231,7 +289,10 @@ export default function BookingFlowPage({
   const platformFee = Math.round(totalPrice * 0.05);
   const insuranceFee = hasInsurance ? 15000 : 0;
   const subtotalWithFee = totalPrice + platformFee + insuranceFee;
-  const discountedTotal = Math.max(0, subtotalWithFee - (appliedVoucher?.discount ?? 0));
+  const discountedTotal = Math.max(
+    0,
+    subtotalWithFee - (appliedVoucher?.discount ?? 0),
+  );
 
   async function handleApplyVoucher() {
     const code = voucherInput.trim().toUpperCase();
@@ -263,15 +324,23 @@ export default function BookingFlowPage({
   const startTime = sortedSlots[0] ?? "--:--";
   const endTime = sortedSlots.length
     ? `${(parseInt(sortedSlots[sortedSlots.length - 1].split(":")[0], 10) + 1)
-        .toString().padStart(2, "0")}:00`
+        .toString()
+        .padStart(2, "0")}:00`
     : "--:--";
 
   const queryClient = useQueryClient();
 
   const bookingMutation = useMutation({
-    mutationFn: (data: Parameters<typeof createBooking>[0]) => createBooking(data),
+    mutationFn: (data: Parameters<typeof createBooking>[0]) =>
+      createBooking(data),
     onSuccess: (booking) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.venues.availability(venue!.id, getIsoDateString(selectedDate), selectedCourt!.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.venues.availability(
+          venue!.id,
+          getIsoDateString(selectedDate),
+          selectedCourt!.id,
+        ),
+      });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
 
       const query = new URLSearchParams({
@@ -316,7 +385,7 @@ export default function BookingFlowPage({
       }
 
       setSubmitError("backend-unavailable");
-    }
+    },
   });
 
   async function handleConfirm() {
@@ -324,7 +393,7 @@ export default function BookingFlowPage({
 
     const selectedUnavailableSlot = selectedSlots.some((time) => {
       const slot = timeSlots.find((candidate) => candidate.startsAt === time);
-      return !slot || !slot.available;
+      return !slot?.available;
     });
 
     if (
@@ -396,9 +465,7 @@ export default function BookingFlowPage({
 
         {/* Header */}
         <div className="mt-6">
-          <h1 className="heading-1 text-[#F7F7F7]">
-            Book a Court
-          </h1>
+          <h1 className="heading-1 text-[#F7F7F7]">Book a Court</h1>
           {venue && (
             <p className="body mt-2 flex items-center gap-2 text-[#F7F7F7]/40">
               <MapPin className="h-3.5 w-3.5" />
@@ -419,29 +486,30 @@ export default function BookingFlowPage({
                 <h2 className="section-label">Select Court</h2>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-6 md:grid-cols-8">
-                {isLoadingApiData ? (
-                  [...Array(2)].map((_, i) => (
-                    <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
-                  ))
-                ) : (
-                  courts.map((court) => (
-                    <SelectionTile
-                      key={court.id}
-                      isSelected={selectedCourt?.id === court.id}
-                      primaryText={court.name}
-                      secondaryText={court.type}
-                      onClick={() => {
-                        setSelectedCourt(court);
-                        setSelectedSlots([]);
-                        setRangeError(null);
-                        setSubmitError(null);
-                        setConfirmState("idle");
-                        setAppliedVoucher(null);
-                        setVoucherError(null);
-                      }}
-                    />
-                  ))
-                )}
+                {isLoadingApiData
+                  ? [...Array(2)].map((_, i) => (
+                      <Skeleton
+                        key={i}
+                        className="min-h-[64px] w-full rounded-xl"
+                      />
+                    ))
+                  : courts.map((court) => (
+                      <SelectionTile
+                        key={court.id}
+                        isSelected={selectedCourt?.id === court.id}
+                        primaryText={court.name}
+                        secondaryText={court.type}
+                        onClick={() => {
+                          setSelectedCourt(court);
+                          setSelectedSlots([]);
+                          setRangeError(null);
+                          setSubmitError(null);
+                          setConfirmState("idle");
+                          setAppliedVoucher(null);
+                          setVoucherError(null);
+                        }}
+                      />
+                    ))}
               </div>
             </div>
 
@@ -470,7 +538,7 @@ export default function BookingFlowPage({
                   <button
                     onClick={() =>
                       setDateScrollStart(
-                        Math.min(DAYS_AHEAD - 7, dateScrollStart + 4)
+                        Math.min(DAYS_AHEAD - 7, dateScrollStart + 4),
                       )
                     }
                     disabled={dateScrollStart >= DAYS_AHEAD - 7}
@@ -481,25 +549,36 @@ export default function BookingFlowPage({
                 </div>
               </div>
               <div className="mt-4 flex overflow-x-auto gap-2.5 sm:grid sm:grid-cols-6 md:grid-cols-8 pb-2 sm:pb-0 scrollbar-none">
-                  {isLoadingApiData ? (
-                    [...Array(7)].map((_, i) => (
-                      <Skeleton key={i} className="min-h-[64px] min-w-[72px] sm:min-w-0 flex-1 rounded-xl" />
+                {isLoadingApiData
+                  ? [...Array(7)].map((_, i) => (
+                      <Skeleton
+                        key={i}
+                        className="min-h-[64px] min-w-[72px] sm:min-w-0 flex-1 rounded-xl"
+                      />
                     ))
-                  ) : (
-                    dates
+                  : dates
                       .slice(dateScrollStart, dateScrollStart + 7)
                       .map((date) => {
-                        const isSelected = date.toDateString() === selectedDate.toDateString();
-                        const isToday = date.toDateString() === new Date().toDateString();
+                        const isSelected =
+                          date.toDateString() === selectedDate.toDateString();
+                        const isToday =
+                          date.toDateString() === new Date().toDateString();
                         return (
-                          <div key={date.toISOString()} className="min-w-[72px] sm:min-w-0 flex-1">
+                          <div
+                            key={date.toISOString()}
+                            className="min-w-[72px] sm:min-w-0 flex-1"
+                          >
                             <SelectionTile
                               isSelected={isSelected}
                               primaryText={formatDayNumber(date).toString()}
                               secondaryText={
                                 <>
                                   {formatShortWeekday(date).toUpperCase()}
-                                  {isToday && <span className="ml-1 text-[#50C8C8]">Today</span>}
+                                  {isToday && (
+                                    <span className="ml-1 text-[#50C8C8]">
+                                      Today
+                                    </span>
+                                  )}
                                 </>
                               }
                               onClick={() => {
@@ -514,8 +593,7 @@ export default function BookingFlowPage({
                             />
                           </div>
                         );
-                      })
-                  )}
+                      })}
               </div>
               {/* Mobile pagination */}
               <div className="mt-2 flex items-center justify-between sm:hidden">
@@ -532,7 +610,7 @@ export default function BookingFlowPage({
                 <button
                   onClick={() =>
                     setDateScrollStart(
-                      Math.min(DAYS_AHEAD - 7, dateScrollStart + 4)
+                      Math.min(DAYS_AHEAD - 7, dateScrollStart + 4),
                     )
                   }
                   disabled={dateScrollStart >= DAYS_AHEAD - 7}
@@ -558,14 +636,18 @@ export default function BookingFlowPage({
                     </h2>
                   </div>
                   <p className="mt-2 text-[11px] text-[#F7F7F7]/25">
-                    Each slot is 1 hour. Tap a slot to book that hour, or tap a start then an end slot to select a longer range.
+                    Each slot is 1 hour. Tap a slot to book that hour, or tap a
+                    start then an end slot to select a longer range.
                   </p>
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-4 gap-2.5 sm:grid-cols-6 md:grid-cols-8">
                 {isLoadingApiData ? (
                   [...Array(16)].map((_, i) => (
-                    <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
+                    <Skeleton
+                      key={i}
+                      className="min-h-[64px] w-full rounded-xl"
+                    />
                   ))
                 ) : !selectedCourt ? (
                   <div className="caption col-span-full py-8 text-center text-[#F7F7F7]/40 border border-dashed border-white/[0.08] rounded-xl bg-white/[0.01]">
@@ -573,12 +655,20 @@ export default function BookingFlowPage({
                   </div>
                 ) : isAvailabilityLoading || isAvailabilityFetching ? (
                   [...Array(16)].map((_, i) => (
-                    <Skeleton key={i} className="min-h-[64px] w-full rounded-xl" />
+                    <Skeleton
+                      key={i}
+                      className="min-h-[64px] w-full rounded-xl"
+                    />
                   ))
                 ) : isAvailabilityError ? (
                   <div className="col-span-full flex flex-col items-center justify-center py-8 text-center border border-dashed border-red-500/20 bg-red-500/10 rounded-xl">
-                    <p className="caption text-red-200/80 mb-3">Couldn&apos;t load availability. Please try again.</p>
-                    <button onClick={() => refetchAvailability()} className="label rounded-xl bg-red-500/20 px-4 py-2 text-red-200 hover:bg-red-500/30 transition-colors">
+                    <p className="caption text-red-200/80 mb-3">
+                      Couldn&apos;t load availability. Please try again.
+                    </p>
+                    <button
+                      onClick={() => refetchAvailability()}
+                      className="label rounded-xl bg-red-500/20 px-4 py-2 text-red-200 hover:bg-red-500/30 transition-colors"
+                    >
                       Retry
                     </button>
                   </div>
@@ -595,7 +685,11 @@ export default function BookingFlowPage({
                         isDisabled={!slot.available}
                         isSelected={isSelected}
                         primaryText={slot.startsAt}
-                        secondaryText={!slot.available ? "Booked" : `${(slot.price / 1000).toFixed(0)}K`}
+                        secondaryText={
+                          !slot.available
+                            ? "Booked"
+                            : `${(slot.price / 1000).toFixed(0)}K`
+                        }
                         onClick={() => toggleSlot(slot.startsAt)}
                       />
                     );
@@ -603,13 +697,12 @@ export default function BookingFlowPage({
                 )}
               </div>
               {rangeError && (
-                <p className="caption mt-2 text-red-400">
-                  {rangeError}
-                </p>
+                <p className="caption mt-2 text-red-400">{rangeError}</p>
               )}
               {selectedSlots.length > 0 && (
                 <p className="caption mt-3 text-[#E6FA50]">
-                  Booking {startTime} – {endTime} · {duration} hour{duration > 1 ? "s" : ""}
+                  Booking {startTime} – {endTime} · {duration} hour
+                  {duration > 1 ? "s" : ""}
                 </p>
               )}
               <div className="mt-3 flex items-center gap-4">
@@ -633,9 +726,7 @@ export default function BookingFlowPage({
           <div className="h-full">
             <div className="h-full">
               <div className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 h-full flex flex-col">
-                <h3 className="section-label">
-                  Booking Summary
-                </h3>
+                <h3 className="section-label">Booking Summary</h3>
 
                 <div className="mt-5 space-y-4">
                   <div className="flex items-center justify-between">
@@ -667,7 +758,9 @@ export default function BookingFlowPage({
                   <div className="flex items-center justify-between">
                     <span className="body-sm text-[#F7F7F7]/40">Duration</span>
                     <span className="label text-[#F7F7F7]/80">
-                      {duration > 0 ? `${duration} hour${duration > 1 ? "s" : ""}` : "—"}
+                      {duration > 0
+                        ? `${duration} hour${duration > 1 ? "s" : ""}`
+                        : "—"}
                     </span>
                   </div>
                 </div>
@@ -707,9 +800,7 @@ export default function BookingFlowPage({
 
                 <div className="mt-4 border-t border-white/[0.06] pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="label text-[#F7F7F7]/60">
-                      Total
-                    </span>
+                    <span className="label text-[#F7F7F7]/60">Total</span>
                     <span className="price text-[#F7F7F7]">
                       {totalPrice > 0
                         ? `Rp ${(totalPrice * 1.05 + (hasInsurance ? 15000 : 0)).toLocaleString("id-ID")}`
@@ -727,9 +818,12 @@ export default function BookingFlowPage({
                       className="mt-1 h-4 w-4 rounded border-white/[0.08] bg-[#0C1B26] text-[#E6FA50] focus:ring-0 focus:ring-offset-0"
                     />
                     <div className="flex flex-col">
-                      <span className="label text-[#F7F7F7]/80">Add Refund Protection</span>
+                      <span className="label text-[#F7F7F7]/80">
+                        Add Refund Protection
+                      </span>
                       <span className="caption mt-0.5 text-[#F7F7F7]/40">
-                        Get 100% refund eligibility up to 2 hours before playing for Rp 15.000 flat.
+                        Get 100% refund eligibility up to 2 hours before playing
+                        for Rp 15.000 flat.
                       </span>
                     </div>
                   </label>
@@ -743,10 +837,17 @@ export default function BookingFlowPage({
                   {appliedVoucher ? (
                     <div className="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-3 flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="label uppercase text-[#F7F7F7]/80">{appliedVoucher.code}</span>
-                        <span className="caption text-[#E6FA50]">− Rp {appliedVoucher.discount.toLocaleString("id-ID")}</span>
+                        <span className="label uppercase text-[#F7F7F7]/80">
+                          {appliedVoucher.code}
+                        </span>
+                        <span className="caption text-[#E6FA50]">
+                          − Rp {appliedVoucher.discount.toLocaleString("id-ID")}
+                        </span>
                       </div>
-                      <button onClick={clearVoucher} className="p-2 text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80 transition-colors">
+                      <button
+                        onClick={clearVoucher}
+                        className="p-2 text-[#F7F7F7]/40 hover:text-[#F7F7F7]/80 transition-colors"
+                      >
                         <X className="h-4 w-4" />
                       </button>
                     </div>
@@ -756,7 +857,9 @@ export default function BookingFlowPage({
                         type="text"
                         value={voucherInput}
                         onChange={(e) => setVoucherInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleApplyVoucher()}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && handleApplyVoucher()
+                        }
                         placeholder="ENTER CODE"
                         className="body w-full uppercase rounded-xl border border-white/[0.06] bg-[#0C1B26] px-3 py-2 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none focus:border-white/[0.15]"
                       />
@@ -770,20 +873,22 @@ export default function BookingFlowPage({
                     </div>
                   )}
                   {voucherError && (
-                    <p className="caption text-red-400">
-                      {voucherError}
-                    </p>
+                    <p className="caption text-red-400">{voucherError}</p>
                   )}
                   {appliedVoucher && (
                     <div className="pt-2">
                       <div className="flex items-center justify-between">
-                        <span className="body-sm text-[#F7F7F7]/40">Discount</span>
+                        <span className="body-sm text-[#F7F7F7]/40">
+                          Discount
+                        </span>
                         <span className="body-sm text-[#E6FA50]">
                           − Rp {appliedVoucher.discount.toLocaleString("id-ID")}
                         </span>
                       </div>
                       <div className="mt-2 flex items-center justify-between border-t border-white/[0.06] pt-2">
-                        <span className="label text-[#F7F7F7]/60">Estimated total</span>
+                        <span className="label text-[#F7F7F7]/60">
+                          Estimated total
+                        </span>
                         <span className="price text-[#F7F7F7]">
                           Rp {discountedTotal.toLocaleString("id-ID")}
                         </span>
@@ -816,18 +921,24 @@ export default function BookingFlowPage({
 
                 <button
                   onClick={handleConfirm}
-                  disabled={courts.length === 0 || selectedSlots.length === 0 || confirmState === "submitting"}
+                  disabled={
+                    courts.length === 0 ||
+                    selectedSlots.length === 0 ||
+                    confirmState === "submitting"
+                  }
                   className="label btn-lime mt-6 hidden h-12 w-full items-center justify-center rounded-full lg:flex disabled:cursor-not-allowed disabled:opacity-30"
                 >
-                  {confirmState === "submitting" ? "Creating Booking..." : "Continue to Invite & Pay"}
+                  {confirmState === "submitting"
+                    ? "Creating Booking..."
+                    : "Continue to Invite & Pay"}
                 </button>
 
                 <div className="mt-auto">
                   <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/[0.02] p-3">
                     <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F7F7F7]/25" />
                     <p className="text-[11px] leading-relaxed text-[#F7F7F7]/25">
-                      Free cancellation up to 24 hours before your booking. After
-                      that, standard refund policy applies.
+                      Free cancellation up to 24 hours before your booking.
+                      After that, standard refund policy applies.
                     </p>
                   </div>
 
@@ -855,7 +966,11 @@ export default function BookingFlowPage({
           </div>
           <button
             onClick={handleConfirm}
-            disabled={courts.length === 0 || selectedSlots.length === 0 || confirmState === "submitting"}
+            disabled={
+              courts.length === 0 ||
+              selectedSlots.length === 0 ||
+              confirmState === "submitting"
+            }
             className="label btn-lime flex h-12 w-36 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-30"
           >
             {confirmState === "submitting" ? "Creating..." : "Continue"}

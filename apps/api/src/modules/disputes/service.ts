@@ -1,20 +1,36 @@
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { CreateDisputeInput } from "./model";
-import { DisputeStatus, DisputeIssueType, DisputePriority, Dispute, NotificationType, UserRole } from "@prisma/client";
-import { NotificationsService, notificationsService as defaultNotifications, CreateNotificationInput } from "../notifications/service";
+import {
+  type Dispute,
+  DisputeIssueType,
+  DisputePriority,
+  DisputeStatus,
+  NotificationType,
+  UserRole,
+} from "@prisma/client";
 import { BadRequestException, NotFoundException } from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import {
+  type CreateNotificationInput,
+  notificationsService as defaultNotifications,
+  type NotificationsService,
+} from "../notifications/service";
+import type { CreateDisputeInput } from "./model";
 
 export class DisputesService {
   constructor(
     private prisma: PrismaService = defaultPrisma,
-    private readonly notifications: NotificationsService = defaultNotifications
+    private readonly notifications: NotificationsService = defaultNotifications,
   ) {}
 
   private async safeNotify(input: CreateNotificationInput) {
     try {
       await this.notifications.createNotification(input);
     } catch (err) {
-      console.warn(`[DisputesService] Failed to emit notification: ${String(err)}`);
+      console.warn(
+        `[DisputesService] Failed to emit notification: ${String(err)}`,
+      );
     }
   }
 
@@ -23,7 +39,7 @@ export class DisputesService {
       venue: { id: string; name: string };
       raisedBy: { id: string; name: string };
       assignedTo: { id: string; name: string } | null;
-    }
+    },
   ) {
     return {
       id: dispute.id,
@@ -37,7 +53,9 @@ export class DisputesService {
       createdAt: dispute.createdAt,
       user: { id: dispute.raisedBy.id, name: dispute.raisedBy.name },
       venue: { id: dispute.venue.id, name: dispute.venue.name },
-      assignedTo: dispute.assignedTo ? { id: dispute.assignedTo.id, name: dispute.assignedTo.name } : null,
+      assignedTo: dispute.assignedTo
+        ? { id: dispute.assignedTo.id, name: dispute.assignedTo.name }
+        : null,
     };
   }
 
@@ -57,7 +75,10 @@ export class DisputesService {
     if (!Object.values(DisputeIssueType).includes(dto.issueType)) {
       throw new BadRequestException(`Invalid issue type: ${dto.issueType}`);
     }
-    const priority = dto.priority && Object.values(DisputePriority).includes(dto.priority) ? dto.priority : DisputePriority.MEDIUM;
+    const priority =
+      dto.priority && Object.values(DisputePriority).includes(dto.priority)
+        ? dto.priority
+        : DisputePriority.MEDIUM;
 
     const booking = await this.prisma.booking.findUnique({
       where: { id: dto.bookingId },
@@ -109,8 +130,8 @@ export class DisputesService {
             title: "New dispute reported",
             body: "A player reported an issue on a booking.",
             linkUrl: `/admin/disputes`,
-          })
-        )
+          }),
+        ),
     );
 
     return this.toResponse(dispute);
@@ -138,8 +159,13 @@ export class DisputesService {
     const existing = await this.prisma.dispute.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException("Dispute not found");
 
-    if (existing.status === DisputeStatus.RESOLVED || existing.status === DisputeStatus.CLOSED) {
-      throw new BadRequestException(`Cannot assign a ${existing.status} dispute`);
+    if (
+      existing.status === DisputeStatus.RESOLVED ||
+      existing.status === DisputeStatus.CLOSED
+    ) {
+      throw new BadRequestException(
+        `Cannot assign a ${existing.status} dispute`,
+      );
     }
 
     const dispute = await this.prisma.dispute.update({
@@ -169,12 +195,21 @@ export class DisputesService {
     return this.toResponse(dispute);
   }
 
-  async resolveDispute(id: string, adminUserId: string, resolutionNotes?: string) {
+  async resolveDispute(
+    id: string,
+    adminUserId: string,
+    resolutionNotes?: string,
+  ) {
     const existing = await this.prisma.dispute.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException("Dispute not found");
 
-    if (existing.status === DisputeStatus.RESOLVED || existing.status === DisputeStatus.CLOSED) {
-      throw new BadRequestException(`Cannot resolve a ${existing.status} dispute`);
+    if (
+      existing.status === DisputeStatus.RESOLVED ||
+      existing.status === DisputeStatus.CLOSED
+    ) {
+      throw new BadRequestException(
+        `Cannot resolve a ${existing.status} dispute`,
+      );
     }
 
     const dispute = await this.prisma.dispute.update({

@@ -1,6 +1,10 @@
-import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
 import { getVenue, getVenueCourts, getVenues } from "@/lib/api";
+import { queryKeys } from "@/lib/queries";
 import VenueDetailClient from "./client";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +18,7 @@ export async function generateMetadata({ params }: { params: Params }) {
       title: `${venue.name} | PadelHive`,
       description: venue.description,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       title: "Venue | PadelHive",
     };

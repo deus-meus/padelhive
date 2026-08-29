@@ -15,7 +15,9 @@ export class MailService {
     if (!isEnabled || !apiKey) {
       this.enabled = false;
       this.resend = null;
-      console.log("[MailService] Disabled: MAIL_ENABLED is not true or RESEND_API_KEY is missing");
+      console.log(
+        "[MailService] Disabled: MAIL_ENABLED is not true or RESEND_API_KEY is missing",
+      );
     } else {
       this.enabled = true;
       this.resend = new Resend(apiKey);
@@ -38,7 +40,9 @@ export class MailService {
       let finalLink = "";
       if (input.linkUrl) {
         if (input.linkUrl.startsWith("/")) {
-          finalLink = this.webUrl ? `${this.webUrl}${input.linkUrl}` : input.linkUrl;
+          finalLink = this.webUrl
+            ? `${this.webUrl}${input.linkUrl}`
+            : input.linkUrl;
         } else {
           finalLink = input.linkUrl;
         }
@@ -119,7 +123,9 @@ export class MailService {
         text,
       });
     } catch (err) {
-      console.warn(`[MailService] Failed to send notification email to ${input.to}: ${String(err)}`);
+      console.warn(
+        `[MailService] Failed to send notification email to ${input.to}: ${String(err)}`,
+      );
     }
   }
 }

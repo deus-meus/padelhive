@@ -1,6 +1,6 @@
 import * as crypto from "node:crypto";
-import { UploadSignatureResponse } from "./model";
 import { HttpException } from "../../common/errors";
+import type { UploadSignatureResponse } from "./model";
 
 export class UploadsService {
   createSignature(): UploadSignatureResponse {
@@ -16,7 +16,10 @@ export class UploadsService {
     const timestamp = Math.round(Date.now() / 1000);
 
     const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
-    const signature = crypto.createHash("sha1").update(paramsToSign + apiSecret).digest("hex");
+    const signature = crypto
+      .createHash("sha1")
+      .update(paramsToSign + apiSecret)
+      .digest("hex");
 
     return {
       timestamp,

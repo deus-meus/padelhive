@@ -1,14 +1,14 @@
-import { create } from "zustand";
 import { onIdTokenChanged } from "firebase/auth";
-import { firebaseAuth } from "@/lib/firebase";
-import {
-  signInWithGoogle as authSignInWithGoogle,
-  signInWithEmail as authSignInWithEmail,
-  signUpWithEmail as authSignUpWithEmail,
-  sendPasswordReset as authSendPasswordReset,
-  signOut as authSignOut,
-} from "@/lib/auth-client";
+import { create } from "zustand";
 import { getMe } from "@/lib/api";
+import {
+  sendPasswordReset as authSendPasswordReset,
+  signInWithEmail as authSignInWithEmail,
+  signInWithGoogle as authSignInWithGoogle,
+  signOut as authSignOut,
+  signUpWithEmail as authSignUpWithEmail,
+} from "@/lib/auth-client";
+import { firebaseAuth } from "@/lib/firebase";
 import type { UserRole } from "@/types";
 
 export type AuthUser = {
@@ -34,7 +34,11 @@ interface AuthState {
   initialize: () => void;
   loginWithGoogle: () => Promise<AuthUser>;
   loginWithEmail: (email: string, password: string) => Promise<AuthUser>;
-  registerWithEmail: (name: string, email: string, password: string) => Promise<void>;
+  registerWithEmail: (
+    name: string,
+    email: string,
+    password: string,
+  ) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -43,7 +47,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
   isInitialized: false,
-
 
   initialize: () => {
     if (get().isInitialized) return;
@@ -62,7 +65,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             },
           });
         } catch (error) {
-          console.error("Failed to fetch user from backend or refresh token", error);
+          console.error(
+            "Failed to fetch user from backend or refresh token",
+            error,
+          );
           set({ user: null });
         }
       } else {

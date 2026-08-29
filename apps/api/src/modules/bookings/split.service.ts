@@ -1,27 +1,50 @@
-import { BookingStatus, SplitShareStatus, Prisma, NotificationType } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { SetBookingSplitInput } from "./model";
+import {
+  BookingStatus,
+  NotificationType,
+  type Prisma,
+  SplitShareStatus,
+} from "@prisma/client";
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import {
+  type CreateNotificationInput,
+  notificationsService as defaultNotifications,
+  type NotificationsService,
+} from "../notifications/service";
 import type { PaymentGateway } from "../payments/midtrans.gateway";
 import { midtransGateway as defaultGateway } from "../payments/midtrans.gateway";
-import { NotificationsService, notificationsService as defaultNotifications, CreateNotificationInput } from "../notifications/service";
-import { BadRequestException, ForbiddenException, NotFoundException } from "../../common/errors";
+import type { SetBookingSplitInput } from "./model";
 
 export class BookingSplitService {
   constructor(
     private readonly prisma: PrismaService = defaultPrisma,
     private readonly paymentGateway: PaymentGateway = defaultGateway,
-    private readonly notifications: NotificationsService = defaultNotifications
+    private readonly notifications: NotificationsService = defaultNotifications,
   ) {}
 
   private async safeNotify(input: CreateNotificationInput) {
     try {
       await this.notifications.createNotification(input);
     } catch (err) {
-      console.warn(`[BookingSplitService] Failed to emit notification: ${String(err)}`);
+      console.warn(
+        `[BookingSplitService] Failed to emit notification: ${String(err)}`,
+      );
     }
   }
 
-  private identityKey(s: { inviteId: string | null; userId: string | null; email: string | null; name: string }): string {
+  private identityKey(s: {
+    inviteId: string | null;
+    userId: string | null;
+    email: string | null;
+    name: string;
+  }): string {
     if (s.inviteId) return `invite:${s.inviteId}`;
     if (s.userId) return `user:${s.userId}`;
     if (s.email) return `email:${s.email.toLowerCase()}`;
@@ -39,17 +62,37 @@ export class BookingSplitService {
     }
 
     if (booking.hostUserId !== userId) {
-      throw new ForbiddenException("Only the booking host can manage the split ledger");
+      throw new ForbiddenException(
+        "Only the booking host can manage the split ledger",
+      );
     }
 
-    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.EXPIRED) {
-      throw new BadRequestException("Cannot manage split ledger for cancelled or expired bookings");
+    if (
+      booking.status === BookingStatus.CANCELLED ||
+      booking.status === BookingStatus.EXPIRED
+    ) {
+      throw new BadRequestException(
+        "Cannot manage split ledger for cancelled or expired bookings",
+      );
     }
 
     return booking;
   }
 
-  private buildSplitResponse(bookingId: string, finalAmount: number, shares: Array<{ id: string; name: string; email: string | null; userId: string | null; inviteId: string | null; amount: number; status: "PENDING" | "PAID" | "REFUNDED"; paidAt: Date | null; }>) {
+  private buildSplitResponse(
+    bookingId: string,
+    finalAmount: number,
+    shares: Array<{
+      id: string;
+      name: string;
+      email: string | null;
+      userId: string | null;
+      inviteId: string | null;
+      amount: number;
+      status: "PENDING" | "PAID" | "REFUNDED";
+      paidAt: Date | null;
+    }>,
+  ) {
     let splitTotal = 0;
     let paidAmount = 0;
 
@@ -94,8 +137,16 @@ export class BookingSplitService {
   async setSplit(bookingId: string, userId: string, dto: SetBookingSplitInput) {
     const booking = await this.getValidBooking(bookingId, userId);
 
-    const collected = await this.prisma.bookingSplitShare.count({ where: { bookingId, status: { in: [SplitShareStatus.PAID, SplitShareStatus.REFUNDED] } } });
-    if (collected > 0) throw new BadRequestException("Cannot modify a split that already has collected payments.");
+    const collected = await this.prisma.bookingSplitShare.count({
+      where: {
+        bookingId,
+        status: { in: [SplitShareStatus.PAID, SplitShareStatus.REFUNDED] },
+      },
+    });
+    if (collected > 0)
+      throw new BadRequestException(
+        "Cannot modify a split that already has collected payments.",
+      );
 
     if (!dto.participants || dto.participants.length === 0) {
       throw new BadRequestException("Participants list cannot be empty");
@@ -104,7 +155,9 @@ export class BookingSplitService {
     const n = dto.participants.length;
     for (const p of dto.participants) {
       if (!p.name || typeof p.name !== "string" || p.name.trim() === "") {
-        throw new BadRequestException("Each participant must have a non-empty name");
+        throw new BadRequestException(
+          "Each participant must have a non-empty name",
+        );
       }
     }
 
@@ -139,8 +192,16 @@ export class BookingSplitService {
     } else if (dto.mode === "custom") {
       let sum = 0;
       for (const p of dto.participants) {
-        if (p.amount === undefined || p.amount === null || typeof p.amount !== "number" || p.amount < 0 || !Number.isInteger(p.amount)) {
-          throw new BadRequestException("Each participant must have a valid non-negative integer amount in custom mode");
+        if (
+          p.amount === undefined ||
+          p.amount === null ||
+          typeof p.amount !== "number" ||
+          p.amount < 0 ||
+          !Number.isInteger(p.amount)
+        ) {
+          throw new BadRequestException(
+            "Each participant must have a valid non-negative integer amount in custom mode",
+          );
         }
         sum += p.amount;
         processedParticipants.push({
@@ -156,7 +217,9 @@ export class BookingSplitService {
       }
 
       if (sum !== booking.finalAmount) {
-        throw new BadRequestException(`The sum of custom amounts (${sum}) must exactly equal the booking final amount (${booking.finalAmount})`);
+        throw new BadRequestException(
+          `The sum of custom amounts (${sum}) must exactly equal the booking final amount (${booking.finalAmount})`,
+        );
       }
     } else {
       throw new BadRequestException("Invalid split mode");
@@ -167,7 +230,10 @@ export class BookingSplitService {
         where: { bookingId },
       });
 
-      const statusByIdentity = new Map<string, { status: SplitShareStatus; paidAt: Date | null }>();
+      const statusByIdentity = new Map<
+        string,
+        { status: SplitShareStatus; paidAt: Date | null }
+      >();
       for (const s of existing) {
         const key = this.identityKey(s);
         if (!statusByIdentity.has(key)) {
@@ -205,15 +271,28 @@ export class BookingSplitService {
   async clearSplit(bookingId: string, userId: string): Promise<void> {
     await this.getValidBooking(bookingId, userId);
 
-    const collected = await this.prisma.bookingSplitShare.count({ where: { bookingId, status: { in: [SplitShareStatus.PAID, SplitShareStatus.REFUNDED] } } });
-    if (collected > 0) throw new BadRequestException("Cannot modify a split that already has collected payments.");
+    const collected = await this.prisma.bookingSplitShare.count({
+      where: {
+        bookingId,
+        status: { in: [SplitShareStatus.PAID, SplitShareStatus.REFUNDED] },
+      },
+    });
+    if (collected > 0)
+      throw new BadRequestException(
+        "Cannot modify a split that already has collected payments.",
+      );
 
     await this.prisma.bookingSplitShare.deleteMany({
       where: { bookingId },
     });
   }
 
-  async setShareStatus(bookingId: string, shareId: string, userId: string, status: "PENDING" | "PAID") {
+  async setShareStatus(
+    bookingId: string,
+    shareId: string,
+    userId: string,
+    status: "PENDING" | "PAID",
+  ) {
     const booking = await this.getValidBooking(bookingId, userId);
 
     if (status !== "PENDING" && status !== "PAID") {
@@ -244,7 +323,10 @@ export class BookingSplitService {
     return this.buildSplitResponse(bookingId, booking.finalAmount, shares);
   }
 
-  async checkAndConfirmBooking(tx: Prisma.TransactionClient, bookingId: string) {
+  async checkAndConfirmBooking(
+    tx: Prisma.TransactionClient,
+    bookingId: string,
+  ) {
     const booking = await tx.booking.findUnique({
       where: { id: bookingId },
       select: { id: true, status: true },
@@ -267,7 +349,7 @@ export class BookingSplitService {
     bookingId: string,
     shareId: string,
     userId: string,
-    method: "va" | "ewallet" | "card"
+    method: "va" | "ewallet" | "card",
   ) {
     const SUPPORTED_METHODS = ["va", "ewallet", "card"];
     if (!SUPPORTED_METHODS.includes(method)) {
@@ -336,7 +418,10 @@ export class BookingSplitService {
     };
   }
 
-  async refundPaidShares(bookingId: string, opts: { notifyHostUserId?: string } = {}): Promise<{ refundedCount: number; failedCount: number }> {
+  async refundPaidShares(
+    bookingId: string,
+    opts: { notifyHostUserId?: string } = {},
+  ): Promise<{ refundedCount: number; failedCount: number }> {
     const paidShares = await this.prisma.bookingSplitShare.findMany({
       where: { bookingId, status: SplitShareStatus.PAID },
     });
@@ -351,9 +436,15 @@ export class BookingSplitService {
     for (const share of paidShares) {
       if (share.provider === "midtrans" && share.providerReference) {
         try {
-          await this.paymentGateway.refundPayment(share.providerReference, share.amount, `${share.id}-refund`);
+          await this.paymentGateway.refundPayment(
+            share.providerReference,
+            share.amount,
+            `${share.id}-refund`,
+          );
         } catch (err) {
-          console.warn(`[BookingSplitService] Failed to refund Midtrans payment for split share ${share.id}: ${String(err)}`);
+          console.warn(
+            `[BookingSplitService] Failed to refund Midtrans payment for split share ${share.id}: ${String(err)}`,
+          );
           failedCount++;
           continue;
         }

@@ -1,21 +1,40 @@
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { BookingStatus, PaymentStatus, NotificationType, RefundType, RefundStatus, UserRole } from "@prisma/client";
-import { BookingSplitService, bookingSplitService as defaultSplitService } from "./split.service";
-import { NotificationsService, notificationsService as defaultNotifications, CreateNotificationInput } from "../notifications/service";
+import {
+  BookingStatus,
+  NotificationType,
+  PaymentStatus,
+  RefundStatus,
+  RefundType,
+  UserRole,
+} from "@prisma/client";
 import { RESCHEDULE_CHARGE_TTL_MS } from "../../common/constants";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import {
+  type CreateNotificationInput,
+  notificationsService as defaultNotifications,
+  type NotificationsService,
+} from "../notifications/service";
+import {
+  type BookingSplitService,
+  bookingSplitService as defaultSplitService,
+} from "./split.service";
 
 export class BookingExpiryService {
   constructor(
     private readonly prisma: PrismaService = defaultPrisma,
     private readonly bookingSplitService: BookingSplitService = defaultSplitService,
-    private readonly notifications: NotificationsService = defaultNotifications
+    private readonly notifications: NotificationsService = defaultNotifications,
   ) {}
 
   private async safeNotify(input: CreateNotificationInput) {
     try {
       await this.notifications.createNotification(input);
     } catch (err) {
-      console.warn(`[BookingExpiryService] Failed to emit notification: ${String(err)}`);
+      console.warn(
+        `[BookingExpiryService] Failed to emit notification: ${String(err)}`,
+      );
     }
   }
 
@@ -55,7 +74,9 @@ export class BookingExpiryService {
       });
       superAdminIds = admins.map((a) => a.id);
     } catch (err) {
-      console.warn(`[BookingExpiryService] Failed to load super admins during reschedule-charge sweep: ${String(err)}`);
+      console.warn(
+        `[BookingExpiryService] Failed to load super admins during reschedule-charge sweep: ${String(err)}`,
+      );
     }
 
     let cancelledCount = 0;
@@ -70,7 +91,8 @@ export class BookingExpiryService {
             where: { id: charge.id, status: PaymentStatus.PENDING },
             data: { status: PaymentStatus.FAILED, failedAt: now },
           });
-          if (chargeRes.count === 0) return { cancelled: false, refundCreated: false };
+          if (chargeRes.count === 0)
+            return { cancelled: false, refundCreated: false };
 
           await tx.booking.updateMany({
             where: { id: booking.id, status: BookingStatus.CONFIRMED },
@@ -79,14 +101,17 @@ export class BookingExpiryService {
 
           let refundCreated = false;
           if (payment && payment.status === PaymentStatus.PAID) {
-            const existing = await tx.refund.findFirst({ where: { paymentId: payment.id } });
+            const existing = await tx.refund.findFirst({
+              where: { paymentId: payment.id },
+            });
             if (!existing) {
               await tx.refund.create({
                 data: {
                   bookingId: booking.id,
                   paymentId: payment.id,
                   amount: payment.amount,
-                  reason: "Auto-cancelled: reschedule balance not paid in time.",
+                  reason:
+                    "Auto-cancelled: reschedule balance not paid in time.",
                   type: RefundType.FULL,
                   status: RefundStatus.PENDING,
                 },
@@ -102,9 +127,13 @@ export class BookingExpiryService {
         cancelledCount++;
 
         try {
-          await this.bookingSplitService.refundPaidShares(booking.id, { notifyHostUserId: booking.hostUserId });
+          await this.bookingSplitService.refundPaidShares(booking.id, {
+            notifyHostUserId: booking.hostUserId,
+          });
         } catch (err) {
-          console.warn(`[BookingExpiryService] Best-effort split share refund failed during reschedule-charge sweep for booking ${booking.id}: ${String(err)}`);
+          console.warn(
+            `[BookingExpiryService] Best-effort split share refund failed during reschedule-charge sweep for booking ${booking.id}: ${String(err)}`,
+          );
         }
 
         await this.safeNotify({
@@ -126,17 +155,21 @@ export class BookingExpiryService {
                   title: "Refund to review",
                   body: "A booking was auto-cancelled for an unpaid reschedule balance and needs a refund.",
                   linkUrl: `/admin/refunds`,
-                })
-              )
+                }),
+              ),
           );
         }
       } catch (err) {
-        console.warn(`[BookingExpiryService] Best-effort auto-void failed for charge ${charge.id}: ${String(err)}`);
+        console.warn(
+          `[BookingExpiryService] Best-effort auto-void failed for charge ${charge.id}: ${String(err)}`,
+        );
       }
     }
 
     if (cancelledCount > 0) {
-      console.log(`[BookingExpiryService] Auto-cancelled ${cancelledCount} bookings with unpaid reschedule balance.`);
+      console.log(
+        `[BookingExpiryService] Auto-cancelled ${cancelledCount} bookings with unpaid reschedule balance.`,
+      );
     }
   }
 
@@ -160,7 +193,10 @@ export class BookingExpiryService {
     const voucherDecrements = new Map<string, number>();
     for (const b of expiredBookings) {
       if (b.voucherId) {
-        voucherDecrements.set(b.voucherId, (voucherDecrements.get(b.voucherId) ?? 0) + 1);
+        voucherDecrements.set(
+          b.voucherId,
+          (voucherDecrements.get(b.voucherId) ?? 0) + 1,
+        );
       }
     }
 
@@ -201,13 +237,19 @@ export class BookingExpiryService {
 
     for (const b of paidShareBookings) {
       try {
-        await this.bookingSplitService.refundPaidShares(b.bookingId, { notifyHostUserId: b.booking.hostUserId });
+        await this.bookingSplitService.refundPaidShares(b.bookingId, {
+          notifyHostUserId: b.booking.hostUserId,
+        });
       } catch (err) {
-        console.warn(`[BookingExpiryService] Best-effort split share refund failed during expiry sweep for booking ${b.bookingId}: ${String(err)}`);
+        console.warn(
+          `[BookingExpiryService] Best-effort split share refund failed during expiry sweep for booking ${b.bookingId}: ${String(err)}`,
+        );
       }
     }
 
-    console.log(`[BookingExpiryService] Expired ${bookingIds.length} stale pending-payment bookings.`);
+    console.log(
+      `[BookingExpiryService] Expired ${bookingIds.length} stale pending-payment bookings.`,
+    );
   }
 
   public async sweepCompletedBookings(): Promise<void> {
@@ -225,7 +267,9 @@ export class BookingExpiryService {
     });
 
     if (count > 0) {
-      console.log(`[BookingExpiryService] Auto-completed ${count} finished bookings.`);
+      console.log(
+        `[BookingExpiryService] Auto-completed ${count} finished bookings.`,
+      );
     }
   }
 }

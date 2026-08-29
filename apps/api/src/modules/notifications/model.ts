@@ -1,5 +1,5 @@
-import { t, Static } from "elysia";
 import { NotificationType } from "@prisma/client";
+import { type Static, t } from "elysia";
 
 export const NotificationTypeEnum = t.Enum(NotificationType);
 

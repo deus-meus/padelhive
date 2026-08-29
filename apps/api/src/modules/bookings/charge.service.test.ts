@@ -16,7 +16,7 @@ describe("BookingChargeService", () => {
     };
     service = new BookingChargeService(
       prismaMock as any,
-      paymentGatewayMock as any
+      paymentGatewayMock as any,
     );
   });
 
@@ -36,8 +36,14 @@ describe("BookingChargeService", () => {
       };
       prismaMock.bookingCharge.findFirst.mockResolvedValue(existingCharge);
 
-      const result = await service.createChargeIntent("booking-1", "user-1", "card");
-      expect(result).toEqual(expect.objectContaining({ providerRedirectUrl: "http://redirect" }));
+      const result = await service.createChargeIntent(
+        "booking-1",
+        "user-1",
+        "card",
+      );
+      expect(result).toEqual(
+        expect.objectContaining({ providerRedirectUrl: "http://redirect" }),
+      );
       expect(paymentGatewayMock.createTransaction).not.toHaveBeenCalled();
     });
 
@@ -52,7 +58,10 @@ describe("BookingChargeService", () => {
         method: "card",
       };
       prismaMock.bookingCharge.findFirst.mockResolvedValue(pendingCharge);
-      paymentGatewayMock.createTransaction.mockResolvedValue({ redirectUrl: "http://new", token: "tok2" });
+      paymentGatewayMock.createTransaction.mockResolvedValue({
+        redirectUrl: "http://new",
+        token: "tok2",
+      });
       prismaMock.bookingCharge.update.mockResolvedValue({
         ...pendingCharge,
         providerReference: "charge-1",
@@ -60,7 +69,11 @@ describe("BookingChargeService", () => {
         providerToken: "tok2",
       });
 
-      const result = await service.createChargeIntent("booking-1", "user-1", "card");
+      const result = await service.createChargeIntent(
+        "booking-1",
+        "user-1",
+        "card",
+      );
       expect(paymentGatewayMock.createTransaction).toHaveBeenCalledWith({
         orderId: "charge-1",
         amount: 20000,
@@ -85,9 +98,11 @@ describe("BookingChargeService", () => {
       });
 
       const result = await service.markChargePaidForUser("booking-1", "user-1");
-      expect(prismaMock.bookingCharge.update).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({ status: PaymentStatus.PAID }),
-      }));
+      expect(prismaMock.bookingCharge.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: PaymentStatus.PAID }),
+        }),
+      );
       expect(result.status).toBe(PaymentStatus.PAID);
     });
   });

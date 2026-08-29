@@ -1,13 +1,16 @@
 import { PaymentStatus } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
+import { BadRequestException, NotFoundException } from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
 import type { PaymentGateway } from "../payments/midtrans.gateway";
 import { midtransGateway as defaultGateway } from "../payments/midtrans.gateway";
-import { BadRequestException, NotFoundException } from "../../common/errors";
 
 export class BookingChargeService {
   constructor(
     private readonly prisma: PrismaService = defaultPrisma,
-    private readonly paymentGateway: PaymentGateway = defaultGateway
+    private readonly paymentGateway: PaymentGateway = defaultGateway,
   ) {}
 
   async createChargeIntent(bookingId: string, userId: string, method: string) {

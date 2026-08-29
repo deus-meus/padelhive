@@ -1,6 +1,6 @@
 import { VoucherType } from "@prisma/client";
+import type { PrismaService } from "../../common/prisma";
 import { VouchersService } from "./service";
-import { PrismaService } from "../../common/prisma";
 
 describe("VouchersService - repriceVoucherById", () => {
   let service: VouchersService;

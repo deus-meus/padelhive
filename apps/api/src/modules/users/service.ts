@@ -1,17 +1,24 @@
 import { UserRole } from "@prisma/client";
-import { DecodedIdToken } from "firebase-admin/auth";
-import { RequestUser } from "../auth/model";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
+import type { DecodedIdToken } from "firebase-admin/auth";
 import { UnauthorizedException } from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import type { RequestUser } from "../auth/model";
 
 export class UsersService {
   constructor(private readonly prisma: PrismaService = defaultPrisma) {}
 
-  async findOrCreateFromFirebaseToken(decodedToken: DecodedIdToken): Promise<RequestUser> {
+  async findOrCreateFromFirebaseToken(
+    decodedToken: DecodedIdToken,
+  ): Promise<RequestUser> {
     const email = decodedToken.email;
 
     if (!email) {
-      throw new UnauthorizedException("Firebase token must include an email address");
+      throw new UnauthorizedException(
+        "Firebase token must include an email address",
+      );
     }
 
     const name = decodedToken.name ?? email;

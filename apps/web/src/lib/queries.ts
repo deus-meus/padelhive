@@ -5,7 +5,7 @@ export const queryKeys = {
     detail: (id: string) => ["venues", id] as const,
     courts: (id: string) => ["venues", id, "courts"] as const,
     courtsManage: (id: string) => ["venues", id, "courts", "manage"] as const,
-    availability: (venueId: string, date: string, courtId: string) => 
+    availability: (venueId: string, date: string, courtId: string) =>
       ["venues", venueId, "availability", date, courtId] as const,
   },
   reviews: {
@@ -21,11 +21,17 @@ export const queryKeys = {
     overview: () => ["admin", "overview"] as const,
     vouchers: () => ["admin", "vouchers"] as const,
     venues: (status?: string) => ["admin", "venues", status ?? "all"] as const,
-    disputes: (status?: string) => ["admin", "disputes", status ?? "all"] as const,
+    disputes: (status?: string) =>
+      ["admin", "disputes", status ?? "all"] as const,
     bookings: (params: { status?: string; page?: number }) =>
       ["admin", "bookings", params.status ?? "all", params.page ?? 1] as const,
-    commission: (params?: { fromDate?: string; toDate?: string }) => 
-      ["admin", "commission", params?.fromDate ?? "all", params?.toDate ?? "all"] as const,
+    commission: (params?: { fromDate?: string; toDate?: string }) =>
+      [
+        "admin",
+        "commission",
+        params?.fromDate ?? "all",
+        params?.toDate ?? "all",
+      ] as const,
     metrics: () => ["admin", "metrics"] as const,
   },
   dashboard: {

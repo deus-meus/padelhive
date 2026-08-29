@@ -1,10 +1,29 @@
-import { BookingStatus, CourtType, PaymentStatus, NotificationType } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { CreatePaymentIntentInput, MidtransWebhookInput } from "./model";
-import { PaymentGateway, midtransGateway as defaultGateway } from "./midtrans.gateway";
-import * as crypto from "crypto";
-import { NotificationsService, notificationsService as defaultNotifications, CreateNotificationInput } from "../notifications/service";
-import { BadRequestException, ForbiddenException, NotFoundException } from "../../common/errors";
+import * as crypto from "node:crypto";
+import {
+  BookingStatus,
+  type CourtType,
+  NotificationType,
+  PaymentStatus,
+} from "@prisma/client";
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import {
+  type CreateNotificationInput,
+  notificationsService as defaultNotifications,
+  type NotificationsService,
+} from "../notifications/service";
+import {
+  midtransGateway as defaultGateway,
+  type PaymentGateway,
+} from "./midtrans.gateway";
+import type { CreatePaymentIntentInput, MidtransWebhookInput } from "./model";
 
 const SUPPORTED_METHODS = ["va", "ewallet", "card"];
 const SUPPORTED_PROVIDERS = ["internal", "midtrans"];
@@ -69,14 +88,16 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService = defaultPrisma,
     private readonly paymentGateway: PaymentGateway = defaultGateway,
-    private readonly notifications: NotificationsService = defaultNotifications
+    private readonly notifications: NotificationsService = defaultNotifications,
   ) {}
 
   private async safeNotify(input: CreateNotificationInput) {
     try {
       await this.notifications.createNotification(input);
     } catch (err) {
-      console.warn(`[PaymentsService] Failed to emit notification: ${String(err)}`);
+      console.warn(
+        `[PaymentsService] Failed to emit notification: ${String(err)}`,
+      );
     }
   }
 
@@ -101,13 +122,21 @@ export class PaymentsService {
       throw new BadRequestException("Booking cannot be paid");
     }
 
-    const splitCount = await this.prisma.bookingSplitShare.count({ where: { bookingId: booking.id } });
+    const splitCount = await this.prisma.bookingSplitShare.count({
+      where: { bookingId: booking.id },
+    });
     if (splitCount > 0) {
-      throw new BadRequestException("This booking is split; pay each share individually.");
+      throw new BadRequestException(
+        "This booking is split; pay each share individually.",
+      );
     }
 
     const pendingPayment = await this.prisma.payment.findFirst({
-      where: { bookingId: booking.id, status: PaymentStatus.PENDING, provider: body.provider },
+      where: {
+        bookingId: booking.id,
+        status: PaymentStatus.PENDING,
+        provider: body.provider,
+      },
       select: paymentSelect,
     });
 
@@ -190,16 +219,27 @@ export class PaymentsService {
     }
 
     if (payment.status !== PaymentStatus.PENDING) {
-      throw new BadRequestException("Only pending demo payments can be marked as paid");
+      throw new BadRequestException(
+        "Only pending demo payments can be marked as paid",
+      );
     }
 
-    if ((payment as SelectedPayment).booking.status !== BookingStatus.PENDING_PAYMENT) {
-      throw new BadRequestException("Only pending-payment bookings can be confirmed");
+    if (
+      (payment as SelectedPayment).booking.status !==
+      BookingStatus.PENDING_PAYMENT
+    ) {
+      throw new BadRequestException(
+        "Only pending-payment bookings can be confirmed",
+      );
     }
 
-    const splitCount = await this.prisma.bookingSplitShare.count({ where: { bookingId: payment.bookingId } });
+    const splitCount = await this.prisma.bookingSplitShare.count({
+      where: { bookingId: payment.bookingId },
+    });
     if (splitCount > 0) {
-      throw new BadRequestException("This booking is split; pay each share individually.");
+      throw new BadRequestException(
+        "This booking is split; pay each share individually.",
+      );
     }
 
     const paidPayment = await this.prisma.$transaction(async (tx) => {
@@ -209,8 +249,16 @@ export class PaymentsService {
       });
 
       await tx.bookingCharge.updateMany({
-        where: { bookingId: payment.bookingId, reason: "Refund Protection Insurance", status: PaymentStatus.PENDING },
-        data: { status: PaymentStatus.PAID, paidAt: new Date(), method: payment.method },
+        where: {
+          bookingId: payment.bookingId,
+          reason: "Refund Protection Insurance",
+          status: PaymentStatus.PENDING,
+        },
+        data: {
+          status: PaymentStatus.PAID,
+          paidAt: new Date(),
+          method: payment.method,
+        },
       });
 
       return tx.payment.update({
@@ -221,8 +269,20 @@ export class PaymentsService {
     });
 
     const hostId = (payment as SelectedPayment).booking.hostUserId;
-    await this.safeNotify({ userId: hostId, type: NotificationType.PAYMENT_SUCCESS, title: "Payment successful", body: "Your payment was received and your booking is confirmed.", linkUrl: `/bookings/${payment.bookingId}` });
-    await this.safeNotify({ userId: hostId, type: NotificationType.BOOKING_CONFIRMED, title: "Booking confirmed", body: "Your court booking is confirmed.", linkUrl: `/bookings/${payment.bookingId}` });
+    await this.safeNotify({
+      userId: hostId,
+      type: NotificationType.PAYMENT_SUCCESS,
+      title: "Payment successful",
+      body: "Your payment was received and your booking is confirmed.",
+      linkUrl: `/bookings/${payment.bookingId}`,
+    });
+    await this.safeNotify({
+      userId: hostId,
+      type: NotificationType.BOOKING_CONFIRMED,
+      title: "Booking confirmed",
+      body: "Your court booking is confirmed.",
+      linkUrl: `/bookings/${payment.bookingId}`,
+    });
 
     return this.stripHostUserId(paidPayment as SelectedPayment);
   }
@@ -232,11 +292,17 @@ export class PaymentsService {
     const hashString = `${payload.order_id}${payload.status_code}${payload.gross_amount}${serverKey}`;
     const hash = crypto.createHash("sha512").update(hashString).digest("hex");
 
-    if (!payload.signature_key || payload.signature_key.length !== hash.length) {
+    if (
+      !payload.signature_key ||
+      payload.signature_key.length !== hash.length
+    ) {
       throw new BadRequestException("Invalid signature length");
     }
 
-    const isValid = crypto.timingSafeEqual(Buffer.from(payload.signature_key), Buffer.from(hash));
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(payload.signature_key),
+      Buffer.from(hash),
+    );
     if (!isValid) {
       throw new BadRequestException("Invalid signature");
     }
@@ -254,13 +320,21 @@ export class PaymentsService {
         include: { booking: true },
       });
       if (!share) {
-        const charge = await this.prisma.bookingCharge.findFirst({ where: { id: payload.order_id } });
+        const charge = await this.prisma.bookingCharge.findFirst({
+          where: { id: payload.order_id },
+        });
         if (!charge) return;
         if (charge.status === PaymentStatus.PAID) return;
 
         let chargeTargetStatus: PaymentStatus | null = null;
-        if (transaction_status === "settlement" || transaction_status === "capture") {
-          if (transaction_status === "capture" && fraud_status === "challenge") {
+        if (
+          transaction_status === "settlement" ||
+          transaction_status === "capture"
+        ) {
+          if (
+            transaction_status === "capture" &&
+            fraud_status === "challenge"
+          ) {
             return;
           }
           chargeTargetStatus = PaymentStatus.PAID;
@@ -276,15 +350,29 @@ export class PaymentsService {
           where: { id: charge.id },
           data: {
             status: chargeTargetStatus,
-            paidAt: chargeTargetStatus === PaymentStatus.PAID ? new Date() : undefined,
-            failedAt: chargeTargetStatus === PaymentStatus.FAILED ? new Date() : undefined,
+            paidAt:
+              chargeTargetStatus === PaymentStatus.PAID
+                ? new Date()
+                : undefined,
+            failedAt:
+              chargeTargetStatus === PaymentStatus.FAILED
+                ? new Date()
+                : undefined,
           },
         });
 
         if (chargeTargetStatus === PaymentStatus.PAID) {
-          const booking = await this.prisma.booking.findUnique({ where: { id: charge.bookingId } });
+          const booking = await this.prisma.booking.findUnique({
+            where: { id: charge.bookingId },
+          });
           if (booking) {
-            await this.safeNotify({ userId: booking.hostUserId, type: NotificationType.PAYMENT_SUCCESS, title: "Balance paid", body: "Balance paid", linkUrl: `/bookings/${charge.bookingId}` });
+            await this.safeNotify({
+              userId: booking.hostUserId,
+              type: NotificationType.PAYMENT_SUCCESS,
+              title: "Balance paid",
+              body: "Balance paid",
+              linkUrl: `/bookings/${charge.bookingId}`,
+            });
           }
         }
         return;
@@ -293,12 +381,17 @@ export class PaymentsService {
 
       let shareTargetStatus: "PAID" | null = null;
 
-      if (transaction_status === "settlement" || transaction_status === "capture") {
+      if (
+        transaction_status === "settlement" ||
+        transaction_status === "capture"
+      ) {
         if (transaction_status === "capture" && fraud_status === "challenge") {
           return;
         }
         shareTargetStatus = "PAID";
-      } else if (["deny", "cancel", "expire", "pending"].includes(transaction_status)) {
+      } else if (
+        ["deny", "cancel", "expire", "pending"].includes(transaction_status)
+      ) {
         return;
       }
 
@@ -315,7 +408,10 @@ export class PaymentsService {
           where: { bookingId: share.bookingId, status: { not: "PAID" } },
         });
 
-        if (remaining === 0 && share.booking.status === BookingStatus.PENDING_PAYMENT) {
+        if (
+          remaining === 0 &&
+          share.booking.status === BookingStatus.PENDING_PAYMENT
+        ) {
           await tx.booking.update({
             where: { id: share.bookingId },
             data: { status: BookingStatus.CONFIRMED, expiresAt: null },
@@ -324,10 +420,22 @@ export class PaymentsService {
         }
       });
 
-      await this.safeNotify({ userId: share.booking.hostUserId, type: NotificationType.PAYMENT_SUCCESS, title: "Payment successful", body: "A split share was paid.", linkUrl: `/bookings/${share.bookingId}` });
+      await this.safeNotify({
+        userId: share.booking.hostUserId,
+        type: NotificationType.PAYMENT_SUCCESS,
+        title: "Payment successful",
+        body: "A split share was paid.",
+        linkUrl: `/bookings/${share.bookingId}`,
+      });
 
       if (bookingJustConfirmed) {
-        await this.safeNotify({ userId: share.booking.hostUserId, type: NotificationType.BOOKING_CONFIRMED, title: "Booking confirmed", body: "Your court booking is confirmed.", linkUrl: `/bookings/${share.bookingId}` });
+        await this.safeNotify({
+          userId: share.booking.hostUserId,
+          type: NotificationType.BOOKING_CONFIRMED,
+          title: "Booking confirmed",
+          body: "Your court booking is confirmed.",
+          linkUrl: `/bookings/${share.bookingId}`,
+        });
       }
 
       return;
@@ -344,7 +452,10 @@ export class PaymentsService {
     let targetPaymentStatus: PaymentStatus | null = null;
     let targetBookingStatus: BookingStatus | null = null;
 
-    if (transaction_status === "settlement" || transaction_status === "capture") {
+    if (
+      transaction_status === "settlement" ||
+      transaction_status === "capture"
+    ) {
       if (transaction_status === "capture" && fraud_status === "challenge") {
         return;
       }
@@ -360,9 +471,12 @@ export class PaymentsService {
       return;
     }
 
-    if (targetPaymentStatus === PaymentStatus.PAID && payment.booking.status !== BookingStatus.PENDING_PAYMENT) {
+    if (
+      targetPaymentStatus === PaymentStatus.PAID &&
+      payment.booking.status !== BookingStatus.PENDING_PAYMENT
+    ) {
       console.warn(
-        `[PaymentsService] Settled payment landed on a non-payable booking and may need manual review/refund. Order ID: ${payment.id}, Booking ID: ${payment.bookingId}, Current Booking Status: ${payment.booking.status}`
+        `[PaymentsService] Settled payment landed on a non-payable booking and may need manual review/refund. Order ID: ${payment.id}, Booking ID: ${payment.bookingId}, Current Booking Status: ${payment.booking.status}`,
       );
     }
 
@@ -371,12 +485,19 @@ export class PaymentsService {
         where: { id: payment.id },
         data: {
           status: targetPaymentStatus!,
-          paidAt: targetPaymentStatus === PaymentStatus.PAID ? new Date() : undefined,
-          failedAt: targetPaymentStatus === PaymentStatus.FAILED ? new Date() : undefined,
+          paidAt:
+            targetPaymentStatus === PaymentStatus.PAID ? new Date() : undefined,
+          failedAt:
+            targetPaymentStatus === PaymentStatus.FAILED
+              ? new Date()
+              : undefined,
         },
       });
 
-      if (targetBookingStatus === BookingStatus.CONFIRMED && payment.booking.status === BookingStatus.PENDING_PAYMENT) {
+      if (
+        targetBookingStatus === BookingStatus.CONFIRMED &&
+        payment.booking.status === BookingStatus.PENDING_PAYMENT
+      ) {
         await tx.booking.update({
           where: { id: payment.bookingId },
           data: { status: targetBookingStatus, expiresAt: null },
@@ -384,20 +505,49 @@ export class PaymentsService {
 
         if (targetPaymentStatus === PaymentStatus.PAID) {
           await tx.bookingCharge.updateMany({
-            where: { bookingId: payment.bookingId, reason: "Refund Protection Insurance", status: PaymentStatus.PENDING },
-            data: { status: PaymentStatus.PAID, paidAt: new Date(), method: payment.method },
+            where: {
+              bookingId: payment.bookingId,
+              reason: "Refund Protection Insurance",
+              status: PaymentStatus.PENDING,
+            },
+            data: {
+              status: PaymentStatus.PAID,
+              paidAt: new Date(),
+              method: payment.method,
+            },
           });
         }
       }
     });
 
     if (targetPaymentStatus === PaymentStatus.PAID) {
-      await this.safeNotify({ userId: payment.booking.hostUserId, type: NotificationType.PAYMENT_SUCCESS, title: "Payment successful", body: "Your payment was received.", linkUrl: `/bookings/${payment.bookingId}` });
-      if (targetBookingStatus === BookingStatus.CONFIRMED && payment.booking.status === BookingStatus.PENDING_PAYMENT) {
-        await this.safeNotify({ userId: payment.booking.hostUserId, type: NotificationType.BOOKING_CONFIRMED, title: "Booking confirmed", body: "Your court booking is confirmed.", linkUrl: `/bookings/${payment.bookingId}` });
+      await this.safeNotify({
+        userId: payment.booking.hostUserId,
+        type: NotificationType.PAYMENT_SUCCESS,
+        title: "Payment successful",
+        body: "Your payment was received.",
+        linkUrl: `/bookings/${payment.bookingId}`,
+      });
+      if (
+        targetBookingStatus === BookingStatus.CONFIRMED &&
+        payment.booking.status === BookingStatus.PENDING_PAYMENT
+      ) {
+        await this.safeNotify({
+          userId: payment.booking.hostUserId,
+          type: NotificationType.BOOKING_CONFIRMED,
+          title: "Booking confirmed",
+          body: "Your court booking is confirmed.",
+          linkUrl: `/bookings/${payment.bookingId}`,
+        });
       }
     } else if (targetPaymentStatus === PaymentStatus.FAILED) {
-      await this.safeNotify({ userId: payment.booking.hostUserId, type: NotificationType.PAYMENT_FAILED, title: "Payment failed", body: "Your payment could not be completed.", linkUrl: `/bookings/${payment.bookingId}` });
+      await this.safeNotify({
+        userId: payment.booking.hostUserId,
+        type: NotificationType.PAYMENT_FAILED,
+        title: "Payment failed",
+        body: "Your payment could not be completed.",
+        linkUrl: `/bookings/${payment.bookingId}`,
+      });
     }
   }
 

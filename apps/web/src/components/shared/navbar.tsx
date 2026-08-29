@@ -1,23 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Menu,
-  X,
   CalendarDays,
   LayoutDashboard,
-  Shield,
-  LogOut,
-  Ticket,
   LogIn,
+  LogOut,
+  Menu,
+  Shield,
+  Ticket,
+  X,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queries";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { getUserBookings, getVouchers } from "@/lib/api";
-import { NotificationBell } from "./notification-bell";
+import { queryKeys } from "@/lib/queries";
 import { useAuthStore } from "@/stores/auth-store";
+import { NotificationBell } from "./notification-bell";
 
 export function Navbar() {
   const router = useRouter();
@@ -50,7 +50,8 @@ export function Navbar() {
     router.push("/");
   }
 
-  const showDashboard = user?.role === "venue_owner" || user?.role === "venue_admin";
+  const showDashboard =
+    user?.role === "venue_owner" || user?.role === "venue_admin";
   const showAdmin = user?.role === "super_admin";
 
   const isPlayer = !!user && !showDashboard && !showAdmin;
@@ -62,7 +63,7 @@ export function Navbar() {
     staleTime: 60_000,
   });
   const nextBooking = upcomingBookings.find(
-    (b) => b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT"
+    (b) => b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT",
   );
 
   const { data: vouchersData = [] } = useQuery({
@@ -97,8 +98,6 @@ export function Navbar() {
             <NavLink href="/#community">Community</NavLink>
           </nav>
         )}
-
-
 
         <div className="flex items-center gap-4">
           {isPlayer && (
@@ -167,12 +166,20 @@ export function Navbar() {
                   <div className="border-t border-white/[0.04] my-1" />
 
                   {showDashboard && (
-                    <MenuLink href="/dashboard" icon={LayoutDashboard} onClick={() => setAvatarOpen(false)}>
+                    <MenuLink
+                      href="/dashboard"
+                      icon={LayoutDashboard}
+                      onClick={() => setAvatarOpen(false)}
+                    >
                       Dashboard
                     </MenuLink>
                   )}
                   {showAdmin && (
-                    <MenuLink href="/admin" icon={Shield} onClick={() => setAvatarOpen(false)}>
+                    <MenuLink
+                      href="/admin"
+                      icon={Shield}
+                      onClick={() => setAvatarOpen(false)}
+                    >
                       Admin Panel
                     </MenuLink>
                   )}
@@ -202,7 +209,11 @@ export function Navbar() {
               className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7] md:hidden"
               aria-label="Toggle menu"
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           )}
         </div>
@@ -214,19 +225,31 @@ export function Navbar() {
             <MobileNavLink href="/venues" onClick={() => setMobileOpen(false)}>
               Venues
             </MobileNavLink>
-            <MobileNavLink href="/#how-it-works" onClick={() => setMobileOpen(false)}>
+            <MobileNavLink
+              href="/#how-it-works"
+              onClick={() => setMobileOpen(false)}
+            >
               How It Works
             </MobileNavLink>
-            <MobileNavLink href="/#community" onClick={() => setMobileOpen(false)}>
+            <MobileNavLink
+              href="/#community"
+              onClick={() => setMobileOpen(false)}
+            >
               Community
             </MobileNavLink>
 
             {user && isPlayer && (
               <>
-                <MobileNavLink href="/bookings" onClick={() => setMobileOpen(false)}>
+                <MobileNavLink
+                  href="/bookings"
+                  onClick={() => setMobileOpen(false)}
+                >
                   My Bookings
                 </MobileNavLink>
-                <MobileNavLink href="/vouchers" onClick={() => setMobileOpen(false)}>
+                <MobileNavLink
+                  href="/vouchers"
+                  onClick={() => setMobileOpen(false)}
+                >
                   My Vouchers
                 </MobileNavLink>
               </>
@@ -248,7 +271,13 @@ export function Navbar() {
   );
 }
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function NavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
   return (
     <Link
       href={href}

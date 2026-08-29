@@ -1,5 +1,5 @@
-import { t, Static } from "elysia";
 import { InviteStatus } from "@prisma/client";
+import { type Static, t } from "elysia";
 
 export const InviteStatusEnum = t.Enum(InviteStatus);
 

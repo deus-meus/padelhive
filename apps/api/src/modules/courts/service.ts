@@ -1,7 +1,15 @@
 import { CourtType, VenueStatus } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { CreateCourtInput, UpdateCourtInput } from "./model";
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from "../../common/errors";
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import type { CreateCourtInput, UpdateCourtInput } from "./model";
 
 export class CourtsService {
   constructor(private readonly prisma: PrismaService = defaultPrisma) {}
@@ -32,7 +40,11 @@ export class CourtsService {
     });
   }
 
-  private async assertVenueManageable(venueId: string, userId: string, isSuperAdmin: boolean): Promise<void> {
+  private async assertVenueManageable(
+    venueId: string,
+    userId: string,
+    isSuperAdmin: boolean,
+  ): Promise<void> {
     const venue = await this.prisma.venue.findUnique({
       where: { id: venueId },
       select: {
@@ -49,12 +61,19 @@ export class CourtsService {
       throw new NotFoundException("Venue not found");
     }
 
-    if (!isSuperAdmin && venue.ownerId !== userId && venue.admins.length === 0) {
+    if (
+      !isSuperAdmin &&
+      venue.ownerId !== userId &&
+      venue.admins.length === 0
+    ) {
       throw new ForbiddenException("You don't have access to this venue");
     }
   }
 
-  private validateCourtFields(fields: Record<string, unknown>, { partial }: { partial: boolean }) {
+  private validateCourtFields(
+    fields: Record<string, unknown>,
+    { partial }: { partial: boolean },
+  ) {
     if (partial && Object.keys(fields).length === 0) {
       throw new BadRequestException("No fields to update");
     }
@@ -66,16 +85,26 @@ export class CourtsService {
     }
 
     if (!partial || fields.type !== undefined) {
-      if (fields.type !== CourtType.INDOOR && fields.type !== CourtType.OUTDOOR) {
+      if (
+        fields.type !== CourtType.INDOOR &&
+        fields.type !== CourtType.OUTDOOR
+      ) {
         throw new BadRequestException("Court type must be INDOOR or OUTDOOR");
       }
     }
 
-    const priceFields = ["weekdayPeak", "weekdayOffPeak", "weekendPeak", "weekendOffPeak"];
+    const priceFields = [
+      "weekdayPeak",
+      "weekdayOffPeak",
+      "weekendPeak",
+      "weekendOffPeak",
+    ];
     for (const field of priceFields) {
       if (!partial || fields[field] !== undefined) {
         if (!Number.isInteger(fields[field]) || (fields[field] as number) < 0) {
-          throw new BadRequestException("Prices must be non-negative whole numbers");
+          throw new BadRequestException(
+            "Prices must be non-negative whole numbers",
+          );
         }
       }
     }
@@ -85,7 +114,11 @@ export class CourtsService {
     }
   }
 
-  async findCourtsForManagement(venueId: string, userId: string, isSuperAdmin: boolean) {
+  async findCourtsForManagement(
+    venueId: string,
+    userId: string,
+    isSuperAdmin: boolean,
+  ) {
     await this.assertVenueManageable(venueId, userId, isSuperAdmin);
 
     return this.prisma.court.findMany({
@@ -104,9 +137,16 @@ export class CourtsService {
     });
   }
 
-  async createCourt(venueId: string, userId: string, isSuperAdmin: boolean, dto: CreateCourtInput) {
+  async createCourt(
+    venueId: string,
+    userId: string,
+    isSuperAdmin: boolean,
+    dto: CreateCourtInput,
+  ) {
     await this.assertVenueManageable(venueId, userId, isSuperAdmin);
-    this.validateCourtFields(dto as unknown as Record<string, unknown>, { partial: false });
+    this.validateCourtFields(dto as unknown as Record<string, unknown>, {
+      partial: false,
+    });
 
     try {
       return await this.prisma.court.create({
@@ -133,17 +173,25 @@ export class CourtsService {
       });
     } catch (error: unknown) {
       if ((error as { code?: string }).code === "P2002") {
-        throw new ConflictException("A court with this name already exists in this venue");
+        throw new ConflictException(
+          "A court with this name already exists in this venue",
+        );
       }
       throw error;
     }
   }
 
-  async updateCourt(venueId: string, courtId: string, userId: string, isSuperAdmin: boolean, dto: UpdateCourtInput) {
+  async updateCourt(
+    venueId: string,
+    courtId: string,
+    userId: string,
+    isSuperAdmin: boolean,
+    dto: UpdateCourtInput,
+  ) {
     await this.assertVenueManageable(venueId, userId, isSuperAdmin);
 
     const fieldsToValidate = Object.fromEntries(
-      Object.entries(dto).filter(([, v]) => v !== undefined)
+      Object.entries(dto).filter(([, v]) => v !== undefined),
     );
     this.validateCourtFields(fieldsToValidate, { partial: true });
 
@@ -160,9 +208,11 @@ export class CourtsService {
     if (dto.name !== undefined) data.name = dto.name.trim();
     if (dto.type !== undefined) data.type = dto.type;
     if (dto.weekdayPeak !== undefined) data.weekdayPeak = dto.weekdayPeak;
-    if (dto.weekdayOffPeak !== undefined) data.weekdayOffPeak = dto.weekdayOffPeak;
+    if (dto.weekdayOffPeak !== undefined)
+      data.weekdayOffPeak = dto.weekdayOffPeak;
     if (dto.weekendPeak !== undefined) data.weekendPeak = dto.weekendPeak;
-    if (dto.weekendOffPeak !== undefined) data.weekendOffPeak = dto.weekendOffPeak;
+    if (dto.weekendOffPeak !== undefined)
+      data.weekendOffPeak = dto.weekendOffPeak;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
 
     try {
@@ -182,7 +232,9 @@ export class CourtsService {
       });
     } catch (error: unknown) {
       if ((error as { code?: string }).code === "P2002") {
-        throw new ConflictException("A court with this name already exists in this venue");
+        throw new ConflictException(
+          "A court with this name already exists in this venue",
+        );
       }
       throw error;
     }

@@ -1,10 +1,16 @@
-import { NotificationType, Notification } from "@prisma/client";
-import { PrismaService, prisma as defaultPrisma } from "../../common/prisma";
-import { MailService, mailService as defaultMail } from "../mail/service";
-import { RedisService, redisService as defaultRedis } from "../../common/redis";
-import { Subject, Observable } from "rxjs";
+import { type Notification, NotificationType } from "@prisma/client";
+import { type Observable, Subject } from "rxjs";
 import { filter, map } from "rxjs/operators";
 import { NotFoundException } from "../../common/errors";
+import {
+  prisma as defaultPrisma,
+  type PrismaService,
+} from "../../common/prisma";
+import {
+  redisService as defaultRedis,
+  type RedisService,
+} from "../../common/redis";
+import { mailService as defaultMail, type MailService } from "../mail/service";
 
 export type CreateNotificationInput = {
   userId: string;
@@ -27,20 +33,23 @@ const EMAIL_NOTIFICATION_TYPES = new Set<NotificationType>([
 ]);
 
 export class NotificationsService {
-  private readonly notificationStream = new Subject<{ userId: string; notification: Notification }>();
+  private readonly notificationStream = new Subject<{
+    userId: string;
+    notification: Notification;
+  }>();
   private readonly NOTIFICATIONS_CHANNEL = "notifications:stream";
 
   constructor(
     private readonly prisma: PrismaService = defaultPrisma,
     private readonly mailService: MailService = defaultMail,
-    private readonly redis: RedisService = defaultRedis
+    private readonly redis: RedisService = defaultRedis,
   ) {
     if (this.redis.isEnabled) {
       this.redis.subscribe(this.NOTIFICATIONS_CHANNEL, (message) => {
         try {
           const parsed = JSON.parse(message);
           this.notificationStream.next(parsed);
-        } catch (err) {
+        } catch (_err) {
           // ignore
         }
       });
@@ -62,9 +71,9 @@ export class NotificationsService {
       try {
         await this.redis.publish(
           this.NOTIFICATIONS_CHANNEL,
-          JSON.stringify({ userId: input.userId, notification })
+          JSON.stringify({ userId: input.userId, notification }),
         );
-      } catch (err) {
+      } catch (_err) {
         this.notificationStream.next({ userId: input.userId, notification });
       }
     } else {
@@ -78,7 +87,7 @@ export class NotificationsService {
           select: { email: true, name: true },
         });
 
-        if (user && user.email) {
+        if (user?.email) {
           await this.mailService.sendNotificationEmail({
             to: user.email,
             toName: user.name ?? undefined,
@@ -88,7 +97,7 @@ export class NotificationsService {
             linkUrl: input.linkUrl,
           });
         }
-      } catch (err) {
+      } catch (_err) {
         // best effort, swallow db error
       }
     }
@@ -119,7 +128,9 @@ export class NotificationsService {
   }
 
   async markAsRead(id: string, userId: string) {
-    const notification = await this.prisma.notification.findFirst({ where: { id, userId } });
+    const notification = await this.prisma.notification.findFirst({
+      where: { id, userId },
+    });
     if (!notification) {
       throw new NotFoundException("Notification not found");
     }

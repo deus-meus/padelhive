@@ -1,29 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { formatBookingDate, formatShortDate, formatBookingDateTime } from "@/lib/format";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  RotateCcw,
-  CheckCircle2,
-  XCircle,
   AlertCircle,
-  Clock,
-  ShieldCheck,
-  ShieldX,
-  Loader2,
-  History,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Clock,
+  History,
+  Loader2,
+  RotateCcw,
+  ShieldCheck,
+  ShieldX,
+  XCircle,
 } from "lucide-react";
-import { queryKeys } from "@/lib/queries";
-import { getRefunds, approveRefund, rejectRefund, processRefund, getApiErrorMessage, RefundStatus, ApiRefund, getRefundHistory } from "@/lib/api";
-import { ErrorBanner, EmptyState } from "@/components/ui/error-state";
+import { useState } from "react";
+import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
 import { FilterTabs } from "@/components/ui/filter-tabs";
+import {
+  approveRefund,
+  getApiErrorMessage,
+  getRefundHistory,
+  getRefunds,
+  processRefund,
+  type RefundStatus,
+  rejectRefund,
+} from "@/lib/api";
+import {
+  formatBookingDate,
+  formatBookingDateTime,
+  formatShortDate,
+} from "@/lib/format";
+import { queryKeys } from "@/lib/queries";
 
-const formatIDR = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
-
-
+const formatIDR = (n: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(n);
 
 export default function RefundsPage() {
   const queryClient = useQueryClient();
@@ -35,7 +50,14 @@ export default function RefundsPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { data: refunds = [], isLoading, isError, error, refetch, isFetching } = useQuery({
+  const {
+    data: refunds = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: queryKeys.refunds.list(filter === "ALL" ? undefined : filter),
     queryFn: () => getRefunds(filter === "ALL" ? undefined : filter),
   });
@@ -68,7 +90,8 @@ export default function RefundsPage() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: ({ id, notes }: { id: string; notes: string }) => rejectRefund(id, notes),
+    mutationFn: ({ id, notes }: { id: string; notes: string }) =>
+      rejectRefund(id, notes),
     onMutate: (vars) => setActingId(vars.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.refunds.all });
@@ -103,45 +126,66 @@ export default function RefundsPage() {
           <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-3">
             <ShieldCheck className="h-4 w-4 shrink-0 text-[#E6FA50]" />
             <div>
-              <p className="body-sm text-[#F7F7F7]/60">Full refund before H-1</p>
-              <p className="caption text-[#F7F7F7]/25">Cancellation 24+ hours before booking</p>
+              <p className="body-sm text-[#F7F7F7]/60">
+                Full refund before H-1
+              </p>
+              <p className="caption text-[#F7F7F7]/25">
+                Cancellation 24+ hours before booking
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-white/[0.02] p-3">
             <ShieldX className="h-4 w-4 shrink-0 text-red-400" />
             <div>
-              <p className="body-sm text-[#F7F7F7]/60">Non-refundable after H-1</p>
-              <p className="caption text-[#F7F7F7]/25">Less than 24 hours before booking</p>
+              <p className="body-sm text-[#F7F7F7]/60">
+                Non-refundable after H-1
+              </p>
+              <p className="caption text-[#F7F7F7]/25">
+                Less than 24 hours before booking
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filter tabs */}
-      <FilterTabs 
-        tabs={(["PENDING", "APPROVED", "REJECTED", "PROCESSED", "ALL"] as const).map((tab) => ({ 
-          label: tab === "ALL" ? "All" : tab.charAt(0) + tab.slice(1).toLowerCase(), 
-          value: tab 
-        }))} 
-        activeValue={filter} 
-        onChange={(val) => setFilter(val)} 
+      <FilterTabs
+        tabs={(
+          ["PENDING", "APPROVED", "REJECTED", "PROCESSED", "ALL"] as const
+        ).map((tab) => ({
+          label:
+            tab === "ALL" ? "All" : tab.charAt(0) + tab.slice(1).toLowerCase(),
+          value: tab,
+        }))}
+        activeValue={filter}
+        onChange={(val) => setFilter(val)}
       />
 
       {/* Refund list */}
       <div className="flex flex-1 flex-col space-y-3">
         {isLoading ? (
-          <>
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]" />
-            ))}
-          </>
+          [...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="h-32 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+            />
+          ))
         ) : isError ? (
-          <ErrorBanner title="Couldn't load refunds" error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+          <ErrorBanner
+            title="Couldn't load refunds"
+            error={error}
+            onRetry={() => refetch()}
+            isRetrying={isFetching}
+          />
         ) : refunds.length === 0 ? (
           <EmptyState
             icon={RotateCcw}
             title="No refunds found"
-            description={filter === "PENDING" ? "There are no refund requests waiting for review." : "No refunds match the selected filter."}
+            description={
+              filter === "PENDING"
+                ? "There are no refund requests waiting for review."
+                : "No refunds match the selected filter."
+            }
             actionLabel="Refresh"
             onAction={() => refetch()}
           />
@@ -150,16 +194,24 @@ export default function RefundsPage() {
             const isActing = actingId === refund.id;
 
             return (
-              <div key={refund.id} className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5">
+              <div
+                key={refund.id}
+                className="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+              >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex items-start gap-4">
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                      refund.status === "PENDING" ? "bg-amber-500/10" : "bg-[#E6FA50]/10"
-                    }`}>
-                      {refund.status === "PENDING"
-                        ? <AlertCircle className="h-4 w-4 text-amber-400" />
-                        : <RotateCcw className="h-4 w-4 text-[#E6FA50]" />
-                      }
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                        refund.status === "PENDING"
+                          ? "bg-amber-500/10"
+                          : "bg-[#E6FA50]/10"
+                      }`}
+                    >
+                      {refund.status === "PENDING" ? (
+                        <AlertCircle className="h-4 w-4 text-amber-400" />
+                      ) : (
+                        <RotateCcw className="h-4 w-4 text-[#E6FA50]" />
+                      )}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -168,19 +220,27 @@ export default function RefundsPage() {
                         </span>
                         <RefundStatusBadge status={refund.status} />
                         {refund.type === "RESCHEDULE_DIFF" && (
-                          <span className="caption rounded-full bg-blue-500/10 px-2 py-0.5 text-blue-400">Selisih reschedule</span>
+                          <span className="caption rounded-full bg-blue-500/10 px-2 py-0.5 text-blue-400">
+                            Selisih reschedule
+                          </span>
                         )}
                       </div>
                       <p className="caption text-[#F7F7F7]/40 mt-1">
-                        {refund.booking?.court?.name ?? "Court"} · #{refund.bookingId.slice(0, 8)}
+                        {refund.booking?.court?.name ?? "Court"} · #
+                        {refund.bookingId.slice(0, 8)}
                       </p>
                       <p className="body-sm mt-1 text-[#F7F7F7]/60">
-                        {refund.booking?.host?.name || refund.booking?.host?.email || "Unknown User"}
+                        {refund.booking?.host?.name ||
+                          refund.booking?.host?.email ||
+                          "Unknown User"}
                       </p>
-                      <p className="caption text-[#F7F7F7]/40 mt-2 italic">&ldquo;{refund.reason}&rdquo;</p>
+                      <p className="caption text-[#F7F7F7]/40 mt-2 italic">
+                        &ldquo;{refund.reason}&rdquo;
+                      </p>
                       <div className="mt-2 flex flex-wrap items-center gap-3">
                         <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
-                          <Clock className="h-3 w-3" /> Booking: {formatBookingDate(refund.booking?.bookingDate)}
+                          <Clock className="h-3 w-3" /> Booking:{" "}
+                          {formatBookingDate(refund.booking?.bookingDate)}
                         </span>
                         <span className="caption flex items-center gap-1 text-[#F7F7F7]/25">
                           Requested: {formatShortDate(refund.createdAt)}
@@ -188,7 +248,11 @@ export default function RefundsPage() {
                       </div>
                       <div className="mt-3">
                         <button
-                          onClick={() => setExpandedId(expandedId === refund.id ? null : refund.id)}
+                          onClick={() =>
+                            setExpandedId(
+                              expandedId === refund.id ? null : refund.id,
+                            )
+                          }
                           className="flex items-center gap-1.5 caption text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60 transition-colors"
                         >
                           <History className="h-3 w-3" />
@@ -210,8 +274,12 @@ export default function RefundsPage() {
 
                   <div className="mt-4 flex flex-col gap-4 border-t border-white/[0.06] pt-4 sm:mt-0 sm:shrink-0 sm:items-end sm:justify-start sm:border-0 sm:pt-0">
                     <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-start sm:gap-1 w-full sm:w-auto">
-                      <span className="caption text-[#F7F7F7]/60 sm:hidden">Refund Amount</span>
-                      <p className="price text-[#F7F7F7]">{formatIDR(Number(refund.amount))}</p>
+                      <span className="caption text-[#F7F7F7]/60 sm:hidden">
+                        Refund Amount
+                      </span>
+                      <p className="price text-[#F7F7F7]">
+                        {formatIDR(Number(refund.amount))}
+                      </p>
                     </div>
                     {refund.status === "PENDING" && (
                       <div className="flex w-full gap-2 sm:w-auto">
@@ -223,7 +291,9 @@ export default function RefundsPage() {
                           {isActing && approveMutation.isPending ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <><CheckCircle2 className="h-3.5 w-3.5" /> Approve</>
+                            <>
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+                            </>
                           )}
                         </button>
                         <button
@@ -237,7 +307,9 @@ export default function RefundsPage() {
                           {isActing && rejectMutation.isPending ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <><XCircle className="h-3.5 w-3.5" /> Reject</>
+                            <>
+                              <XCircle className="h-3.5 w-3.5" /> Reject
+                            </>
                           )}
                         </button>
                       </div>
@@ -252,7 +324,10 @@ export default function RefundsPage() {
                           {isActing && processMutation.isPending ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <><RotateCcw className="h-3.5 w-3.5" /> Process refund</>
+                            <>
+                              <RotateCcw className="h-3.5 w-3.5" /> Process
+                              refund
+                            </>
                           )}
                         </button>
                       </div>
@@ -268,7 +343,10 @@ export default function RefundsPage() {
       {/* Reject Modal */}
       {rejectTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm" onClick={() => setRejectTarget(null)} />
+          <div
+            className="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm"
+            onClick={() => setRejectTarget(null)}
+          />
           <div className="relative w-full max-w-md rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 shadow-2xl">
             <h2 className="heading-2 text-xl text-[#F7F7F7]">Reject refund</h2>
             <div className="mt-4">
@@ -291,11 +369,18 @@ export default function RefundsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => rejectMutation.mutate({ id: rejectTarget, notes: rejectReason.trim() })}
+                onClick={() =>
+                  rejectMutation.mutate({
+                    id: rejectTarget,
+                    notes: rejectReason.trim(),
+                  })
+                }
                 disabled={!rejectReason.trim() || rejectMutation.isPending}
                 className="label flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500/10 py-2.5 text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
               >
-                {rejectMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {rejectMutation.isPending && (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                )}
                 Confirm Reject
               </button>
             </div>
@@ -321,14 +406,21 @@ function RefundStatusBadge({ status }: { status: RefundStatus }) {
     PROCESSED: "bg-blue-500/10 text-blue-400",
   };
   return (
-    <span className={`caption rounded-full px-2 py-0.5 uppercase ${styles[status]}`}>
+    <span
+      className={`caption rounded-full px-2 py-0.5 uppercase ${styles[status]}`}
+    >
       {status}
     </span>
   );
 }
 
 function RefundHistoryTimeline({ refundId }: { refundId: string }) {
-  const { data: events = [], isLoading, isError, error } = useQuery({
+  const {
+    data: events = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: queryKeys.refunds.history(refundId),
     queryFn: () => getRefundHistory(refundId),
   });
@@ -344,11 +436,15 @@ function RefundHistoryTimeline({ refundId }: { refundId: string }) {
   }
 
   if (isError) {
-    return <p className="caption text-[#F7F7F7]/40">{getApiErrorMessage(error)}</p>;
+    return (
+      <p className="caption text-[#F7F7F7]/40">{getApiErrorMessage(error)}</p>
+    );
   }
 
   if (events.length === 0) {
-    return <p className="caption text-[#F7F7F7]/40">No history recorded yet.</p>;
+    return (
+      <p className="caption text-[#F7F7F7]/40">No history recorded yet.</p>
+    );
   }
 
   return (
@@ -358,13 +454,18 @@ function RefundHistoryTimeline({ refundId }: { refundId: string }) {
         const formattedTime = formatBookingDateTime(event.createdAt);
 
         return (
-          <div key={event.id} className="border-l-2 border-white/[0.06] pl-4 relative">
+          <div
+            key={event.id}
+            className="border-l-2 border-white/[0.06] pl-4 relative"
+          >
             <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-[#E6FA50]" />
             <div className="flex items-center gap-2 flex-wrap mb-1">
               {event.fromStatus ? (
                 <RefundStatusBadge status={event.fromStatus} />
               ) : (
-                <span className="caption text-[#F7F7F7]/40 uppercase tracking-[0.1em]">Requested</span>
+                <span className="caption text-[#F7F7F7]/40 uppercase tracking-[0.1em]">
+                  Requested
+                </span>
               )}
               <span className="body-sm text-[#F7F7F7]/40">→</span>
               <RefundStatusBadge status={event.toStatus} />
@@ -373,7 +474,9 @@ function RefundHistoryTimeline({ refundId }: { refundId: string }) {
               {actorName} &middot; {formattedTime}
             </p>
             {event.notes && (
-              <p className="caption italic text-[#F7F7F7]/60 mt-1">&ldquo;{event.notes}&rdquo;</p>
+              <p className="caption italic text-[#F7F7F7]/60 mt-1">
+                &ldquo;{event.notes}&rdquo;
+              </p>
             )}
           </div>
         );
