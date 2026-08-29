@@ -1,16 +1,16 @@
 # PadelHive
 
-Padel court booking platform. Monorepo containing a NestJS API and a Next.js web app, backed by PostgreSQL (Prisma) with Firebase authentication.
+Padel court booking platform. Monorepo containing an ElysiaJS API and a Next.js web app, backed by PostgreSQL (Prisma) with Firebase authentication.
 
 ## Tech stack
-- **API (apps/api):** NestJS, Prisma, PostgreSQL 16, Firebase Admin
+- **API (apps/api):** ElysiaJS, Prisma, PostgreSQL 16, Firebase Admin, Bun
 - **Web (apps/web):** Next.js 14 (App Router), React Query, Zustand, Firebase client
 - **Tooling:** Bun workspaces, Jest, ESLint, Docker Compose
 
 ## Project structure
 ```text
 apps/
-  api/   # NestJS backend (bookings, venues, courts, payments, refunds, invites, vouchers, auth, admin)
+  api/   # ElysiaJS backend (bookings, venues, courts, payments, refunds, invites, vouchers, auth, admin)
   web/   # Next.js frontend
 docker-compose.yml   # local PostgreSQL
 ```

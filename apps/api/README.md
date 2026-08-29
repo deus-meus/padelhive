@@ -1,26 +1,26 @@
 # Padelhive API
 
-NestJS backend foundation for Padelhive.
+High-performance ElysiaJS backend for Padelhive powered by Bun.
 
 ## Prerequisites
 
-- Node.js 20+
-- npm
+- Bun (>= 1.1)
 - Docker Desktop or Docker Engine with Compose
 
 ## Local setup
 
 ```bash
 cp apps/api/.env.example apps/api/.env
-npm install
-npm run db:up
-npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:seed
-npm run api:dev
+bun install
+bun run db:up
+bun run prisma:generate
+bun run prisma:migrate
+bun run prisma:seed
+bun run api:dev
 ```
 
 The API listens on `http://localhost:3001/api`.
+Swagger docs are available at `http://localhost:3001/api/swagger`.
 
 ## Database
 
@@ -41,25 +41,14 @@ postgresql://postgres:postgres@localhost:5433/padelhive?schema=public
 ## Useful commands
 
 ```bash
-npm run db:up
-npm run db:down
-npm run db:logs
-npm run prisma:validate
-npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:seed
-npm run backend:setup
-npm run api:dev
+bun run db:up
+bun run db:down
+bun run db:logs
+bun run prisma:validate
+bun run prisma:generate
+bun run prisma:migrate
+bun run prisma:seed
+bun run backend:setup
+bun run api:dev
+bun --filter @padelhive/api test
 ```
-
-## Reset local database
-
-```bash
-npm run db:down -- --volumes
-npm run db:up
-npm run backend:setup
-```
-
-## Scope
-
-This backend foundation intentionally contains no endpoint business logic yet. Controllers and services are scaffolds for future API phases.

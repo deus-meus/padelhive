@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatBookingDate } from "@/lib/format";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queries";
 import {
@@ -23,7 +23,6 @@ import {
 import { padelImg } from "@/lib/images";
 import { getVenue, getVenueCourts, getVenueReviews, ApiRequestError } from "@/lib/api";
 import { EmptyState, ErrorBanner } from "@/components/ui/error-state";
-import { Court, Venue } from "@/types";
 
 const IMG = {
   gallery: [
@@ -75,18 +74,18 @@ export default function VenueDetailPage({
     queryFn: () => getVenue(params.id),
   });
 
-  const { data: apiCourts, isLoading: isLoadingCourts, isError: isCourtsError, refetch: refetchCourts } = useQuery({
+  const { data: apiCourts, isLoading: isLoadingCourts, refetch: refetchCourts } = useQuery({
     queryKey: queryKeys.venues.courts(params.id),
     queryFn: () => getVenueCourts(params.id),
   });
 
-  const { data: reviews, isLoading: isLoadingReviews, isError: isReviewsError, refetch: refetchReviews, isFetching: isFetchingReviews } = useQuery({
+  const { data: reviews, isLoading: isLoadingReviews, isError: isReviewsError } = useQuery({
     queryKey: queryKeys.reviews.venue(params.id),
     queryFn: () => getVenueReviews(params.id),
   });
 
   const venue = apiVenue ?? null;
-  const courts = apiCourts ?? [];
+  const courts = useMemo(() => apiCourts ?? [], [apiCourts]);
 
   const isLoading = isLoadingVenue || isLoadingCourts;
 
