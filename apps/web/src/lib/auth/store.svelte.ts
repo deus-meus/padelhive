@@ -1,6 +1,7 @@
 import { type User as FirebaseUser, onAuthStateChanged } from "firebase/auth";
 import { api } from "../api/client";
 import {
+  sendPasswordReset as authClientSendPasswordReset,
   signOut as authClientSignOut,
   signInWithEmail,
   signInWithGoogle,
@@ -106,6 +107,10 @@ class AuthState {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  async sendPasswordReset(email: string) {
+    return authClientSendPasswordReset(email);
   }
 }
 

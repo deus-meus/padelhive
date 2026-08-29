@@ -62,8 +62,13 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        heading: ["var(--font-heading)"],
+        sans: ["Inter", "var(--font-sans)", "system-ui", "sans-serif"],
+        heading: [
+          "Space Grotesk",
+          "var(--font-heading)",
+          "system-ui",
+          "sans-serif",
+        ],
       },
       keyframes: {
         "accordion-down": {

@@ -1,38 +1,24 @@
-import { h as head, e as ensure_array_like } from "../../../chunks/index.js";
+import { h as head, i as ensure_array_like } from "../../../chunks/index.js";
 import "../../../chunks/client.js";
 import "../../../chunks/store.svelte.js";
-import { C as Card } from "../../../chunks/card.js";
-import { S as Skeleton } from "../../../chunks/skeleton.js";
-import { S as Shield } from "../../../chunks/shield.js";
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     head("1jef3w8", $$renderer2, ($$renderer3) => {
       $$renderer3.title(($$renderer4) => {
-        $$renderer4.push(`<title>Super Admin - Padelhive</title>`);
+        $$renderer4.push(`<title>Operations Overview | PadelHive Admin</title>`);
       });
     });
-    $$renderer2.push(`<div class="py-12 bg-[#06121A]"><div class="container space-y-8"><div class="flex items-center gap-3"><div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E6FA50] text-[#06121A]">`);
-    Shield($$renderer2, { class: "h-6 w-6" });
-    $$renderer2.push(`<!----></div> <div><h1 class="text-3xl font-extrabold text-white">Super Admin Dashboard</h1> <p class="text-xs text-white/60">Platform-wide marketplace analytics and operations</p></div></div> `);
+    $$renderer2.push(`<div class="px-6 pb-6 pt-element lg:px-8 lg:pb-8 pt-8"><div class="mb-8"><p class="caption text-[#F7F7F7]/25">Marketplace Admin</p> <h1 class="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">Operations <span class="text-[#E6FA50]">Overview</span></h1></div> `);
     {
-      $$renderer2.push(`<!--[0--><div class="grid grid-cols-2 gap-4 md:grid-cols-3"><!--[-->`);
-      const each_array = ensure_array_like([1, 2, 3, 4, 5, 6]);
-      for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-        each_array[$$index];
-        Card($$renderer2, {
-          class: "p-6 space-y-2",
-          children: ($$renderer3) => {
-            Skeleton($$renderer3, { class: "h-4 w-1/2" });
-            $$renderer3.push(`<!----> `);
-            Skeleton($$renderer3, { class: "h-8 w-3/4" });
-            $$renderer3.push(`<!---->`);
-          },
-          $$slots: { default: true }
-        });
+      $$renderer2.push(`<!--[0--><div class="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6"><!--[-->`);
+      const each_array = ensure_array_like(Array.from({ length: 4 }));
+      for (let i = 0, $$length = each_array.length; i < $$length; i++) {
+        each_array[i];
+        $$renderer2.push(`<div class="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>`);
       }
       $$renderer2.push(`<!--]--></div>`);
     }
-    $$renderer2.push(`<!--]--></div></div>`);
+    $$renderer2.push(`<!--]--></div>`);
   });
 }
 export {

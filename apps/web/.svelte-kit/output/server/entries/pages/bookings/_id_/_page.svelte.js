@@ -1,20 +1,18 @@
-import { h as head, d as escape_html, g as derived, i as store_get, u as unsubscribe_stores } from "../../../../chunks/index.js";
-import { p as page } from "../../../../chunks/stores.js";
+import { h as head, f as escape_html, d as derived } from "../../../../chunks/index.js";
+import { p as page } from "../../../../chunks/index2.js";
 import "../../../../chunks/client.js";
 import "../../../../chunks/store.svelte.js";
-import { C as Card } from "../../../../chunks/card.js";
-import { S as Skeleton } from "../../../../chunks/skeleton.js";
+import { C as Card, S as Skeleton } from "../../../../chunks/skeleton.js";
 import { A as Arrow_left } from "../../../../chunks/arrow-left.js";
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
-    var $$store_subs;
-    const bookingId = derived(() => store_get($$store_subs ??= {}, "$page", page).params.id || "");
+    const bookingId = derived(() => page.params.id || "");
     head("1gulp2d", $$renderer2, ($$renderer3) => {
       $$renderer3.title(($$renderer4) => {
         $$renderer4.push(`<title>Booking Summary #${escape_html(bookingId().slice(0, 8))} - Padelhive</title>`);
       });
     });
-    $$renderer2.push(`<div class="py-12 bg-[#06121A]"><div class="container max-w-3xl space-y-6"><a href="/bookings" class="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors">`);
+    $$renderer2.push(`<div class="min-h-screen pt-24 pb-12 bg-[#06121A]"><div class="container max-w-3xl space-y-6"><a href="/bookings" class="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors">`);
     Arrow_left($$renderer2, { class: "h-3.5 w-3.5" });
     $$renderer2.push(`<!----> Back to Bookings</a> `);
     {
@@ -33,7 +31,6 @@ function _page($$renderer, $$props) {
       });
     }
     $$renderer2.push(`<!--]--></div></div>`);
-    if ($$store_subs) unsubscribe_stores($$store_subs);
   });
 }
 export {

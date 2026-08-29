@@ -1,5 +1,5 @@
 import { E as ENDPOINT_METHODS, P as PAGE_METHODS, j as negotiate, m as method_not_allowed, k as create_replacer, h as handle_error_and_jsonify, l as get_status, o as is_form_content_type, q as stringify, r as normalize_error, b as noop$1, t as get_global_name, u as serialize_uses, v as clarify_devalue_error, w as get_node_type, x as escape_html, g as create_remote_key, i as parse_remote_arg, y as deserialize_binary_form, e as stringify$1, z as split_remote_key, S as SVELTE_KIT_ASSETS, A as static_error_page, B as redirect_response, C as once, D as has_prerendered_path, F as get_set_cookies, G as parseString, T as TRAILING_SLASH_PARAM, I as INVALIDATED_PARAM, H as handle_fatal_error, J as format_server_error } from "./chunks/utils2.js";
-import { q as noop, t as safe_not_equal, D as DEV } from "./chunks/index.js";
+import { s as safe_not_equal, D as DEV } from "./chunks/root.js";
 import { json, text, error, isRedirect } from "@sveltejs/kit";
 import { Redirect, SvelteKitError, ActionFailure, HttpError } from "@sveltejs/kit/internal";
 import { with_request_store, merge_tracing, try_get_request_store } from "@sveltejs/kit/internal/server";
@@ -7,6 +7,7 @@ import { c as assets, b as base, a as app_dir, r as relative, o as override, d a
 import { u as uneval } from "./chunks/uneval.js";
 import { d as decode_params, m as make_trackable, a as disable_search, S as SCHEME, v as validate_layout_server_exports, b as validate_layout_exports, c as validate_page_server_exports, e as validate_page_exports, n as normalize_path, r as resolve, f as decode_pathname, g as validate_server_exports } from "./chunks/exports.js";
 import { b as base64_encode, t as text_encoder, g as get_relative_path } from "./chunks/utils.js";
+import { q as noop } from "./chunks/index.js";
 import { p as public_env, r as read_implementation, o as options, s as set_private_env, a as set_public_env, g as get_hooks, b as set_read_implementation } from "./chunks/internal.js";
 const subscriber_queue = [];
 function readable(value, start) {

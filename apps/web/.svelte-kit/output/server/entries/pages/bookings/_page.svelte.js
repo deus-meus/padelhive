@@ -1,61 +1,38 @@
-import { j as attr_class, e as ensure_array_like, d as escape_html, f as stringify, h as head } from "../../../chunks/index.js";
+import { h as head, i as ensure_array_like, e as attr_class, f as escape_html } from "../../../chunks/index.js";
 import "../../../chunks/client.js";
 import "../../../chunks/store.svelte.js";
-import { C as Card } from "../../../chunks/card.js";
-import { S as Skeleton } from "../../../chunks/skeleton.js";
-function Filter_tabs($$renderer, $$props) {
-  $$renderer.component(($$renderer2) => {
-    let { tabs, selected, class: className = "" } = $$props;
-    $$renderer2.push(`<div${attr_class(`inline-flex rounded-xl bg-white/[0.04] p-1 border border-white/[0.06] ${stringify(className)}`)}><!--[-->`);
-    const each_array = ensure_array_like(tabs);
-    for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-      let tab = each_array[$$index];
-      $$renderer2.push(`<button type="button"${attr_class(`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${selected === tab.value ? "bg-[#0C1B26] text-[#E6FA50] shadow-sm border border-white/[0.08]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`)}>${escape_html(tab.label)} `);
-      if (tab.badge !== void 0) {
-        $$renderer2.push(`<!--[0--><span class="rounded-full bg-white/[0.1] px-2 py-0.5 text-xs text-white/80">${escape_html(tab.badge)}</span>`);
-      } else {
-        $$renderer2.push("<!--[-1-->");
-      }
-      $$renderer2.push(`<!--]--></button>`);
-    }
-    $$renderer2.push(`<!--]--></div>`);
-  });
-}
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
-    let activeTab = "upcoming";
     const TABS = [
       { label: "Upcoming", value: "upcoming" },
       { label: "Past Matches", value: "past" },
-      { label: "Cancelled", value: "cancelled" }
+      { label: "Cancelled", value: "cancelled" },
+      { label: "Refunds", value: "refunds" },
+      { label: "Disputes", value: "disputes" }
     ];
+    let activeTab = "upcoming";
     head("uq5w8t", $$renderer2, ($$renderer3) => {
       $$renderer3.title(($$renderer4) => {
-        $$renderer4.push(`<title>My Bookings - Padelhive</title>`);
+        $$renderer4.push(`<title>My Bookings | PadelHive</title>`);
       });
     });
-    $$renderer2.push(`<div class="py-12 bg-[#06121A]"><div class="container space-y-8"><div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"><div><h1 class="text-3xl font-extrabold tracking-tight text-[#F7F7F7]">My Bookings</h1> <p class="mt-1 text-xs text-white/60">Manage your court reservations and match history</p></div> `);
-    Filter_tabs($$renderer2, { tabs: TABS, selected: activeTab });
-    $$renderer2.push(`<!----></div> `);
+    $$renderer2.push(`<div class="min-h-screen py-16 space-y-10 bg-[#06121A]"><section class="container pt-8"><span class="section-label block mb-4">My Activity</span> <h1 class="heading-1 text-[#F7F7F7]">My <span class="text-[#E6FA50]">Bookings</span></h1> <p class="body mt-2 text-[#F7F7F7]/40">Track your court reservations, past matches, and refunds.</p></section> <section class="container"><div class="flex flex-wrap gap-2 border-b border-white/[0.06] pb-3"><!--[-->`);
+    const each_array = ensure_array_like(TABS);
+    for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+      let tab = each_array[$$index];
+      $$renderer2.push(`<button type="button"${attr_class(`label rounded-full px-5 py-2 transition-all ${activeTab === tab.value ? "bg-[#E6FA50] text-[#06121A]" : "bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60"}`)}>${escape_html(tab.label)}</button>`);
+    }
+    $$renderer2.push(`<!--]--></div></section> <section class="container">`);
     {
       $$renderer2.push(`<!--[0--><div class="space-y-4"><!--[-->`);
-      const each_array = ensure_array_like([1, 2, 3]);
-      for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
-        each_array[$$index];
-        Card($$renderer2, {
-          class: "p-6 space-y-3",
-          children: ($$renderer3) => {
-            Skeleton($$renderer3, { class: "h-6 w-1/3" });
-            $$renderer3.push(`<!----> `);
-            Skeleton($$renderer3, { class: "h-4 w-1/4" });
-            $$renderer3.push(`<!---->`);
-          },
-          $$slots: { default: true }
-        });
+      const each_array_1 = ensure_array_like(Array.from({ length: 3 }));
+      for (let i = 0, $$length = each_array_1.length; i < $$length; i++) {
+        each_array_1[i];
+        $$renderer2.push(`<div class="h-32 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>`);
       }
       $$renderer2.push(`<!--]--></div>`);
     }
-    $$renderer2.push(`<!--]--></div></div>`);
+    $$renderer2.push(`<!--]--></section></div>`);
   });
 }
 export {

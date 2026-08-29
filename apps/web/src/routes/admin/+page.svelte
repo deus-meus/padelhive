@@ -1,17 +1,16 @@
 <script lang="ts">
 import {
   Building2,
-  Calendar,
+  CalendarCheck,
+  CheckCircle2,
+  Clock,
   DollarSign,
-  Percent,
-  RefreshCw,
-  Shield,
+  RotateCcw,
+  TrendingUp,
 } from "lucide-svelte";
 import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
-import Card from "$lib/components/ui/card.svelte";
-import Skeleton from "$lib/components/ui/skeleton.svelte";
 
 let data = $state<any | null>(null);
 let isLoading = $state(true);
@@ -38,103 +37,142 @@ async function loadAdminOverview() {
 onMount(() => {
   loadAdminOverview();
 });
+
+function formatCurrency(amount: number): string {
+  if (!amount) return "Rp 0";
+  if (amount >= 1_000_000_000)
+    return `Rp ${(amount / 1_000_000_000).toFixed(1)}B`;
+  if (amount >= 1_000_000) return `Rp ${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `Rp ${(amount / 1_000).toFixed(0)}K`;
+  return `Rp ${amount}`;
+}
 </script>
 
 <svelte:head>
-  <title>Super Admin - Padelhive</title>
+  <title>Operations Overview | PadelHive Admin</title>
 </svelte:head>
 
-<div class="py-12 bg-[#06121A]">
-  <div class="container space-y-8">
-    <div class="flex items-center gap-3">
-      <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E6FA50] text-[#06121A]">
-        <Shield class="h-6 w-6" />
+<div class="px-6 pb-6 pt-element lg:px-8 lg:pb-8 pt-8">
+  <div class="mb-8">
+    <p class="caption text-[#F7F7F7]/25">Marketplace Admin</p>
+    <h1 class="heading-1 mt-2 text-2xl text-[#F7F7F7] md:text-3xl">
+      Operations <span class="text-[#E6FA50]">Overview</span>
+    </h1>
+  </div>
+
+  {#if isLoading}
+    <!-- Primary KPIs skeleton -->
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+      {#each Array.from({ length: 4 }) as _, i}
+        <div
+          class="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+        ></div>
+      {/each}
+    </div>
+  {:else if data}
+    <!-- Primary KPIs -->
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+      >
+        <div class="flex items-center justify-between">
+          <TrendingUp class="h-4 w-4 text-[#50C8C8]" />
+        </div>
+        <p class="metric mt-3 text-[#F7F7F7]">{formatCurrency(data.gmv)}</p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">GMV This Month</p>
       </div>
-      <div>
-        <h1 class="text-3xl font-extrabold text-white">Super Admin Dashboard</h1>
-        <p class="text-xs text-white/60">Platform-wide marketplace analytics and operations</p>
+
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+      >
+        <div class="flex items-center justify-between">
+          <DollarSign class="h-4 w-4 text-[#50C8C8]" />
+        </div>
+        <p class="metric mt-3 text-[#F7F7F7]">
+          {formatCurrency(data.commissionRevenue)}
+        </p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">Commission Revenue</p>
+      </div>
+
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+      >
+        <div class="flex items-center justify-between">
+          <CalendarCheck class="h-4 w-4 text-[#50C8C8]" />
+        </div>
+        <p class="metric mt-3 text-[#F7F7F7]">
+          {data.totalBookings.toLocaleString()}
+        </p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">Total Bookings</p>
+      </div>
+
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+      >
+        <div class="flex items-center justify-between">
+          <Building2 class="h-4 w-4 text-[#50C8C8]" />
+        </div>
+        <p class="metric mt-3 text-[#F7F7F7]">{data.activeVenues}</p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">Active Venues</p>
       </div>
     </div>
 
-    {#if isLoading}
-      <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
-        {#each [1, 2, 3, 4, 5, 6] as _}
-          <Card class="p-6 space-y-2">
-            <Skeleton class="h-4 w-1/2" />
-            <Skeleton class="h-8 w-3/4" />
-          </Card>
-        {/each}
-      </div>
-    {:else if data}
-      <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
-        <Card class="p-5 space-y-1">
-          <span class="text-xs font-semibold text-white/50 flex items-center gap-1.5">
-            <DollarSign class="h-4 w-4 text-[#E6FA50]" />
-            Gross Merchandise Value (GMV)
-          </span>
-          <p class="text-2xl font-extrabold text-white">
-            Rp {(data.gmv).toLocaleString("id-ID")}
-          </p>
-        </Card>
-
-        <Card class="p-5 space-y-1">
-          <span class="text-xs font-semibold text-white/50 flex items-center gap-1.5">
-            <Percent class="h-4 w-4 text-[#E6FA50]" />
-            Commission Revenue
-          </span>
-          <p class="text-2xl font-extrabold text-[#E6FA50]">
-            Rp {(data.commissionRevenue).toLocaleString("id-ID")}
-          </p>
-        </Card>
-
-        <Card class="p-5 space-y-1">
-          <span class="text-xs font-semibold text-white/50 flex items-center gap-1.5">
-            <Calendar class="h-4 w-4 text-[#E6FA50]" />
-            Total Bookings
-          </span>
-          <p class="text-2xl font-extrabold text-white">{data.totalBookings}</p>
-        </Card>
-
-        <Card class="p-5 space-y-1">
-          <span class="text-xs font-semibold text-white/50 flex items-center gap-1.5">
-            <Building2 class="h-4 w-4 text-[#E6FA50]" />
-            Active Approved Venues
-          </span>
-          <p class="text-2xl font-extrabold text-white">{data.activeVenues}</p>
-        </Card>
-
-        <Card class="p-5 space-y-1">
-          <span class="text-xs font-semibold text-white/50 flex items-center gap-1.5">
-            <RefreshCw class="h-4 w-4 text-amber-400" />
-            Pending Venue Approvals
-          </span>
-          <p class="text-2xl font-extrabold text-amber-400">{data.pendingApprovals}</p>
-        </Card>
-
-        <Card class="p-5 space-y-1">
-          <span class="text-xs font-semibold text-white/50 flex items-center gap-1.5">
-            <RefreshCw class="h-4 w-4 text-red-400" />
-            Pending Refund Requests
-          </span>
-          <p class="text-2xl font-extrabold text-red-400">{data.refundRequests}</p>
-        </Card>
+    <!-- Secondary KPIs -->
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 mb-8">
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+      >
+        <div class="flex items-center justify-between">
+          <Clock class="h-4 w-4 text-amber-400" />
+        </div>
+        <p class="metric mt-3 text-[#F7F7F7]">{data.pendingApprovals}</p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">Pending Approvals</p>
       </div>
 
-      <!-- Quick Admin Links -->
-      <div class="grid grid-cols-2 gap-4 md:grid-cols-4 pt-4">
-        <a href="/admin/venues" class="rounded-xl border border-white/[0.08] bg-[#0C1B26] p-4 text-center text-xs font-bold text-white hover:border-[#E6FA50]/30 hover:text-[#E6FA50] transition-all">
-          Manage Venues & Approvals →
-        </a>
-        <a href="/admin/vouchers" class="rounded-xl border border-white/[0.08] bg-[#0C1B26] p-4 text-center text-xs font-bold text-white hover:border-[#E6FA50]/30 hover:text-[#E6FA50] transition-all">
-          Manage Vouchers & Promos →
-        </a>
-        <a href="/admin/disputes" class="rounded-xl border border-white/[0.08] bg-[#0C1B26] p-4 text-center text-xs font-bold text-white hover:border-[#E6FA50]/30 hover:text-[#E6FA50] transition-all">
-          Review Player Disputes →
-        </a>
-        <a href="/admin/commission" class="rounded-xl border border-white/[0.08] bg-[#0C1B26] p-4 text-center text-xs font-bold text-white hover:border-[#E6FA50]/30 hover:text-[#E6FA50] transition-all">
-          Commission Reports →
-        </a>
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+      >
+        <div class="flex items-center justify-between">
+          <RotateCcw class="h-4 w-4 text-amber-400" />
+        </div>
+        <p class="metric mt-3 text-[#F7F7F7]">{data.refundRequests}</p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">Refund Requests</p>
       </div>
-    {/if}
-  </div>
+
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
+      >
+        <div class="flex items-center justify-between">
+          <CheckCircle2 class="h-4 w-4 text-[#E6FA50]" />
+        </div>
+        <p class="metric mt-3 text-[#F7F7F7]">{data.paymentSuccessRate}%</p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">Payment Success</p>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 text-center"
+      >
+        <p class="metric text-[#E6FA50]">
+          {formatCurrency(data.avgBookingValue)}
+        </p>
+        <p class="heading-3 mt-2 text-[#F7F7F7]">Avg. Booking Value</p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">
+          Per transaction average, this month
+        </p>
+      </div>
+
+      <div
+        class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 text-center"
+      >
+        <p class="metric text-[#E6FA50]">
+          {data.avgCommissionRate.toFixed(1)}%
+        </p>
+        <p class="heading-3 mt-2 text-[#F7F7F7]">Avg. Commission</p>
+        <p class="caption mt-1 text-[#F7F7F7]/25">Weighted platform fee</p>
+      </div>
+    </div>
+  {/if}
 </div>

@@ -13,7 +13,7 @@ let { children }: Props = $props();
 
 <div class="flex min-h-screen flex-col bg-[#06121A] text-[#F7F7F7]">
   <Navbar />
-  <main class="flex-1 pt-16">
+  <main class="flex-1">
     {@render children?.()}
   </main>
   <Footer />

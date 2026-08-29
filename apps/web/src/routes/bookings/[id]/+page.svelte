@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-svelte";
 import { onMount } from "svelte";
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import Badge from "$lib/components/ui/badge.svelte";
@@ -19,7 +19,7 @@ import Button from "$lib/components/ui/button.svelte";
 import Card from "$lib/components/ui/card.svelte";
 import Skeleton from "$lib/components/ui/skeleton.svelte";
 
-const bookingId = $derived(($page.params.id as string) || "");
+const bookingId = $derived((page.params.id as string) || "");
 
 let booking = $state<any | null>(null);
 let isLoading = $state(true);
@@ -76,7 +76,7 @@ onMount(() => {
   <title>Booking Summary #{bookingId.slice(0, 8)} - Padelhive</title>
 </svelte:head>
 
-<div class="py-12 bg-[#06121A]">
+<div class="min-h-screen pt-24 pb-12 bg-[#06121A]">
   <div class="container max-w-3xl space-y-6">
     <a href="/bookings" class="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors">
       <ArrowLeft class="h-3.5 w-3.5" />

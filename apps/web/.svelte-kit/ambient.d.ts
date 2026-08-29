@@ -54,6 +54,7 @@ declare module '$env/static/private' {
 	export const KITTY_INSTALLATION_DIR: string;
 	export const GDMSESSION: string;
 	export const PATH: string;
+	export const DEBUGINFOD_IMA_CERT_PATH: string;
 	export const DBUS_SESSION_BUS_ADDRESS: string;
 	export const npm_package_json: string;
 	export const DEBUGINFOD_URLS: string;
@@ -64,8 +65,6 @@ declare module '$env/static/private' {
 	export const QT_IM_MODULE: string;
 	export const NVM_CD_FLAGS: string;
 	export const SHLVL: string;
-	export const DEBUGINFOD_IMA_CERT_PATH: string;
-	export const npm_lifecycle_event: string;
 	export const DISPLAY: string;
 	export const BUN_INSTALL: string;
 	export const TMUX_PANE: string;
@@ -81,7 +80,6 @@ declare module '$env/static/private' {
 	export const MCP_TOOL_TIMEOUT: string;
 	export const GNOME_SETUP_DISPLAY: string;
 	export const NVM_DIR: string;
-	export const npm_lifecycle_script: string;
 	export const GOROOT: string;
 	export const INVOCATION_ID: string;
 	export const NVM_BIN: string;
@@ -103,8 +101,6 @@ declare module '$env/static/private' {
 	export const GPG_TTY: string;
 	export const AI_AGENT: string;
 	export const COLORTERM: string;
-	export const NVM_INC: string;
-	export const CLAUDE_EFFORT: string;
 	export const LSCOLORS: string;
 	export const TMUX: string;
 	export const SYSTEMD_EXEC_PID: string;
@@ -115,6 +111,8 @@ declare module '$env/static/private' {
 	export const EDITOR: string;
 	export const TERM: string;
 	export const BASH_MAX_TIMEOUT_MS: string;
+	export const NVM_INC: string;
+	export const CLAUDE_EFFORT: string;
 	export const SHELL: string;
 	export const CLAUDE_PID: string;
 	export const LESS: string;
@@ -131,10 +129,9 @@ declare module '$env/static/private' {
 	export const NoDefaultCurrentDirectoryInExePath: string;
 	export const CLAUDE_CODE_ENTRYPOINT: string;
 	export const PWD: string;
-	export const npm_command: string;
+	export const XDG_SESSION_DESKTOP: string;
 	export const KITTY_PID: string;
 	export const LOGNAME: string;
-	export const XDG_SESSION_DESKTOP: string;
 	export const MOZ_GMP_PATH: string;
 	export const CLAUDE_CODE_MESSAGING_SOCKET: string;
 	export const XDG_SESSION_TYPE: string;
@@ -147,8 +144,6 @@ declare module '$env/static/private' {
 	export const KITTY_PUBLIC_KEY: string;
 	export const CLAUDECODE: string;
 	export const GDM_LANG: string;
-	export const DISABLE_TELEMETRY: string;
-	export const HOME: string;
 	export const MEMORY_PRESSURE_WRITE: string;
 	export const USERNAME: string;
 	export const LANG: string;
@@ -160,6 +155,8 @@ declare module '$env/static/private' {
 	export const CLAUDE_API_TIMEOUT: string;
 	export const PAGER: string;
 	export const GITHUB_PERSONAL_ACCESS_TOKEN: string;
+	export const HOME: string;
+	export const DISABLE_TELEMETRY: string;
 }
 
 /**
@@ -262,6 +259,7 @@ declare module '$env/dynamic/private' {
 		KITTY_INSTALLATION_DIR: string;
 		GDMSESSION: string;
 		PATH: string;
+		DEBUGINFOD_IMA_CERT_PATH: string;
 		DBUS_SESSION_BUS_ADDRESS: string;
 		npm_package_json: string;
 		DEBUGINFOD_URLS: string;
@@ -272,8 +270,6 @@ declare module '$env/dynamic/private' {
 		QT_IM_MODULE: string;
 		NVM_CD_FLAGS: string;
 		SHLVL: string;
-		DEBUGINFOD_IMA_CERT_PATH: string;
-		npm_lifecycle_event: string;
 		DISPLAY: string;
 		BUN_INSTALL: string;
 		TMUX_PANE: string;
@@ -289,7 +285,6 @@ declare module '$env/dynamic/private' {
 		MCP_TOOL_TIMEOUT: string;
 		GNOME_SETUP_DISPLAY: string;
 		NVM_DIR: string;
-		npm_lifecycle_script: string;
 		GOROOT: string;
 		INVOCATION_ID: string;
 		NVM_BIN: string;
@@ -311,8 +306,6 @@ declare module '$env/dynamic/private' {
 		GPG_TTY: string;
 		AI_AGENT: string;
 		COLORTERM: string;
-		NVM_INC: string;
-		CLAUDE_EFFORT: string;
 		LSCOLORS: string;
 		TMUX: string;
 		SYSTEMD_EXEC_PID: string;
@@ -323,6 +316,8 @@ declare module '$env/dynamic/private' {
 		EDITOR: string;
 		TERM: string;
 		BASH_MAX_TIMEOUT_MS: string;
+		NVM_INC: string;
+		CLAUDE_EFFORT: string;
 		SHELL: string;
 		CLAUDE_PID: string;
 		LESS: string;
@@ -339,10 +334,9 @@ declare module '$env/dynamic/private' {
 		NoDefaultCurrentDirectoryInExePath: string;
 		CLAUDE_CODE_ENTRYPOINT: string;
 		PWD: string;
-		npm_command: string;
+		XDG_SESSION_DESKTOP: string;
 		KITTY_PID: string;
 		LOGNAME: string;
-		XDG_SESSION_DESKTOP: string;
 		MOZ_GMP_PATH: string;
 		CLAUDE_CODE_MESSAGING_SOCKET: string;
 		XDG_SESSION_TYPE: string;
@@ -355,8 +349,6 @@ declare module '$env/dynamic/private' {
 		KITTY_PUBLIC_KEY: string;
 		CLAUDECODE: string;
 		GDM_LANG: string;
-		DISABLE_TELEMETRY: string;
-		HOME: string;
 		MEMORY_PRESSURE_WRITE: string;
 		USERNAME: string;
 		LANG: string;
@@ -368,6 +360,8 @@ declare module '$env/dynamic/private' {
 		CLAUDE_API_TIMEOUT: string;
 		PAGER: string;
 		GITHUB_PERSONAL_ACCESS_TOKEN: string;
+		HOME: string;
+		DISABLE_TELEMETRY: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}

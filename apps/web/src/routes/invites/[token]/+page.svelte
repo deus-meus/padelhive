@@ -7,14 +7,14 @@ import {
   XCircle,
 } from "lucide-svelte";
 import { onMount } from "svelte";
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import Badge from "$lib/components/ui/badge.svelte";
 import Button from "$lib/components/ui/button.svelte";
 import Card from "$lib/components/ui/card.svelte";
 import Skeleton from "$lib/components/ui/skeleton.svelte";
 
-const inviteToken = $derived(($page.params.token as string) || "");
+const inviteToken = $derived((page.params.token as string) || "");
 
 let invite = $state<any | null>(null);
 let isLoading = $state(true);

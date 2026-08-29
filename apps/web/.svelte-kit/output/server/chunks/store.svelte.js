@@ -1,7 +1,20 @@
 import "clsx";
-import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut as signOut$1, onAuthStateChanged } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut as signOut$1, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
 import { a as api } from "./client.js";
-import { f as firebaseAuth, g as googleProvider } from "./firebase.js";
+import { getApps, getApp, initializeApp } from "firebase/app";
+const __vite_import_meta_env__ = {};
+const env = typeof import.meta !== "undefined" && __vite_import_meta_env__ || {};
+const firebaseConfig = {
+  apiKey: env.VITE_FIREBASE_API_KEY || env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDM1E7HgH5WQjdHiUGAr04FJLnLsKoDBtE",
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "padelhive-89c92.firebaseapp.com",
+  projectId: env.VITE_FIREBASE_PROJECT_ID || env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "padelhive-89c92",
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "padelhive-89c92.firebasestorage.app",
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1050034071060",
+  appId: env.VITE_FIREBASE_APP_ID || env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1050034071060:web:bf38e90b5139499d6d2901"
+};
+const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const firebaseAuth = getAuth(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
 async function signInWithGoogle() {
   const credential = await signInWithPopup(firebaseAuth, googleProvider);
   return credential.user;
@@ -23,6 +36,9 @@ async function signUpWithEmail(name, email, password) {
   await updateProfile(credential.user, { displayName: name });
   await credential.user.getIdToken(true);
   return credential.user;
+}
+async function sendPasswordReset(email) {
+  await sendPasswordResetEmail(firebaseAuth, email);
 }
 async function signOut() {
   await signOut$1(firebaseAuth);
@@ -107,6 +123,9 @@ class AuthState {
     } finally {
       this.isLoading = false;
     }
+  }
+  async sendPasswordReset(email) {
+    return sendPasswordReset(email);
   }
 }
 const authStore = new AuthState();
