@@ -75,7 +75,7 @@ function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     let email = "";
     let password = "";
-    const nextPath = derived(() => page.url.searchParams.get("next") || "/venues");
+    const nextParam = derived(() => page.url.searchParams.get("next"));
     head("1va3k2h", $$renderer2, ($$renderer3) => {
       $$renderer3.title(($$renderer4) => {
         $$renderer4.push(`<title>Sign In - Padelhive</title>`);
@@ -107,7 +107,7 @@ function _page($$renderer, $$props) {
     } else {
       $$renderer2.push(`<!--[-1-->Sign In`);
     }
-    $$renderer2.push(`<!--]--></button></form> <div class="body mt-4 flex flex-col items-center gap-2"><a href="/auth/forgot-password" class="text-[#F7F7F7]/60 hover:text-[#E6FA50] transition-colors">Forgot password?</a> <div class="text-[#F7F7F7]/40">Don't have an account?  <a${attr("href", `/auth/signup${nextPath() ? `?next=${encodeURIComponent(nextPath())}` : ""}`)} class="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">Sign up</a></div></div></div> <p class="mt-6 text-center caption text-[#F7F7F7]/25">By signing in, you agree to our Terms of Service and Privacy Policy.</p></div></div>`);
+    $$renderer2.push(`<!--]--></button></form> <div class="body mt-4 flex flex-col items-center gap-2"><a href="/auth/forgot-password" class="text-[#F7F7F7]/60 hover:text-[#E6FA50] transition-colors">Forgot password?</a> <div class="text-[#F7F7F7]/40">Don't have an account?  <a${attr("href", `/auth/signup${nextParam() ? `?next=${encodeURIComponent(nextParam())}` : ""}`)} class="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">Sign up</a></div></div></div> <p class="mt-6 text-center caption text-[#F7F7F7]/25">By signing in, you agree to our Terms of Service and Privacy Policy.</p></div></div>`);
   });
 }
 export {

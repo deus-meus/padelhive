@@ -27,29 +27,44 @@ export const nodes = [
 	() => import('./nodes/15'),
 	() => import('./nodes/16'),
 	() => import('./nodes/17'),
-	() => import('./nodes/18')
+	() => import('./nodes/18'),
+	() => import('./nodes/19'),
+	() => import('./nodes/20'),
+	() => import('./nodes/21'),
+	() => import('./nodes/22'),
+	() => import('./nodes/23'),
+	() => import('./nodes/24'),
+	() => import('./nodes/25'),
+	() => import('./nodes/26')
 ];
 
 export const server_loads = [];
 
 export const dictionary = {
-		"/": [2],
-		"/admin": [10],
-		"/(auth)/auth/forgot-password": [3],
-		"/(auth)/auth/login": [4],
-		"/(auth)/auth/signup": [5],
-		"/bookings": [14],
-		"/bookings/[id]": [15],
-		"/booking/[id]/invite": [11],
-		"/booking/[id]/payment": [12],
-		"/booking/[id]/success": [13],
-		"/dashboard": [16],
-		"/invites/[token]": [17],
-		"/notifications": [18],
-		"/(marketing)/venues": [6],
-		"/(marketing)/venues/[id]": [7],
-		"/(marketing)/venues/[id]/book": [8],
-		"/(marketing)/vouchers": [9]
+		"/": [3],
+		"/admin": [11,[2]],
+		"/admin/commission": [12,[2]],
+		"/admin/disputes": [13,[2]],
+		"/admin/metrics": [14,[2]],
+		"/admin/refunds": [15,[2]],
+		"/admin/transactions": [16,[2]],
+		"/admin/venues": [17,[2]],
+		"/admin/vouchers": [18,[2]],
+		"/(auth)/auth/forgot-password": [4],
+		"/(auth)/auth/login": [5],
+		"/(auth)/auth/signup": [6],
+		"/bookings": [22],
+		"/bookings/[id]": [23],
+		"/booking/[id]/invite": [19],
+		"/booking/[id]/payment": [20],
+		"/booking/[id]/success": [21],
+		"/dashboard": [24],
+		"/invites/[token]": [25],
+		"/notifications": [26],
+		"/(marketing)/venues": [7],
+		"/(marketing)/venues/[id]": [8],
+		"/(marketing)/venues/[id]/book": [9],
+		"/(marketing)/vouchers": [10]
 	};
 
 export const hooks = {

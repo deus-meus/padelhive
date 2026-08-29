@@ -11,7 +11,7 @@ type EnsureDefined<T> = T extends null | undefined ? {} : T;
 type OptionalUnion<U extends Record<string, any>, A extends keyof U = U extends U ? keyof U : never> = U extends unknown ? { [P in Exclude<A, keyof U>]?: never } & U : never;
 export type Snapshot<T = any> = Kit.Snapshot<T>;
 type PageParentData = EnsureDefined<LayoutData>;
-type LayoutRouteId = RouteId | "/" | "/(auth)/auth/forgot-password" | "/(auth)/auth/login" | "/(auth)/auth/signup" | "/(marketing)/venues" | "/(marketing)/venues/[id]" | "/(marketing)/venues/[id]/book" | "/(marketing)/vouchers" | "/admin" | "/booking/[id]/invite" | "/booking/[id]/payment" | "/booking/[id]/success" | "/bookings" | "/bookings/[id]" | "/dashboard" | "/invites/[token]" | "/notifications" | null
+type LayoutRouteId = RouteId | "/" | "/(auth)/auth/forgot-password" | "/(auth)/auth/login" | "/(auth)/auth/signup" | "/(marketing)/venues" | "/(marketing)/venues/[id]" | "/(marketing)/venues/[id]/book" | "/(marketing)/vouchers" | "/admin" | "/admin/commission" | "/admin/disputes" | "/admin/metrics" | "/admin/refunds" | "/admin/transactions" | "/admin/venues" | "/admin/vouchers" | "/booking/[id]/invite" | "/booking/[id]/payment" | "/booking/[id]/success" | "/bookings" | "/bookings/[id]" | "/dashboard" | "/invites/[token]" | "/notifications" | null
 type LayoutParams = RouteParams & { id?: string | undefined; token?: string | undefined }
 type LayoutParentData = EnsureDefined<{}>;
 

@@ -9,7 +9,13 @@ let email = $state("");
 let password = $state("");
 let error = $state<string | null>(null);
 
-const nextPath = $derived(page.url.searchParams.get("next") || "/venues");
+const nextParam = $derived(page.url.searchParams.get("next"));
+
+function getRoleRedirect(role?: string): string {
+  if (role === "super_admin") return "/admin";
+  if (role === "venue_owner" || role === "venue_admin") return "/dashboard";
+  return "/venues";
+}
 
 async function handleSignup(e: SubmitEvent) {
   e.preventDefault();
@@ -20,8 +26,9 @@ async function handleSignup(e: SubmitEvent) {
     return;
   }
   try {
-    await authStore.registerWithEmail(name, email, password);
-    goto(nextPath);
+    const u = await authStore.registerWithEmail(name, email, password);
+    const targetPath = nextParam || getRoleRedirect(u?.role);
+    goto(targetPath);
   } catch (err: any) {
     error = err.message || "Failed to create account";
   }
@@ -114,8 +121,8 @@ async function handleSignup(e: SubmitEvent) {
         <div class="text-[#F7F7F7]/40">
           Already have an account?{" "}
           <a
-            href="/auth/login{nextPath
-              ? `?next=${encodeURIComponent(nextPath)}`
+            href="/auth/login{nextParam
+              ? `?next=${encodeURIComponent(nextParam)}`
               : ''}"
             class="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors"
           >

@@ -8,7 +8,13 @@ let email = $state("");
 let password = $state("");
 let error = $state<string | null>(null);
 
-const nextPath = $derived(page.url.searchParams.get("next") || "/venues");
+const nextParam = $derived(page.url.searchParams.get("next"));
+
+function getRoleRedirect(role?: string): string {
+  if (role === "super_admin") return "/admin";
+  if (role === "venue_owner" || role === "venue_admin") return "/dashboard";
+  return "/venues";
+}
 
 async function handleGoogleLogin() {
   if (authStore.isLoading) return;
@@ -16,7 +22,8 @@ async function handleGoogleLogin() {
   try {
     const u = await authStore.loginWithGoogle();
     if (u) {
-      goto(nextPath);
+      const targetPath = nextParam || getRoleRedirect(u.role);
+      goto(targetPath);
     }
   } catch (err: any) {
     error = err.message || "Failed to sign in with Google";
@@ -34,7 +41,8 @@ async function handleEmailLogin(e: SubmitEvent) {
   try {
     const u = await authStore.loginWithEmail(email, password);
     if (u) {
-      goto(nextPath);
+      const targetPath = nextParam || getRoleRedirect(u.role);
+      goto(targetPath);
     }
   } catch (err: any) {
     error = err.message || "Invalid email or password";
@@ -51,7 +59,9 @@ async function handleEmailLogin(e: SubmitEvent) {
     <!-- Branding -->
     <div class="text-center mb-10">
       <a href="/" class="inline-block">
-        <span class="font-heading text-3xl font-bold tracking-[-0.02em] text-[#F7F7F7]">
+        <span
+          class="font-heading text-3xl font-bold tracking-[-0.02em] text-[#F7F7F7]"
+        >
           Padel<span class="text-[#E6FA50]">hive</span>
         </span>
       </a>
@@ -65,7 +75,9 @@ async function handleEmailLogin(e: SubmitEvent) {
       <h1 class="heading-2 text-[#F7F7F7] text-center mb-6">Sign In</h1>
 
       {#if error}
-        <div class="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
+        <div
+          class="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3"
+        >
           <p class="body text-red-100/80">{error}</p>
         </div>
       {/if}
@@ -112,7 +124,9 @@ async function handleEmailLogin(e: SubmitEvent) {
       <!-- Form -->
       <form onsubmit={handleEmailLogin} class="space-y-4 mb-4">
         <div class="relative">
-          <Mail class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
+          <Mail
+            class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25"
+          />
           <input
             type="email"
             placeholder="you@example.com"
@@ -123,7 +137,9 @@ async function handleEmailLogin(e: SubmitEvent) {
           />
         </div>
         <div class="relative">
-          <Lock class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25" />
+          <Lock
+            class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25"
+          />
           <input
             type="password"
             placeholder="Password"
@@ -157,7 +173,9 @@ async function handleEmailLogin(e: SubmitEvent) {
         <div class="text-[#F7F7F7]/40">
           Don't have an account?{" "}
           <a
-            href="/auth/signup{nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}"
+            href="/auth/signup{nextParam
+              ? `?next=${encodeURIComponent(nextParam)}`
+              : ''}"
             class="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors"
           >
             Sign up

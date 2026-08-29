@@ -29,7 +29,7 @@ declare module "$app/types" {
 	type MatcherParam<M> = M extends (param : string) => param is (infer U extends string) ? U : string;
 
 	export interface AppTypes {
-		RouteId(): "/(marketing)" | "/(auth)" | "/" | "/admin" | "/(auth)/auth" | "/(auth)/auth/forgot-password" | "/(auth)/auth/login" | "/(auth)/auth/signup" | "/bookings" | "/bookings/[id]" | "/booking" | "/booking/[id]" | "/booking/[id]/invite" | "/booking/[id]/payment" | "/booking/[id]/success" | "/dashboard" | "/invites" | "/invites/[token]" | "/notifications" | "/(marketing)/venues" | "/(marketing)/venues/[id]" | "/(marketing)/venues/[id]/book" | "/(marketing)/vouchers";
+		RouteId(): "/(marketing)" | "/(auth)" | "/" | "/admin" | "/admin/commission" | "/admin/disputes" | "/admin/metrics" | "/admin/refunds" | "/admin/transactions" | "/admin/venues" | "/admin/vouchers" | "/(auth)/auth" | "/(auth)/auth/forgot-password" | "/(auth)/auth/login" | "/(auth)/auth/signup" | "/bookings" | "/bookings/[id]" | "/booking" | "/booking/[id]" | "/booking/[id]/invite" | "/booking/[id]/payment" | "/booking/[id]/success" | "/dashboard" | "/invites" | "/invites/[token]" | "/notifications" | "/(marketing)/venues" | "/(marketing)/venues/[id]" | "/(marketing)/venues/[id]/book" | "/(marketing)/vouchers";
 		RouteParams(): {
 			"/bookings/[id]": { id: string };
 			"/booking/[id]": { id: string };
@@ -45,6 +45,13 @@ declare module "$app/types" {
 			"/(auth)": Record<string, never>;
 			"/": { id?: string | undefined; token?: string | undefined };
 			"/admin": Record<string, never>;
+			"/admin/commission": Record<string, never>;
+			"/admin/disputes": Record<string, never>;
+			"/admin/metrics": Record<string, never>;
+			"/admin/refunds": Record<string, never>;
+			"/admin/transactions": Record<string, never>;
+			"/admin/venues": Record<string, never>;
+			"/admin/vouchers": Record<string, never>;
 			"/(auth)/auth": Record<string, never>;
 			"/(auth)/auth/forgot-password": Record<string, never>;
 			"/(auth)/auth/login": Record<string, never>;
@@ -65,7 +72,7 @@ declare module "$app/types" {
 			"/(marketing)/venues/[id]/book": { id: string };
 			"/(marketing)/vouchers": Record<string, never>
 		};
-		Pathname(): "/" | "/admin" | "/auth/forgot-password" | "/auth/login" | "/auth/signup" | "/bookings" | `/bookings/${string}` & {} | `/booking/${string}/invite` & {} | `/booking/${string}/payment` & {} | `/booking/${string}/success` & {} | "/dashboard" | `/invites/${string}` & {} | "/notifications" | "/venues" | `/venues/${string}` & {} | `/venues/${string}/book` & {} | "/vouchers";
+		Pathname(): "/" | "/admin" | "/admin/commission" | "/admin/disputes" | "/admin/metrics" | "/admin/refunds" | "/admin/transactions" | "/admin/venues" | "/admin/vouchers" | "/auth/forgot-password" | "/auth/login" | "/auth/signup" | "/bookings" | `/bookings/${string}` & {} | `/booking/${string}/invite` & {} | `/booking/${string}/payment` & {} | `/booking/${string}/success` & {} | "/dashboard" | `/invites/${string}` & {} | "/notifications" | "/venues" | `/venues/${string}` & {} | `/venues/${string}/book` & {} | "/vouchers";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
 		Asset(): "/favicon.ico" | "/favicon.png" | "/favicon.svg" | string & {};
 	}

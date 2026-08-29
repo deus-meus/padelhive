@@ -66,7 +66,7 @@ function _page($$renderer, $$props) {
     let name = "";
     let email = "";
     let password = "";
-    const nextPath = derived(() => page.url.searchParams.get("next") || "/venues");
+    const nextParam = derived(() => page.url.searchParams.get("next"));
     head("nf1v16", $$renderer2, ($$renderer3) => {
       $$renderer3.title(($$renderer4) => {
         $$renderer4.push(`<title>Sign Up - Padelhive</title>`);
@@ -91,7 +91,7 @@ function _page($$renderer, $$props) {
     } else {
       $$renderer2.push(`<!--[-1-->Sign Up`);
     }
-    $$renderer2.push(`<!--]--></button></form> <div class="body mt-4 flex flex-col items-center gap-2"><div class="text-[#F7F7F7]/40">Already have an account?  <a${attr("href", `/auth/login${nextPath() ? `?next=${encodeURIComponent(nextPath())}` : ""}`)} class="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">Sign in</a></div></div></div></div></div>`);
+    $$renderer2.push(`<!--]--></button></form> <div class="body mt-4 flex flex-col items-center gap-2"><div class="text-[#F7F7F7]/40">Already have an account?  <a${attr("href", `/auth/login${nextParam() ? `?next=${encodeURIComponent(nextParam())}` : ""}`)} class="text-[#F7F7F7]/80 hover:text-[#E6FA50] transition-colors">Sign in</a></div></div></div></div></div>`);
   });
 }
 export {

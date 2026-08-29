@@ -103,7 +103,7 @@ const options = {
     app: ({ head, body, assets, nonce, env }) => '<!doctype html>\n<html lang="en" class="dark">\n	<head>\n		<meta charset="utf-8" />\n		<link rel="icon" type="image/svg+xml" href="' + assets + '/favicon.svg" />\n		<link rel="alternate icon" href="' + assets + '/favicon.svg" />\n		<meta name="viewport" content="width=device-width, initial-scale=1" />\n		<link rel="preconnect" href="https://fonts.googleapis.com" />\n		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />\n		' + head + '\n	</head>\n	<body data-sveltekit-preload-data="hover" class="bg-[#06121A] text-[#F7F7F7] antialiased">\n		<div style="display: contents">' + body + "</div>\n	</body>\n</html>\n",
     error
   },
-  version_hash: "evyufn"
+  version_hash: "1qjhx5f"
 };
 async function get_hooks() {
   let handle;

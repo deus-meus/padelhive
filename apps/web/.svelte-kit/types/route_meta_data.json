@@ -1,6 +1,13 @@
 {
 	"/": [],
 	"/admin": [],
+	"/admin/commission": [],
+	"/admin/disputes": [],
+	"/admin/metrics": [],
+	"/admin/refunds": [],
+	"/admin/transactions": [],
+	"/admin/venues": [],
+	"/admin/vouchers": [],
 	"/(auth)/auth/forgot-password": [],
 	"/(auth)/auth/login": [],
 	"/(auth)/auth/signup": [],
