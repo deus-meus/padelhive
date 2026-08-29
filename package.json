@@ -6,7 +6,7 @@
     "apps/*"
   ],
   "scripts": {
-    "preinstall": "bun -e \"if (!process.env.npm_config_user_agent?.includes('bun')) { console.error('\\n❌ Error: Padelhive is configured to run exclusively with Bun.\\nPlease use \\\"bun install\\\" or \\\"bun run\\\" instead of npm/yarn/pnpm.\\n'); process.exit(1); }\"",
+    "preinstall": "npx only-allow bun",
     "dev": "bun --filter @padelhive/web dev",
     "build": "bun --filter @padelhive/web build && bun --filter @padelhive/api build",
     "lint": "bun biome check .",
