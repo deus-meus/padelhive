@@ -1,0 +1,1 @@
+import{a as r,f as s}from"./DwSE8PD_.js";import{t as m}from"./DEmgJoGz.js";import{c as p}from"./DOLNROuf.js";import{p as i}from"./DpVMer4V.js";var f=s("<div></div>");function v(t,o){let e=i(o,"class",3,"");var a=f();m(()=>p(a,1,`animate-pulse rounded-xl bg-white/[0.06] ${e()??""}`)),r(t,a)}export{v as S};

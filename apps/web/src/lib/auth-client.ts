@@ -7,7 +7,7 @@ import {
   signInWithPopup,
   updateProfile,
 } from "firebase/auth";
-import { firebaseAuth, googleProvider } from "@/lib/firebase";
+import { firebaseAuth, googleProvider } from "./firebase";
 
 export function getCurrentUser(): FirebaseUser | null {
   return firebaseAuth.currentUser;

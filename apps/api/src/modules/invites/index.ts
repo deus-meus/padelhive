@@ -7,14 +7,10 @@ import { invitesService } from "./service";
 export const invitesModule = new Elysia({ name: "invitesModule" })
   .use(authPlugin)
   .post(
-    "/bookings/:bookingId/invites",
+    "/bookings/:id/invites",
     ({ params, body, user }) => {
       const authed = ensureAuth(user);
-      return invitesService.createInviteForBooking(
-        authed.id,
-        params.bookingId,
-        body,
-      );
+      return invitesService.createInviteForBooking(authed.id, params.id, body);
     },
     {
       body: CreateInviteSchema,
@@ -25,10 +21,10 @@ export const invitesModule = new Elysia({ name: "invitesModule" })
     },
   )
   .get(
-    "/bookings/:bookingId/invites",
+    "/bookings/:id/invites",
     ({ params, user }) => {
       const authed = ensureAuth(user);
-      return invitesService.listInvitesForBooking(authed.id, params.bookingId);
+      return invitesService.listInvitesForBooking(authed.id, params.id);
     },
     {
       detail: { summary: "List invites for booking", tags: ["Invites"] },

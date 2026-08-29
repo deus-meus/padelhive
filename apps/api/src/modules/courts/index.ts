@@ -6,7 +6,7 @@ import { CreateCourtSchema, UpdateCourtSchema } from "./model";
 import { courtsService } from "./service";
 
 export const courtsModule = new Elysia({
-  prefix: "/venues/:venueId/courts",
+  prefix: "/venues/:id/courts",
   name: "courtsModule",
 })
   .use(authPlugin)
@@ -20,7 +20,7 @@ export const courtsModule = new Elysia({
         UserRole.SUPER_ADMIN,
       );
       return courtsService.findCourtsForManagement(
-        params.venueId,
+        params.id,
         authed.id,
         authed.role === UserRole.SUPER_ADMIN,
       );
@@ -39,7 +39,7 @@ export const courtsModule = new Elysia({
         UserRole.SUPER_ADMIN,
       );
       return courtsService.createCourt(
-        params.venueId,
+        params.id,
         authed.id,
         authed.role === UserRole.SUPER_ADMIN,
         body,
@@ -60,7 +60,7 @@ export const courtsModule = new Elysia({
         UserRole.SUPER_ADMIN,
       );
       return courtsService.updateCourt(
-        params.venueId,
+        params.id,
         params.courtId,
         authed.id,
         authed.role === UserRole.SUPER_ADMIN,
@@ -75,7 +75,7 @@ export const courtsModule = new Elysia({
   .get(
     "/",
     ({ params }) => {
-      return courtsService.findActiveCourtsForApprovedVenue(params.venueId);
+      return courtsService.findActiveCourtsForApprovedVenue(params.id);
     },
     {
       detail: { summary: "List active courts for venue", tags: ["Courts"] },

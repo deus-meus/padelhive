@@ -1,0 +1,19 @@
+{
+	"/": [],
+	"/admin": [],
+	"/(auth)/auth/forgot-password": [],
+	"/(auth)/auth/login": [],
+	"/(auth)/auth/signup": [],
+	"/bookings": [],
+	"/bookings/[id]": [],
+	"/booking/[id]/invite": [],
+	"/booking/[id]/payment": [],
+	"/booking/[id]/success": [],
+	"/dashboard": [],
+	"/invites/[token]": [],
+	"/notifications": [],
+	"/(marketing)/venues": [],
+	"/(marketing)/venues/[id]": [],
+	"/(marketing)/venues/[id]/book": [],
+	"/(marketing)/vouchers": []
+}

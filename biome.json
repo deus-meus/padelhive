@@ -10,6 +10,7 @@
       "**",
       "!**/node_modules",
       "!**/.next",
+      "!**/.svelte-kit",
       "!**/dist",
       "!**/coverage",
       "!**/bun.lock",
@@ -36,7 +37,8 @@
       },
       "correctness": {
         "noUnusedFunctionParameters": "off",
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": "off",
+        "noUnusedImports": "off"
       },
       "style": {
         "noNonNullAssertion": "off"
