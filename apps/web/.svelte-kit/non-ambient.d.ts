@@ -67,6 +67,6 @@ declare module "$app/types" {
 		};
 		Pathname(): "/" | "/admin" | "/auth/forgot-password" | "/auth/login" | "/auth/signup" | "/bookings" | `/bookings/${string}` & {} | `/booking/${string}/invite` & {} | `/booking/${string}/payment` & {} | `/booking/${string}/success` & {} | "/dashboard" | `/invites/${string}` & {} | "/notifications" | "/venues" | `/venues/${string}` & {} | `/venues/${string}/book` & {} | "/vouchers";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
-		Asset(): string & {};
+		Asset(): "/favicon.ico" | "/favicon.png" | "/favicon.svg" | string & {};
 	}
 }
