@@ -46,8 +46,11 @@ const NAV_ITEMS = [
 
 {#if !authStore.isInitialized || (authStore.isLoading && !authStore.user)}
   <!-- Full screen loader matching Next.js 1:1 -->
-  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-[#06121A]">
-    <Loader2 class="h-8 w-8 animate-spin text-[#E6FA50]" />
+  <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#06121A]">
+    <div class="flex flex-col items-center gap-3">
+      <Loader2 class="h-8 w-8 animate-spin text-[#E6FA50]" />
+      <p class="caption text-[#F7F7F7]/40 tracking-wider">Loading...</p>
+    </div>
   </div>
 {:else}
   <div class="min-h-screen pt-20 bg-[#06121A]">
