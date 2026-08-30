@@ -5,26 +5,61 @@ import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
 
-let vouchers = $state<any[]>([]);
-let isLoading = $state(true);
+interface Voucher {
+  id: string;
+  code: string;
+  type: "NOMINAL" | "PERCENTAGE";
+  value: number;
+  minPurchase?: number | null;
+  maxDiscount?: number | null;
+  usageLimit: number;
+  usedCount: number;
+  validFrom: string | Date;
+  validUntil: string | Date;
+  isActive: boolean;
+}
 
-let editingVoucher = $state<any | null>(null);
+let vouchers = $state<Voucher[]>([]);
+let isLoading = $state(true);
 let isFormOpen = $state(false);
-let deleteTarget = $state<any | null>(null);
+let editingVoucher = $state<Voucher | null>(null);
+let deleteTarget = $state<Voucher | null>(null);
 let isSaving = $state(false);
 let isDeleting = $state(false);
 let toast = $state<string | null>(null);
 
-// Form states
+// Form state
 let formCode = $state("");
 let formType = $state<"NOMINAL" | "PERCENTAGE">("NOMINAL");
 let formValue = $state("");
-let formUsageLimit = $state("");
 let formMinPurchase = $state("");
 let formMaxDiscount = $state("");
+let formUsageLimit = $state("");
 let formValidFrom = $state("");
 let formValidUntil = $state("");
 let formIsActive = $state(true);
+
+function formatIDR(amount: number): string {
+  return `Rp ${amount.toLocaleString("id-ID")}`;
+}
+
+function formatDate(iso: string | Date): string {
+  if (!iso) return "-";
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function getVoucherStatus(v: Voucher): { label: string; color: string } {
+  if (!v.isActive) return { label: "Inactive", color: "text-[#F7F7F7]/40" };
+  if (new Date(v.validUntil).getTime() < Date.now())
+    return { label: "Expired", color: "text-orange-400" };
+  if (v.usedCount >= v.usageLimit)
+    return { label: "Exhausted", color: "text-red-400" };
+  return { label: "Active", color: "text-green-400" };
+}
 
 function showToast(msg: string) {
   toast = msg;
@@ -40,11 +75,11 @@ async function loadVouchers() {
     const res = await api.admin.vouchers.get({
       headers: { authorization: `Bearer ${token}` },
     });
-    if (res.data) {
-      vouchers = res.data;
+    if (res.data && Array.isArray(res.data)) {
+      vouchers = res.data as Voucher[];
     }
   } catch (e) {
-    console.warn("Vouchers admin fetch error:", e);
+    console.warn("Error fetching admin vouchers:", e);
   } finally {
     isLoading = false;
   }
@@ -55,33 +90,46 @@ function openCreate() {
   formCode = "";
   formType = "NOMINAL";
   formValue = "";
-  formUsageLimit = "100";
   formMinPurchase = "";
   formMaxDiscount = "";
-  formValidFrom = new Date().toISOString().split("T")[0];
-  formValidUntil = new Date(Date.now() + 30 * 86400000)
-    .toISOString()
-    .split("T")[0];
+  formUsageLimit = "";
+  formValidFrom = new Date().toISOString().slice(0, 10);
+  const nextMonth = new Date();
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  formValidUntil = nextMonth.toISOString().slice(0, 10);
   formIsActive = true;
   isFormOpen = true;
 }
 
-function openEdit(v: any) {
+function openEdit(v: Voucher) {
   editingVoucher = v;
   formCode = v.code;
   formType = v.type;
   formValue = String(v.value);
-  formUsageLimit = String(v.usageLimit);
   formMinPurchase = v.minPurchase != null ? String(v.minPurchase) : "";
   formMaxDiscount = v.maxDiscount != null ? String(v.maxDiscount) : "";
-  formValidFrom = v.validFrom ? v.validFrom.slice(0, 10) : "";
-  formValidUntil = v.validUntil ? v.validUntil.slice(0, 10) : "";
-  formIsActive = v.isActive ?? true;
+  formUsageLimit = String(v.usageLimit);
+  formValidFrom = v.validFrom
+    ? new Date(v.validFrom).toISOString().slice(0, 10)
+    : "";
+  formValidUntil = v.validUntil
+    ? new Date(v.validUntil).toISOString().slice(0, 10)
+    : "";
+  formIsActive = v.isActive;
   isFormOpen = true;
 }
 
 async function handleSave() {
-  if (!formCode.trim() || !formValue || !formUsageLimit) return;
+  if (
+    !formCode.trim() ||
+    !formValue ||
+    !formUsageLimit ||
+    !formValidFrom ||
+    !formValidUntil ||
+    isSaving
+  )
+    return;
+
   isSaving = true;
   try {
     const token = await authStore.firebaseUser?.getIdToken();
@@ -100,9 +148,9 @@ async function handleSave() {
     };
 
     if (editingVoucher) {
-      await api.admin.vouchers({ id: editingVoucher.id }).patch(payload, {
-        headers: { authorization: `Bearer ${token}` },
-      });
+      await api.admin
+        .vouchers({ id: editingVoucher.id })
+        .patch(payload, { headers: { authorization: `Bearer ${token}` } });
       showToast("Voucher updated.");
     } else {
       await api.admin.vouchers.post(payload, {
@@ -110,7 +158,6 @@ async function handleSave() {
       });
       showToast("Voucher created.");
     }
-
     isFormOpen = false;
     await loadVouchers();
   } catch (err: any) {
@@ -121,15 +168,15 @@ async function handleSave() {
 }
 
 async function handleDelete() {
-  if (!deleteTarget) return;
+  if (!deleteTarget || isDeleting) return;
   isDeleting = true;
   try {
     const token = await authStore.firebaseUser?.getIdToken();
     if (!token) return;
 
-    await api.admin.vouchers({ id: deleteTarget.id }).delete(undefined, {
-      headers: { authorization: `Bearer ${token}` },
-    });
+    await api.admin
+      .vouchers({ id: deleteTarget.id })
+      .delete({}, { headers: { authorization: `Bearer ${token}` } });
     showToast("Voucher deleted.");
     deleteTarget = null;
     await loadVouchers();
@@ -144,9 +191,9 @@ onMount(() => {
   if (authStore.user) loadVouchers();
 });
 
-function formatIDR(amount: number): string {
-  return `Rp ${(amount / 1000).toFixed(0)}K`;
-}
+const inputClass =
+  "body w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none";
+const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40";
 </script>
 
 <svelte:head>
@@ -154,9 +201,7 @@ function formatIDR(amount: number): string {
 </svelte:head>
 
 <div class="flex flex-1 flex-col px-6 pb-6 pt-element lg:px-8 lg:pb-8 pt-8">
-  <div
-    class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end"
-  >
+  <div class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
     <div>
       <p class="caption text-[#E6FA50]">Marketplace Admin</p>
       <h1 class="heading-1 mt-2 text-[#F7F7F7]">
@@ -191,43 +236,36 @@ function formatIDR(amount: number): string {
       />
     {:else}
       {#each vouchers as v (v.id)}
+        {@const status = getVoucherStatus(v)}
         <div
           class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6"
         >
-          <div
-            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-          >
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex-1 min-w-0">
               <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <h3
-                  class="heading-2 font-mono tracking-wide text-[#F7F7F7] break-all"
-                >
+                <h3 class="heading-2 font-mono tracking-wide text-[#F7F7F7] break-all">
                   {v.code}
                 </h3>
-                <span
-                  class="caption shrink-0 uppercase px-2.5 py-0.5 rounded-full {v.isActive
-                    ? 'bg-green-400/10 text-green-400'
-                    : 'bg-white/[0.06] text-white/40'}"
-                >
-                  {v.isActive ? "Active" : "Inactive"}
-                </span>
+                {#if status}
+                  <span class="caption shrink-0 uppercase {status.color}">
+                    {status.label}
+                  </span>
+                {/if}
               </div>
               <p class="body-sm mt-2 text-[#F7F7F7]/60">
                 {v.type === "PERCENTAGE"
                   ? `${v.value}% off`
                   : `${formatIDR(v.value)} off`}
-                {v.minPurchase != null && ` · min ${formatIDR(v.minPurchase)}`}
-                {v.type === "PERCENTAGE" &&
-                  v.maxDiscount != null &&
-                  ` · max ${formatIDR(v.maxDiscount)}`}
+                {v.minPurchase != null ? ` · min ${formatIDR(v.minPurchase)}` : ""}
+                {v.type === "PERCENTAGE" && v.maxDiscount != null
+                  ? ` · max ${formatIDR(v.maxDiscount)}`
+                  : ""}
               </p>
               <p class="caption mt-1 text-[#F7F7F7]/25">
-                Used {v.usedCount ?? 0}/{v.usageLimit}
+                {formatDate(v.validFrom)} – {formatDate(v.validUntil)} · Used {v.usedCount ?? 0}/{v.usageLimit}
               </p>
             </div>
-            <div
-              class="mt-4 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4 sm:mt-0 sm:border-0 sm:pt-0"
-            >
+            <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4 sm:mt-0 sm:border-0 sm:pt-0">
               <button
                 type="button"
                 onclick={() => openEdit(v)}
@@ -249,14 +287,10 @@ function formatIDR(amount: number): string {
     {/if}
   </div>
 
-  <!-- Voucher Form Modal -->
+  <!-- Form Modal -->
   {#if isFormOpen}
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 px-4 py-10"
-    >
-      <div
-        class="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl space-y-4"
-      >
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 px-4 py-10">
+      <div class="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
         <div class="flex items-center justify-between">
           <p class="section-label">
             {editingVoucher ? "Edit Voucher" : "New Voucher"}
@@ -270,110 +304,129 @@ function formatIDR(amount: number): string {
           </button>
         </div>
 
-        <div class="space-y-3 text-xs">
+        <div class="mt-5 space-y-4">
           <div>
-            <label for="vcode" class="mb-1 block text-white/50">Code</label>
+            <label class={labelClass} for="voucher-code">Code</label>
             <input
-              id="vcode"
-              type="text"
+              id="voucher-code"
               bind:value={formCode}
               placeholder="WELCOME20"
-              class="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 font-mono uppercase text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none"
+              class="{inputClass} font-mono uppercase"
             />
           </div>
-          <div class="grid grid-cols-2 gap-3">
+
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="vtype" class="mb-1 block text-white/50">Type</label>
+              <label class={labelClass} for="voucher-type">Type</label>
               <select
-                id="vtype"
+                id="voucher-type"
                 bind:value={formType}
-                class="w-full rounded-xl border border-white/[0.08] bg-[#0C1B26] px-4 py-2.5 text-[#F7F7F7] focus:outline-none"
+                class={inputClass}
               >
                 <option value="NOMINAL">Nominal (IDR)</option>
                 <option value="PERCENTAGE">Percentage (%)</option>
               </select>
             </div>
             <div>
-              <label for="vval" class="mb-1 block text-white/50">Value</label>
+              <label class={labelClass} for="voucher-value">
+                {formType === "PERCENTAGE" ? "Value (%)" : "Value (IDR)"}
+              </label>
               <input
-                id="vval"
+                id="voucher-value"
                 type="number"
                 bind:value={formValue}
-                placeholder="20000"
-                class="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:outline-none"
+                class={inputClass}
               />
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
+
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="vmin" class="mb-1 block text-white/50">Min Purchase</label>
+              <label class={labelClass} for="voucher-min-purchase">Min Purchase (optional)</label>
               <input
-                id="vmin"
+                id="voucher-min-purchase"
                 type="number"
                 bind:value={formMinPurchase}
-                placeholder="100000"
-                class="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:outline-none"
+                placeholder="—"
+                class={inputClass}
               />
             </div>
             <div>
-              <label for="vlimit" class="mb-1 block text-white/50">Usage Limit</label>
+              <label class={labelClass} for="voucher-max-discount">Max Discount (optional)</label>
               <input
-                id="vlimit"
+                id="voucher-max-discount"
                 type="number"
-                bind:value={formUsageLimit}
-                placeholder="100"
-                class="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] focus:outline-none"
+                bind:value={formMaxDiscount}
+                placeholder="—"
+                disabled={formType !== "PERCENTAGE"}
+                class="{inputClass} disabled:opacity-40"
               />
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
+
+          <div>
+            <label class={labelClass} for="voucher-usage-limit">Usage Limit</label>
+            <input
+              id="voucher-usage-limit"
+              type="number"
+              bind:value={formUsageLimit}
+              class={inputClass}
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="vfrom" class="mb-1 block text-white/50">Valid From</label>
+              <label class={labelClass} for="voucher-valid-from">Valid From</label>
               <input
-                id="vfrom"
+                id="voucher-valid-from"
                 type="date"
                 bind:value={formValidFrom}
-                class="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] [color-scheme:dark]"
+                class={inputClass}
               />
             </div>
             <div>
-              <label for="vuntil" class="mb-1 block text-white/50">Valid Until</label>
+              <label class={labelClass} for="voucher-valid-until">Valid Until</label>
               <input
-                id="vuntil"
+                id="voucher-valid-until"
                 type="date"
                 bind:value={formValidUntil}
-                class="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] [color-scheme:dark]"
+                class={inputClass}
               />
             </div>
           </div>
+
           <label class="label flex items-center gap-2.5 text-[#F7F7F7]/60 cursor-pointer">
             <input
               type="checkbox"
               bind:checked={formIsActive}
-              class="h-4 w-4 rounded border-white/20 bg-transparent accent-[#E6FA50]"
+              class="h-4 w-4 rounded border-white/20 bg-transparent"
             />
             Active
           </label>
         </div>
 
-        <div class="pt-4 flex justify-end gap-2">
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <button
             type="button"
             onclick={() => (isFormOpen = false)}
-            class="label rounded-full border border-white/[0.08] px-5 py-2 text-white/60 hover:text-white"
+            disabled={isSaving}
+            class="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40"
           >
             Cancel
           </button>
           <button
             type="button"
             onclick={handleSave}
-            disabled={isSaving}
-            class="btn-lime label flex items-center gap-2 rounded-full px-6 py-2"
+            disabled={isSaving || !formCode.trim() || !formValue || !formUsageLimit}
+            class="btn-lime label flex items-center justify-center gap-2 rounded-full px-5 py-2.5 disabled:opacity-40"
           >
             {#if isSaving}
-              <Loader2 class="h-4 w-4 animate-spin" />
+              <Loader2 class="h-3.5 w-3.5 animate-spin" />
+            {:else if editingVoucher}
+              Save Changes
+            {:else}
+              Create Voucher
             {/if}
-            Save Voucher
           </button>
         </div>
       </div>
@@ -382,22 +435,21 @@ function formatIDR(amount: number): string {
 
   <!-- Delete Modal -->
   {#if deleteTarget}
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
-    >
-      <div
-        class="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl space-y-4"
-      >
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div class="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
         <p class="section-label">Delete Voucher</p>
-        <h2 class="heading-2 text-[#F7F7F7]">Delete {deleteTarget.code}?</h2>
-        <p class="body-sm text-[#F7F7F7]/40">
-          This permanently removes the voucher from the marketplace.
+        <h2 class="heading-2 mt-3 text-[#F7F7F7]">
+          Delete {deleteTarget.code}?
+        </h2>
+        <p class="body-sm mt-2 text-[#F7F7F7]/40">
+          This permanently removes the voucher. If it has already been used on bookings, the server will block deletion — deactivate it instead by editing and turning off "Active".
         </p>
-        <div class="flex justify-end gap-3 pt-2">
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <button
             type="button"
             onclick={() => (deleteTarget = null)}
-            class="label rounded-full border border-white/[0.08] px-5 py-2 text-white/60 hover:text-white"
+            disabled={isDeleting}
+            class="label rounded-full border border-white/[0.08] px-5 py-2.5 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] disabled:opacity-40"
           >
             Cancel
           </button>
@@ -405,7 +457,7 @@ function formatIDR(amount: number): string {
             type="button"
             onclick={handleDelete}
             disabled={isDeleting}
-            class="label rounded-full bg-red-500/15 px-5 py-2 text-red-300 hover:bg-red-500/25"
+            class="label rounded-full bg-red-500/15 px-5 py-2.5 text-red-300 transition-colors hover:bg-red-500/25 disabled:opacity-40"
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </button>
@@ -419,7 +471,7 @@ function formatIDR(amount: number): string {
     <div
       class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40"
     >
-      <p class="text-sm text-[#F7F7F7]/60">{toast}</p>
+      <p class="body-sm text-[#F7F7F7]/60">{toast}</p>
     </div>
   {/if}
 </div>
