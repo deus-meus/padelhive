@@ -11,6 +11,7 @@ import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
+import FilterTabs from "$lib/components/ui/filter-tabs.svelte";
 
 type TabValue = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED" | "ALL";
 
@@ -131,20 +132,11 @@ onMount(() => {
   </div>
 
   <!-- Tabs -->
-  <div class="flex flex-wrap gap-2 border-b border-white/[0.06] pb-3 mb-6">
-    {#each TABS as tab}
-      <button
-        type="button"
-        onclick={() => (activeTab = tab.value)}
-        class="label rounded-full px-5 py-2 transition-all {activeTab ===
-        tab.value
-          ? 'bg-[#E6FA50] text-[#06121A]'
-          : 'bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
-      >
-        {tab.label}
-      </button>
-    {/each}
-  </div>
+  <FilterTabs
+    tabs={TABS}
+    activeValue={activeTab}
+    onChange={(val) => (activeTab = val as TabValue)}
+  />
 
   <!-- Venue List -->
   <div class="flex flex-1 flex-col space-y-4">
