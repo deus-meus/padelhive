@@ -83,6 +83,12 @@ let formFacilities = $state<string[]>([]);
 let photoInput = $state("");
 let facilityInput = $state("");
 
+// Real File Picker references
+let coverFileInputRef = $state<HTMLInputElement | null>(null);
+let photoFileInputRef = $state<HTMLInputElement | null>(null);
+let isUploadingCover = $state(false);
+let isUploadingPhoto = $state(false);
+
 function showToast(msg: string) {
   toast = msg;
   setTimeout(() => (toast = null), 3000);
@@ -139,6 +145,63 @@ function openEditModal(v: any) {
   photoInput = "";
   facilityInput = "";
   isModalOpen = true;
+}
+
+function triggerCoverFilePicker() {
+  if (coverFileInputRef) coverFileInputRef.click();
+}
+
+function triggerPhotoFilePicker() {
+  if (photoFileInputRef) photoFileInputRef.click();
+}
+
+function handleCoverFileSelect(e: Event) {
+  const target = e.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  isUploadingCover = true;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    if (evt.target?.result) {
+      formImageUrl = evt.target.result as string;
+      showToast("Cover image loaded from disk.");
+    }
+    isUploadingCover = false;
+    target.value = "";
+  };
+  reader.onerror = () => {
+    showToast("Failed to read image file.");
+    isUploadingCover = false;
+    target.value = "";
+  };
+  reader.readAsDataURL(file);
+}
+
+function handlePhotoFileSelect(e: Event) {
+  const target = e.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  isUploadingPhoto = true;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    if (evt.target?.result) {
+      const dataUrl = evt.target.result as string;
+      if (!formPhotos.includes(dataUrl)) {
+        formPhotos = [...formPhotos, dataUrl];
+        showToast("Photo added to gallery.");
+      }
+    }
+    isUploadingPhoto = false;
+    target.value = "";
+  };
+  reader.onerror = () => {
+    showToast("Failed to read image file.");
+    isUploadingPhoto = false;
+    target.value = "";
+  };
+  reader.readAsDataURL(file);
 }
 
 function addPhoto() {
@@ -237,6 +300,22 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
 <svelte:head>
   <title>Venues Management | Padelhive Owner</title>
 </svelte:head>
+
+<!-- Hidden File Inputs -->
+<input
+  bind:this={coverFileInputRef}
+  type="file"
+  accept="image/*"
+  class="hidden"
+  onchange={handleCoverFileSelect}
+/>
+<input
+  bind:this={photoFileInputRef}
+  type="file"
+  accept="image/*"
+  class="hidden"
+  onchange={handlePhotoFileSelect}
+/>
 
 <div class="py-8">
   <section class="container">
@@ -468,7 +547,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
 
             <!-- Right Column: Media & Facilities -->
             <div class="space-y-4">
-              <!-- Integrated Cover Image Input with Seamless Block Button -->
+              <!-- Integrated Cover Image Input with File Picker -->
               <div>
                 <label class={labelClass} for="venue-cover">Cover Image URL (Optional)</label>
                 <div class={inputWrapperClass}>
@@ -481,16 +560,21 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
                   />
                   <button
                     type="button"
-                    onclick={() => showToast("File picker ready. You can also paste image URL.")}
+                    onclick={triggerCoverFilePicker}
+                    disabled={isUploadingCover}
                     class={integratedBtnClass}
                   >
-                    <Upload class="h-3.5 w-3.5" />
+                    {#if isUploadingCover}
+                      <Loader2 class="h-3.5 w-3.5 animate-spin" />
+                    {:else}
+                      <Upload class="h-3.5 w-3.5" />
+                    {/if}
                     Choose file
                   </button>
                 </div>
               </div>
 
-              <!-- Integrated Photo Gallery Input -->
+              <!-- Integrated Photo Gallery Input with File Picker -->
               <div>
                 <label class={labelClass} for="venue-photo-draft">Photo Gallery (Optional)</label>
                 <div class={inputWrapperClass}>
@@ -504,10 +588,15 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
                   />
                   <button
                     type="button"
-                    onclick={addPhoto}
+                    onclick={triggerPhotoFilePicker}
+                    disabled={isUploadingPhoto}
                     class={integratedBtnClass}
                   >
-                    <Upload class="h-3.5 w-3.5" />
+                    {#if isUploadingPhoto}
+                      <Loader2 class="h-3.5 w-3.5 animate-spin" />
+                    {:else}
+                      <Upload class="h-3.5 w-3.5" />
+                    {/if}
                     Choose file
                   </button>
                 </div>
