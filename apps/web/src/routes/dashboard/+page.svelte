@@ -9,7 +9,6 @@ import {
   Tag,
   TrendingUp,
 } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 
@@ -41,8 +40,10 @@ async function loadDashboard() {
   }
 }
 
-onMount(() => {
-  loadDashboard();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadDashboard();
+  }
 });
 
 const maxRevenue = $derived(
@@ -63,11 +64,11 @@ const maxRevenue = $derived(
     <h1 class="heading-1 mt-2 text-[#F7F7F7]">
       Welcome back, <span class="text-[#E6FA50]">{firstName}</span>
     </h1>
-    {#if data}
+    {#if data && data.kpis}
       <p class="body mt-3 text-[#F7F7F7]/40">
         Your venues generated{" "}
         <span class="price text-[#50C8C8]">
-          Rp {(data.kpis.weeklyRevenue / 1000).toFixed(0)}K
+          Rp {((data.kpis.weeklyRevenue || 0) / 1000).toFixed(0)}K
         </span>{" "}
         this week.
       </p>
@@ -75,11 +76,43 @@ const maxRevenue = $derived(
   </section>
 
   {#if isLoading}
+    <!-- Full 1:1 Owner Skeleton UI -->
+    <!-- KPIs Skeleton -->
     <section class="container pb-component">
       <div class="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {#each Array.from({ length: 5 }) as _, i}
           <div
             class="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+          ></div>
+        {/each}
+      </div>
+    </section>
+
+    <!-- Revenue + Utilization Skeleton -->
+    <section class="container pb-component">
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr]">
+        <div class="h-[300px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+        <div class="h-[300px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+      </div>
+    </section>
+
+    <!-- Today's Schedule Skeleton -->
+    <section class="container pb-component">
+      <div class="h-[200px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+    </section>
+
+    <!-- Recent Bookings Skeleton -->
+    <section class="container pb-component">
+      <div class="h-[250px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+    </section>
+
+    <!-- Quick Actions Skeleton -->
+    <section class="container pb-component">
+      <div class="mb-5 h-5 w-24 animate-pulse rounded-md bg-white/[0.04]"></div>
+      <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {#each Array.from({ length: 4 }) as _, i}
+          <div
+            class="h-[104px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           ></div>
         {/each}
       </div>
@@ -95,7 +128,7 @@ const maxRevenue = $derived(
             <DollarSign class="h-4 w-4 text-[#50C8C8]" />
           </div>
           <p class="metric mt-3 text-[#F7F7F7]">
-            Rp {(data.kpis.weeklyRevenue / 1000).toFixed(0)}K
+            Rp {((data.kpis?.weeklyRevenue || 0) / 1000).toFixed(0)}K
           </p>
           <p class="caption mt-1 text-[#F7F7F7]/25">Revenue</p>
         </div>
@@ -106,7 +139,7 @@ const maxRevenue = $derived(
           <div class="flex items-center justify-between">
             <CalendarDays class="h-4 w-4 text-[#50C8C8]" />
           </div>
-          <p class="metric mt-3 text-[#F7F7F7]">{data.kpis.weeklyBookings}</p>
+          <p class="metric mt-3 text-[#F7F7F7]">{data.kpis?.weeklyBookings || 0}</p>
           <p class="caption mt-1 text-[#F7F7F7]/25">Bookings</p>
         </div>
 
@@ -116,7 +149,7 @@ const maxRevenue = $derived(
           <div class="flex items-center justify-between">
             <TrendingUp class="h-4 w-4 text-[#50C8C8]" />
           </div>
-          <p class="metric mt-3 text-[#F7F7F7]">{data.kpis.occupancyRate}%</p>
+          <p class="metric mt-3 text-[#F7F7F7]">{data.kpis?.occupancyRate || 0}%</p>
           <p class="caption mt-1 text-[#F7F7F7]/25">Occupancy</p>
         </div>
 
@@ -126,7 +159,7 @@ const maxRevenue = $derived(
           <div class="flex items-center justify-between">
             <Building2 class="h-4 w-4 text-[#50C8C8]" />
           </div>
-          <p class="metric mt-3 text-[#F7F7F7]">{data.kpis.activeCourts}</p>
+          <p class="metric mt-3 text-[#F7F7F7]">{data.kpis?.activeCourts || 0}</p>
           <p class="caption mt-1 text-[#F7F7F7]/25">Active Courts</p>
         </div>
 
@@ -136,7 +169,7 @@ const maxRevenue = $derived(
           <div class="flex items-center justify-between">
             <Clock class="h-4 w-4 text-[#50C8C8]" />
           </div>
-          <p class="metric mt-3 text-[#F7F7F7]">{data.kpis.pendingPayments}</p>
+          <p class="metric mt-3 text-[#F7F7F7]">{data.kpis?.pendingPayments || 0}</p>
           <p class="caption mt-1 text-[#F7F7F7]/25">Pending Payments</p>
         </div>
       </div>
@@ -153,7 +186,7 @@ const maxRevenue = $derived(
             <div>
               <p class="section-label">Revenue This Week</p>
               <p class="metric mt-3 text-[#F7F7F7]">
-                Rp {(data.kpis.weeklyRevenue / 1000).toFixed(0)}K
+                Rp {((data.kpis?.weeklyRevenue || 0) / 1000).toFixed(0)}K
               </p>
             </div>
             <div class="flex gap-1">
@@ -173,7 +206,7 @@ const maxRevenue = $derived(
           </div>
 
           <div class="mt-10 flex h-40 items-end gap-2">
-            {#each data.revenueSeries as d, i}
+            {#each (data.revenueSeries || []) as d, i}
               <div class="flex flex-1 flex-col items-center gap-2">
                 <div
                   class="w-full rounded-md bg-[#E6FA50]/15 transition-colors duration-200 hover:bg-[#E6FA50]/30"
@@ -192,7 +225,7 @@ const maxRevenue = $derived(
           <p class="section-label">Court Utilization</p>
 
           <div class="mt-8 space-y-5">
-            {#each data.courtUtilization.slice(0, 5) as court}
+            {#each (data.courtUtilization || []).slice(0, 5) as court}
               <div>
                 <div class="flex items-center justify-between mb-1.5">
                   <span class="label text-[#F7F7F7]/40">{court.name}</span>
@@ -210,7 +243,7 @@ const maxRevenue = $derived(
                 </div>
               </div>
             {/each}
-            {#if data.courtUtilization.length === 0}
+            {#if !data.courtUtilization || data.courtUtilization.length === 0}
               <p class="body text-[#F7F7F7]/40">No active courts.</p>
             {/if}
           </div>
@@ -218,7 +251,7 @@ const maxRevenue = $derived(
           <div class="mt-8 border-t border-white/[0.04] pt-5">
             <p class="caption text-[#F7F7F7]/25">Average occupancy</p>
             <p class="metric mt-1 text-[#E6FA50]">
-              {data.kpis.occupancyRate}%
+              {data.kpis?.occupancyRate || 0}%
             </p>
           </div>
         </div>
@@ -233,12 +266,12 @@ const maxRevenue = $derived(
         <div class="flex items-center justify-between mb-6">
           <p class="section-label">Today's Schedule</p>
           <span class="caption text-[#F7F7F7]/25">
-            {data.todaysSchedule.length} bookings
+            {data.todaysSchedule?.length || 0} bookings
           </span>
         </div>
 
         <div class="space-y-0">
-          {#if data.todaysSchedule.length === 0}
+          {#if !data.todaysSchedule || data.todaysSchedule.length === 0}
             <p class="body text-[#F7F7F7]/40">No bookings today.</p>
           {:else}
             {#each data.todaysSchedule as slot}
@@ -263,8 +296,57 @@ const maxRevenue = $derived(
                     ? 'bg-[#E6FA50]/10 text-[#E6FA50]'
                     : 'bg-[#50C8C8]/10 text-[#50C8C8]'}"
                 >
-                  {slot.status.replace(/_/g, " ")}
+                  {slot.status ? slot.status.replace(/_/g, " ") : "CONFIRMED"}
                 </span>
+              </div>
+            {/each}
+          {/if}
+        </div>
+      </div>
+    </section>
+
+    <!-- RECENT BOOKINGS -->
+    <section class="container pb-component">
+      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8">
+        <div class="flex items-center justify-between mb-6">
+          <p class="section-label">Recent Bookings</p>
+          <a
+            href="/dashboard/bookings"
+            class="group flex items-center gap-1 caption text-[#F7F7F7]/25 transition-colors hover:text-[#E6FA50]"
+          >
+            View all
+            <ArrowRight class="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+          </a>
+        </div>
+
+        <div class="space-y-2">
+          {#if !data.recentBookings || data.recentBookings.length === 0}
+            <p class="body text-[#F7F7F7]/40">No recent bookings.</p>
+          {:else}
+            {#each data.recentBookings as booking (booking.id)}
+              {@const isConfirmed = booking.status === "CONFIRMED"}
+              {@const isPending = booking.status === "PENDING_PAYMENT"}
+              <div
+                class="flex items-center gap-4 rounded-lg bg-white/[0.02] p-3.5 transition-colors hover:bg-white/[0.04]"
+              >
+                <div class="flex-1 min-w-0">
+                  <p class="heading-3 truncate text-[#F7F7F7]">
+                    {booking.venueName}
+                  </p>
+                  <p class="caption mt-0.5 text-[#F7F7F7]/25">
+                    {booking.courtName} · {booking.bookingDate} · {booking.time}
+                  </p>
+                </div>
+                <p class="price shrink-0 text-[#F7F7F7]/60">
+                  Rp {((booking.finalAmount || 0) / 1000).toFixed(0)}K
+                </p>
+                <div
+                  class="h-2 w-2 shrink-0 rounded-full {isConfirmed
+                    ? 'bg-[#E6FA50]'
+                    : isPending
+                      ? 'bg-[#50C8C8]'
+                      : 'bg-[#F7F7F7]/25'}"
+                ></div>
               </div>
             {/each}
           {/if}
@@ -277,7 +359,7 @@ const maxRevenue = $derived(
       <p class="section-label mb-5">Quick Actions</p>
       <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
         <a
-          href="/dashboard"
+          href="/dashboard/courts"
           class="flex flex-col items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all duration-200 hover:border-[#E6FA50]/20 hover:bg-[#E6FA50]/5"
         >
           <div
@@ -289,7 +371,7 @@ const maxRevenue = $derived(
         </a>
 
         <a
-          href="/dashboard"
+          href="/dashboard/revenue"
           class="flex flex-col items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all duration-200 hover:border-[#E6FA50]/20 hover:bg-[#E6FA50]/5"
         >
           <div
@@ -301,7 +383,7 @@ const maxRevenue = $derived(
         </a>
 
         <a
-          href="/dashboard"
+          href="/dashboard/hours"
           class="flex flex-col items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all duration-200 hover:border-[#E6FA50]/20 hover:bg-[#E6FA50]/5"
         >
           <div
@@ -313,7 +395,7 @@ const maxRevenue = $derived(
         </a>
 
         <a
-          href="/venues"
+          href="/dashboard/venues"
           class="flex flex-col items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all duration-200 hover:border-[#E6FA50]/20 hover:bg-[#E6FA50]/5"
         >
           <div
