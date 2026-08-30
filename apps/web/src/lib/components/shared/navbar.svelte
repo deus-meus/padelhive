@@ -169,9 +169,7 @@ function handleLogout() {
         </div>
       {/if}
 
-      {#if !authStore.isInitialized}
-        <div class="h-10 w-10 animate-pulse rounded-full bg-white/[0.04]"></div>
-      {:else if user}
+      {#if user}
         <NotificationBell enabled={!!user} />
         <div bind:this={avatarRef} class="relative">
           <button
@@ -240,6 +238,8 @@ function handleLogout() {
             </div>
           {/if}
         </div>
+      {:else if !authStore.isInitialized}
+        <div class="h-10 w-10 animate-pulse rounded-full bg-white/[0.04]"></div>
       {:else}
         <a
           href="/auth/login"

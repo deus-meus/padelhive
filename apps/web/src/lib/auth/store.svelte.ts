@@ -18,6 +18,8 @@ export type UserProfile = {
   avatarUrl?: string;
 };
 
+const CACHE_KEY = "padelhive_user_cache";
+
 class AuthState {
   user = $state<UserProfile | null>(null);
   firebaseUser = $state<FirebaseUser | null>(null);
@@ -26,12 +28,24 @@ class AuthState {
 
   constructor() {
     if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          this.user = JSON.parse(cached);
+        }
+      } catch (e) {
+        console.warn("[AuthStore] Cache read error:", e);
+      }
+
       onAuthStateChanged(firebaseAuth, async (fbUser) => {
         this.firebaseUser = fbUser;
         if (fbUser) {
           await this.syncUser();
         } else {
           this.user = null;
+          try {
+            localStorage.removeItem(CACHE_KEY);
+          } catch (e) {}
           this.isLoading = false;
           this.isInitialized = true;
         }
@@ -45,6 +59,9 @@ class AuthState {
       const token = await this.firebaseUser?.getIdToken();
       if (!token) {
         this.user = null;
+        try {
+          localStorage.removeItem(CACHE_KEY);
+        } catch (e) {}
         return null;
       }
       const res = await api.auth.me.get({
@@ -54,6 +71,9 @@ class AuthState {
       if (res.data) {
         const u = res.data;
         this.user = { ...u, role: u.role.toLowerCase() };
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(this.user));
+        } catch (e) {}
         return this.user;
       }
     } catch (err) {
@@ -104,6 +124,9 @@ class AuthState {
       await authClientSignOut();
       this.user = null;
       this.firebaseUser = null;
+      try {
+        localStorage.removeItem(CACHE_KEY);
+      } catch (e) {}
     } finally {
       this.isLoading = false;
     }
