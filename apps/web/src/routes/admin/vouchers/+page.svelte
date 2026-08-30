@@ -8,6 +8,7 @@ import EmptyState from "$lib/components/ui/empty-state.svelte";
 import FilterSelect, {
   type FilterOption,
 } from "$lib/components/ui/filter-select.svelte";
+import NumberInput from "$lib/components/ui/number-input.svelte";
 
 interface Voucher {
   id: string;
@@ -339,11 +340,12 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40";
               <label class={labelClass} for="voucher-value">
                 {formType === "PERCENTAGE" ? "Value (%)" : "Value (IDR)"}
               </label>
-              <input
+              <NumberInput
                 id="voucher-value"
-                type="number"
                 bind:value={formValue}
-                class={inputClass}
+                step={formType === "PERCENTAGE" ? 1 : 5000}
+                min={0}
+                max={formType === "PERCENTAGE" ? 100 : undefined}
               />
             </div>
           </div>
@@ -351,34 +353,34 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40";
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class={labelClass} for="voucher-min-purchase">Min Purchase (optional)</label>
-              <input
+              <NumberInput
                 id="voucher-min-purchase"
-                type="number"
                 bind:value={formMinPurchase}
                 placeholder="—"
-                class={inputClass}
+                step={50000}
+                min={0}
               />
             </div>
             <div>
               <label class={labelClass} for="voucher-max-discount">Max Discount (optional)</label>
-              <input
+              <NumberInput
                 id="voucher-max-discount"
-                type="number"
                 bind:value={formMaxDiscount}
                 placeholder="—"
+                step={10000}
+                min={0}
                 disabled={formType !== "PERCENTAGE"}
-                class="{inputClass} disabled:opacity-40"
               />
             </div>
           </div>
 
           <div>
             <label class={labelClass} for="voucher-usage-limit">Usage Limit</label>
-            <input
+            <NumberInput
               id="voucher-usage-limit"
-              type="number"
               bind:value={formUsageLimit}
-              class={inputClass}
+              step={10}
+              min={1}
             />
           </div>
 
