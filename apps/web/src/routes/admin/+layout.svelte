@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-svelte";
 import type { Snippet } from "svelte";
+import { goto } from "$app/navigation";
 import { page } from "$app/state";
 import { authStore } from "$lib/auth/store.svelte";
 
@@ -21,6 +22,16 @@ interface Props {
 
 let { children }: Props = $props();
 let sidebarOpen = $state(false);
+
+$effect(() => {
+  if (
+    authStore.isInitialized &&
+    authStore.user &&
+    authStore.user.role !== "super_admin"
+  ) {
+    goto("/");
+  }
+});
 
 const currentPath = $derived(page.url.pathname);
 
@@ -53,7 +64,7 @@ const NAV_ITEMS = [
           <a
             href={item.href}
             class="label flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-150 {isActive
-              ? 'bg-[#E6FA50]/10 text-[#E6FA50] font-semibold'
+              ? 'bg-[#E6FA50]/10 text-[#E6FA50]'
               : 'text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60'}"
           >
             <Icon class="h-4 w-4" />
@@ -100,7 +111,7 @@ const NAV_ITEMS = [
               href={item.href}
               onclick={() => (sidebarOpen = false)}
               class="label flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all {isActive
-                ? 'bg-[#E6FA50]/10 text-[#E6FA50] font-semibold'
+                ? 'bg-[#E6FA50]/10 text-[#E6FA50]'
                 : 'text-[#F7F7F7]/60 hover:bg-white/[0.03] hover:text-[#F7F7F7]/80'}"
             >
               <Icon class="h-4 w-4" />
