@@ -11,6 +11,8 @@ interface Props {
 
 let { children }: Props = $props();
 
+const isErrorPage = $derived(!!page.error || page.status >= 400);
+
 const isDashboardOrAdmin = $derived(
   page.url.pathname.startsWith("/admin") ||
     page.url.pathname.startsWith("/dashboard"),
@@ -18,11 +20,13 @@ const isDashboardOrAdmin = $derived(
 </script>
 
 <div class="flex min-h-screen flex-col bg-[#06121A] text-[#F7F7F7]">
-  <Navbar />
+  {#if !isErrorPage}
+    <Navbar />
+  {/if}
   <main class="flex-1">
     {@render children?.()}
   </main>
-  {#if !isDashboardOrAdmin}
+  {#if !isDashboardOrAdmin && !isErrorPage}
     <Footer />
   {/if}
 </div>
