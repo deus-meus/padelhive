@@ -8,8 +8,8 @@ import { page } from "$app/state";
 </svelte:head>
 
 <div class="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#06121A] px-6 py-16 text-center">
-  <!-- Clean Solid Dark Card Container -->
-  <div class="w-full max-w-xl rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-8 text-center shadow-2xl md:p-12">
+  <!-- Clean Borderless Solid Dark Card Container -->
+  <div class="w-full max-w-xl rounded-2xl bg-[#0C1B26] p-8 text-center shadow-2xl md:p-12">
     <!-- Top Sports Tag Badge -->
     <div class="inline-flex items-center rounded-full bg-[#E6FA50]/10 px-4 py-1.5">
       <span class="section-label text-[#E6FA50]">Out of Bounds</span>
