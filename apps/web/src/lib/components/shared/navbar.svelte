@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-svelte";
 import { onMount } from "svelte";
+import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import NotificationBell from "./notification-bell.svelte";
@@ -23,6 +24,10 @@ let nextBooking = $state<any | null>(null);
 let activeVoucherCount = $state<number>(0);
 
 const user = $derived(authStore.user);
+const isDashboardOrAdmin = $derived(
+  page.url.pathname.startsWith("/admin") ||
+    page.url.pathname.startsWith("/dashboard"),
+);
 const showDashboard = $derived(
   user?.role === "venue_owner" || user?.role === "venue_admin",
 );
@@ -104,7 +109,7 @@ function handleLogout() {
     </a>
 
     <!-- Nav links when unauthenticated -->
-    {#if !user}
+    {#if !user && !isDashboardOrAdmin}
       <nav class="hidden items-center gap-8 md:flex">
         <a
           href="/venues"
