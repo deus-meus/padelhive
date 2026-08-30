@@ -1,5 +1,5 @@
 <script lang="ts">
-import { RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-svelte";
 import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";

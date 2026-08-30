@@ -1,5 +1,4 @@
 <script lang="ts">
-import { BarChart3, TrendingUp } from "lucide-react";
 import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
