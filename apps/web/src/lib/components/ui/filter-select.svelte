@@ -18,6 +18,7 @@ export interface FilterOption {
     icon?: any;
     alignRight?: boolean;
     class?: string;
+    buttonClass?: string;
   }
 
   let {
@@ -29,6 +30,7 @@ export interface FilterOption {
     icon: Icon,
     alignRight = false,
     class: className = "",
+    buttonClass = "",
   }: Props = $props();
 
   let open = $state(false);
@@ -65,9 +67,13 @@ export interface FilterOption {
     aria-haspopup="listbox"
     aria-expanded={open}
     onclick={() => (open = !open)}
-    class="label flex w-full h-10 items-center justify-between gap-2 rounded-full px-4 transition-all duration-200 border {active
-      ? 'border-[#E6FA50]/40 bg-[#E6FA50]/[0.06] text-[#E6FA50]'
-      : 'border-transparent bg-white/[0.03] text-[#F7F7F7]/60 hover:bg-white/[0.06]'}"
+    class={buttonClass
+      ? buttonClass
+      : `label flex w-full h-10 items-center justify-between gap-2 rounded-full px-4 transition-all duration-200 border ${
+          active
+            ? 'border-[#E6FA50]/40 bg-[#E6FA50]/[0.06] text-[#E6FA50]'
+            : 'border-transparent bg-white/[0.03] text-[#F7F7F7]/60 hover:bg-white/[0.06]'
+        }`}
   >
     <span class="flex items-center gap-2">
       {#if Icon}

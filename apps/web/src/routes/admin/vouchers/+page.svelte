@@ -3,7 +3,11 @@ import { Loader2, Pencil, Plus, Ticket, Trash2, X } from "lucide-svelte";
 import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
+import DatePicker from "$lib/components/ui/date-picker.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
+import FilterSelect, {
+  type FilterOption,
+} from "$lib/components/ui/filter-select.svelte";
 
 interface Voucher {
   id: string;
@@ -18,6 +22,11 @@ interface Voucher {
   validUntil: string | Date;
   isActive: boolean;
 }
+
+const TYPE_OPTIONS: FilterOption[] = [
+  { value: "NOMINAL", label: "Nominal (IDR)" },
+  { value: "PERCENTAGE", label: "Percentage (%)" },
+];
 
 let vouchers = $state<Voucher[]>([]);
 let isLoading = $state(true);
@@ -318,14 +327,13 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40";
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class={labelClass} for="voucher-type">Type</label>
-              <select
-                id="voucher-type"
-                bind:value={formType}
-                class={inputClass}
-              >
-                <option value="NOMINAL">Nominal (IDR)</option>
-                <option value="PERCENTAGE">Percentage (%)</option>
-              </select>
+              <FilterSelect
+                value={formType}
+                options={TYPE_OPTIONS}
+                onChange={(val) => (formType = val as "NOMINAL" | "PERCENTAGE")}
+                class="w-full"
+                buttonClass="label flex w-full h-11 items-center justify-between gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] hover:border-white/[0.15] transition-all"
+              />
             </div>
             <div>
               <label class={labelClass} for="voucher-value">
@@ -377,20 +385,20 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40";
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class={labelClass} for="voucher-valid-from">Valid From</label>
-              <input
-                id="voucher-valid-from"
-                type="date"
+              <DatePicker
                 bind:value={formValidFrom}
-                class={inputClass}
+                placeholder="Select Date"
+                class="w-full"
+                buttonClass="label flex w-full h-11 items-center justify-between gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] hover:border-white/[0.15] transition-all"
               />
             </div>
             <div>
               <label class={labelClass} for="voucher-valid-until">Valid Until</label>
-              <input
-                id="voucher-valid-until"
-                type="date"
+              <DatePicker
                 bind:value={formValidUntil}
-                class={inputClass}
+                placeholder="Select Date"
+                class="w-full"
+                buttonClass="label flex w-full h-11 items-center justify-between gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] hover:border-white/[0.15] transition-all"
               />
             </div>
           </div>

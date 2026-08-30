@@ -6,7 +6,6 @@ import {
   X,
 } from "lucide-svelte";
 import { onMount } from "svelte";
-import { formatShortDate } from "$lib/format";
 
 interface Props {
   value?: string;
@@ -14,6 +13,7 @@ interface Props {
   placeholder?: string;
   alignRight?: boolean;
   class?: string;
+  buttonClass?: string;
 }
 
 let {
@@ -22,6 +22,7 @@ let {
   placeholder = "Select Date",
   alignRight = false,
   class: className = "",
+  buttonClass = "",
 }: Props = $props();
 
 let open = $state(false);
@@ -129,9 +130,13 @@ onMount(() => {
   <button
     type="button"
     onclick={() => (open = !open)}
-    class="label flex w-full h-10 items-center justify-between gap-2 rounded-full px-4 transition-all duration-200 border {value
-      ? 'border-[#E6FA50]/40 bg-[#E6FA50]/[0.06] text-[#E6FA50]'
-      : 'border-transparent bg-white/[0.03] text-[#F7F7F7]/60 hover:bg-white/[0.06]'}"
+    class={buttonClass
+      ? buttonClass
+      : `label flex w-full h-10 items-center justify-between gap-2 rounded-full px-4 transition-all duration-200 border ${
+          value
+            ? 'border-[#E6FA50]/40 bg-[#E6FA50]/[0.06] text-[#E6FA50]'
+            : 'border-transparent bg-white/[0.03] text-[#F7F7F7]/60 hover:bg-white/[0.06]'
+        }`}
   >
     <span class="flex items-center gap-2 truncate">
       <CalendarIcon class="h-4 w-4 shrink-0 opacity-60 text-[#E6FA50]" />
