@@ -9,6 +9,7 @@ import {
   MapPin,
   Plus,
   Star,
+  Upload,
   X,
   XCircle,
 } from "lucide-svelte";
@@ -16,9 +17,7 @@ import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
-import FilterSelect, {
-  type FilterOption,
-} from "$lib/components/ui/filter-select.svelte";
+import TimeSelect from "$lib/components/ui/time-select.svelte";
 
 const STATUS_CONFIG: Record<
   string,
@@ -60,13 +59,6 @@ const PRESET_FACILITIES = [
   "Equipment Rental",
   "Seating Area",
 ];
-
-const TIME_OPTIONS: FilterOption[] = Array.from({ length: 37 }).map((_, i) => {
-  const h = Math.floor(i / 2) + 5; // 05:00 to 23:00
-  const m = (i % 2) * 30;
-  const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-  return { value: timeStr, label: timeStr };
-});
 
 let venues = $state<any[]>([]);
 let isLoading = $state(true);
@@ -234,7 +226,7 @@ onMount(() => {
 });
 
 const inputClass =
-  "body w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none";
+  "body w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:outline-none";
 const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
 </script>
 
@@ -373,7 +365,7 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
       {/if}
     </div>
 
-    <!-- Venue Add/Edit Modal (2-Column Compact No-Scroll) -->
+    <!-- Venue Add/Edit Modal -->
     {#if isModalOpen}
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
         <button
@@ -404,86 +396,100 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
             <div class="space-y-3.5">
               <div>
                 <label class={labelClass} for="venue-name">Venue Name *</label>
-                <input
-                  id="venue-name"
-                  bind:value={formName}
-                  placeholder="e.g. Padel Bali Arena"
-                  class={inputClass}
-                />
+                <div class="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                  <input
+                    id="venue-name"
+                    bind:value={formName}
+                    placeholder="e.g. Padel Bali Arena"
+                    class={inputClass}
+                  />
+                </div>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class={labelClass} for="venue-city">City *</label>
-                  <input
-                    id="venue-city"
-                    bind:value={formCity}
-                    placeholder="e.g. Bali"
-                    class={inputClass}
-                  />
+                  <div class="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                    <input
+                      id="venue-city"
+                      bind:value={formCity}
+                      placeholder="e.g. Bali"
+                      class={inputClass}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label class={labelClass} for="venue-location">Address *</label>
-                  <input
-                    id="venue-location"
-                    bind:value={formLocation}
-                    placeholder="Jl. Sunset Road No. 88"
-                    class={inputClass}
-                  />
+                  <div class="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                    <input
+                      id="venue-location"
+                      bind:value={formLocation}
+                      placeholder="Jl. Sunset Road No. 88"
+                      class={inputClass}
+                    />
+                  </div>
                 </div>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class={labelClass} for="venue-open">Open Time</label>
-                  <FilterSelect
-                    value={formOpenTime}
-                    options={TIME_OPTIONS}
-                    onChange={(v) => (formOpenTime = v)}
-                    class="w-full"
-                    buttonClass="label flex w-full h-10 items-center justify-between gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 text-[#F7F7F7] hover:border-white/[0.15]"
+                  <TimeSelect
+                    bind:value={formOpenTime}
+                    ariaLabel="Open time"
                   />
                 </div>
                 <div>
                   <label class={labelClass} for="venue-close">Close Time</label>
-                  <FilterSelect
-                    value={formCloseTime}
-                    options={TIME_OPTIONS}
-                    onChange={(v) => (formCloseTime = v)}
-                    class="w-full"
-                    buttonClass="label flex w-full h-10 items-center justify-between gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 text-[#F7F7F7] hover:border-white/[0.15]"
+                  <TimeSelect
+                    bind:value={formCloseTime}
+                    ariaLabel="Close time"
                   />
                 </div>
               </div>
 
               <div>
                 <label class={labelClass} for="venue-desc">Description *</label>
-                <textarea
-                  id="venue-desc"
-                  rows={3}
-                  bind:value={formDescription}
-                  placeholder="Describe your venue facilities..."
-                  class="{inputClass} resize-none"
-                ></textarea>
+                <div class="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                  <textarea
+                    id="venue-desc"
+                    rows={3}
+                    bind:value={formDescription}
+                    placeholder="Describe your venue facilities..."
+                    class="{inputClass} resize-none"
+                  ></textarea>
+                </div>
               </div>
             </div>
 
             <!-- Right Column: Media & Facilities -->
             <div class="space-y-3.5">
+              <!-- Integrated Cover Image Input with Choose File Button -->
               <div>
                 <label class={labelClass} for="venue-cover">Cover Image URL (Optional)</label>
-                <input
-                  id="venue-cover"
-                  type="url"
-                  bind:value={formImageUrl}
-                  placeholder="https://images.unsplash.com/..."
-                  class={inputClass}
-                />
+                <div class="relative flex items-center rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden pr-1.5 focus-within:border-[#50C8C8]/40">
+                  <input
+                    id="venue-cover"
+                    type="url"
+                    bind:value={formImageUrl}
+                    placeholder="https://images.unsplash.com/..."
+                    class={inputClass}
+                  />
+                  <button
+                    type="button"
+                    onclick={() => showToast("File picker ready. You can also paste image URL.")}
+                    class="btn-lime label flex items-center gap-1.5 shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold"
+                  >
+                    <Upload class="h-3.5 w-3.5" />
+                    Choose file
+                  </button>
+                </div>
               </div>
 
+              <!-- Integrated Photo Gallery Input -->
               <div>
                 <label class={labelClass} for="venue-photo-draft">Photo Gallery (Optional)</label>
-                <div class="flex gap-2">
+                <div class="relative flex items-center rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden pr-1.5 focus-within:border-[#50C8C8]/40">
                   <input
                     id="venue-photo-draft"
                     type="url"
@@ -495,9 +501,10 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
                   <button
                     type="button"
                     onclick={addPhoto}
-                    class="btn-lime label shrink-0 rounded-xl px-4 h-10"
+                    class="btn-lime label flex items-center gap-1.5 shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold"
                   >
-                    Add
+                    <Plus class="h-3.5 w-3.5" />
+                    Choose file
                   </button>
                 </div>
 
@@ -515,9 +522,10 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
                 {/if}
               </div>
 
+              <!-- Integrated Facilities Input -->
               <div>
                 <label class={labelClass} for="venue-facility-draft">Facilities (Optional)</label>
-                <div class="flex gap-2">
+                <div class="relative flex items-center rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden pr-1.5 focus-within:border-[#50C8C8]/40">
                   <input
                     id="venue-facility-draft"
                     type="text"
@@ -529,7 +537,7 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
                   <button
                     type="button"
                     onclick={() => addFacility(facilityInput)}
-                    class="btn-lime label shrink-0 rounded-xl px-4 h-10"
+                    class="btn-lime label shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold"
                   >
                     Add
                   </button>
