@@ -144,13 +144,30 @@ onMount(() => {
     </div>
 
     {#if isLoading}
+      <!-- 1:1 Precision Skeleton for Operating Hours -->
       <div class="mt-6 flex gap-2">
         {#each Array.from({ length: 3 }) as _, i}
-          <div class="h-9 w-24 animate-pulse rounded-full bg-white/[0.04]"></div>
+          <div class="h-9 w-28 animate-pulse rounded-full bg-white/[0.04]"></div>
         {/each}
       </div>
+
       <div class="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-        <div class="h-64 w-full animate-pulse rounded-lg bg-white/[0.04]"></div>
+        <div class="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-6">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 animate-pulse rounded-xl bg-white/[0.04]"></div>
+            <div class="space-y-1.5">
+              <div class="h-5 w-32 animate-pulse rounded bg-white/[0.04]"></div>
+              <div class="h-3 w-48 animate-pulse rounded bg-white/[0.04]"></div>
+            </div>
+          </div>
+          <div class="h-9 w-28 animate-pulse rounded-lg bg-white/[0.04]"></div>
+        </div>
+
+        <div class="space-y-4">
+          {#each Array.from({ length: 7 }) as _, i}
+            <div class="h-14 w-full animate-pulse rounded-xl border border-white/[0.04] bg-white/[0.01]"></div>
+          {/each}
+        </div>
       </div>
     {:else if venues.length === 0}
       <div class="mt-6">
@@ -195,7 +212,7 @@ onMount(() => {
           <button
             type="button"
             onclick={copyMonday}
-            class="label flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:text-[#F7F7F7]/80"
+            class="label flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[#F7F7F7]/60 transition-colors hover:border-white/[0.15] hover:bg-white/[0.04] hover:text-[#F7F7F7]/80"
           >
             <Copy class="h-3.5 w-3.5" />
             <span class="hidden sm:inline">Copy Monday</span>
