@@ -1,5 +1,5 @@
 <script lang="ts">
-import { ArrowLeft, Home, Search } from "lucide-svelte";
+import { ArrowLeft, Home } from "lucide-svelte";
 import { page } from "$app/state";
 </script>
 
@@ -15,7 +15,7 @@ import { page } from "$app/state";
       <span class="section-label text-[#E6FA50]">Out of Bounds</span>
     </div>
 
-    <!-- Clean Solid Error Code Display (No Glow, No Lamp) -->
+    <!-- Clean Solid Error Code Display -->
     <h1 class="display-hero mt-6 font-bold tracking-tight text-[#E6FA50]">
       {page.status || 404}
     </h1>
@@ -38,33 +38,22 @@ import { page } from "$app/state";
       {/if}
     </p>
 
-    <!-- Action Buttons -->
+    <!-- Clean 2-Button Action Layout -->
     <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
       <a
         href="/"
-        class="btn-lime flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold"
+        class="btn-lime flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold"
       >
         <Home class="h-4 w-4" />
         Kembali ke Beranda
       </a>
-      <a
-        href="/venues"
-        class="btn-outline-white flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-medium"
-      >
-        <Search class="h-4 w-4" />
-        Jelajahi Lapangan
-      </a>
-    </div>
-
-    <!-- Back Navigation Link -->
-    <div class="mt-8 border-t border-white/[0.06] pt-6">
       <button
         type="button"
         onclick={() => history.back()}
-        class="inline-flex items-center gap-1.5 text-xs text-[#F7F7F7]/40 transition-colors hover:text-[#E6FA50]"
+        class="btn-outline-white flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-medium"
       >
-        <ArrowLeft class="h-3.5 w-3.5" />
-        Kembali ke halaman sebelumnya
+        <ArrowLeft class="h-4 w-4" />
+        Kembali Sebelumnya
       </button>
     </div>
   </div>
