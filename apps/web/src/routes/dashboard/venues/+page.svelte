@@ -5,13 +5,10 @@ import {
   Clock,
   Edit3,
   Eye,
-  Image as ImageIcon,
   Loader2,
   MapPin,
   Plus,
   Star,
-  Trash2,
-  Upload,
   X,
   XCircle,
 } from "lucide-svelte";
@@ -19,6 +16,9 @@ import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
+import FilterSelect, {
+  type FilterOption,
+} from "$lib/components/ui/filter-select.svelte";
 
 const STATUS_CONFIG: Record<
   string,
@@ -60,6 +60,13 @@ const PRESET_FACILITIES = [
   "Equipment Rental",
   "Seating Area",
 ];
+
+const TIME_OPTIONS: FilterOption[] = Array.from({ length: 37 }).map((_, i) => {
+  const h = Math.floor(i / 2) + 5; // 05:00 to 23:00
+  const m = (i % 2) * 30;
+  const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  return { value: timeStr, label: timeStr };
+});
 
 let venues = $state<any[]>([]);
 let isLoading = $state(true);
@@ -132,8 +139,8 @@ function openEditModal(v: any) {
   formLocation = v.location || "";
   formCity = v.city || "";
   formDescription = v.description || "";
-  formOpenTime = v.operatingHours?.open || "06:00";
-  formCloseTime = v.operatingHours?.close || "23:00";
+  formOpenTime = v.operatingHours?.open || v.openTime || "06:00";
+  formCloseTime = v.operatingHours?.close || v.closeTime || "23:00";
   formImageUrl = v.imageUrl || "";
   formPhotos = Array.isArray(v.photos) ? [...v.photos] : [];
   formFacilities = Array.isArray(v.facilities) ? [...v.facilities] : [];
@@ -228,7 +235,7 @@ onMount(() => {
 
 const inputClass =
   "body w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none";
-const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
+const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
 </script>
 
 <svelte:head>
@@ -324,7 +331,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
                     {venue.courtCount ?? 0} courts
                   </span>
                   <span class="body-sm text-[#F7F7F7]/25">
-                    {venue.operatingHours?.open || "06:00"} – {venue.operatingHours?.close || "23:00"}
+                    {venue.operatingHours?.open || venue.openTime || "06:00"} – {venue.operatingHours?.close || venue.closeTime || "23:00"}
                   </span>
                 </div>
               </div>
@@ -366,11 +373,19 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
       {/if}
     </div>
 
-    <!-- Venue Add/Edit Modal -->
+    <!-- Venue Add/Edit Modal (2-Column Compact No-Scroll) -->
     {#if isModalOpen}
-      <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 px-4 py-10">
-        <div class="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl">
-          <div class="flex items-center justify-between border-b border-white/[0.06] pb-4">
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        <button
+          type="button"
+          class="absolute inset-0 bg-transparent w-full h-full border-0 cursor-default"
+          onclick={() => (isModalOpen = false)}
+          aria-label="Close modal backdrop"
+        ></button>
+
+        <div class="relative flex w-full max-w-3xl flex-col rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl z-10">
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-5">
             <p class="section-label">
               {modalMode === "add" ? "Add New Venue" : "Edit Venue"}
             </p>
@@ -383,190 +398,177 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
             </button>
           </div>
 
-          <div class="mt-5 space-y-4 max-h-[70vh] overflow-y-auto pr-1 no-scrollbar">
-            <div>
-              <label class={labelClass} for="venue-name">Venue Name *</label>
-              <input
-                id="venue-name"
-                bind:value={formName}
-                placeholder="e.g. Padel Bali Arena"
-                class={inputClass}
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
+          <!-- 2-Column Form Body -->
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <!-- Left Column: Core Info -->
+            <div class="space-y-3.5">
               <div>
-                <label class={labelClass} for="venue-city">City *</label>
+                <label class={labelClass} for="venue-name">Venue Name *</label>
                 <input
-                  id="venue-city"
-                  bind:value={formCity}
-                  placeholder="e.g. Bali"
+                  id="venue-name"
+                  bind:value={formName}
+                  placeholder="e.g. Padel Bali Arena"
                   class={inputClass}
                 />
               </div>
-              <div>
-                <label class={labelClass} for="venue-location">Location / Address *</label>
-                <input
-                  id="venue-location"
-                  bind:value={formLocation}
-                  placeholder="Jl. Sunset Road No. 88"
-                  class={inputClass}
-                />
-              </div>
-            </div>
 
-            <div>
-              <label class={labelClass} for="venue-desc">Description *</label>
-              <textarea
-                id="venue-desc"
-                rows={3}
-                bind:value={formDescription}
-                placeholder="Describe your venue facilities and courts..."
-                class="{inputClass} resize-none"
-              ></textarea>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class={labelClass} for="venue-open">Open Time</label>
-                <input
-                  id="venue-open"
-                  type="time"
-                  bind:value={formOpenTime}
-                  class="{inputClass} [color-scheme:dark]"
-                />
-              </div>
-              <div>
-                <label class={labelClass} for="venue-close">Close Time</label>
-                <input
-                  id="venue-close"
-                  type="time"
-                  bind:value={formCloseTime}
-                  class="{inputClass} [color-scheme:dark]"
-                />
-              </div>
-            </div>
-
-            <!-- Cover Image URL -->
-            <div>
-              <label class={labelClass} for="venue-cover">Cover Image URL (Optional)</label>
-              <input
-                id="venue-cover"
-                type="url"
-                bind:value={formImageUrl}
-                placeholder="https://images.unsplash.com/..."
-                class={inputClass}
-              />
-              {#if formImageUrl}
-                <div class="mt-2 h-24 w-full overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                  <img
-                    src={formImageUrl}
-                    alt="Cover preview"
-                    class="h-full w-full object-cover"
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class={labelClass} for="venue-city">City *</label>
+                  <input
+                    id="venue-city"
+                    bind:value={formCity}
+                    placeholder="e.g. Bali"
+                    class={inputClass}
                   />
                 </div>
-              {/if}
+                <div>
+                  <label class={labelClass} for="venue-location">Address *</label>
+                  <input
+                    id="venue-location"
+                    bind:value={formLocation}
+                    placeholder="Jl. Sunset Road No. 88"
+                    class={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class={labelClass} for="venue-open">Open Time</label>
+                  <FilterSelect
+                    value={formOpenTime}
+                    options={TIME_OPTIONS}
+                    onChange={(v) => (formOpenTime = v)}
+                    class="w-full"
+                    buttonClass="label flex w-full h-10 items-center justify-between gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 text-[#F7F7F7] hover:border-white/[0.15]"
+                  />
+                </div>
+                <div>
+                  <label class={labelClass} for="venue-close">Close Time</label>
+                  <FilterSelect
+                    value={formCloseTime}
+                    options={TIME_OPTIONS}
+                    onChange={(v) => (formCloseTime = v)}
+                    class="w-full"
+                    buttonClass="label flex w-full h-10 items-center justify-between gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 text-[#F7F7F7] hover:border-white/[0.15]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class={labelClass} for="venue-desc">Description *</label>
+                <textarea
+                  id="venue-desc"
+                  rows={3}
+                  bind:value={formDescription}
+                  placeholder="Describe your venue facilities..."
+                  class="{inputClass} resize-none"
+                ></textarea>
+              </div>
             </div>
 
-            <!-- Photo Gallery -->
-            <div>
-              <label class={labelClass} for="venue-photo-draft">Photo Gallery (Optional)</label>
-              <div class="flex gap-2">
+            <!-- Right Column: Media & Facilities -->
+            <div class="space-y-3.5">
+              <div>
+                <label class={labelClass} for="venue-cover">Cover Image URL (Optional)</label>
                 <input
-                  id="venue-photo-draft"
+                  id="venue-cover"
                   type="url"
-                  bind:value={photoInput}
-                  onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), addPhoto())}
-                  placeholder="Add photo URL..."
+                  bind:value={formImageUrl}
+                  placeholder="https://images.unsplash.com/..."
                   class={inputClass}
                 />
-                <button
-                  type="button"
-                  onclick={addPhoto}
-                  class="btn-lime label shrink-0 rounded-xl px-4"
-                >
-                  Add
-                </button>
-              </div>
-              {#if formPhotos.length > 0}
-                <div class="mt-3 space-y-2">
-                  {#each formPhotos as p, idx}
-                    <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] p-2">
-                      <div class="flex items-center gap-3 overflow-hidden">
-                        <img src={p} alt={p} class="h-9 w-9 rounded object-cover shrink-0" />
-                        <span class="caption truncate text-[#F7F7F7]/60">{p}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onclick={() => removePhoto(idx)}
-                        class="p-1 text-[#F7F7F7]/40 hover:text-red-400"
-                      >
-                        <X class="h-4 w-4" />
-                      </button>
-                    </div>
-                  {/each}
-                </div>
-              {/if}
-            </div>
-
-            <!-- Facilities -->
-            <div>
-              <label class={labelClass} for="venue-facility-draft">Facilities (Optional)</label>
-              <div class="flex gap-2">
-                <input
-                  id="venue-facility-draft"
-                  type="text"
-                  bind:value={facilityInput}
-                  onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), addFacility(facilityInput))}
-                  placeholder="Add custom facility..."
-                  class={inputClass}
-                />
-                <button
-                  type="button"
-                  onclick={() => addFacility(facilityInput)}
-                  class="btn-lime label shrink-0 rounded-xl px-4"
-                >
-                  Add
-                </button>
               </div>
 
-              {#if formFacilities.length > 0}
-                <div class="mt-3 flex flex-wrap gap-2">
-                  {#each formFacilities as f, idx}
-                    <span class="caption flex items-center gap-1.5 rounded-full bg-[#E6FA50]/10 pl-3 pr-1.5 py-1 text-[#E6FA50]">
-                      {f}
+              <div>
+                <label class={labelClass} for="venue-photo-draft">Photo Gallery (Optional)</label>
+                <div class="flex gap-2">
+                  <input
+                    id="venue-photo-draft"
+                    type="url"
+                    bind:value={photoInput}
+                    onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), addPhoto())}
+                    placeholder="Photo URL..."
+                    class={inputClass}
+                  />
+                  <button
+                    type="button"
+                    onclick={addPhoto}
+                    class="btn-lime label shrink-0 rounded-xl px-4 h-10"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {#if formPhotos.length > 0}
+                  <div class="mt-2 flex flex-wrap gap-1.5 max-h-20 overflow-y-auto no-scrollbar">
+                    {#each formPhotos as p, idx}
+                      <span class="caption flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1 text-[#F7F7F7]/60">
+                        <span class="truncate max-w-[120px]">{p}</span>
+                        <button type="button" onclick={() => removePhoto(idx)} class="text-white/40 hover:text-red-400">
+                          <X class="h-3 w-3" />
+                        </button>
+                      </span>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+
+              <div>
+                <label class={labelClass} for="venue-facility-draft">Facilities (Optional)</label>
+                <div class="flex gap-2">
+                  <input
+                    id="venue-facility-draft"
+                    type="text"
+                    bind:value={facilityInput}
+                    onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), addFacility(facilityInput))}
+                    placeholder="Custom facility..."
+                    class={inputClass}
+                  />
+                  <button
+                    type="button"
+                    onclick={() => addFacility(facilityInput)}
+                    class="btn-lime label shrink-0 rounded-xl px-4 h-10"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {#if formFacilities.length > 0}
+                  <div class="mt-2 flex flex-wrap gap-1.5">
+                    {#each formFacilities as f, idx}
+                      <span class="caption flex items-center gap-1 rounded-full bg-[#E6FA50]/10 px-2.5 py-0.5 text-[#E6FA50]">
+                        {f}
+                        <button type="button" onclick={() => removeFacility(idx)} class="hover:text-white">
+                          <X class="h-3 w-3" />
+                        </button>
+                      </span>
+                    {/each}
+                  </div>
+                {/if}
+
+                <div class="mt-2">
+                  <p class="caption text-[#F7F7F7]/30 mb-1">Quick Add:</p>
+                  <div class="flex flex-wrap gap-1">
+                    {#each PRESET_FACILITIES as preset}
                       <button
                         type="button"
-                        onclick={() => removeFacility(idx)}
-                        class="rounded-full p-0.5 hover:bg-white/[0.1] hover:text-[#F7F7F7]"
+                        onclick={() => addFacility(preset)}
+                        disabled={formFacilities.includes(preset)}
+                        class="caption rounded-md border border-white/[0.06] px-2 py-0.5 text-[11px] text-[#F7F7F7]/40 hover:border-[#E6FA50]/40 hover:text-[#F7F7F7] disabled:opacity-20"
                       >
-                        <X class="h-3 w-3" />
+                        + {preset}
                       </button>
-                    </span>
-                  {/each}
-                </div>
-              {/if}
-
-              <!-- Preset Facilities -->
-              <div class="mt-3 border-t border-white/[0.04] pt-3">
-                <p class="caption text-[#F7F7F7]/40 mb-2">Quick Add:</p>
-                <div class="flex flex-wrap gap-1.5">
-                  {#each PRESET_FACILITIES as preset}
-                    <button
-                      type="button"
-                      onclick={() => addFacility(preset)}
-                      disabled={formFacilities.includes(preset)}
-                      class="caption rounded-full border border-white/[0.06] px-2.5 py-1 text-[#F7F7F7]/40 transition-colors hover:border-[#E6FA50]/50 hover:text-[#F7F7F7] disabled:opacity-30"
-                    >
-                      + {preset}
-                    </button>
-                  {/each}
+                    {/each}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end border-t border-white/[0.06] pt-4">
+          <!-- Modal Footer -->
+          <div class="mt-6 flex justify-end gap-3 border-t border-white/[0.06] pt-4">
             <button
               type="button"
               onclick={() => (isModalOpen = false)}
@@ -579,7 +581,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
               type="button"
               onclick={handleSubmit}
               disabled={isSubmitting || !formName.trim() || !formLocation.trim() || !formCity.trim()}
-              class="btn-lime label flex items-center justify-center gap-2 rounded-full px-5 py-2.5 disabled:opacity-40"
+              class="btn-lime label flex items-center justify-center gap-2 rounded-full px-6 py-2.5 disabled:opacity-40"
             >
               {#if isSubmitting}
                 <Loader2 class="h-3.5 w-3.5 animate-spin" />
