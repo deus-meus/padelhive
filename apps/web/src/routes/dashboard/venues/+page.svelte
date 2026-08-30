@@ -229,6 +229,8 @@ const inputWrapperClass =
   "relative flex h-11 w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] transition-colors focus-within:border-[#50C8C8]/40";
 const inputClass =
   "body h-full w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none";
+const integratedBtnClass =
+  "label flex h-full shrink-0 items-center gap-2 border-l border-white/[0.08] bg-white/[0.04] px-4 text-xs font-medium text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.08] hover:text-[#E6FA50]";
 const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
 </script>
 
@@ -466,7 +468,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
 
             <!-- Right Column: Media & Facilities -->
             <div class="space-y-4">
-              <!-- Integrated Cover Image Input with Choose File Button -->
+              <!-- Integrated Cover Image Input with Seamless Block Button -->
               <div>
                 <label class={labelClass} for="venue-cover">Cover Image URL (Optional)</label>
                 <div class={inputWrapperClass}>
@@ -480,7 +482,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
                   <button
                     type="button"
                     onclick={() => showToast("File picker ready. You can also paste image URL.")}
-                    class="label flex h-[32px] shrink-0 items-center gap-1.5 rounded-lg bg-[#E6FA50] px-3 mr-1.5 text-xs font-semibold text-[#06121A] transition-colors hover:bg-[#d4e845]"
+                    class={integratedBtnClass}
                   >
                     <Upload class="h-3.5 w-3.5" />
                     Choose file
@@ -503,9 +505,9 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
                   <button
                     type="button"
                     onclick={addPhoto}
-                    class="label flex h-[32px] shrink-0 items-center gap-1.5 rounded-lg bg-[#E6FA50] px-3 mr-1.5 text-xs font-semibold text-[#06121A] transition-colors hover:bg-[#d4e845]"
+                    class={integratedBtnClass}
                   >
-                    <Plus class="h-3.5 w-3.5" />
+                    <Upload class="h-3.5 w-3.5" />
                     Choose file
                   </button>
                 </div>
@@ -539,7 +541,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
                   <button
                     type="button"
                     onclick={() => addFacility(facilityInput)}
-                    class="label flex h-[32px] shrink-0 items-center gap-1.5 rounded-lg bg-[#E6FA50] px-3.5 mr-1.5 text-xs font-semibold text-[#06121A] transition-colors hover:bg-[#d4e845]"
+                    class={integratedBtnClass}
                   >
                     <Plus class="h-3.5 w-3.5" />
                     Add
