@@ -225,9 +225,11 @@ onMount(() => {
   if (authStore.user) loadOwnerVenues();
 });
 
+const inputWrapperClass =
+  "relative flex h-11 w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] transition-colors focus-within:border-[#50C8C8]/40";
 const inputClass =
-  "body w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:outline-none";
-const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
+  "body h-full w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none";
+const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
 </script>
 
 <svelte:head>
@@ -393,10 +395,10 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
           <!-- 2-Column Form Body -->
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <!-- Left Column: Core Info -->
-            <div class="space-y-3.5">
+            <div class="space-y-4">
               <div>
                 <label class={labelClass} for="venue-name">Venue Name *</label>
-                <div class="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                <div class={inputWrapperClass}>
                   <input
                     id="venue-name"
                     bind:value={formName}
@@ -409,7 +411,7 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class={labelClass} for="venue-city">City *</label>
-                  <div class="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                  <div class={inputWrapperClass}>
                     <input
                       id="venue-city"
                       bind:value={formCity}
@@ -420,7 +422,7 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
                 </div>
                 <div>
                   <label class={labelClass} for="venue-location">Address *</label>
-                  <div class="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                  <div class={inputWrapperClass}>
                     <input
                       id="venue-location"
                       bind:value={formLocation}
@@ -450,24 +452,24 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
 
               <div>
                 <label class={labelClass} for="venue-desc">Description *</label>
-                <div class="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] focus-within:border-[#50C8C8]/40">
                   <textarea
                     id="venue-desc"
                     rows={3}
                     bind:value={formDescription}
                     placeholder="Describe your venue facilities..."
-                    class="{inputClass} resize-none"
+                    class="body w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none resize-none"
                   ></textarea>
                 </div>
               </div>
             </div>
 
             <!-- Right Column: Media & Facilities -->
-            <div class="space-y-3.5">
+            <div class="space-y-4">
               <!-- Integrated Cover Image Input with Choose File Button -->
               <div>
                 <label class={labelClass} for="venue-cover">Cover Image URL (Optional)</label>
-                <div class="relative flex items-center rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden pr-1.5 focus-within:border-[#50C8C8]/40">
+                <div class={inputWrapperClass}>
                   <input
                     id="venue-cover"
                     type="url"
@@ -478,7 +480,7 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
                   <button
                     type="button"
                     onclick={() => showToast("File picker ready. You can also paste image URL.")}
-                    class="btn-lime label flex items-center gap-1.5 shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold"
+                    class="label flex h-[32px] shrink-0 items-center gap-1.5 rounded-lg bg-[#E6FA50] px-3 mr-1.5 text-xs font-semibold text-[#06121A] transition-colors hover:bg-[#d4e845]"
                   >
                     <Upload class="h-3.5 w-3.5" />
                     Choose file
@@ -489,7 +491,7 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
               <!-- Integrated Photo Gallery Input -->
               <div>
                 <label class={labelClass} for="venue-photo-draft">Photo Gallery (Optional)</label>
-                <div class="relative flex items-center rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden pr-1.5 focus-within:border-[#50C8C8]/40">
+                <div class={inputWrapperClass}>
                   <input
                     id="venue-photo-draft"
                     type="url"
@@ -501,7 +503,7 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
                   <button
                     type="button"
                     onclick={addPhoto}
-                    class="btn-lime label flex items-center gap-1.5 shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold"
+                    class="label flex h-[32px] shrink-0 items-center gap-1.5 rounded-lg bg-[#E6FA50] px-3 mr-1.5 text-xs font-semibold text-[#06121A] transition-colors hover:bg-[#d4e845]"
                   >
                     <Plus class="h-3.5 w-3.5" />
                     Choose file
@@ -525,7 +527,7 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
               <!-- Integrated Facilities Input -->
               <div>
                 <label class={labelClass} for="venue-facility-draft">Facilities (Optional)</label>
-                <div class="relative flex items-center rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden pr-1.5 focus-within:border-[#50C8C8]/40">
+                <div class={inputWrapperClass}>
                   <input
                     id="venue-facility-draft"
                     type="text"
@@ -537,8 +539,9 @@ const labelClass = "mb-1 block caption text-[#F7F7F7]/40 font-medium";
                   <button
                     type="button"
                     onclick={() => addFacility(facilityInput)}
-                    class="btn-lime label shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-semibold"
+                    class="label flex h-[32px] shrink-0 items-center gap-1.5 rounded-lg bg-[#E6FA50] px-3.5 mr-1.5 text-xs font-semibold text-[#06121A] transition-colors hover:bg-[#d4e845]"
                   >
+                    <Plus class="h-3.5 w-3.5" />
                     Add
                   </button>
                 </div>

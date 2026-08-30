@@ -118,7 +118,7 @@ let minuteOpen = $state(false);
     aria-label={ariaLabel}
     {disabled}
     onclick={() => (isOpen = !isOpen)}
-    class="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-2.5 label text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none transition-colors {disabled
+    class="flex h-11 w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 label text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none transition-colors {disabled
       ? 'opacity-30 cursor-not-allowed'
       : 'hover:border-white/[0.15]'}"
   >
