@@ -176,15 +176,8 @@ $effect(() => {
           ></div>
         {/each}
       </div>
-      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-4">
-        <div class="space-y-3">
-          {#each Array.from({ length: 6 }) as _, i}
-            <div
-              class="h-12 animate-pulse rounded bg-white/[0.04]"
-            ></div>
-          {/each}
-        </div>
-      </div>
+      <div class="h-56 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+      <div class="h-64 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
     </div>
   {:else if data && data.venues && data.venues.length === 0}
     <EmptyState

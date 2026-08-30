@@ -8,7 +8,6 @@ import {
   RotateCcw,
   TrendingUp,
 } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 
@@ -68,6 +67,24 @@ function formatCurrency(amount: number): string {
       {#each Array.from({ length: 4 }) as _, i}
         <div
           class="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+        ></div>
+      {/each}
+    </div>
+
+    <!-- Secondary KPIs skeleton -->
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 mb-8">
+      {#each Array.from({ length: 3 }) as _, i}
+        <div
+          class="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
+        ></div>
+      {/each}
+    </div>
+
+    <!-- Quick Stats skeleton -->
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+      {#each Array.from({ length: 2 }) as _, i}
+        <div
+          class="h-[140px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
         ></div>
       {/each}
     </div>
