@@ -8,8 +8,8 @@ import { page } from "$app/state";
 </svelte:head>
 
 <div class="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#06121A] px-6 py-16 text-center">
-  <!-- Clean Borderless Solid Dark Card Container -->
-  <div class="w-full max-w-xl rounded-2xl bg-[#0C1B26] p-8 text-center shadow-2xl md:p-12">
+  <!-- Content directly on main dark background without any container box -->
+  <div class="flex max-w-xl flex-col items-center text-center">
     <!-- Top Sports Tag Badge -->
     <div class="inline-flex items-center rounded-full bg-[#E6FA50]/10 px-4 py-1.5">
       <span class="section-label text-[#E6FA50]">Out of Bounds</span>
@@ -39,10 +39,10 @@ import { page } from "$app/state";
     </p>
 
     <!-- Clean 2-Button Action Layout -->
-    <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+    <div class="mt-8 flex w-full flex-col justify-center gap-3 sm:flex-row">
       <a
         href="/"
-        class="btn-lime flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold"
+        class="btn-lime flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold"
       >
         <Home class="h-4 w-4" />
         Kembali ke Beranda
@@ -50,7 +50,7 @@ import { page } from "$app/state";
       <button
         type="button"
         onclick={() => history.back()}
-        class="btn-outline-white flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-medium"
+        class="btn-outline-white flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-medium"
       >
         <ArrowLeft class="h-4 w-4" />
         Kembali Sebelumnya
