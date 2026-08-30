@@ -126,8 +126,10 @@ function handlePageChange(newPage: number) {
   }
 }
 
-onMount(() => {
-  if (authStore.user) loadTransactions();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadTransactions();
+  }
 });
 </script>
 

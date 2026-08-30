@@ -35,8 +35,10 @@ async function loadMetrics() {
   }
 }
 
-onMount(() => {
-  if (authStore.user) loadMetrics();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadMetrics();
+  }
 });
 </script>
 

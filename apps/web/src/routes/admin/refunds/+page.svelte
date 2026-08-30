@@ -180,8 +180,10 @@ async function toggleHistory(id: string) {
   }
 }
 
-onMount(() => {
-  if (authStore.user) loadRefunds();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadRefunds();
+  }
 });
 
 const BADGE_STYLES: Record<string, string> = {

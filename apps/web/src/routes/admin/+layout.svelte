@@ -4,6 +4,7 @@ import {
   BarChart3,
   Building2,
   LayoutDashboard,
+  Loader2,
   Menu,
   Percent,
   Receipt,
@@ -24,11 +25,7 @@ let { children }: Props = $props();
 let sidebarOpen = $state(false);
 
 $effect(() => {
-  if (
-    authStore.isInitialized &&
-    authStore.user &&
-    authStore.user.role !== "super_admin"
-  ) {
+  if (authStore.isInitialized && authStore.user?.role !== "super_admin") {
     goto("/");
   }
 });
@@ -124,7 +121,16 @@ const NAV_ITEMS = [
 
     <!-- Main content -->
     <main class="flex flex-1 flex-col min-w-0">
-      {@render children?.()}
+      {#if !authStore.isInitialized || (authStore.isLoading && !authStore.user)}
+        <div class="flex min-h-[60vh] flex-1 items-center justify-center">
+          <div class="flex flex-col items-center gap-3">
+            <Loader2 class="h-8 w-8 animate-spin text-[#E6FA50]" />
+            <p class="caption text-[#F7F7F7]/40">Authenticating session...</p>
+          </div>
+        </div>
+      {:else}
+        {@render children?.()}
+      {/if}
     </main>
   </div>
 </div>

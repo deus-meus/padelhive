@@ -120,8 +120,10 @@ async function updateStatus(id: string, status: string) {
   }
 }
 
-onMount(() => {
-  if (authStore.user) loadVenues();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadVenues();
+  }
 });
 </script>
 

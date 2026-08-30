@@ -129,8 +129,10 @@ function exportCsv() {
   URL.revokeObjectURL(url);
 }
 
-onMount(() => {
-  if (authStore.user) loadCommissionReport();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadCommissionReport();
+  }
 });
 </script>
 

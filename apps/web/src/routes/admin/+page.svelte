@@ -34,8 +34,10 @@ async function loadAdminOverview() {
   }
 }
 
-onMount(() => {
-  loadAdminOverview();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadAdminOverview();
+  }
 });
 
 function formatCurrency(amount: number): string {

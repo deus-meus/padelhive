@@ -197,8 +197,10 @@ async function handleDelete() {
   }
 }
 
-onMount(() => {
-  if (authStore.user) loadVouchers();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadVouchers();
+  }
 });
 
 const inputClass =

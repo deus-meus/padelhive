@@ -158,8 +158,10 @@ async function handleClose(id: string) {
   }
 }
 
-onMount(() => {
-  if (authStore.user) loadDisputes();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user) {
+    loadDisputes();
+  }
 });
 </script>
 
