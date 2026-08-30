@@ -59,6 +59,12 @@ let isLoading = $state(true);
 let inFlightId = $state<string | null>(null);
 let toast = $state<string | null>(null);
 
+const filteredVenues = $derived(
+  activeTab === "ALL"
+    ? venues
+    : venues.filter((v) => (v.status ?? "PENDING") === activeTab),
+);
+
 function showToast(msg: string) {
   toast = msg;
   setTimeout(() => (toast = null), 3000);
@@ -84,11 +90,12 @@ async function loadVenues() {
   }
 }
 
-$effect(() => {
+function handleTabChange(val: TabValue) {
+  activeTab = val;
   if (authStore.user) {
     loadVenues();
   }
-});
+}
 
 async function updateStatus(id: string, status: string) {
   inFlightId = id;
@@ -135,7 +142,7 @@ onMount(() => {
   <FilterTabs
     tabs={TABS}
     activeValue={activeTab}
-    onChange={(val) => (activeTab = val as TabValue)}
+    onChange={(val) => handleTabChange(val as TabValue)}
   />
 
   <!-- Venue List -->
@@ -148,7 +155,7 @@ onMount(() => {
           ></div>
         {/each}
       </div>
-    {:else if venues.length === 0}
+    {:else if filteredVenues.length === 0}
       <EmptyState
         icon={Building2}
         title="No venues found"
@@ -159,7 +166,7 @@ onMount(() => {
         onAction={loadVenues}
       />
     {:else}
-      {#each venues as venue (venue.id)}
+      {#each filteredVenues as venue (venue.id)}
         {@const isUpdating = inFlightId === venue.id}
         {@const status = venue.status ?? "PENDING"}
         {@const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.PENDING}
