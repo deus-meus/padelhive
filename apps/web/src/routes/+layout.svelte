@@ -13,9 +13,13 @@ let { children }: Props = $props();
 
 const isErrorPage = $derived(!!page.error || page.status >= 400);
 
-const isDashboardOrAdmin = $derived(
+const shouldHideFooter = $derived(
   page.url.pathname.startsWith("/admin") ||
-    page.url.pathname.startsWith("/dashboard"),
+    page.url.pathname.startsWith("/dashboard") ||
+    page.url.pathname.startsWith("/vouchers") ||
+    page.url.pathname.startsWith("/bookings") ||
+    page.url.pathname.startsWith("/booking") ||
+    isErrorPage,
 );
 </script>
 
@@ -26,7 +30,7 @@ const isDashboardOrAdmin = $derived(
   <main class="flex-1">
     {@render children?.()}
   </main>
-  {#if !isDashboardOrAdmin && !isErrorPage}
+  {#if !shouldHideFooter}
     <Footer />
   {/if}
 </div>
