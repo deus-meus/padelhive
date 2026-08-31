@@ -13,6 +13,7 @@ import {
   UserPlus,
   Users,
   Wallet,
+  X,
   XCircle,
 } from "lucide-svelte";
 import { goto } from "$app/navigation";
@@ -36,6 +37,7 @@ let customShares = $state<Record<string, number>>({});
 
 let isLoading = $state(true);
 let isPaying = $state(false);
+let showCancelModal = $state(false);
 let isCancelling = $state(false);
 let error = $state<string | null>(null);
 
@@ -238,9 +240,7 @@ async function handlePay() {
   }
 }
 
-async function handleCancelBooking() {
-  if (!confirm("Are you sure you want to cancel this booking reservation?"))
-    return;
+async function confirmCancelBooking() {
   isCancelling = true;
   error = null;
 
@@ -252,6 +252,7 @@ async function handleCancelBooking() {
       headers: { authorization: `Bearer ${token}` },
     });
 
+    showCancelModal = false;
     goto("/bookings");
   } catch (err: any) {
     error = err.message || "Failed to cancel booking";
@@ -625,20 +626,14 @@ async function handleCancelBooking() {
                 {/if}
               </button>
 
-              <!-- Cancel Reservation Button -->
+              <!-- Sleek Cancel Reservation Link -->
               <button
                 type="button"
                 disabled={isPaying || isCancelling}
-                onclick={handleCancelBooking}
-                class="w-full flex h-10 items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/5 text-xs font-semibold text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-50"
+                onclick={() => (showCancelModal = true)}
+                class="w-full text-center text-xs font-medium text-[#F7F7F7]/40 transition-colors hover:text-red-400 hover:underline pt-1"
               >
-                {#if isCancelling}
-                  <Loader2 class="h-3.5 w-3.5 animate-spin" />
-                  <span>Cancelling Reservation...</span>
-                {:else}
-                  <XCircle class="h-3.5 w-3.5" />
-                  <span>Cancel Reservation</span>
-                {/if}
+                Cancel reservation
               </button>
 
               <!-- Security guarantee -->
@@ -657,4 +652,47 @@ async function handleCancelBooking() {
       </div>
     {/if}
   </div>
+
+  <!-- Cancel Reservation Confirmation Modal -->
+  {#if showCancelModal}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div class="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 space-y-5 shadow-2xl">
+        <div class="flex items-center justify-between">
+          <h3 class="heading-2 text-[#F7F7F7] flex items-center gap-2">
+            <AlertCircle class="h-5 w-5 text-red-400" />
+            Cancel Reservation
+          </h3>
+          <button
+            type="button"
+            onclick={() => (showCancelModal = false)}
+            class="rounded-lg p-1 text-[#F7F7F7]/40 hover:text-[#F7F7F7]"
+          >
+            <X class="h-4 w-4" />
+          </button>
+        </div>
+
+        <p class="body-sm text-[#F7F7F7]/70 leading-relaxed">
+          Are you sure you want to cancel this booking reservation? Your selected court slot will be released back to the venue.
+        </p>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button
+            type="button"
+            onclick={() => (showCancelModal = false)}
+            class="flex-1 rounded-full border border-white/[0.1] py-2.5 text-xs font-semibold text-[#F7F7F7]/70 hover:bg-white/[0.04]"
+          >
+            Keep Reservation
+          </button>
+          <button
+            type="button"
+            disabled={isCancelling}
+            onclick={confirmCancelBooking}
+            class="flex-1 rounded-full bg-red-500 py-2.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+          >
+            {isCancelling ? "Cancelling..." : "Confirm Cancel"}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
