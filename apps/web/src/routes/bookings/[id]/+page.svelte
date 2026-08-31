@@ -147,8 +147,12 @@ function getPaymentStyle(status: string) {
 <div class="min-h-screen pt-28 pb-16 bg-[#06121A]">
   <!-- Back nav -->
   <section class="container pb-6">
-    <a href="/bookings" class="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
-      <ArrowLeft class="h-3.5 w-3.5" /> Back to bookings
+    <a
+      href="/bookings"
+      class="group inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-semibold text-[#F7F7F7]/60 transition-all duration-200 hover:border-[#E6FA50]/30 hover:bg-[#E6FA50]/10 hover:text-[#E6FA50]"
+    >
+      <ArrowLeft class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-1 text-[#F7F7F7]/40 group-hover:text-[#E6FA50]" />
+      <span>Back to bookings</span>
     </a>
   </section>
 

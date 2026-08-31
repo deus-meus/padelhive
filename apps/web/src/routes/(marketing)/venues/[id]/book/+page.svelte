@@ -213,10 +213,10 @@ onMount(() => {
       <!-- Back link -->
       <a
         href="/venues/{venue.id}"
-        class="inline-flex items-center gap-1.5 label text-[#F7F7F7]/40 transition-colors hover:text-[#F7F7F7]"
+        class="group inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-semibold text-[#F7F7F7]/60 transition-all duration-200 hover:border-[#E6FA50]/30 hover:bg-[#E6FA50]/10 hover:text-[#E6FA50]"
       >
-        <ArrowLeft class="h-4 w-4" />
-        Back to {venue.name}
+        <ArrowLeft class="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-1 text-[#F7F7F7]/40 group-hover:text-[#E6FA50]" />
+        <span>Back to {venue.name}</span>
       </a>
 
       <!-- Page title -->
