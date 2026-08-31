@@ -2,55 +2,46 @@
 import {
   AlertCircle,
   ArrowLeft,
-  Calendar,
+  CalendarDays,
   Clock,
   Copy,
   CreditCard,
   Loader2,
   MapPin,
-  CreditCard as ReceiptIcon,
   Share2,
   ShieldCheck,
   ShieldX,
   Star,
   Ticket,
+  Timer,
+  XCircle,
 } from "lucide-svelte";
 import { onMount } from "svelte";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
-import { formatBookingDate } from "$lib/format";
+import { formatBookingDate, formatBookingTimeRange } from "$lib/format";
 import { padelImg } from "$lib/images";
 
 const bookingId = $derived((page.params.id as string) || "");
 
 let booking = $state<any | null>(null);
 let isLoading = $state(true);
-let userRating = $state(0);
+let reviewRating = $state(0);
 let reviewComment = $state("");
 let isSubmittingReview = $state(false);
-let toastMessage = $state<string | null>(null);
+let reviewError = $state<string | null>(null);
+let reviewSubmitted = $state(false);
+let toast = $state<string | null>(null);
 
 function showToast(msg: string) {
-  toastMessage = msg;
-  setTimeout(() => (toastMessage = null), 2500);
+  toast = msg;
+  setTimeout(() => (toast = null), 2500);
 }
 
 function formatIDR(amount: number): string {
   if (!amount) return "Rp 0";
   return `Rp ${(amount / 1000).toFixed(0)}K`;
-}
-
-function formatTime(val: any): string {
-  if (!val) return "09:00";
-  if (typeof val === "string") {
-    if (val.includes("T")) {
-      const parts = val.split("T")[1];
-      return parts ? parts.substring(0, 5) : val.substring(0, 5);
-    }
-    return val.substring(0, 5);
-  }
-  return "09:00";
 }
 
 async function loadBooking() {
@@ -72,12 +63,10 @@ async function loadBooking() {
   }
 }
 
-async function handleReviewSubmit() {
-  if (userRating === 0) {
-    showToast("Please select a star rating first.");
-    return;
-  }
+async function submitReview() {
+  if (isSubmittingReview || reviewRating < 1) return;
   isSubmittingReview = true;
+  reviewError = null;
   try {
     const token = await authStore.firebaseUser?.getIdToken();
     if (!token) return;
@@ -85,290 +74,297 @@ async function handleReviewSubmit() {
     const res = await api.reviews.post(
       {
         bookingId: bookingId,
-        rating: userRating,
+        rating: reviewRating,
         comment: reviewComment.trim() || undefined,
       },
       { headers: { authorization: `Bearer ${token}` } },
     );
     if (res.data) {
-      showToast("Thank you! Review submitted.");
-      reviewComment = "";
+      reviewSubmitted = true;
+      showToast("Thanks for your review!");
     }
   } catch (err: any) {
-    showToast(err.message || "Failed to submit review");
+    reviewError = err.message || "Failed to submit review";
   } finally {
     isSubmittingReview = false;
   }
 }
 
-function copyInviteLink() {
+function handleShareInvite() {
   const url = `${window.location.origin}/booking/${bookingId}/invite`;
-  navigator.clipboard.writeText(url).then(() => {
-    showToast("Invite link copied to clipboard");
-  });
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      showToast("Invite link copied to clipboard");
+    })
+    .catch(() => {
+      showToast(`Share this invite link: ${url}`);
+    });
 }
 
 onMount(() => {
   loadBooking();
 });
 
-const isUpcoming = $derived(
-  booking?.status === "CONFIRMED" ||
-    booking?.status === "PENDING_PAYMENT" ||
-    booking?.status === "PENDING",
-);
+function getStatusStyle(status: string) {
+  switch (status?.toLowerCase()) {
+    case "confirmed":
+      return "bg-[#E6FA50]/10 text-[#E6FA50]";
+    case "pending":
+      return "bg-[#50C8C8]/10 text-[#50C8C8]";
+    case "completed":
+      return "bg-white/[0.04] text-[#F7F7F7]/25";
+    case "cancelled":
+      return "bg-red-500/10 text-red-400/70";
+    default:
+      return "bg-white/5 text-[#F7F7F7]/25";
+  }
+}
+
+function getPaymentStyle(status: string) {
+  switch (status?.toLowerCase()) {
+    case "paid":
+      return "bg-[#E6FA50]/10 text-[#E6FA50]";
+    case "pending":
+      return "bg-amber-500/10 text-amber-400";
+    case "failed":
+      return "bg-red-500/10 text-red-400";
+    case "refunded":
+      return "bg-[#50C8C8]/10 text-[#50C8C8]";
+    default:
+      return "";
+  }
+}
 </script>
 
 <svelte:head>
   <title>Booking Summary #{bookingId.slice(0, 8)} - Padelhive</title>
 </svelte:head>
 
-<div class="min-h-screen py-16 bg-[#06121A]">
-  <div class="container max-w-5xl space-y-6 pt-6">
-    <!-- Back button -->
-    <a
-      href="/bookings"
-      class="inline-flex items-center gap-1.5 text-xs text-[#F7F7F7]/60 hover:text-[#F7F7F7] transition-colors"
-    >
-      <ArrowLeft class="h-3.5 w-3.5" />
-      Back to bookings
+<div class="min-h-screen pt-28 pb-16 bg-[#06121A]">
+  <!-- Back nav -->
+  <section class="container pb-6">
+    <a href="/bookings" class="label inline-flex items-center gap-2 text-[#F7F7F7]/25 transition-colors hover:text-[#F7F7F7]/60">
+      <ArrowLeft class="h-3.5 w-3.5" /> Back to bookings
     </a>
+  </section>
 
-    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
-      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-8 space-y-4">
-        <div class="h-8 w-1/2 animate-pulse rounded-md bg-white/[0.04]"></div>
-        <div class="h-4 w-1/3 animate-pulse rounded-md bg-white/[0.04]"></div>
-        <div class="h-32 w-full animate-pulse rounded-xl bg-white/[0.04]"></div>
-      </div>
-    {:else if !booking}
-      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center">
-        <AlertCircle class="mb-3 h-10 w-10 text-red-400 mx-auto" />
-        <h2 class="text-xl font-bold text-[#F7F7F7]">Booking Not Found</h2>
-        <p class="mt-1 text-xs text-[#F7F7F7]/40">
-          You don't have access to this booking or it does not exist.
-        </p>
-      </div>
-    {:else}
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2">
+  {#if isLoading || !authStore.isInitialized || authStore.isLoading}
+    <div class="container pb-8">
+      <div class="h-8 w-48 animate-pulse rounded-md bg-white/[0.04]"></div>
+      <div class="mt-4 h-4 w-32 animate-pulse rounded-md bg-white/[0.04]"></div>
+    </div>
+    <div class="container">
+      <div class="h-64 animate-pulse rounded-2xl bg-white/[0.02]"></div>
+    </div>
+  {:else if !booking}
+    <div class="container py-16 text-center">
+      <p class="body text-[#F7F7F7]/25">Booking not found.</p>
+      <a href="/bookings" class="label mt-4 inline-flex items-center gap-2 text-[#E6FA50] hover:underline">
+        <ArrowLeft class="h-3.5 w-3.5" /> Back to bookings
+      </a>
+    </div>
+  {:else}
+    {@const venue = booking.venue}
+    {@const court = booking.court}
+    {@const currentBooking = booking}
+
+    <!-- Header -->
+    <section class="container pb-8">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span class="caption rounded-full bg-white/[0.04] px-3 py-1 text-xs font-semibold text-[#F7F7F7]/60 uppercase">
-            {booking.status?.toLowerCase() || "completed"}
-          </span>
-          <h1 class="heading-1 text-3xl md:text-4xl font-bold text-[#F7F7F7] mt-3">
-            {booking.venue?.name || "Padel Bali Arena"}
+          <div class="flex items-center gap-3 mb-2">
+            <span class="caption rounded-full px-2.5 py-0.5 uppercase font-semibold {getStatusStyle(currentBooking.status)}">
+              {currentBooking.status?.toLowerCase() || "completed"}
+            </span>
+            {#if currentBooking.payment}
+              <span class="caption rounded-full px-2.5 py-0.5 uppercase font-semibold {getPaymentStyle(currentBooking.payment.status)}">
+                {currentBooking.payment.status?.toLowerCase() || "paid"}
+              </span>
+            {/if}
+          </div>
+          <h1 class="heading-1 text-[#F7F7F7]">
+            {venue?.name ?? "Unknown Venue"}
           </h1>
-          <p class="caption text-[#F7F7F7]/40 flex items-center gap-1 mt-1.5 text-sm">
-            <MapPin class="h-4 w-4 text-[#50C8C8]" />
-            {booking.venue?.city || "Bali"}
+          <p class="body mt-1 flex items-center gap-2 text-[#F7F7F7]/40">
+            <MapPin class="h-3.5 w-3.5" />
+            {venue?.city}
           </p>
         </div>
-
-        <div class="h-20 w-32 shrink-0 overflow-hidden rounded-xl bg-white/5 border border-white/[0.08]">
+        <div class="relative hidden h-20 w-32 overflow-hidden rounded-xl sm:block border border-white/[0.08]">
           <img
-            src={booking.venue?.imageUrl || padelImg(600)}
-            alt={booking.venue?.name}
+            src={venue?.imageUrl || padelImg(400)}
+            alt={venue?.name ?? "Venue image"}
             class="h-full w-full object-cover"
           />
         </div>
       </div>
+    </section>
 
-      <!-- Main 2-Column Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 mt-8">
-        <!-- Left Column -->
-        <div class="space-y-6">
-          <!-- BOOKING INFORMATION Card -->
-          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 md:p-8">
-            <p class="caption text-xs font-semibold tracking-wider uppercase text-[#50C8C8] mb-5">BOOKING INFORMATION</p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
-                <Ticket class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-lg font-bold text-[#F7F7F7]">#COMING</p>
-                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Booking ID</p>
+    <!-- Main Content & Sticky Sidebar Grid -->
+    <section class="container">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+        <!-- Main content (left column) -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Booking Details -->
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <p class="section-label mb-4">Booking Information</p>
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div class="rounded-xl bg-white/[0.02] p-3">
+                <Ticket class="h-3.5 w-3.5 text-[#50C8C8]" />
+                <p class="heading-3 mt-1.5 text-[#F7F7F7] break-all">#{currentBooking.id.slice(-6).toUpperCase()}</p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Booking ID</p>
               </div>
-
-              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
-                <MapPin class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base md:text-lg font-bold text-[#F7F7F7]">{booking.court?.name || "Court A"} · {booking.court?.type || "OUTDOOR"}</p>
-                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Court</p>
+              <div class="rounded-xl bg-white/[0.02] p-3">
+                <MapPin class="h-3.5 w-3.5 text-[#50C8C8]" />
+                <p class="heading-3 mt-1.5 text-[#F7F7F7] break-all">{court?.name ?? "Court A"} · {court?.type ?? "OUTDOOR"}</p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Court</p>
               </div>
-
-              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
-                <Calendar class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base md:text-lg font-bold text-[#F7F7F7]">{formatBookingDate(booking.bookingDate)}</p>
-                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Date</p>
+              <div class="rounded-xl bg-white/[0.02] p-3">
+                <CalendarDays class="h-3.5 w-3.5 text-[#50C8C8]" />
+                <p class="heading-3 mt-1.5 text-[#F7F7F7] break-all">{formatBookingDate(currentBooking.bookingDate)}</p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Date</p>
               </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
-                <Clock class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base md:text-lg font-bold text-[#F7F7F7]">{formatTime(booking.startsAt)} – {formatTime(booking.endsAt)} WIB</p>
-                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Time</p>
+              <div class="rounded-xl bg-white/[0.02] p-3">
+                <Clock class="h-3.5 w-3.5 text-[#50C8C8]" />
+                <p class="heading-3 mt-1.5 text-[#F7F7F7] break-all">{formatBookingTimeRange(currentBooking.startsAt, currentBooking.endsAt)}</p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Time</p>
               </div>
-
-              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
-                <Clock class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base md:text-lg font-bold text-[#F7F7F7]">{booking.durationMinutes || 60} min</p>
-                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Duration</p>
+              <div class="rounded-xl bg-white/[0.02] p-3">
+                <Timer class="h-3.5 w-3.5 text-[#50C8C8]" />
+                <p class="heading-3 mt-1.5 text-[#F7F7F7] break-all">{currentBooking.durationMinutes || 60} min</p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Duration</p>
               </div>
             </div>
           </div>
 
-          <!-- REFUND POLICY Card -->
-          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 md:p-8">
-            <p class="caption font-semibold tracking-wider uppercase text-[#50C8C8] mb-5">REFUND POLICY</p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4 space-y-2">
-                <div class="flex items-center gap-2 text-sm font-semibold text-[#F7F7F7]">
-                  <ShieldCheck class="h-4 w-4 text-[#E6FA50]" />
-                  Full refund before H-1
-                </div>
-                <p class="text-xs text-[#F7F7F7]/40 leading-relaxed">
-                  Cancel 24+ hours before your booking date — the full amount is returned to your original payment method.
-                </p>
+          <!-- Refund Policy -->
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <p class="section-label mb-4">Refund Policy</p>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div class="rounded-xl bg-white/[0.02] p-4">
+                <ShieldCheck class="h-4 w-4 text-[#E6FA50]" />
+                <p class="heading-3 mt-1.5 text-[#F7F7F7]">Full refund before H-1</p>
+                <p class="caption mt-1 text-[#F7F7F7]/25">Cancel 24+ hours before your booking date — the full amount is returned to your original payment method.</p>
               </div>
-
-              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4 space-y-2">
-                <div class="flex items-center gap-2 text-sm font-semibold text-[#F7F7F7]">
-                  <ShieldX class="h-4 w-4 text-red-400" />
-                  Non-refundable after H-1
-                </div>
-                <p class="text-xs text-[#F7F7F7]/40 leading-relaxed">
-                  Cancelling less than 24 hours before the start time isn't eligible for a refund.
-                </p>
+              <div class="rounded-xl bg-white/[0.02] p-4">
+                <ShieldX class="h-4 w-4 text-red-400" />
+                <p class="heading-3 mt-1.5 text-[#F7F7F7]">Non-refundable after H-1</p>
+                <p class="caption mt-1 text-[#F7F7F7]/25">Cancelling less than 24 hours before the start time isn't eligible for a refund.</p>
               </div>
             </div>
           </div>
 
-          <!-- LEAVE A REVIEW Card -->
-          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 md:p-8">
-            <p class="caption font-semibold tracking-wider uppercase text-[#50C8C8] mb-5">LEAVE A REVIEW</p>
-
-            <div class="space-y-4">
-              <div class="flex items-center gap-2">
-                {#each Array.from({ length: 5 }) as _, idx}
-                  {@const starVal = idx + 1}
+          <!-- Leave a Review -->
+          {#if currentBooking.status === "COMPLETED" || currentBooking.status === "completed"}
+            <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+              <p class="section-label mb-4">Leave a Review</p>
+              {#if reviewSubmitted}
+                <div class="rounded-xl border border-[#E6FA50]/15 bg-[#E6FA50]/10 p-4">
+                  <p class="body text-[#E6FA50]">{reviewError ?? "Thanks! Your review has been submitted."}</p>
+                </div>
+              {:else}
+                <div class="space-y-4">
+                  <div class="flex items-center gap-1.5">
+                    {#each [1, 2, 3, 4, 5] as n}
+                      <button type="button" onclick={() => (reviewRating = n)} class="transition-transform hover:scale-110">
+                        <Star class="h-6 w-6 {n <= reviewRating ? 'fill-[#E6FA50] text-[#E6FA50]' : 'text-[#F7F7F7]/20'}" />
+                      </button>
+                    {/each}
+                  </div>
+                  <textarea
+                    bind:value={reviewComment}
+                    maxLength={1000}
+                    rows={4}
+                    placeholder="Share your experience (optional)"
+                    class="body w-full resize-none rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none"
+                  ></textarea>
+                  {#if reviewError}
+                    <div class="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3">
+                      <p class="caption text-amber-300/80">{reviewError}</p>
+                    </div>
+                  {/if}
                   <button
                     type="button"
-                    onclick={() => (userRating = starVal)}
-                    class="p-1 transition-transform hover:scale-110 focus:outline-none"
-                    aria-label="Rate {starVal} stars"
+                    onclick={submitReview}
+                    disabled={isSubmittingReview || reviewRating < 1}
+                    class="label rounded-full bg-[#E6FA50] px-5 py-2.5 text-[#06121A] transition-colors hover:bg-[#E6FA50]/90 disabled:opacity-40"
                   >
-                    <Star
-                      class="h-7 w-7 transition-colors {starVal <= userRating
-                        ? 'text-[#E6FA50] fill-[#E6FA50]'
-                        : 'text-white/20 hover:text-white/40'}"
-                    />
+                    {isSubmittingReview ? "Submitting..." : "Submit Review"}
                   </button>
-                {/each}
-              </div>
-
-              <textarea
-                rows={3}
-                bind:value={reviewComment}
-                placeholder="Share your experience (optional)..."
-                class="w-full resize-none rounded-xl border border-white/[0.08] bg-black/20 p-4 text-sm text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/40 focus:outline-none"
-              ></textarea>
-
-              <button
-                type="button"
-                onclick={handleReviewSubmit}
-                disabled={isSubmittingReview || userRating === 0}
-                class="btn-lime label inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold bg-[#E6FA50] text-[#06121A] hover:bg-[#E6FA50]/90 disabled:opacity-50 transition-all"
-              >
-                {#if isSubmittingReview}
-                  <Loader2 class="h-4 w-4 animate-spin" /> Submitting...
-                {:else}
-                  Submit Review
-                {/if}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right Column -->
-        <div class="space-y-6 lg:sticky lg:top-24 lg:self-start">
-          <!-- PAYMENT Card -->
-          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 md:p-8">
-            <p class="caption font-semibold tracking-wider uppercase text-[#50C8C8] mb-5">PAYMENT</p>
-
-            <div class="space-y-3 text-sm">
-              <div class="flex items-center justify-between">
-                <span class="text-[#F7F7F7]/40">Court fee</span>
-                <span class="font-medium text-[#F7F7F7]">{formatIDR(booking.courtAmount || 300000)}</span>
-              </div>
-
-              {#if booking.voucherDiscount && booking.voucherDiscount > 0}
-                <div class="flex items-center justify-between">
-                  <span class="text-[#F7F7F7]/40">Voucher</span>
-                  <span class="font-semibold text-[#E6FA50]">-{formatIDR(booking.voucherDiscount)}</span>
                 </div>
               {/if}
-
-              <div class="flex items-center justify-between">
-                <span class="text-[#F7F7F7]/40">Platform fee</span>
-                <span class="font-medium text-[#F7F7F7]">{formatIDR(booking.platformFee || 15000)}</span>
-              </div>
-
-              <div class="border-t border-white/[0.06] pt-3 mt-3 flex items-center justify-between">
-                <span class="font-semibold text-[#F7F7F7]">Total</span>
-                <span class="price text-xl font-bold text-[#F7F7F7]">
-                  {formatIDR(booking.finalAmount || 252000)}
-                </span>
-              </div>
-
-              <div class="flex items-center justify-between pt-2">
-                <span class="text-xs text-[#F7F7F7]/40">Status</span>
-                <span class="caption rounded-full bg-white/[0.04] px-3 py-1 text-xs font-semibold text-amber-400 uppercase">
-                  {booking.payment?.status?.toLowerCase() || "pending"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- ACTIONS Card (Only shown for Upcoming Bookings as requested) -->
-          {#if isUpcoming}
-            <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 md:p-8">
-              <p class="caption font-semibold tracking-wider uppercase text-[#50C8C8] mb-5">ACTIONS</p>
-
-              <div class="space-y-3">
-                <button
-                  type="button"
-                  onclick={copyInviteLink}
-                  class="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 text-sm font-medium text-[#F7F7F7] hover:border-white/[0.15] hover:bg-white/[0.04] transition-all"
-                >
-                  <span class="inline-flex items-center gap-2">
-                    <Share2 class="h-4 w-4 text-[#50C8C8]" />
-                    Share invite link
-                  </span>
-                  <Copy class="h-4 w-4 text-[#F7F7F7]/40" />
-                </button>
-
-                <button
-                  type="button"
-                  onclick={() => showToast("Receipt downloaded.")}
-                  class="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 text-sm font-medium text-[#F7F7F7] hover:border-white/[0.15] hover:bg-white/[0.04] transition-all"
-                >
-                  <span class="inline-flex items-center gap-2">
-                    <ReceiptIcon class="h-4 w-4 text-[#50C8C8]" />
-                    View payment receipt
-                  </span>
-                </button>
-              </div>
             </div>
           {/if}
         </div>
-      </div>
-    {/if}
 
-    <!-- Toast Notification -->
-    {#if toastMessage}
-      <div class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.08] bg-[#0C1B26] px-5 py-3 shadow-2xl shadow-black/40">
-        <p class="body text-sm font-medium text-[#F7F7F7]/80">{toastMessage}</p>
+        <!-- Summary sidebar (sticky) -->
+        <div class="space-y-6 lg:sticky lg:top-24">
+          <!-- Payment -->
+          <div id="payment" class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <p class="section-label mb-4">Payment</p>
+            <div class="space-y-3 mb-4">
+              <div class="flex items-center justify-between">
+                <span class="caption text-[#F7F7F7]/40">Court fee</span>
+                <span class="price text-[#F7F7F7]/60">Rp {((currentBooking.courtAmount || 300000) / 1000).toFixed(0)}K</span>
+              </div>
+              {#if currentBooking.voucherDiscount > 0}
+                <div class="flex items-center justify-between">
+                  <span class="caption text-[#F7F7F7]/40">Voucher</span>
+                  <span class="price text-[#E6FA50]">-Rp {(currentBooking.voucherDiscount / 1000).toFixed(0)}K</span>
+                </div>
+              {/if}
+              <div class="flex items-center justify-between">
+                <span class="caption text-[#F7F7F7]/40">Platform fee</span>
+                <span class="price text-[#F7F7F7]/60">Rp {((currentBooking.platformFee || 15000) / 1000).toFixed(0)}K</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-white/[0.04] pt-3">
+                <span class="body text-[#F7F7F7]/60 font-semibold">Total</span>
+                <span class="price text-[#F7F7F7] text-xl font-bold">Rp {((currentBooking.finalAmount || 252000) / 1000).toFixed(0)}K</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 rounded-xl bg-white/[0.02] p-3">
+              <div class="flex items-center justify-between">
+                <span class="caption text-[#F7F7F7]/25">Status</span>
+                <span class="caption rounded-full px-2.5 py-0.5 {getPaymentStyle(currentBooking.payment?.status || 'pending')}">
+                  {currentBooking.payment?.status?.toLowerCase() || "pending"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+            <p class="section-label mb-4">Actions</p>
+            <div class="space-y-2">
+              <button
+                type="button"
+                onclick={handleShareInvite}
+                class="heading-3 w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+              >
+                <Share2 class="h-4 w-4 text-[#50C8C8]" />
+                Share invite link
+                <Copy class="ml-auto h-3.5 w-3.5 text-[#F7F7F7]/25" />
+              </button>
+              <a
+                href="/booking/{currentBooking.id}/payment"
+                class="heading-3 w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+              >
+                <CreditCard class="h-4 w-4 text-[#50C8C8]" />
+                View payment receipt
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
-    {/if}
-  </div>
+    </section>
+  {/if}
+
+  <!-- Toast -->
+  {#if toast}
+    <div class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/[0.06] bg-[#0C1B26] px-5 py-3 shadow-2xl">
+      <p class="caption text-[#F7F7F7]/60">{toast}</p>
+    </div>
+  {/if}
 </div>

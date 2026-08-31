@@ -1,9 +1,11 @@
 <script lang="ts">
 import {
+  AlertTriangle,
   ArrowRight,
   Calendar,
   CalendarDays,
   Clock,
+  Eye,
   MapPin,
   RotateCcw,
   Share2,
@@ -116,6 +118,33 @@ const currentList = $derived.by(() => {
   if (activeTab === "cancelled") return cancelledBookings;
   return [];
 });
+
+function formatTimeOnly(val: any): string {
+  if (!val) return "09:00";
+  try {
+    if (typeof val === "string") {
+      if (val.includes("T")) {
+        const timePart = val.split("T")[1];
+        return timePart ? timePart.substring(0, 5) : val.substring(0, 5);
+      }
+      if (val.includes("GMT") || val.includes(":") || val.length > 5) {
+        const match = val.match(/\d{2}:\d{2}/);
+        if (match) return match[0];
+      }
+      return val.substring(0, 5);
+    }
+    if (val instanceof Date) {
+      return val.toISOString().split("T")[1]?.substring(0, 5) || "09:00";
+    }
+  } catch (e) {}
+  return "09:00";
+}
+
+function formatTimeString(startsAt: any, endsAt: any): string {
+  const start = formatTimeOnly(startsAt);
+  const end = formatTimeOnly(endsAt);
+  return `${start} – ${end} WIB`;
+}
 
 function getStatusStyle(status: string) {
   switch (status) {
@@ -351,19 +380,18 @@ function getStatusStyle(status: string) {
         </a>
       </div>
     {:else}
-      <div class="space-y-4">
+      <div class="space-y-3">
         {#each currentList as b, i (b.id)}
           {@const images = [IMG.venue1, IMG.venue2, IMG.venue3]}
-          <div
-            class="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all duration-200 hover:border-[#E6FA50]/15"
-          >
+          {@const isPastItem = activeTab === "past" || b.status === "COMPLETED"}
+
+          {#if isPastItem}
+            <!-- 1:1 Compact Row for Past Matches (Image #83) -->
             <div
-              class="flex flex-col md:flex-row md:items-center justify-between gap-6"
+              class="group rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-4 flex items-center justify-between transition-all duration-200 hover:border-white/[0.12]"
             >
-              <div class="flex items-center gap-5">
-                <div
-                  class="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-white/5 hidden sm:block"
-                >
+              <div class="flex items-center gap-4 min-w-0">
+                <div class="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white/5">
                   <img
                     src={b.venue?.imageUrl || images[i % images.length]}
                     alt={b.venue?.name}
@@ -371,69 +399,138 @@ function getStatusStyle(status: string) {
                   />
                 </div>
 
-                <div class="space-y-1.5">
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="caption rounded-full px-2.5 py-0.5 uppercase font-semibold {getStatusStyle(
-                        b.status
-                      )}"
-                    >
-                      {b.status.replace(/_/g, " ")}
-                    </span>
-                    <span class="caption text-[#F7F7F7]/25">
-                      #{b.id.slice(0, 8)}
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="heading-3 text-[#F7F7F7] font-semibold text-base truncate">
+                      {b.venue?.name || "Padel Court"}
+                    </h3>
+                    <span class="caption rounded-full bg-white/[0.04] px-2.5 py-0.5 text-xs text-[#F7F7F7]/40 uppercase font-semibold">
+                      {b.status || "COMPLETED"}
                     </span>
                   </div>
 
-                  <h3
-                    class="heading-3 text-[#F7F7F7] group-hover:text-[#E6FA50] transition-colors"
-                  >
-                    {b.venue?.name || "Padel Court"} — {b.court?.name || "Court A"}
-                  </h3>
-
-                  <div
-                    class="flex flex-wrap items-center gap-4 caption text-[#F7F7F7]/40"
-                  >
-                    <span class="flex items-center gap-1">
-                      <MapPin class="h-3 w-3 text-[#50C8C8]" />
-                      {b.venue?.city || "Indonesia"}
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <CalendarDays class="h-3 w-3 text-[#50C8C8]" />
+                  <div class="caption mt-1 flex flex-wrap items-center gap-2 text-xs text-[#F7F7F7]/40">
+                    <span>{b.court?.name || "Court A"}</span>
+                    <span>·</span>
+                    <span class="inline-flex items-center gap-1">
+                      <CalendarDays class="h-3 w-3 text-[#F7F7F7]/40" />
                       {formatBookingDate(b.bookingDate)}
                     </span>
-                    <span class="flex items-center gap-1">
-                      <Clock class="h-3 w-3 text-[#50C8C8]" />
-                      {b.startsAt} – {b.endsAt}
+                    <span>·</span>
+                    <span class="inline-flex items-center gap-1">
+                      <Clock class="h-3 w-3 text-[#F7F7F7]/40" />
+                      {formatTimeString(b.startsAt, b.endsAt)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div
-                class="flex items-center justify-between md:flex-col md:items-end gap-3 border-t border-white/[0.04] pt-4 md:border-none md:pt-0"
-              >
-                <span class="price text-[#E6FA50]">
+              <div class="flex items-center gap-3 shrink-0">
+                <span class="price text-base font-bold text-[#F7F7F7]">
                   Rp {((b.finalAmount || 200000) / 1000).toFixed(0)}K
                 </span>
 
-                <div class="flex items-center gap-2">
-                  <a
-                    href="/booking/{b.id}/invite"
-                    class="caption flex h-9 items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 text-[#F7F7F7]/60 hover:bg-white/[0.08] hover:text-[#F7F7F7]"
-                  >
-                    <Share2 class="h-3 w-3" /> Invite Squad
-                  </a>
+                <div class="flex items-center gap-1">
                   <a
                     href="/bookings/{b.id}"
-                    class="caption flex h-9 items-center gap-1.5 rounded-full bg-[#E6FA50] px-4 font-semibold text-[#06121A] hover:bg-[#d4e845]"
+                    class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.03] text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.06] hover:text-[#F7F7F7]"
+                    aria-label="View booking details"
                   >
-                    Details <ArrowRight class="h-3 w-3" />
+                    <Eye class="h-4 w-4" />
+                  </a>
+                  <a
+                    href="/disputes"
+                    class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.03] text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.06] hover:text-red-400"
+                    aria-label="Report issue"
+                  >
+                    <AlertTriangle class="h-4 w-4" />
                   </a>
                 </div>
               </div>
             </div>
-          </div>
+          {:else}
+            <!-- Standard Card for Upcoming Bookings -->
+            <div
+              class="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all duration-200 hover:border-[#E6FA50]/15"
+            >
+              <div
+                class="flex flex-col md:flex-row md:items-center justify-between gap-6"
+              >
+                <div class="flex items-center gap-5">
+                  <div
+                    class="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-white/5 hidden sm:block"
+                  >
+                    <img
+                      src={b.venue?.imageUrl || images[i % images.length]}
+                      alt={b.venue?.name}
+                      class="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="caption rounded-full px-2.5 py-0.5 uppercase font-semibold {getStatusStyle(
+                          b.status
+                        )}"
+                      >
+                        {b.status.replace(/_/g, " ")}
+                      </span>
+                      <span class="caption text-[#F7F7F7]/25">
+                        #{b.id.slice(0, 8)}
+                      </span>
+                    </div>
+
+                    <h3
+                      class="heading-3 text-[#F7F7F7] group-hover:text-[#E6FA50] transition-colors"
+                    >
+                      {b.venue?.name || "Padel Court"} — {b.court?.name || "Court A"}
+                    </h3>
+
+                    <div
+                      class="flex flex-wrap items-center gap-4 caption text-[#F7F7F7]/40"
+                    >
+                      <span class="flex items-center gap-1">
+                        <MapPin class="h-3 w-3 text-[#50C8C8]" />
+                        {b.venue?.city || "Indonesia"}
+                      </span>
+                      <span class="flex items-center gap-1">
+                        <CalendarDays class="h-3 w-3 text-[#50C8C8]" />
+                        {formatBookingDate(b.bookingDate)}
+                      </span>
+                      <span class="flex items-center gap-1">
+                        <Clock class="h-3 w-3 text-[#50C8C8]" />
+                        {b.startsAt} – {b.endsAt}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="flex items-center justify-between md:flex-col md:items-end gap-3 border-t border-white/[0.04] pt-4 md:border-none md:pt-0"
+                >
+                  <span class="price text-[#E6FA50]">
+                    Rp {((b.finalAmount || 200000) / 1000).toFixed(0)}K
+                  </span>
+
+                  <div class="flex items-center gap-2">
+                    <a
+                      href="/booking/{b.id}/invite"
+                      class="caption flex h-9 items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 text-[#F7F7F7]/60 hover:bg-white/[0.08] hover:text-[#F7F7F7]"
+                    >
+                      <Share2 class="h-3 w-3" /> Invite Squad
+                    </a>
+                    <a
+                      href="/bookings/{b.id}"
+                      class="caption flex h-9 items-center gap-1.5 rounded-full bg-[#E6FA50] px-4 font-semibold text-[#06121A] hover:bg-[#d4e845]"
+                    >
+                      Details <ArrowRight class="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {/if}
         {/each}
       </div>
     {/if}
