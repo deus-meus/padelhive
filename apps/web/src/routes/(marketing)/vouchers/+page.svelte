@@ -91,7 +91,7 @@ function formatVoucherDate(dateVal: any): string {
   </section>
 
   <!-- Independent Pill Filter Tabs (1:1 Image #78) -->
-  <section class="container max-w-[1200px] mt-6 mb-8">
+  <section class="container mt-6 mb-8">
     <div class="flex items-center gap-3 overflow-x-auto no-scrollbar">
       <button
         type="button"
@@ -140,7 +140,7 @@ function formatVoucherDate(dateVal: any): string {
         {/each}
       </div>
     {:else if filtered.length === 0}
-      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center max-w-4xl mx-auto my-8">
+      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 md:p-16 text-center w-full my-4">
         <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-[#E6FA50] mx-auto mb-4">
           <Ticket class="h-6 w-6" />
         </div>
