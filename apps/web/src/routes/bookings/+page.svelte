@@ -1,6 +1,7 @@
 <script lang="ts">
 import {
   ArrowRight,
+  Calendar,
   CalendarDays,
   Clock,
   MapPin,
@@ -8,8 +9,9 @@ import {
   Share2,
   Star,
   Ticket,
+  Trophy,
+  Users,
 } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
@@ -22,15 +24,9 @@ const IMG = {
   venue3: padelImg(600),
 };
 
-const TABS = [
-  { label: "Upcoming", value: "upcoming" },
-  { label: "Past Matches", value: "past" },
-  { label: "Cancelled", value: "cancelled" },
-  { label: "Refunds", value: "refunds" },
-  { label: "Disputes", value: "disputes" },
-];
+type TabKey = "upcoming" | "past" | "cancelled" | "refunds" | "disputes";
 
-let activeTab = $state("upcoming");
+let activeTab = $state<TabKey>("upcoming");
 let bookings = $state<any[]>([]);
 let refunds = $state<any[]>([]);
 let disputes = $state<any[]>([]);
@@ -73,6 +69,14 @@ $effect(() => {
   }
 });
 
+const upcomingCount = $derived(activeTab === "upcoming" ? bookings.length : 0);
+const pastCount = $derived(activeTab === "past" ? bookings.length : 0);
+const cancelledCount = $derived(
+  activeTab === "cancelled" ? bookings.length : 0,
+);
+const refundCount = $derived(refunds.length);
+const disputeCount = $derived(disputes.length);
+
 function getStatusStyle(status: string) {
   switch (status) {
     case "CONFIRMED":
@@ -87,44 +91,116 @@ function getStatusStyle(status: string) {
       return "bg-white/5 text-white/50";
   }
 }
+
+function handleTabChange(tab: TabKey) {
+  activeTab = tab;
+  loadData();
+}
 </script>
 
 <svelte:head>
   <title>My Bookings | PadelHive</title>
 </svelte:head>
 
-<div class="min-h-screen py-16 space-y-10 bg-[#06121A]">
+<div class="min-h-screen py-16 bg-[#06121A]">
   <!-- Header -->
-  <section class="container pt-8">
-    <span class="section-label block mb-4">My Activity</span>
-    <h1 class="heading-1 text-[#F7F7F7]">
-      My <span class="text-[#E6FA50]">Bookings</span>
+  <section class="container pt-8 pb-4">
+    <h1 class="heading-1 text-3xl md:text-4xl font-bold text-[#E6FA50]">
+      Bookings
     </h1>
-    <p class="body mt-2 text-[#F7F7F7]/40">
-      Track your court reservations, past matches, and refunds.
+    <p class="body mt-1 text-[#F7F7F7]/40">
+      Manage your upcoming matches and booking history.
     </p>
   </section>
 
-  <!-- Filter Tabs -->
-  <section class="container">
-    <div class="flex flex-wrap gap-2 border-b border-white/[0.06] pb-3">
-      {#each TABS as tab}
-        <button
-          type="button"
-          onclick={() => (activeTab = tab.value)}
-          class="label rounded-full px-5 py-2 transition-all {activeTab ===
-          tab.value
-            ? 'bg-[#E6FA50] text-[#06121A]'
-            : 'bg-white/[0.03] text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
-        >
-          {tab.label}
-        </button>
-      {/each}
+  <!-- Top 4 Summary Cards Grid (1:1 Image #81) -->
+  <section class="container mt-6">
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+        <Calendar class="h-4 w-4 text-[#50C8C8]" />
+        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">
+          {bookings.length}
+        </p>
+        <p class="caption mt-1 text-[#F7F7F7]/40">Total Bookings</p>
+      </div>
+
+      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+        <Clock class="h-4 w-4 text-[#50C8C8]" />
+        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">0h</p>
+        <p class="caption mt-1 text-[#F7F7F7]/40">Hours Played</p>
+      </div>
+
+      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+        <Trophy class="h-4 w-4 text-[#50C8C8]" />
+        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">12</p>
+        <p class="caption mt-1 text-[#F7F7F7]/40">Matches Joined</p>
+      </div>
+
+      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+        <Users class="h-4 w-4 text-[#50C8C8]" />
+        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">8</p>
+        <p class="caption mt-1 text-[#F7F7F7]/40">Friends Invited</p>
+      </div>
     </div>
   </section>
 
-  <!-- Listings -->
-  <section class="container">
+  <!-- 5 Filter Tabs (1:1 Image #81) -->
+  <section class="container mt-8">
+    <div class="flex items-center gap-3 overflow-x-auto no-scrollbar">
+      <button
+        type="button"
+        onclick={() => handleTabChange("upcoming")}
+        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'upcoming'
+          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+      >
+        <span>Upcoming ({upcomingCount})</span>
+      </button>
+
+      <button
+        type="button"
+        onclick={() => handleTabChange("past")}
+        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'past'
+          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+      >
+        <span>Past ({pastCount})</span>
+      </button>
+
+      <button
+        type="button"
+        onclick={() => handleTabChange("cancelled")}
+        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'cancelled'
+          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+      >
+        <span>Cancelled ({cancelledCount})</span>
+      </button>
+
+      <button
+        type="button"
+        onclick={() => handleTabChange("refunds")}
+        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'refunds'
+          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+      >
+        <span>Refunds ({refundCount})</span>
+      </button>
+
+      <button
+        type="button"
+        onclick={() => handleTabChange("disputes")}
+        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'disputes'
+          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+      >
+        <span>Disputes ({disputeCount})</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Content Section -->
+  <section class="container mt-8">
     {#if isLoading}
       <div class="space-y-4">
         {#each Array.from({ length: 3 }) as _, i}
@@ -135,13 +211,21 @@ function getStatusStyle(status: string) {
       </div>
     {:else if activeTab === "refunds"}
       {#if refunds.length === 0}
-        <EmptyState
-          icon={RotateCcw}
-          title="No refund requests"
-          description="You don't have any pending or processed refund requests."
-          actionLabel="Browse venues"
-          actionHref="/venues"
-        />
+        <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 md:p-16 text-center w-full my-4">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-[#E6FA50] mx-auto mb-4">
+            <RotateCcw class="h-6 w-6" />
+          </div>
+          <h2 class="heading-2 text-xl font-bold text-[#F7F7F7]">No refund requests</h2>
+          <p class="body mt-2 text-[#F7F7F7]/40">
+            You don't have any pending or processed refund requests.
+          </p>
+          <a
+            href="/venues"
+            class="btn-lime label inline-flex items-center justify-center rounded-full px-6 py-2.5 font-semibold text-sm bg-[#E6FA50] text-[#06121A] hover:bg-[#E6FA50]/90 transition-all mt-6"
+          >
+            Browse venues
+          </a>
+        </div>
       {:else}
         <div class="space-y-4">
           {#each refunds as refund (refund.id)}
@@ -166,13 +250,21 @@ function getStatusStyle(status: string) {
       {/if}
     {:else if activeTab === "disputes"}
       {#if disputes.length === 0}
-        <EmptyState
-          icon={Star}
-          title="No dispute tickets"
-          description="You haven't filed any player disputes or issues."
-          actionLabel="Browse venues"
-          actionHref="/venues"
-        />
+        <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 md:p-16 text-center w-full my-4">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-[#E6FA50] mx-auto mb-4">
+            <Star class="h-6 w-6" />
+          </div>
+          <h2 class="heading-2 text-xl font-bold text-[#F7F7F7]">No dispute tickets</h2>
+          <p class="body mt-2 text-[#F7F7F7]/40">
+            You haven't filed any player disputes or issues.
+          </p>
+          <a
+            href="/venues"
+            class="btn-lime label inline-flex items-center justify-center rounded-full px-6 py-2.5 font-semibold text-sm bg-[#E6FA50] text-[#06121A] hover:bg-[#E6FA50]/90 transition-all mt-6"
+          >
+            Browse venues
+          </a>
+        </div>
       {:else}
         <div class="space-y-4">
           {#each disputes as dispute (dispute.id)}
@@ -193,13 +285,21 @@ function getStatusStyle(status: string) {
         </div>
       {/if}
     {:else if bookings.length === 0}
-      <EmptyState
-        icon={CalendarDays}
-        title="No {activeTab} bookings"
-        description="Ready to play? Book a court at your favorite venue."
-        actionLabel="Explore Venues"
-        actionHref="/venues"
-      />
+      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 md:p-16 text-center w-full my-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-[#E6FA50] mx-auto mb-4">
+          <CalendarDays class="h-6 w-6" />
+        </div>
+        <h2 class="heading-2 text-xl font-bold text-[#F7F7F7]">No {activeTab} bookings</h2>
+        <p class="body mt-2 text-[#F7F7F7]/40">
+          When you book a court it'll show up here.
+        </p>
+        <a
+          href="/venues"
+          class="btn-lime label inline-flex items-center justify-center rounded-full px-6 py-2.5 font-semibold text-sm bg-[#E6FA50] text-[#06121A] hover:bg-[#E6FA50]/90 transition-all mt-6"
+        >
+          Browse venues
+        </a>
+      </div>
     {:else}
       <div class="space-y-4">
         {#each bookings as b, i (b.id)}
