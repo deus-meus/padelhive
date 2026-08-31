@@ -327,7 +327,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
           <button
             type="button"
             onclick={() => handleVenueChange(v.id)}
-            class="label whitespace-nowrap rounded-full px-4 py-2 transition-all {activeVenueId === v.id
+            class="label whitespace-nowrap rounded-xl px-4 py-2 transition-all {activeVenueId === v.id
               ? 'bg-[#E6FA50] text-[#06121A]'
               : 'bg-white/[0.03] text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]/60'}"
           >

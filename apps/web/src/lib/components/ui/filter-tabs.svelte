@@ -19,7 +19,7 @@ let { tabs, activeValue, onChange, className = "" }: Props = $props();
     <button
       type="button"
       onclick={() => onChange(tab.value)}
-      class="label shrink-0 rounded-lg px-4 py-2 transition-all {activeValue ===
+      class="label shrink-0 rounded-xl px-4 py-2 transition-all {activeValue ===
       tab.value
         ? 'bg-[#E6FA50]/10 text-[#E6FA50]'
         : 'text-[#F7F7F7]/40 hover:bg-white/[0.03] hover:text-[#F7F7F7]/60'}"

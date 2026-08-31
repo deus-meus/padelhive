@@ -6,8 +6,9 @@ node_modules/
 # testing
 coverage/
 
-# next.js
+# sveltekit & next.js
 .next/
+.svelte-kit/
 out/
 
 # production

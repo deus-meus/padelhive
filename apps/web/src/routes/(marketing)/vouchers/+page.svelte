@@ -96,7 +96,7 @@ function formatVoucherDate(dateVal: any): string {
       <button
         type="button"
         onclick={() => (filter = "active")}
-        class="flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {filter === 'active'
+        class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {filter === 'active'
           ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
           : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
@@ -111,7 +111,7 @@ function formatVoucherDate(dateVal: any): string {
       <button
         type="button"
         onclick={() => (filter = "expired")}
-        class="flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {filter === 'expired'
+        class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {filter === 'expired'
           ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
           : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >

@@ -139,7 +139,7 @@ $effect(() => {
       <button
         type="button"
         onclick={() => handleTabClick("upcoming")}
-        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'upcoming' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
+        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'upcoming' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
         <span class="pointer-events-none">Upcoming</span>
         <span class="pointer-events-none flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[3px] text-xs font-bold leading-none text-center transition-all {activeTab === 'upcoming' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
@@ -150,7 +150,7 @@ $effect(() => {
       <button
         type="button"
         onclick={() => handleTabClick("completed")}
-        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'completed' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
+        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'completed' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
         <span class="pointer-events-none">Completed</span>
         <span class="pointer-events-none flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[3px] text-xs font-bold leading-none text-center transition-all {activeTab === 'completed' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
@@ -161,7 +161,7 @@ $effect(() => {
       <button
         type="button"
         onclick={() => handleTabClick("cancelled")}
-        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'cancelled' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
+        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'cancelled' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
         <span class="pointer-events-none">Cancelled</span>
         <span class="pointer-events-none flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[3px] text-xs font-bold leading-none text-center transition-all {activeTab === 'cancelled' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
