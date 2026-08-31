@@ -5,20 +5,43 @@ import {
   Edit3,
   Loader2,
   Plus,
+  Power,
   Sun,
+  Trash2,
+  X,
   XCircle,
   Zap,
 } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
+import FilterSelect from "$lib/components/ui/filter-select.svelte";
+import NumberInput from "$lib/components/ui/number-input.svelte";
 
 let venues = $state<any[]>([]);
 let selectedVenueId = $state<string | null>(null);
 let courts = $state<any[]>([]);
 let isLoading = $state(true);
 let toast = $state<string | null>(null);
+
+// Modal state
+let isModalOpen = $state(false);
+let modalMode = $state<"add" | "edit">("add");
+let editingCourt = $state<any | null>(null);
+let isSubmitting = $state(false);
+
+// Delete target state
+let deleteTarget = $state<any | null>(null);
+let isDeleting = $state(false);
+
+// Form state
+let formName = $state("");
+let formType = $state<"INDOOR" | "OUTDOOR">("INDOOR");
+let formWeekdayOffPeak = $state(150000);
+let formWeekdayPeak = $state(200000);
+let formWeekendOffPeak = $state(200000);
+let formWeekendPeak = $state(250000);
+let formIsActive = $state(true);
 
 const activeVenueId = $derived(
   selectedVenueId || (venues.length > 0 ? venues[0].id : null),
@@ -28,6 +51,14 @@ const activeVenue = $derived(venues.find((v) => v.id === activeVenueId));
 function showToast(msg: string) {
   toast = msg;
   setTimeout(() => (toast = null), 3000);
+}
+
+function formatIDR(amount: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 async function loadOwnerCourtsData() {
@@ -79,11 +110,140 @@ async function handleVenueChange(vId: string) {
   }
 }
 
+function openAddModal() {
+  modalMode = "add";
+  editingCourt = null;
+  formName = `Court ${courts.length + 1}`;
+  formType = "INDOOR";
+  formWeekdayOffPeak = 150000;
+  formWeekdayPeak = 200000;
+  formWeekendOffPeak = 200000;
+  formWeekendPeak = 250000;
+  formIsActive = true;
+  isModalOpen = true;
+}
+
+function openEditModal(court: any) {
+  modalMode = "edit";
+  editingCourt = court;
+  formName = court.name || "";
+  formType = court.type || "INDOOR";
+  formWeekdayOffPeak =
+    court.weekdayOffPeak ?? court.pricing?.weekdayOffPeak ?? 150000;
+  formWeekdayPeak = court.weekdayPeak ?? court.pricing?.weekdayPeak ?? 200000;
+  formWeekendOffPeak =
+    court.weekendOffPeak ?? court.pricing?.weekendOffPeak ?? 200000;
+  formWeekendPeak = court.weekendPeak ?? court.pricing?.weekendPeak ?? 250000;
+  formIsActive = court.isActive ?? true;
+  isModalOpen = true;
+}
+
+async function handleSubmit() {
+  if (!activeVenueId || !formName.trim() || isSubmitting) return;
+  isSubmitting = true;
+  try {
+    const token = await authStore.firebaseUser?.getIdToken();
+    if (!token) return;
+
+    const body = {
+      name: formName.trim(),
+      type: formType,
+      weekdayOffPeak: Number(formWeekdayOffPeak),
+      weekdayPeak: Number(formWeekdayPeak),
+      weekendOffPeak: Number(formWeekendOffPeak),
+      weekendPeak: Number(formWeekendPeak),
+      isActive: formIsActive,
+    };
+
+    if (modalMode === "add") {
+      const res = await api.venues({ id: activeVenueId }).courts.post(body, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (res.data) {
+        showToast("Court added successfully.");
+        isModalOpen = false;
+        await handleVenueChange(activeVenueId);
+      }
+    } else if (editingCourt) {
+      const res = await api
+        .venues({ id: activeVenueId })
+        .courts({ courtId: editingCourt.id })
+        .patch(body, {
+          headers: { authorization: `Bearer ${token}` },
+        });
+      if (res.data) {
+        showToast("Court updated successfully.");
+        isModalOpen = false;
+        await handleVenueChange(activeVenueId);
+      }
+    }
+  } catch (e: any) {
+    showToast(e.message || "Failed to save court");
+  } finally {
+    isSubmitting = false;
+  }
+}
+
+async function handleToggleStatus(court: any) {
+  if (!activeVenueId) return;
+  try {
+    const token = await authStore.firebaseUser?.getIdToken();
+    if (!token) return;
+
+    const nextStatus = !court.isActive;
+    const res = await api
+      .venues({ id: activeVenueId })
+      .courts({ courtId: court.id })
+      .patch(
+        { isActive: nextStatus },
+        { headers: { authorization: `Bearer ${token}` } },
+      );
+    if (res.data) {
+      showToast(nextStatus ? "Court activated." : "Court deactivated.");
+      await handleVenueChange(activeVenueId);
+    }
+  } catch (e: any) {
+    showToast(e.message || "Failed to toggle court status");
+  }
+}
+
+async function handleDeleteConfirm() {
+  if (!activeVenueId || !deleteTarget || isDeleting) return;
+  isDeleting = true;
+  try {
+    const token = await authStore.firebaseUser?.getIdToken();
+    if (!token) return;
+
+    const res = await api
+      .venues({ id: activeVenueId })
+      .courts({ courtId: deleteTarget.id })
+      .patch(
+        { isActive: false },
+        { headers: { authorization: `Bearer ${token}` } },
+      );
+    if (res.data) {
+      showToast(`Court ${deleteTarget.name} deactivated.`);
+      deleteTarget = null;
+      await handleVenueChange(activeVenueId);
+    }
+  } catch (e: any) {
+    showToast(e.message || "Failed to delete court");
+  } finally {
+    isDeleting = false;
+  }
+}
+
 $effect(() => {
   if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadOwnerCourtsData();
   }
 });
+
+const inputWrapperClass =
+  "relative flex h-11 w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] transition-colors focus-within:border-[#50C8C8]/40";
+const inputClass =
+  "body h-full w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none";
+const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
 </script>
 
 <svelte:head>
@@ -102,7 +262,7 @@ $effect(() => {
       </div>
       <button
         type="button"
-        onclick={() => showToast("Add court feature coming soon.")}
+        onclick={openAddModal}
         disabled={!activeVenueId}
         class="label btn-lime flex h-11 w-full items-center justify-center gap-2 rounded-full px-5 disabled:opacity-50 disabled:cursor-not-allowed sm:h-10 sm:w-auto"
       >
@@ -179,82 +339,107 @@ $effect(() => {
       <!-- Courts List -->
       <div class="mt-8 space-y-4">
         {#each courts as court (court.id)}
-          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all hover:border-white/[0.12]">
             <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div class="flex flex-wrap items-center gap-3">
                 <h3 class="heading-2 text-[#F7F7F7]">{court.name}</h3>
-                <span class="caption rounded-full bg-white/[0.04] px-3 py-1 text-[#F7F7F7]/40">
+                <span class="caption rounded-full bg-white/[0.04] px-3 py-1 text-[#F7F7F7]/60 font-medium">
                   {court.type || "INDOOR"}
                 </span>
                 {#if court.isActive}
-                  <span class="caption flex items-center gap-1 text-green-400">
+                  <span class="caption flex items-center gap-1 rounded-full bg-green-400/10 px-2.5 py-0.5 text-green-400 font-medium">
                     <CheckCircle2 class="h-3 w-3" /> Active
                   </span>
                 {:else}
-                  <span class="caption flex items-center gap-1 text-red-400">
+                  <span class="caption flex items-center gap-1 rounded-full bg-red-400/10 px-2.5 py-0.5 text-red-400 font-medium">
                     <XCircle class="h-3 w-3" /> Inactive
                   </span>
                 {/if}
               </div>
-              <button
-                type="button"
-                onclick={() => showToast("Edit pricing feature coming soon.")}
-                class="label flex h-9 items-center gap-2 rounded-lg border border-white/[0.06] px-4 text-[#F7F7F7]/40 transition-all hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
-              >
-                <Edit3 class="h-3 w-3" />
-                Edit Pricing
-              </button>
+
+              <!-- Court Actions -->
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Activate / Deactivate button -->
+                <button
+                  type="button"
+                  onclick={() => handleToggleStatus(court)}
+                  class="label flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-all {court.isActive ? 'border-amber-500/20 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20' : 'border-green-500/20 bg-green-500/10 text-green-400 hover:bg-green-500/20'}"
+                >
+                  <Power class="h-3.5 w-3.5" />
+                  {court.isActive ? "Deactivate" : "Activate"}
+                </button>
+
+                <!-- Edit Pricing button -->
+                <button
+                  type="button"
+                  onclick={() => openEditModal(court)}
+                  class="label flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3.5 text-xs font-medium text-[#F7F7F7]/80 transition-all hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-[#F7F7F7]"
+                >
+                  <Edit3 class="h-3.5 w-3.5 text-[#50C8C8]" />
+                  Edit Pricing
+                </button>
+
+                <!-- Delete button -->
+                <button
+                  type="button"
+                  onclick={() => (deleteTarget = court)}
+                  class="label flex h-9 w-9 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 transition-all hover:bg-red-500/20"
+                  aria-label="Delete court"
+                >
+                  <Trash2 class="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
 
             <!-- Pricing Grid -->
             <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div class="rounded-xl border border-white/[0.04] bg-white/[0.02] p-4">
                 <div class="flex items-center gap-1.5">
-                  <Sun class="h-3 w-3 text-[#F7F7F7]/25" />
-                  <span class="caption text-[#F7F7F7]/25">Weekday Off-Peak</span>
+                  <Sun class="h-3.5 w-3.5 text-[#F7F7F7]/40" />
+                  <span class="caption text-[#F7F7F7]/40">Weekday Off-Peak</span>
                 </div>
-                <p class="price mt-2 text-[#F7F7F7]/60">
-                  Rp {((court.pricing?.weekdayOffPeak || 150000) / 1000).toFixed(0)}K
+                <p class="price mt-2 text-[#F7F7F7]/80">
+                  {formatIDR(court.weekdayOffPeak ?? court.pricing?.weekdayOffPeak ?? 150000)}
                 </p>
               </div>
 
-              <div class="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
+              <div class="rounded-xl border border-[#E6FA50]/20 bg-[#E6FA50]/[0.04] p-4">
                 <div class="flex items-center gap-1.5">
-                  <Zap class="h-3 w-3 text-[#E6FA50]/60" />
-                  <span class="caption text-[#F7F7F7]/25">Weekday Peak</span>
+                  <Zap class="h-3.5 w-3.5 text-[#E6FA50]" />
+                  <span class="caption text-[#E6FA50]/80">Weekday Peak</span>
                 </div>
-                <p class="price mt-2 text-[#E6FA50]/80">
-                  Rp {((court.pricing?.weekdayPeak || 200000) / 1000).toFixed(0)}K
+                <p class="price mt-2 text-[#E6FA50]">
+                  {formatIDR(court.weekdayPeak ?? court.pricing?.weekdayPeak ?? 200000)}
                 </p>
               </div>
 
               <div class="rounded-xl border border-white/[0.04] bg-white/[0.02] p-4">
                 <div class="flex items-center gap-1.5">
-                  <Sun class="h-3 w-3 text-[#F7F7F7]/25" />
-                  <span class="caption text-[#F7F7F7]/25">Weekend Off-Peak</span>
+                  <Sun class="h-3.5 w-3.5 text-[#F7F7F7]/40" />
+                  <span class="caption text-[#F7F7F7]/40">Weekend Off-Peak</span>
                 </div>
-                <p class="price mt-2 text-[#F7F7F7]/60">
-                  Rp {((court.pricing?.weekendOffPeak || 200000) / 1000).toFixed(0)}K
+                <p class="price mt-2 text-[#F7F7F7]/80">
+                  {formatIDR(court.weekendOffPeak ?? court.pricing?.weekendOffPeak ?? 200000)}
                 </p>
               </div>
 
-              <div class="rounded-xl border border-[#E6FA50]/10 bg-[#E6FA50]/[0.03] p-4">
+              <div class="rounded-xl border border-[#E6FA50]/20 bg-[#E6FA50]/[0.04] p-4">
                 <div class="flex items-center gap-1.5">
-                  <Zap class="h-3 w-3 text-[#E6FA50]/60" />
-                  <span class="caption text-[#F7F7F7]/25">Weekend Peak</span>
+                  <Zap class="h-3.5 w-3.5 text-[#E6FA50]" />
+                  <span class="caption text-[#E6FA50]/80">Weekend Peak</span>
                 </div>
-                <p class="price mt-2 text-[#E6FA50]/80">
-                  Rp {((court.pricing?.weekendPeak || 250000) / 1000).toFixed(0)}K
+                <p class="price mt-2 text-[#E6FA50]">
+                  {formatIDR(court.weekendPeak ?? court.pricing?.weekendPeak ?? 250000)}
                 </p>
               </div>
             </div>
 
             <!-- Peak hours info -->
-            <div class="mt-4 flex items-center gap-4 border-t border-white/[0.04] pt-4">
-              <span class="caption text-[#F7F7F7]/25">
+            <div class="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-4">
+              <span class="caption text-[#F7F7F7]/40">
                 Peak hours: 09:00–11:00 & 16:00–21:00
               </span>
-              <span class="caption text-[#F7F7F7]/25">
+              <span class="caption text-[#F7F7F7]/40">
                 Venue: {activeVenue?.name || "—"}
               </span>
             </div>
@@ -263,18 +448,216 @@ $effect(() => {
 
         {#if courts.length === 0 && activeVenueId}
           <div class="mt-8 rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
-            <p class="body text-[#F7F7F7]/25">
-              No courts for this venue yet.
+            <p class="body text-[#F7F7F7]/40">
+              No courts added for this venue yet.
             </p>
             <button
               type="button"
-              onclick={() => showToast("Add court feature coming soon.")}
-              class="label btn-lime mt-4 rounded-full px-6 py-2.5"
+              onclick={openAddModal}
+              class="label btn-lime mt-4 rounded-full px-6 py-2.5 inline-flex items-center gap-2"
             >
+              <Plus class="h-4 w-4" />
               Add First Court
             </button>
           </div>
         {/if}
+      </div>
+    {/if}
+
+    <!-- Add / Edit Court Modal -->
+    {#if isModalOpen}
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <button
+          type="button"
+          class="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm w-full h-full border-0 cursor-default"
+          onclick={() => (isModalOpen = false)}
+          aria-label="Close modal"
+        ></button>
+        <div class="relative w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto no-scrollbar">
+          <div class="flex items-center justify-between border-b border-white/[0.06] pb-4">
+            <div>
+              <h2 class="heading-2 text-xl text-[#F7F7F7]">
+                {modalMode === "add" ? "Add New Court" : "Edit Court & Pricing"}
+              </h2>
+              <p class="caption text-[#F7F7F7]/40 mt-0.5">
+                Configure court details and dynamic pricing rates
+              </p>
+            </div>
+            <button
+              type="button"
+              onclick={() => (isModalOpen = false)}
+              class="rounded-lg p-1 text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]"
+            >
+              <X class="h-5 w-5" />
+            </button>
+          </div>
+
+          <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="mt-5 space-y-4">
+            <!-- Court Name -->
+            <div>
+              <label for="court-name-input" class={labelClass}>Court Name</label>
+              <div class={inputWrapperClass}>
+                <input
+                  id="court-name-input"
+                  type="text"
+                  bind:value={formName}
+                  placeholder="e.g. Court 1 (Center Court)"
+                  class={inputClass}
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Court Type & Active Toggle -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class={labelClass}>Court Type</span>
+                <div class="flex h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
+                  <button
+                    type="button"
+                    onclick={() => (formType = "INDOOR")}
+                    class="flex-1 rounded-lg text-xs font-semibold transition-all {formType === 'INDOOR' ? 'bg-[#E6FA50] text-[#06121A] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
+                  >
+                    Indoor
+                  </button>
+                  <button
+                    type="button"
+                    onclick={() => (formType = "OUTDOOR")}
+                    class="flex-1 rounded-lg text-xs font-semibold transition-all {formType === 'OUTDOOR' ? 'bg-[#E6FA50] text-[#06121A] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
+                  >
+                    Outdoor
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <span class={labelClass}>Status</span>
+                <button
+                  type="button"
+                  onclick={() => (formIsActive = !formIsActive)}
+                  class="flex h-11 w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 transition-colors hover:border-white/[0.15]"
+                >
+                  <span class="body-sm font-semibold {formIsActive ? 'text-green-400' : 'text-red-400'}">
+                    {formIsActive ? "Active" : "Inactive"}
+                  </span>
+                  <div class="relative inline-flex h-5 w-9 items-center rounded-full p-0.5 transition-colors {formIsActive ? 'bg-[#E6FA50]' : 'bg-white/[0.15]'}">
+                    <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out {formIsActive ? 'translate-x-4' : 'translate-x-0'}"></span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Pricing Grid (4 Inputs) -->
+            <div class="pt-2">
+              <p class="section-label mb-3">Dynamic Pricing (IDR)</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="weekday-offpeak-input" class={labelClass}>Weekday Off-Peak</label>
+                  <NumberInput
+                    id="weekday-offpeak-input"
+                    bind:value={formWeekdayOffPeak}
+                    step={10000}
+                    min={0}
+                    placeholder="150000"
+                  />
+                </div>
+                <div>
+                  <label for="weekday-peak-input" class={labelClass}>Weekday Peak</label>
+                  <NumberInput
+                    id="weekday-peak-input"
+                    bind:value={formWeekdayPeak}
+                    step={10000}
+                    min={0}
+                    placeholder="200000"
+                  />
+                </div>
+                <div>
+                  <label for="weekend-offpeak-input" class={labelClass}>Weekend Off-Peak</label>
+                  <NumberInput
+                    id="weekend-offpeak-input"
+                    bind:value={formWeekendOffPeak}
+                    step={10000}
+                    min={0}
+                    placeholder="200000"
+                  />
+                </div>
+                <div>
+                  <label for="weekend-peak-input" class={labelClass}>Weekend Peak</label>
+                  <NumberInput
+                    id="weekend-peak-input"
+                    bind:value={formWeekendPeak}
+                    step={10000}
+                    min={0}
+                    placeholder="250000"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="mt-6 flex items-center justify-end gap-3 border-t border-white/[0.06] pt-4">
+              <button
+                type="button"
+                onclick={() => (isModalOpen = false)}
+                disabled={isSubmitting}
+                class="label rounded-xl px-5 py-2.5 text-[#F7F7F7]/60 hover:bg-white/[0.04] hover:text-[#F7F7F7] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                class="btn-lime label flex items-center gap-2 rounded-full px-6 py-2.5 font-semibold text-[#06121A] bg-[#E6FA50] hover:bg-[#E6FA50]/90 disabled:opacity-50"
+              >
+                {#if isSubmitting}
+                  <Loader2 class="h-4 w-4 animate-spin" /> Saving...
+                {:else}
+                  Save Court
+                {/if}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Delete Confirmation Modal -->
+    {#if deleteTarget}
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <button
+          type="button"
+          class="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm w-full h-full border-0 cursor-default"
+          onclick={() => (deleteTarget = null)}
+          aria-label="Close modal"
+        ></button>
+        <div class="relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl z-10">
+          <h3 class="heading-2 text-xl text-[#F7F7F7]">Deactivate Court</h3>
+          <p class="body-sm mt-3 text-[#F7F7F7]/60">
+            Are you sure you want to deactivate <span class="text-[#F7F7F7] font-semibold">{deleteTarget.name}</span>? Users will no longer be able to book this court until it is reactivated.
+          </p>
+          <div class="mt-6 flex items-center justify-end gap-3 border-t border-white/[0.06] pt-4">
+            <button
+              type="button"
+              onclick={() => (deleteTarget = null)}
+              disabled={isDeleting}
+              class="label rounded-xl px-5 py-2 text-[#F7F7F7]/60 hover:bg-white/[0.04] hover:text-[#F7F7F7] disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onclick={handleDeleteConfirm}
+              disabled={isDeleting}
+              class="label flex items-center gap-2 rounded-full bg-red-500 px-5 py-2 font-semibold text-white hover:bg-red-600 disabled:opacity-50"
+            >
+              {#if isDeleting}
+                <Loader2 class="h-4 w-4 animate-spin" /> Deactivating...
+              {:else}
+                Deactivate Court
+              {/if}
+            </button>
+          </div>
+        </div>
       </div>
     {/if}
 
