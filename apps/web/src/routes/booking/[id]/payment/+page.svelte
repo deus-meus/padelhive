@@ -555,10 +555,10 @@ async function handlePay() {
                       <p class="body-sm text-[#F7F7F7]/40">{method.description}</p>
                     </div>
                   </div>
-                  <!-- Radio Button Circle Indicator with Pure White Inner Knob (Image #101) -->
+                  <!-- Radio Button Circle Indicator -->
                   <div class="flex h-5 w-5 items-center justify-center rounded-full border transition-colors {selectedMethod === method.id ? 'border-[#E6FA50] bg-[#E6FA50]' : 'border-white/20'}">
                     {#if selectedMethod === method.id}
-                      <div class="h-2 w-2 rounded-full bg-white shadow-sm"></div>
+                      <div class="h-2 w-2 rounded-full bg-[#06121A]"></div>
                     {/if}
                   </div>
                 </button>
