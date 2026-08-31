@@ -367,7 +367,12 @@ async function handleCreateBooking(e: SubmitEvent) {
                     : 'border-white/[0.06] bg-white/[0.015] text-[#F7F7F7]/60 hover:border-white/[0.12] hover:text-[#F7F7F7]'}"
                 >
                   <span class="metric text-lg sm:text-xl font-bold">{item.dateNum}</span>
-                  <span class="caption uppercase font-medium mt-1 text-[11px]">{item.day}</span>
+                  <div class="flex items-center gap-1 caption uppercase font-medium mt-1 text-[11px]">
+                    <span>{item.day}</span>
+                    {#if item.iso === new Date().toISOString().split("T")[0]}
+                      <span class="text-[#50C8C8] font-bold">Today</span>
+                    {/if}
+                  </div>
                 </button>
               {/each}
             </div>
@@ -427,18 +432,20 @@ async function handleCreateBooking(e: SubmitEvent) {
               </div>
 
               <!-- Legend -->
-              <div class="mt-4 flex items-center gap-5 pt-2 border-t border-white/[0.04]">
-                <div class="flex items-center gap-2">
-                  <div class="h-2.5 w-2.5 rounded-sm border border-white/[0.08] bg-[#0C1B26]"></div>
-                  <span class="caption text-[#F7F7F7]/40">Available</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <div class="h-2.5 w-2.5 rounded-sm border border-[#E6FA50]/30 bg-[#E6FA50]/10"></div>
-                  <span class="caption text-[#F7F7F7]/40">Peak Hour</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <div class="h-2.5 w-2.5 rounded-sm bg-white/[0.02]"></div>
-                  <span class="caption text-[#F7F7F7]/40">Booked</span>
+              <div class="mt-6 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/[0.04]">
+                <div class="flex items-center gap-5">
+                  <div class="flex items-center gap-2">
+                    <div class="h-2.5 w-2.5 rounded-sm border border-white/[0.08] bg-[#0C1B26]"></div>
+                    <span class="caption text-[#F7F7F7]/40">Available</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="h-2.5 w-2.5 rounded-sm border border-[#E6FA50]/30 bg-[#E6FA50]/10"></div>
+                    <span class="caption text-[#F7F7F7]/40">Peak Hour</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="h-2.5 w-2.5 rounded-sm bg-white/[0.02]"></div>
+                    <span class="caption text-[#F7F7F7]/40">Booked</span>
+                  </div>
                 </div>
               </div>
             {/if}
