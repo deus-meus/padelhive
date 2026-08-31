@@ -9,9 +9,6 @@ import {
   CreditCard,
   Info,
   Loader2,
-  Lock,
-  Plus,
-  RefreshCw,
   ShieldCheck,
   UserPlus,
   Users,
@@ -112,14 +109,34 @@ $effect(() => {
   }
 });
 
+// Exclude current logged-in host user from invites list to prevent duplicate row
+const filteredInvites = $derived.by(() => {
+  if (!invites) return [];
+  const userEmail = (
+    authStore.user?.email ||
+    authStore.firebaseUser?.email ||
+    ""
+  ).toLowerCase();
+  const userName = (authStore.user?.name || "").toLowerCase();
+
+  return invites.filter((inv) => {
+    const invEmail = (inv.email || "").toLowerCase();
+    const invName = (inv.name || "").toLowerCase();
+
+    if (userEmail && invEmail && invEmail === userEmail) return false;
+    if (userName && invName && invName === userName) return false;
+    return true;
+  });
+});
+
 // Calculate Split numbers dynamically
 const totalAmount = $derived(booking?.finalAmount || 252000);
 const platformFee = $derived(Math.round(totalAmount * 0.05));
 const grandTotal = $derived(totalAmount + platformFee);
 
-// Total active players (User + accepted/pending invites)
+// Total active players (User + filtered invited friends)
 const totalPlayersCount = $derived(
-  Math.max(1, 1 + (invites ? invites.length : 0)),
+  Math.max(1, 1 + (filteredInvites ? filteredInvites.length : 0)),
 );
 
 const pricePerPlayer = $derived(
@@ -128,7 +145,9 @@ const pricePerPlayer = $derived(
 
 const paidByFriendsAmount = $derived.by(() => {
   if (!isSplitEnabled) return 0;
-  const acceptedFriends = invites.filter((inv) => inv.status === "ACCEPTED");
+  const acceptedFriends = filteredInvites.filter(
+    (inv) => inv.status === "ACCEPTED",
+  );
   return acceptedFriends.length * pricePerPlayer;
 });
 
@@ -186,7 +205,7 @@ async function handlePay() {
 
 <div class="min-h-screen pt-20 pb-24 bg-[#06121A]">
   <div class="container max-w-5xl pt-6">
-    <!-- Back Navigation Link -->
+    <!-- Back Navigation Link (Linear Icon Box Style) -->
     <a
       href={bookingId ? `/bookings/${bookingId}` : "/bookings"}
       class="group inline-flex items-center gap-3 text-xs font-medium text-[#F7F7F7]/60 transition-colors hover:text-[#F7F7F7]"
@@ -199,7 +218,7 @@ async function handlePay() {
       <span>Back to booking summary</span>
     </a>
 
-    <!-- Page Header -->
+    <!-- Page Header (Unified Design System) -->
     <div class="mt-4 mb-8">
       <h1 class="heading-1 text-[#F7F7F7]">
         Payment <span class="text-[#E6FA50]">Checkout</span>
@@ -244,41 +263,39 @@ async function handlePay() {
       <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
         <!-- Left Column: Details, Split Payment & Payment Method -->
         <div class="space-y-8">
-          <!-- 1. BOOKING DETAILS CARD -->
+          <!-- 1. BOOKING DETAILS CARD (4-box layout with design system typography) -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
-            <h2 class="text-xs font-semibold tracking-wider text-[#F7F7F7]/60 uppercase">
-              BOOKING DETAILS
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm pt-1">
-              <div class="flex flex-col">
-                <span class="text-xs font-medium text-[#F7F7F7]/40 mb-0.5">Venue</span>
-                <span class="font-semibold text-[#F7F7F7]">{booking.venue?.name || "Padel Arena"}</span>
+            <p class="section-label">BOOKING DETAILS</p>
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div class="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
+                <p class="heading-3 text-[#F7F7F7]">{booking.venue?.name || "Padel Arena"}</p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Venue</p>
               </div>
 
-              <div class="flex flex-col">
-                <span class="text-xs font-medium text-[#F7F7F7]/40 mb-0.5">Court</span>
-                <span class="font-semibold text-[#F7F7F7]">
+              <div class="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
+                <p class="heading-3 text-[#F7F7F7]">
                   {booking.court?.name || "Court A"}
                   {#if booking.court?.type}
-                    <span class="ml-1.5 rounded bg-white/[0.06] px-2 py-0.5 text-[10px] font-normal text-[#F7F7F7]/60 uppercase">
-                      {booking.court.type}
+                    <span class="ml-1 text-xs text-[#F7F7F7]/40 uppercase font-normal">
+                      ({booking.court.type})
                     </span>
                   {/if}
-                </span>
+                </p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Court</p>
               </div>
 
-              <div class="flex flex-col">
-                <span class="text-xs font-medium text-[#F7F7F7]/40 mb-0.5">Date</span>
-                <span class="font-semibold text-[#F7F7F7]">
+              <div class="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
+                <p class="heading-3 text-[#F7F7F7]">
                   {booking.bookingDate ? formatBookingDate(new Date(booking.bookingDate)) : "Sat, Aug 15, 2026"}
-                </span>
+                </p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Date</p>
               </div>
 
-              <div class="flex flex-col">
-                <span class="text-xs font-medium text-[#F7F7F7]/40 mb-0.5">Time</span>
-                <span class="font-semibold text-[#E6FA50]">
+              <div class="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
+                <p class="heading-3 text-[#E6FA50]">
                   {formatBookingTimeRange(booking.startsAt, booking.endsAt)}
-                </span>
+                </p>
+                <p class="caption mt-0.5 text-[#F7F7F7]/25">Time (WIB)</p>
               </div>
             </div>
           </div>
@@ -290,10 +307,8 @@ async function handlePay() {
               <div class="flex items-center gap-2.5">
                 <Users class="h-4 w-4 text-[#50C8C8]" />
                 <div>
-                  <h2 class="text-xs font-semibold tracking-wider text-[#F7F7F7] uppercase">
-                    SPLIT PAYMENT
-                  </h2>
-                  <p class="text-xs text-[#F7F7F7]/40 mt-0.5">
+                  <p class="section-label">SPLIT PAYMENT</p>
+                  <p class="body-sm text-[#F7F7F7]/40 mt-0.5">
                     Split the cost equally among all players
                   </p>
                 </div>
@@ -336,7 +351,7 @@ async function handlePay() {
               <!-- Info/Notice box -->
               <div class="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 flex items-center gap-3">
                 <Info class="h-4 w-4 shrink-0 text-amber-400" />
-                <p class="text-xs text-amber-200/90 leading-relaxed">
+                <p class="body-sm text-amber-200/90 leading-relaxed">
                   Split is active. Each player pays their share. Friends who haven't paid will be charged separately.
                 </p>
               </div>
@@ -344,51 +359,51 @@ async function handlePay() {
               <!-- Price Per Player Summary Bar -->
               <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                 <div>
-                  <span class="text-xs font-medium text-[#F7F7F7]/60 block">Price per player</span>
-                  <span class="text-[11px] text-[#F7F7F7]/40">
+                  <p class="heading-3 text-[#F7F7F7]">Price per player</p>
+                  <p class="body-sm text-[#F7F7F7]/40 mt-0.5">
                     Total Rp {(grandTotal / 1000).toFixed(0)}K ÷ {totalPlayersCount} players
-                  </span>
+                  </p>
                 </div>
-                <span class="text-lg font-bold text-[#E6FA50]">
+                <span class="heading-2 text-[#E6FA50]">
                   Rp {(pricePerPlayer / 1000).toFixed(0)}K
                 </span>
               </div>
 
-              <!-- Players List -->
+              <!-- Players List (Guaranteed No Duplicate Host Row) -->
               <div class="space-y-3 pt-1">
-                <!-- User (Main Organizer) -->
+                <!-- User (Main Organizer - Always First Row) -->
                 <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
                   <div class="flex items-center gap-3">
                     <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#E6FA50]/15 text-sm font-bold text-[#E6FA50]">
                       {(authStore.user?.name || authStore.user?.email || "U")[0].toUpperCase()}
                     </div>
                     <div>
-                      <p class="text-xs font-semibold text-[#F7F7F7]">
+                      <p class="body-sm font-semibold text-[#F7F7F7]">
                         {authStore.user?.name || "You (Host)"}
                       </p>
-                      <p class="text-[11px] text-[#F7F7F7]/40">
+                      <p class="caption text-[#F7F7F7]/40">
                         Rp {(pricePerPlayer / 1000).toFixed(0)}K
                       </p>
                     </div>
                   </div>
 
-                  <span class="rounded-full bg-[#E6FA50] px-4 py-1.5 text-xs font-bold text-[#06121A]">
+                  <span class="btn-lime label px-4 py-1.5 rounded-full font-bold text-xs">
                     Pay Rp {(pricePerPlayer / 1000).toFixed(0)}K
                   </span>
                 </div>
 
-                <!-- Invited Friends -->
-                {#each invites as invite}
+                <!-- Invited Friends (Filtered to prevent duplicate Host row) -->
+                {#each filteredInvites as invite}
                   <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
                     <div class="flex items-center gap-3">
                       <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#50C8C8]/15 text-sm font-bold text-[#50C8C8]">
                         {(invite.name || invite.email || "F")[0].toUpperCase()}
                       </div>
                       <div>
-                        <p class="text-xs font-semibold text-[#F7F7F7]">
+                        <p class="body-sm font-semibold text-[#F7F7F7]">
                           {invite.name || invite.email}
                         </p>
-                        <p class="text-[11px] text-[#F7F7F7]/40">
+                        <p class="caption text-[#F7F7F7]/40">
                           Rp {(pricePerPlayer / 1000).toFixed(0)}K
                         </p>
                       </div>
@@ -412,7 +427,7 @@ async function handlePay() {
               <!-- Invite Friends Button Shortcut -->
               <a
                 href="/booking/{bookingId}/invite"
-                class="flex items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.12] bg-white/[0.01] p-3.5 text-xs font-medium text-[#F7F7F7]/70 transition-all hover:border-[#E6FA50]/40 hover:bg-[#E6FA50]/5 hover:text-[#E6FA50]"
+                class="flex items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.12] bg-white/[0.01] p-3.5 body-sm font-medium text-[#F7F7F7]/70 transition-all hover:border-[#E6FA50]/40 hover:bg-[#E6FA50]/5 hover:text-[#E6FA50]"
               >
                 <UserPlus class="h-4 w-4" />
                 <span>Invite more friends to split cost</span>
@@ -422,9 +437,7 @@ async function handlePay() {
 
           <!-- 3. PAYMENT METHOD SECTION -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
-            <h2 class="text-xs font-semibold tracking-wider text-[#F7F7F7]/60 uppercase">
-              PAYMENT METHOD
-            </h2>
+            <p class="section-label">PAYMENT METHOD</p>
             <div class="space-y-3">
               {#each PAYMENT_METHODS as method}
                 {@const MethodIcon = method.icon}
@@ -441,8 +454,8 @@ async function handlePay() {
                       <MethodIcon class="h-5 w-5 text-[#50C8C8]" />
                     </div>
                     <div>
-                      <p class="text-sm font-semibold text-[#F7F7F7]">{method.label}</p>
-                      <p class="text-xs text-[#F7F7F7]/40">{method.description}</p>
+                      <p class="heading-3 text-[#F7F7F7]">{method.label}</p>
+                      <p class="body-sm text-[#F7F7F7]/40">{method.description}</p>
                     </div>
                   </div>
                   <div class="flex h-5 w-5 items-center justify-center rounded-full border transition-colors {selectedMethod === method.id ? 'border-[#E6FA50] bg-[#E6FA50]' : 'border-white/20'}">
@@ -460,31 +473,29 @@ async function handlePay() {
         <div class="lg:relative">
           <div class="lg:sticky lg:top-24">
             <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-6 shadow-2xl">
-              <h3 class="text-xs font-semibold tracking-wider text-[#F7F7F7] uppercase">
-                ORDER SUMMARY
-              </h3>
+              <p class="section-label">ORDER SUMMARY</p>
 
-              <div class="space-y-3 border-y border-white/[0.06] py-4 text-xs">
-                <div class="flex justify-between">
-                  <span class="text-[#F7F7F7]/60">Court rental</span>
-                  <span class="font-medium text-[#F7F7F7]">Rp {(totalAmount / 1000).toFixed(0)}K</span>
+              <div class="space-y-3 border-y border-white/[0.06] py-4">
+                <div class="flex justify-between items-center">
+                  <span class="body-sm text-[#F7F7F7]/60">Court rental</span>
+                  <span class="heading-3 text-[#F7F7F7]">Rp {(totalAmount / 1000).toFixed(0)}K</span>
                 </div>
 
-                <div class="flex justify-between">
-                  <span class="text-[#F7F7F7]/60">Platform fee (5%)</span>
-                  <span class="font-medium text-[#F7F7F7]">Rp {(platformFee / 1000).toFixed(0)}K</span>
+                <div class="flex justify-between items-center">
+                  <span class="body-sm text-[#F7F7F7]/60">Platform fee (5%)</span>
+                  <span class="heading-3 text-[#F7F7F7]">Rp {(platformFee / 1000).toFixed(0)}K</span>
                 </div>
 
                 {#if isSplitEnabled && paidByFriendsAmount > 0}
-                  <div class="flex justify-between text-emerald-400">
-                    <span>Paid by friends</span>
-                    <span>-Rp {(paidByFriendsAmount / 1000).toFixed(0)}K</span>
+                  <div class="flex justify-between items-center text-emerald-400">
+                    <span class="body-sm">Paid by friends</span>
+                    <span class="heading-3">-Rp {(paidByFriendsAmount / 1000).toFixed(0)}K</span>
                   </div>
                 {/if}
 
                 <div class="flex justify-between items-baseline pt-3 border-t border-white/[0.06]">
-                  <span class="text-sm font-semibold text-[#F7F7F7]">You pay</span>
-                  <span class="text-2xl font-extrabold text-[#E6FA50]">
+                  <span class="heading-2 text-[#F7F7F7]">You pay</span>
+                  <span class="metric text-[#E6FA50]">
                     Rp {(userFinalPayAmount / 1000).toFixed(0)}K
                   </span>
                 </div>
@@ -506,13 +517,13 @@ async function handlePay() {
               </button>
 
               <!-- Security guarantee -->
-              <div class="flex items-center justify-center gap-2 text-[11px] text-[#F7F7F7]/40 text-center">
+              <div class="flex items-center justify-center gap-2 caption text-[#F7F7F7]/40 text-center">
                 <ShieldCheck class="h-4 w-4 text-[#50C8C8]" />
                 <span>Secure payment provided by Midtrans</span>
               </div>
 
               <!-- Cancellation policy note box -->
-              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-3 text-[11px] text-[#F7F7F7]/40 leading-relaxed">
+              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-3 caption text-[#F7F7F7]/40 leading-relaxed">
                 Free cancellation up to 24h before booking. After that, standard refund policy applies.
               </div>
             </div>
