@@ -77,9 +77,10 @@ function showToast(msg: string) {
 }
 
 async function loadVouchers() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.admin.vouchers.get({
@@ -198,7 +199,7 @@ async function handleDelete() {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadVouchers();
   }
 });
@@ -230,7 +231,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40";
   </div>
 
   <div class="flex flex-1 flex-col space-y-4">
-    {#if isLoading}
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="space-y-4">
         {#each Array.from({ length: 3 }) as _, i}
           <div

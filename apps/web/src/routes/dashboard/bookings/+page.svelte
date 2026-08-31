@@ -56,9 +56,10 @@ function formatIDR(amount: number): string {
 }
 
 async function loadOwnerBookings() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.admin.bookings.get({
@@ -98,13 +99,9 @@ const filteredBookings = $derived(
 );
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadOwnerBookings();
   }
-});
-
-onMount(() => {
-  if (authStore.user) loadOwnerBookings();
 });
 </script>
 
@@ -143,7 +140,7 @@ onMount(() => {
 
     <!-- Bookings list -->
     <div class="mt-6 space-y-3">
-      {#if isLoading}
+      {#if isLoading || !authStore.isInitialized || authStore.isLoading}
         {#each Array.from({ length: 4 }) as _, i}
           <div class="h-24 w-full animate-pulse rounded-xl border border-white/[0.06] bg-[#0C1B26]"></div>
         {/each}

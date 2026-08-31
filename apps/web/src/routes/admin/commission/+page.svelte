@@ -53,9 +53,10 @@ function getPeriodDates(presetName: PeriodPreset) {
 }
 
 async function loadCommissionReport() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const { fromDate, toDate } = getPeriodDates(preset);
@@ -130,7 +131,7 @@ function exportCsv() {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadCommissionReport();
   }
 });
@@ -167,7 +168,7 @@ $effect(() => {
     onChange={(val) => handlePresetChange(val as PeriodPreset)}
   />
 
-  {#if isLoading}
+  {#if isLoading || !authStore.isInitialized || authStore.isLoading}
     <div class="space-y-6">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, i}

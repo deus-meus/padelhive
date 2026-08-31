@@ -95,9 +95,10 @@ function showToast(msg: string) {
 }
 
 async function loadOwnerVenues() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.venues.manage.get({
@@ -279,13 +280,9 @@ async function handleSubmit() {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadOwnerVenues();
   }
-});
-
-onMount(() => {
-  if (authStore.user) loadOwnerVenues();
 });
 
 const inputWrapperClass =
@@ -339,7 +336,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
 
     <!-- Venue List -->
     <div class="mt-8 space-y-4">
-      {#if isLoading}
+      {#if isLoading || !authStore.isInitialized || authStore.isLoading}
         {#each Array.from({ length: 2 }) as _, i}
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

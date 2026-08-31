@@ -7,10 +7,10 @@ import {
   Loader2,
   Save,
 } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
+import TimeSelect from "$lib/components/ui/time-select.svelte";
 
 const DAYS = [
   { key: "mon", label: "Monday" },
@@ -49,9 +49,10 @@ function showToast(msg: string) {
 }
 
 async function loadOperatingHours() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.venues.manage.get({
@@ -103,13 +104,9 @@ async function handleSave() {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadOperatingHours();
   }
-});
-
-onMount(() => {
-  if (authStore.user) loadOperatingHours();
 });
 </script>
 
@@ -143,7 +140,7 @@ onMount(() => {
       </button>
     </div>
 
-    {#if isLoading}
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <!-- 1:1 Precision Skeleton for Operating Hours -->
       <div class="mt-6 flex gap-2">
         {#each Array.from({ length: 3 }) as _, i}
@@ -220,51 +217,37 @@ onMount(() => {
         </div>
 
         <div class="space-y-4">
-          {#each schedule as day, index (day.key)}
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
-              <div class="flex items-center justify-between sm:w-32 shrink-0">
-                <span class="body text-[#F7F7F7]/80 font-medium">
-                  {day.label}
-                </span>
-                <label class="flex items-center gap-2 cursor-pointer sm:hidden">
-                  <span class="label text-[#F7F7F7]/40">Closed</span>
-                  <input
-                    type="checkbox"
-                    bind:checked={day.closed}
-                    class="h-4 w-4 rounded border-white/20 bg-transparent"
-                  />
-                </label>
+          {#each schedule as day (day.key)}
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.01] transition-all {day.key === 'mon' ? 'border-l-2 border-l-[#E6FA50] bg-white/[0.02]' : ''}">
+              <div class="flex items-center gap-2 sm:w-36 shrink-0">
+                <span class="body text-[#F7F7F7] font-medium">{day.label}</span>
+                {#if day.key === 'mon'}
+                  <span class="rounded bg-[#E6FA50]/20 px-2 py-0.5 text-xs font-semibold text-[#E6FA50]">Today</span>
+                {/if}
               </div>
 
               <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                {#if day.closed}
-                  <div class="body w-full sm:max-w-xs rounded-lg bg-white/[0.02] px-3 py-2 text-center sm:text-left text-[#F7F7F7]/40 border border-white/[0.04]">
-                    Closed all day
-                  </div>
-                {:else}
-                  <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <input
-                      type="time"
-                      bind:value={day.open}
-                      class="body w-full sm:w-32 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[#F7F7F7] focus:outline-none [color-scheme:dark]"
-                    />
-                    <span class="text-[#F7F7F7]/40">–</span>
-                    <input
-                      type="time"
-                      bind:value={day.close}
-                      class="body w-full sm:w-32 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[#F7F7F7] focus:outline-none [color-scheme:dark]"
-                    />
-                  </div>
-                {/if}
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                  <TimeSelect bind:value={day.open} disabled={day.closed} class="w-[140px] sm:w-[140px]" />
+                  <span class="text-[#F7F7F7]/40 text-sm font-normal px-0.5">–</span>
+                  <TimeSelect bind:value={day.close} disabled={day.closed} class="w-[140px] sm:w-[140px]" />
+                </div>
 
-                <label class="hidden sm:flex items-center gap-3 cursor-pointer shrink-0">
-                  <span class="label text-[#F7F7F7]/40">Closed</span>
-                  <input
-                    type="checkbox"
-                    bind:checked={day.closed}
-                    class="h-4 w-4 rounded border-white/20 bg-transparent"
-                  />
-                </label>
+                <div class="flex items-center gap-3 shrink-0 justify-between sm:justify-end w-full sm:w-auto pt-2 sm:pt-0 border-t border-white/[0.04] sm:border-t-0">
+                  <span class="text-sm font-medium text-[#F7F7F7]/40">Closed</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={day.closed}
+                    aria-label="Toggle closed"
+                    onclick={() => (day.closed = !day.closed)}
+                    class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none {day.closed ? 'bg-[#E6FA50]' : 'bg-white/[0.15]'}"
+                  >
+                    <span
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full shadow-md transition-all duration-200 ease-in-out {day.closed ? 'translate-x-4 bg-[#06121A]' : 'translate-x-0 bg-white'}"
+                    ></span>
+                  </button>
+                </div>
               </div>
             </div>
           {/each}

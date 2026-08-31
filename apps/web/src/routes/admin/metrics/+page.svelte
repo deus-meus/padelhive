@@ -17,9 +17,10 @@ let data = $state<any | null>(null);
 let isLoading = $state(true);
 
 async function loadMetrics() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.admin.metrics.get({
@@ -55,7 +56,7 @@ $effect(() => {
     </h1>
   </div>
 
-  {#if isLoading}
+  {#if isLoading || !authStore.isInitialized || authStore.isLoading}
     <div class="space-y-6">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, i}

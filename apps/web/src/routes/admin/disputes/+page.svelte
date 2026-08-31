@@ -65,9 +65,10 @@ function showToast(msg: string) {
 }
 
 async function loadDisputes() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.admin.disputes.get({
@@ -159,7 +160,7 @@ async function handleClose(id: string) {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadDisputes();
   }
 });
@@ -187,7 +188,7 @@ $effect(() => {
 
   <!-- Dispute List / States -->
   <div class="flex flex-1 flex-col space-y-3">
-    {#if isLoading}
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="space-y-4">
         {#each Array.from({ length: 4 }) as _, i}
           <div

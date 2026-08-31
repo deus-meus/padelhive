@@ -71,9 +71,10 @@ function showToast(msg: string) {
 }
 
 async function loadVenues() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.admin.venues.get({
@@ -121,7 +122,7 @@ async function updateStatus(id: string, status: string) {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadVenues();
   }
 });
@@ -149,7 +150,7 @@ $effect(() => {
 
   <!-- Venue List -->
   <div class="flex flex-1 flex-col space-y-4">
-    {#if isLoading}
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="space-y-4">
         {#each Array.from({ length: 3 }) as _, i}
           <div

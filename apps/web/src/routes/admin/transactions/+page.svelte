@@ -86,9 +86,10 @@ let isLoading = $state(true);
 const totalPages = $derived(Math.max(1, Math.ceil(total / pageSize)));
 
 async function loadTransactions() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.admin.bookings.get({
@@ -127,7 +128,7 @@ function handlePageChange(newPage: number) {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadTransactions();
   }
 });
@@ -158,7 +159,7 @@ $effect(() => {
 
   <!-- Transactions Table / States -->
   <div class="flex flex-1 flex-col space-y-4">
-    {#if isLoading}
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
         {#each Array.from({ length: 6 }) as _, i}
           <div

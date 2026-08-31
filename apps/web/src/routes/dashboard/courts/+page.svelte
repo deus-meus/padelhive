@@ -31,9 +31,10 @@ function showToast(msg: string) {
 }
 
 async function loadOwnerCourtsData() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const resVenues = await api.venues.manage.get({
@@ -79,13 +80,9 @@ async function handleVenueChange(vId: string) {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadOwnerCourtsData();
   }
-});
-
-onMount(() => {
-  if (authStore.user) loadOwnerCourtsData();
 });
 </script>
 
@@ -114,7 +111,7 @@ onMount(() => {
       </button>
     </div>
 
-    {#if isLoading}
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <!-- 1:1 Precision Skeleton for Courts & Pricing -->
       <div class="mt-6 flex gap-2">
         {#each Array.from({ length: 3 }) as _, i}

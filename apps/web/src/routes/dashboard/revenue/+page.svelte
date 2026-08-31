@@ -16,9 +16,10 @@ function formatIDR(amount: number): string {
 }
 
 async function loadRevenueData() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.bookings["owner-dashboard"].get({
@@ -35,13 +36,9 @@ async function loadRevenueData() {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadRevenueData();
   }
-});
-
-onMount(() => {
-  if (authStore.user) loadRevenueData();
 });
 </script>
 
@@ -59,7 +56,7 @@ onMount(() => {
       </p>
     </div>
 
-    {#if isLoading}
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, i}
           <div class="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>

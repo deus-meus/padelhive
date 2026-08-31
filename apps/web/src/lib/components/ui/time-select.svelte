@@ -108,7 +108,7 @@ let minuteOpen = $state(false);
 
 <div
   bind:this={containerRef}
-  class="relative w-full {className}"
+  class="relative inline-block {className}"
 >
   <button
     bind:this={triggerRef}
@@ -118,17 +118,19 @@ let minuteOpen = $state(false);
     aria-label={ariaLabel}
     {disabled}
     onclick={() => (isOpen = !isOpen)}
-    class="flex h-11 w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 label text-[#F7F7F7] focus:border-[#E6FA50]/40 focus:outline-none transition-colors {disabled
-      ? 'opacity-30 cursor-not-allowed'
-      : 'hover:border-white/[0.15]'}"
+    class="flex h-10 w-full whitespace-nowrap items-center justify-between gap-2.5 rounded-xl border px-3 py-2 text-sm transition-colors focus:outline-none {disabled
+      ? 'opacity-30 cursor-not-allowed border-white/[0.08] bg-white/[0.02]'
+      : isOpen
+        ? 'border-[#E6FA50] bg-white/[0.04] text-[#F7F7F7]'
+        : 'border-white/[0.08] bg-white/[0.04] text-[#F7F7F7] hover:border-white/[0.15]'}"
   >
-    <div class="flex items-center gap-2">
-      <Clock class="h-4 w-4 text-[#E6FA50]" />
-      <span>{formatTo12Hour(value)}</span>
+    <div class="flex items-center gap-2 whitespace-nowrap">
+      <Clock class="h-4 w-4 shrink-0 text-[#F7F7F7]/40" />
+      <span class="text-sm font-semibold tracking-tight text-[#F7F7F7] whitespace-nowrap">{formatTo12Hour(value)}</span>
     </div>
     <ChevronDown
-      class="h-4 w-4 text-[#F7F7F7]/40 transition-transform {isOpen
-        ? 'rotate-180 text-[#E6FA50]'
+      class="h-4 w-4 shrink-0 text-[#F7F7F7]/40 transition-transform duration-200 {isOpen
+        ? 'rotate-180 text-[#F7F7F7]'
         : ''}"
     />
   </button>
@@ -137,12 +139,12 @@ let minuteOpen = $state(false);
     <div
       role="dialog"
       aria-label="Select time"
-      class="absolute z-50 flex w-72 flex-col rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-5 shadow-2xl {openUpwards
+      class="absolute z-50 flex w-72 flex-col rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl {openUpwards
         ? 'bottom-[calc(100%+8px)] origin-bottom-left'
         : 'top-[calc(100%+8px)] origin-top-left'}"
     >
       <div class="flex items-center">
-        <h3 class="heading-3 text-[#F7F7F7]/80">Select Time</h3>
+        <h3 class="text-lg font-semibold text-[#F7F7F7]">Select Time</h3>
       </div>
 
       <div class="mt-5 flex items-center justify-between">
@@ -151,14 +153,17 @@ let minuteOpen = $state(false);
           <div class="relative">
             <button
               type="button"
-              onclick={() => (hourOpen = !hourOpen)}
-              class="flex w-16 items-center justify-center gap-1 rounded-lg border border-white/[0.08] bg-[#06121A] px-3 py-2 label text-[#F7F7F7]"
+              onclick={() => {
+                hourOpen = !hourOpen;
+                minuteOpen = false;
+              }}
+              class="flex h-10 w-16 items-center justify-between gap-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-[#F7F7F7] hover:border-white/[0.15]"
             >
               <span>{stagedHour}</span>
               <ChevronDown class="h-3.5 w-3.5 text-[#F7F7F7]/40" />
             </button>
             {#if hourOpen}
-              <ul class="absolute left-0 top-full z-30 mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-white/[0.08] bg-[#0C1B26] py-1 shadow-2xl no-scrollbar">
+              <ul class="absolute left-0 top-full z-30 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-white/[0.08] bg-[#0C1B26] py-1 shadow-2xl no-scrollbar">
                 {#each hourOptions as h}
                   <li>
                     <button
@@ -167,7 +172,7 @@ let minuteOpen = $state(false);
                         stagedHour = h;
                         hourOpen = false;
                       }}
-                      class="block w-full px-3 py-1.5 text-center label transition-colors {stagedHour === h
+                      class="block w-full px-3 py-1.5 text-center text-sm font-medium transition-colors {stagedHour === h
                         ? 'bg-[#E6FA50] text-[#06121A] font-bold'
                         : 'text-[#F7F7F7]/80 hover:bg-white/[0.06]'}"
                     >
@@ -185,14 +190,17 @@ let minuteOpen = $state(false);
           <div class="relative">
             <button
               type="button"
-              onclick={() => (minuteOpen = !minuteOpen)}
-              class="flex w-16 items-center justify-center gap-1 rounded-lg border border-white/[0.08] bg-[#06121A] px-3 py-2 label text-[#F7F7F7]"
+              onclick={() => {
+                minuteOpen = !minuteOpen;
+                hourOpen = false;
+              }}
+              class="flex h-10 w-16 items-center justify-between gap-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-[#F7F7F7] hover:border-white/[0.15]"
             >
               <span>{stagedMinute}</span>
               <ChevronDown class="h-3.5 w-3.5 text-[#F7F7F7]/40" />
             </button>
             {#if minuteOpen}
-              <ul class="absolute left-0 top-full z-30 mt-1 max-h-40 w-full overflow-y-auto rounded-lg border border-white/[0.08] bg-[#0C1B26] py-1 shadow-2xl no-scrollbar">
+              <ul class="absolute left-0 top-full z-30 mt-1 max-h-40 w-full overflow-y-auto rounded-xl border border-white/[0.08] bg-[#0C1B26] py-1 shadow-2xl no-scrollbar">
                 {#each minuteOptions as m}
                   <li>
                     <button
@@ -201,7 +209,7 @@ let minuteOpen = $state(false);
                         stagedMinute = m;
                         minuteOpen = false;
                       }}
-                      class="block w-full px-3 py-1.5 text-center label transition-colors {stagedMinute === m
+                      class="block w-full px-3 py-1.5 text-center text-sm font-medium transition-colors {stagedMinute === m
                         ? 'bg-[#E6FA50] text-[#06121A] font-bold'
                         : 'text-[#F7F7F7]/80 hover:bg-white/[0.06]'}"
                     >
@@ -215,11 +223,11 @@ let minuteOpen = $state(false);
         </div>
 
         <!-- AM/PM Toggle -->
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1.5">
           <button
             type="button"
             onclick={() => (stagedAmpm = "AM")}
-            class="px-2 py-1 label transition-colors {stagedAmpm === 'AM'
+            class="px-2 py-1 text-sm font-semibold transition-colors {stagedAmpm === 'AM'
               ? 'text-[#E6FA50] font-bold'
               : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
           >
@@ -228,7 +236,7 @@ let minuteOpen = $state(false);
           <button
             type="button"
             onclick={() => (stagedAmpm = "PM")}
-            class="px-2 py-1 label transition-colors {stagedAmpm === 'PM'
+            class="px-2 py-1 text-sm font-semibold transition-colors {stagedAmpm === 'PM'
               ? 'text-[#E6FA50] font-bold'
               : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
           >
@@ -238,18 +246,18 @@ let minuteOpen = $state(false);
       </div>
 
       <!-- Popover Footer -->
-      <div class="mt-5 flex justify-end gap-3 border-t border-white/[0.06] pt-4">
+      <div class="mt-6 flex items-center justify-end gap-4 border-t border-white/[0.06] pt-4">
         <button
           type="button"
           onclick={() => (isOpen = false)}
-          class="label text-[#F7F7F7]/60 hover:text-[#F7F7F7] px-3 py-1.5 transition-colors"
+          class="text-sm font-medium text-[#F7F7F7]/60 hover:text-[#F7F7F7] transition-colors"
         >
           Cancel
         </button>
         <button
           type="button"
           onclick={handleApply}
-          class="btn-lime rounded-full px-5 py-1.5 label bg-[#E6FA50] text-[#06121A] font-semibold"
+          class="btn-lime rounded-full px-6 py-2 text-sm font-semibold bg-[#E6FA50] text-[#06121A] hover:bg-[#E6FA50]/90 transition-all"
         >
           Apply
         </button>

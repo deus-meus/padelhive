@@ -15,9 +15,10 @@ let data = $state<any | null>(null);
 let isLoading = $state(true);
 
 async function loadAdminOverview() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.admin.overview.get({
@@ -34,7 +35,7 @@ async function loadAdminOverview() {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadAdminOverview();
   }
 });
@@ -61,7 +62,7 @@ function formatCurrency(amount: number): string {
     </h1>
   </div>
 
-  {#if isLoading}
+  {#if isLoading || !authStore.isInitialized || authStore.isLoading}
     <!-- Primary KPIs skeleton -->
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
       {#each Array.from({ length: 4 }) as _, i}

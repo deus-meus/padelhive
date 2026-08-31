@@ -61,9 +61,10 @@ function showToast(msg: string) {
 }
 
 async function loadRefunds() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.refunds.get({
@@ -181,7 +182,7 @@ async function toggleHistory(id: string) {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadRefunds();
   }
 });
@@ -245,7 +246,7 @@ const BADGE_STYLES: Record<string, string> = {
 
   <!-- Refund List -->
   <div class="flex flex-1 flex-col space-y-3">
-    {#if isLoading}
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="space-y-4">
         {#each Array.from({ length: 3 }) as _, i}
           <div

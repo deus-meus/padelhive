@@ -20,10 +20,11 @@ const user = $derived(authStore.user);
 const firstName = $derived(user?.name?.split(" ")[0] ?? "there");
 
 async function loadDashboard() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   isError = false;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.bookings["owner-dashboard"].get({
@@ -41,7 +42,7 @@ async function loadDashboard() {
 }
 
 $effect(() => {
-  if (authStore.isInitialized && authStore.user) {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
     loadDashboard();
   }
 });
@@ -75,7 +76,7 @@ const maxRevenue = $derived(
     {/if}
   </section>
 
-  {#if isLoading}
+  {#if isLoading || !authStore.isInitialized || authStore.isLoading}
     <!-- Full 1:1 Owner Skeleton UI -->
     <!-- KPIs Skeleton -->
     <section class="container pb-component">
