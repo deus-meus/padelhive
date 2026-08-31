@@ -45,9 +45,10 @@ function formatIDR(amount: number): string {
 }
 
 async function loadBooking() {
+  if (!authStore.firebaseUser) return;
   isLoading = true;
   try {
-    const token = await authStore.firebaseUser?.getIdToken();
+    const token = await authStore.firebaseUser.getIdToken();
     if (!token) return;
 
     const res = await api.bookings({ id: bookingId }).get({
@@ -102,8 +103,10 @@ function handleShareInvite() {
     });
 }
 
-onMount(() => {
-  loadBooking();
+$effect(() => {
+  if (authStore.isInitialized && authStore.user && authStore.firebaseUser) {
+    loadBooking();
+  }
 });
 
 function getStatusStyle(status: string) {
@@ -158,11 +161,23 @@ function getPaymentStyle(status: string) {
       <div class="h-64 animate-pulse rounded-2xl bg-white/[0.02]"></div>
     </div>
   {:else if !booking}
-    <div class="container py-16 text-center">
-      <p class="body text-[#F7F7F7]/25">Booking not found.</p>
-      <a href="/bookings" class="label mt-4 inline-flex items-center gap-2 text-[#E6FA50] hover:underline">
-        <ArrowLeft class="h-3.5 w-3.5" /> Back to bookings
-      </a>
+    <div class="container my-8">
+      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 md:p-16 text-center max-w-xl mx-auto">
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-[#E6FA50] mx-auto mb-4">
+          <Ticket class="h-6 w-6" />
+        </div>
+        <h2 class="heading-2 text-xl font-bold text-[#F7F7F7]">Booking not found</h2>
+        <p class="body mt-2 text-[#F7F7F7]/40 leading-relaxed text-sm">
+          You don't have access to this reservation, or it does not exist.
+        </p>
+        <a
+          href="/bookings"
+          class="btn-lime label inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 font-semibold text-sm bg-[#E6FA50] text-[#06121A] hover:bg-[#E6FA50]/90 transition-all mt-6"
+        >
+          <ArrowLeft class="h-4 w-4" />
+          Back to bookings
+        </a>
+      </div>
     </div>
   {:else}
     {@const venue = booking.venue}
