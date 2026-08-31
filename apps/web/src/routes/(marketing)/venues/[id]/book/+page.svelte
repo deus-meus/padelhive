@@ -20,7 +20,7 @@ import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
-import { formatBookingDate, formatBookingTimeRange } from "$lib/format";
+import { formatBookingDate } from "$lib/format";
 
 const venueId = $derived((page.params.id as string) || "");
 
@@ -30,7 +30,7 @@ let courts = $state<any[]>([]);
 // Selection states
 let selectedDate = $state(new Date().toISOString().split("T")[0]);
 let selectedCourtId = $state("");
-let selectedSlot = $state<any | null>(null);
+let selectedSlots = $state<any[]>([]);
 
 let availability = $state<any | null>(null);
 let isLoadingVenue = $state(true);
@@ -143,12 +143,89 @@ const selectedCourt = $derived(
   courts.find((c) => c.id === selectedCourtId) ?? courts[0],
 );
 
-// Calculations
-const courtRentalPrice = $derived(selectedSlot ? selectedSlot.price : 0);
-const platformFee = $derived(
-  selectedSlot ? Math.round(selectedSlot.price * 0.05) : 0,
+// Multi-Hour & Unselect Slot Handler
+function handleSlotClick(slot: any) {
+  const isBooked = !slot.available || slot.booked || slot.isBooked;
+  if (isBooked) return;
+
+  // Single slot already selected -> unselect on second click
+  if (
+    selectedSlots.length === 1 &&
+    selectedSlots[0].startsAt === slot.startsAt
+  ) {
+    selectedSlots = [];
+    return;
+  }
+
+  // No slots selected -> select this single slot
+  if (selectedSlots.length === 0) {
+    selectedSlots = [slot];
+    return;
+  }
+
+  // 1 slot currently selected -> select range to clicked slot (multi-hour 2+ hrs)
+  if (selectedSlots.length === 1) {
+    const firstIdx = activeCourtSlots.findIndex(
+      (s: any) => s.startsAt === selectedSlots[0].startsAt,
+    );
+    const targetIdx = activeCourtSlots.findIndex(
+      (s: any) => s.startsAt === slot.startsAt,
+    );
+
+    if (firstIdx !== -1 && targetIdx !== -1) {
+      const minIdx = Math.min(firstIdx, targetIdx);
+      const maxIdx = Math.max(firstIdx, targetIdx);
+      const range = activeCourtSlots.slice(minIdx, maxIdx + 1);
+
+      // Verify no booked slots inside range
+      const hasBooked = range.some(
+        (s: any) => !s.available || s.booked || s.isBooked,
+      );
+      if (!hasBooked) {
+        selectedSlots = range;
+        return;
+      }
+    }
+  }
+
+  // If multi-slots selected or range invalid -> reset to clicked slot
+  selectedSlots = [slot];
+}
+
+function isSlotSelected(slot: any): boolean {
+  return selectedSlots.some((s) => s.startsAt === slot.startsAt);
+}
+
+// Calculations derived from selectedSlots
+const hasSelectedSlots = $derived(selectedSlots.length > 0);
+const firstSelectedSlot = $derived(selectedSlots[0] || null);
+const lastSelectedSlot = $derived(
+  selectedSlots[selectedSlots.length - 1] || null,
 );
-const refundProtectionFee = $derived(isRefundProtection ? 15000 : 0);
+
+function calculateEndsAt(startsAtStr: string): string {
+  if (!startsAtStr) return "";
+  const [h, m] = startsAtStr.split(":").map(Number);
+  return `${String((h + 1) % 24).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+const formattedStartsAt = $derived(
+  firstSelectedSlot ? firstSelectedSlot.startsAt : "",
+);
+const formattedEndsAt = $derived(
+  lastSelectedSlot ? calculateEndsAt(lastSelectedSlot.startsAt) : "",
+);
+const durationMinutes = $derived(selectedSlots.length * 60);
+
+const courtRentalPrice = $derived(
+  selectedSlots.reduce((acc, s) => acc + (s.price || 200000), 0),
+);
+const platformFee = $derived(
+  hasSelectedSlots ? Math.round(courtRentalPrice * 0.05) : 0,
+);
+const refundProtectionFee = $derived(
+  isRefundProtection && hasSelectedSlots ? 15000 : 0,
+);
 const totalDue = $derived(
   Math.max(
     0,
@@ -161,7 +238,7 @@ async function handleApplyVoucher() {
   isValidatingVoucher = true;
   voucherError = null;
   try {
-    const amount = selectedSlot ? selectedSlot.price : 200000;
+    const amount = hasSelectedSlots ? courtRentalPrice : 200000;
     const res = await api.vouchers.validate.post({
       code: voucherCode.trim(),
       amount,
@@ -183,8 +260,8 @@ async function handleCreateBooking(e: SubmitEvent) {
     goto(`/auth/login?next=/venues/${venueId}/book`);
     return;
   }
-  if (!selectedCourtId || !selectedDate || !selectedSlot) {
-    error = "Please select a court, date, and time slot.";
+  if (!selectedCourtId || !selectedDate || !hasSelectedSlots) {
+    error = "Please select a court, date, and at least one time slot.";
     return;
   }
 
@@ -195,17 +272,13 @@ async function handleCreateBooking(e: SubmitEvent) {
     const token = await authStore.firebaseUser?.getIdToken();
     if (!token) return;
 
-    const startsAt = selectedSlot.startsAt;
-    const [h, m] = startsAt.split(":").map(Number);
-    const endsAt = `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-
     const res = await api.bookings.post(
       {
         venueId,
         courtId: selectedCourtId,
         bookingDate: selectedDate,
-        startsAt,
-        endsAt,
+        startsAt: formattedStartsAt,
+        endsAt: formattedEndsAt,
         voucherCode: voucherCode || undefined,
       },
       { headers: { authorization: `Bearer ${token}` } },
@@ -294,8 +367,10 @@ async function handleCreateBooking(e: SubmitEvent) {
                 <button
                   type="button"
                   onclick={() => {
-                    selectedCourtId = c.id;
-                    selectedSlot = null;
+                    if (selectedCourtId !== c.id) {
+                      selectedCourtId = c.id;
+                      selectedSlots = [];
+                    }
                   }}
                   class="flex flex-col items-start rounded-xl border p-4 transition-all text-left {selectedCourtId ===
                   c.id
@@ -316,7 +391,7 @@ async function handleCreateBooking(e: SubmitEvent) {
             </div>
           </div>
 
-          <!-- Step 2: SELECT DATE (1:1 Pager Grid from Image #108 - No Scrollbar) -->
+          <!-- Step 2: SELECT DATE (1:1 Pager Grid from Image #108 & Image #110 - No Scrollbar) -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4 shadow-xl">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
@@ -359,7 +434,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                   type="button"
                   onclick={() => {
                     selectedDate = item.iso;
-                    selectedSlot = null;
+                    selectedSlots = [];
                   }}
                   class="flex flex-col items-center justify-center rounded-xl border py-3 px-1 transition-all {selectedDate ===
                   item.iso
@@ -378,7 +453,7 @@ async function handleCreateBooking(e: SubmitEvent) {
             </div>
           </div>
 
-          <!-- Step 3: SELECT TIME -->
+          <!-- Step 3: SELECT TIME (Multi-Hour & Unselect Support) -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4 shadow-xl">
             <div class="flex items-center gap-3">
               <div class="flex h-6 w-6 items-center justify-center rounded-full bg-[#50C8C8]/15 text-xs font-bold text-[#50C8C8]">
@@ -390,7 +465,7 @@ async function handleCreateBooking(e: SubmitEvent) {
               </h2>
             </div>
             <p class="body-sm text-[#F7F7F7]/40">
-              Each slot is 1 hour. Tap a slot to select your playing time.
+              Each slot is 1 hour. Tap a slot to select that hour, or tap a start and end slot to select a longer range (2+ hours). Tap again to unselect.
             </p>
 
             {#if isLoadingAvailability}
@@ -407,17 +482,14 @@ async function handleCreateBooking(e: SubmitEvent) {
               <div class="grid grid-cols-3 gap-2.5 sm:grid-cols-6 pt-1">
                 {#each activeCourtSlots as slot}
                   {@const isBooked = !slot.available || slot.booked || slot.isBooked}
+                  {@const selected = isSlotSelected(slot)}
                   <button
                     type="button"
                     disabled={isBooked}
-                    onclick={() => {
-                      if (!isBooked) {
-                        selectedSlot = slot;
-                      }
-                    }}
+                    onclick={() => handleSlotClick(slot)}
                     class="flex flex-col items-center justify-center rounded-xl border p-3 transition-all {isBooked
                       ? 'border-transparent bg-white/[0.02] text-[#F7F7F7]/20 line-through cursor-not-allowed opacity-40 pointer-events-none'
-                      : selectedSlot?.startsAt === slot.startsAt
+                      : selected
                         ? 'border-[#E6FA50] bg-[#E6FA50]/20 text-[#E6FA50] font-bold shadow-sm'
                         : slot.isPeak
                           ? 'border-[#E6FA50]/20 bg-[#E6FA50]/5 text-[#E6FA50]/80 hover:border-[#E6FA50]/40'
@@ -478,15 +550,15 @@ async function handleCreateBooking(e: SubmitEvent) {
 
                 <div class="flex justify-between items-center">
                   <span class="text-[#F7F7F7]/40">Time (WIB)</span>
-                  <span class="heading-3 {selectedSlot ? 'text-[#E6FA50]' : 'text-[#F7F7F7]/40'}">
-                    {selectedSlot ? `${selectedSlot.startsAt} – ${String(Number(selectedSlot.startsAt.split(':')[0]) + 1).padStart(2, '0')}:00` : "Not selected"}
+                  <span class="heading-3 {hasSelectedSlots ? 'text-[#E6FA50]' : 'text-[#F7F7F7]/40'}">
+                    {hasSelectedSlots ? `${formattedStartsAt} – ${formattedEndsAt} WIB` : "Not selected"}
                   </span>
                 </div>
 
                 <div class="flex justify-between items-center">
                   <span class="text-[#F7F7F7]/40">Duration</span>
                   <span class="heading-3 text-[#F7F7F7]">
-                    {selectedSlot ? "60 min" : "—"}
+                    {hasSelectedSlots ? `${durationMinutes} min (${durationMinutes / 60} hr)` : "—"}
                   </span>
                 </div>
 
@@ -494,14 +566,14 @@ async function handleCreateBooking(e: SubmitEvent) {
                   <div class="flex justify-between items-center">
                     <span class="text-[#F7F7F7]/40">Court rental</span>
                     <span class="heading-3 text-[#F7F7F7]">
-                      {selectedSlot ? `Rp ${(courtRentalPrice / 1000).toFixed(0)}K` : "—"}
+                      {hasSelectedSlots ? `Rp ${(courtRentalPrice / 1000).toFixed(0)}K` : "—"}
                     </span>
                   </div>
 
                   <div class="flex justify-between items-center">
                     <span class="text-[#F7F7F7]/40">Platform fee (5%)</span>
                     <span class="heading-3 text-[#F7F7F7]">
-                      {selectedSlot ? `Rp ${(platformFee / 1000).toFixed(0)}K` : "—"}
+                      {hasSelectedSlots ? `Rp ${(platformFee / 1000).toFixed(0)}K` : "—"}
                     </span>
                   </div>
 
@@ -523,7 +595,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                 <div class="flex justify-between items-baseline pt-3 border-t border-white/[0.06]">
                   <span class="heading-2 text-[#F7F7F7]">Total</span>
                   <span class="metric text-[#E6FA50]">
-                    {selectedSlot ? `Rp ${(totalDue / 1000).toFixed(0)}K` : "—"}
+                    {hasSelectedSlots ? `Rp ${(totalDue / 1000).toFixed(0)}K` : "—"}
                   </span>
                 </div>
               </div>
@@ -571,7 +643,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                 {/if}
               </div>
 
-              {#if !selectedSlot}
+              {#if !hasSelectedSlots}
                 <div class="rounded-xl border border-white/[0.06] bg-white/[0.015] p-3 text-center">
                   <p class="caption text-[#F7F7F7]/40">
                     Select at least one available time slot to continue.
@@ -582,7 +654,7 @@ async function handleCreateBooking(e: SubmitEvent) {
               <!-- Submit CTA Button -->
               <button
                 type="submit"
-                disabled={!selectedSlot || isSubmitting}
+                disabled={!hasSelectedSlots || isSubmitting}
                 class="btn-lime label flex h-12 w-full items-center justify-center gap-2 rounded-full font-bold text-[#06121A] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {#if isSubmitting}
