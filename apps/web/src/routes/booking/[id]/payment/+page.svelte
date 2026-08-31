@@ -129,10 +129,14 @@ const filteredInvites = $derived.by(() => {
   });
 });
 
-// Calculate Split numbers dynamically
-const totalAmount = $derived(booking?.finalAmount || 252000);
-const platformFee = $derived(Math.round(totalAmount * 0.05));
-const grandTotal = $derived(totalAmount + platformFee);
+// Accurate Data Calculations from Database
+const courtRentalAmount = $derived(booking?.courtAmount || 300000);
+const platformFeeAmount = $derived(booking?.platformFee || 15000);
+const voucherDiscountAmount = $derived(booking?.voucherDiscount || 0);
+const grandTotal = $derived(
+  booking?.finalAmount ||
+    courtRentalAmount + platformFeeAmount - voucherDiscountAmount,
+);
 
 // Total active players (User + filtered invited friends)
 const totalPlayersCount = $derived(
@@ -330,19 +334,19 @@ async function handlePay() {
             </div>
 
             {#if isSplitEnabled}
-              <!-- Mode selector: Equal vs Custom -->
-              <div class="flex h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
+              <!-- Mode selector: Equal vs Custom (Standard PadelHive Segmented Control) -->
+              <div class="flex h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
                 <button
                   type="button"
                   onclick={() => (splitMode = "equal")}
-                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'equal' ? 'bg-[#06121A] text-[#E6FA50] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
+                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'equal' ? 'bg-[#E6FA50] text-[#06121A] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
                 >
                   Equal
                 </button>
                 <button
                   type="button"
                   onclick={() => (splitMode = "custom")}
-                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'custom' ? 'bg-[#06121A] text-[#E6FA50] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
+                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'custom' ? 'bg-[#E6FA50] text-[#06121A] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
                 >
                   Custom
                 </button>
@@ -478,13 +482,20 @@ async function handlePay() {
               <div class="space-y-3 border-y border-white/[0.06] py-4">
                 <div class="flex justify-between items-center">
                   <span class="body-sm text-[#F7F7F7]/60">Court rental</span>
-                  <span class="heading-3 text-[#F7F7F7]">Rp {(totalAmount / 1000).toFixed(0)}K</span>
+                  <span class="heading-3 text-[#F7F7F7]">Rp {(courtRentalAmount / 1000).toFixed(0)}K</span>
                 </div>
 
                 <div class="flex justify-between items-center">
                   <span class="body-sm text-[#F7F7F7]/60">Platform fee (5%)</span>
-                  <span class="heading-3 text-[#F7F7F7]">Rp {(platformFee / 1000).toFixed(0)}K</span>
+                  <span class="heading-3 text-[#F7F7F7]">Rp {(platformFeeAmount / 1000).toFixed(0)}K</span>
                 </div>
+
+                {#if voucherDiscountAmount > 0}
+                  <div class="flex justify-between items-center text-emerald-400">
+                    <span class="body-sm">Voucher discount</span>
+                    <span class="heading-3">-Rp {(voucherDiscountAmount / 1000).toFixed(0)}K</span>
+                  </div>
+                {/if}
 
                 {#if isSplitEnabled && paidByFriendsAmount > 0}
                   <div class="flex justify-between items-center text-emerald-400">
