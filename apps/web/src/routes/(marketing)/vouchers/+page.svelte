@@ -90,29 +90,39 @@ function formatVoucherDate(dateVal: any): string {
     </p>
   </section>
 
-  <!-- Tabs -->
-  <section class="container max-w-[1200px] mt-6">
-    <div class="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-[#0C1B26] p-1.5 mb-6">
+  <!-- Independent Pill Filter Tabs (1:1 Image #78) -->
+  <section class="container max-w-[1200px] mt-6 mb-8">
+    <div class="flex items-center gap-3 overflow-x-auto no-scrollbar">
       <button
         type="button"
         onclick={() => (filter = "active")}
-        class="label rounded-full px-5 py-2 text-sm font-semibold transition-all select-none cursor-pointer {filter === 'active'
-          ? 'bg-[#E6FA50] text-[#06121A] font-bold shadow-sm'
-          : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        class="flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {filter === 'active'
+          ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        Active ({active.length})
+        <span>Active</span>
+        <span class="flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[2px] text-xs font-bold leading-none text-center transition-all {filter === 'active'
+          ? 'bg-[#E6FA50] text-[#06121A]'
+          : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
+          {active.length}
+        </span>
       </button>
+
       <button
         type="button"
         onclick={() => (filter = "expired")}
-        class="label rounded-full px-5 py-2 text-sm font-semibold transition-all select-none cursor-pointer {filter === 'expired'
-          ? 'bg-[#E6FA50] text-[#06121A] font-bold shadow-sm'
-          : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        class="flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {filter === 'expired'
+          ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        Expired ({expired.length})
+        <span>Expired</span>
+        <span class="flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[2px] text-xs font-bold leading-none text-center transition-all {filter === 'expired'
+          ? 'bg-[#E6FA50] text-[#06121A]'
+          : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
+          {expired.length}
+        </span>
       </button>
     </div>
-    <div class="border-b border-white/[0.06] mb-8"></div>
   </section>
 
   <!-- Voucher Grid -->
