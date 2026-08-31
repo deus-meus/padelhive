@@ -11,6 +11,10 @@ let search = $state("");
 let allBookings = $state<any[]>([]);
 let isLoading = $state(true);
 
+function handleTabClick(tab: TabKey) {
+  activeTab = tab;
+}
+
 function formatIDR(amount: number): string {
   if (!amount) return "Rp 0";
   return `Rp ${(amount / 1000).toFixed(0)}K`;
@@ -24,6 +28,7 @@ async function loadOwnerBookings() {
     if (!token) return;
 
     const res = await api.admin.bookings.get({
+      query: { pageSize: "100" },
       headers: { authorization: `Bearer ${token}` },
     });
     if (res.data?.items) {
@@ -39,19 +44,26 @@ async function loadOwnerBookings() {
 const upcomingCount = $derived(
   allBookings.filter((b) => {
     const s = (b.status || "").toLowerCase();
-    return s === "confirmed" || s === "pending_payment" || s === "pending";
+    return s === "pending_payment" || s === "pending";
   }).length,
 );
 
 const completedCount = $derived(
-  allBookings.filter((b) => (b.status || "").toLowerCase() === "completed")
-    .length,
+  allBookings.filter((b) => {
+    const s = (b.status || "").toLowerCase();
+    return s === "completed" || s === "confirmed" || s === "paid";
+  }).length,
 );
 
 const cancelledCount = $derived(
   allBookings.filter((b) => {
     const s = (b.status || "").toLowerCase();
-    return s === "cancelled" || s === "refunded" || s === "pending_refund";
+    return (
+      s === "cancelled" ||
+      s === "refunded" ||
+      s === "pending_refund" ||
+      s === "expired"
+    );
   }).length,
 );
 
@@ -60,10 +72,16 @@ const filteredBookings = $derived(
     .filter((b) => {
       const s = (b.status || "").toLowerCase();
       if (activeTab === "upcoming")
-        return s === "confirmed" || s === "pending_payment" || s === "pending";
-      if (activeTab === "completed") return s === "completed";
+        return s === "pending_payment" || s === "pending";
+      if (activeTab === "completed")
+        return s === "completed" || s === "confirmed" || s === "paid";
       if (activeTab === "cancelled")
-        return s === "cancelled" || s === "refunded" || s === "pending_refund";
+        return (
+          s === "cancelled" ||
+          s === "refunded" ||
+          s === "pending_refund" ||
+          s === "expired"
+        );
       return true;
     })
     .filter((b) => {
@@ -99,37 +117,37 @@ $effect(() => {
       </p>
     </div>
 
-    <!-- Filter Tabs Container with Count Badges -->
-    <div class="mt-6 flex items-center gap-2 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-2 overflow-x-auto no-scrollbar">
+    <!-- Independent Pill Filter Tabs with Count Badges -->
+    <div class="mt-6 flex items-center gap-3 overflow-x-auto no-scrollbar">
       <button
         type="button"
-        onclick={() => (activeTab = "upcoming")}
-        class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all {activeTab === 'upcoming' ? 'bg-[#E6FA50]/10 text-[#E6FA50]' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        onclick={() => handleTabClick("upcoming")}
+        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'upcoming' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        <span>Upcoming</span>
-        <span class="rounded-full px-2 py-0.5 text-xs font-bold transition-all {activeTab === 'upcoming' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.06] text-[#F7F7F7]/40'}">
+        <span class="pointer-events-none">Upcoming</span>
+        <span class="pointer-events-none flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[3px] text-xs font-bold leading-none text-center transition-all {activeTab === 'upcoming' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
           {upcomingCount}
         </span>
       </button>
 
       <button
         type="button"
-        onclick={() => (activeTab = "completed")}
-        class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all {activeTab === 'completed' ? 'bg-[#E6FA50]/10 text-[#E6FA50]' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        onclick={() => handleTabClick("completed")}
+        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'completed' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        <span>Completed</span>
-        <span class="rounded-full px-2 py-0.5 text-xs font-bold transition-all {activeTab === 'completed' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.06] text-[#F7F7F7]/40'}">
+        <span class="pointer-events-none">Completed</span>
+        <span class="pointer-events-none flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[3px] text-xs font-bold leading-none text-center transition-all {activeTab === 'completed' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
           {completedCount}
         </span>
       </button>
 
       <button
         type="button"
-        onclick={() => (activeTab = "cancelled")}
-        class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all {activeTab === 'cancelled' ? 'bg-[#E6FA50]/10 text-[#E6FA50]' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        onclick={() => handleTabClick("cancelled")}
+        class="relative z-10 flex cursor-pointer items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'cancelled' ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]' : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        <span>Cancelled</span>
-        <span class="rounded-full px-2 py-0.5 text-xs font-bold transition-all {activeTab === 'cancelled' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.06] text-[#F7F7F7]/40'}">
+        <span class="pointer-events-none">Cancelled</span>
+        <span class="pointer-events-none flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[3px] text-xs font-bold leading-none text-center transition-all {activeTab === 'cancelled' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
           {cancelledCount}
         </span>
       </button>
