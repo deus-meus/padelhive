@@ -163,9 +163,12 @@ $effect(() => {
   }
 });
 
-// Sum of friends' custom shares
-const sumFriendsCustomShares = $derived.by(() => {
+// Total assigned share for friends (equal or custom)
+const totalFriendsAssignedShare = $derived.by(() => {
   if (!isSplitEnabled) return 0;
+  if (splitMode === "equal") {
+    return (totalPlayersCount - 1) * pricePerPlayer;
+  }
   let sum = 0;
   for (const inv of filteredInvites) {
     sum += customShares[inv.id] ?? pricePerPlayer;
@@ -176,7 +179,7 @@ const sumFriendsCustomShares = $derived.by(() => {
 // Host share in custom mode
 const hostCustomShare = $derived.by(() => {
   if (!isSplitEnabled) return grandTotal;
-  return Math.max(0, grandTotal - sumFriendsCustomShares);
+  return Math.max(0, grandTotal - totalFriendsAssignedShare);
 });
 
 // Amount paid by accepted friends
@@ -198,7 +201,7 @@ const paidByFriendsAmount = $derived.by(() => {
 const userFinalPayAmount = $derived.by(() => {
   if (!isSplitEnabled) return grandTotal;
   if (splitMode === "equal") {
-    return Math.max(0, grandTotal - paidByFriendsAmount);
+    return Math.max(0, grandTotal - totalFriendsAssignedShare);
   }
   return hostCustomShare;
 });
@@ -422,7 +425,7 @@ async function handlePay() {
                     {#if splitMode === "equal"}
                       Total Rp {(grandTotal / 1000).toFixed(0)}K ÷ {totalPlayersCount} players
                     {:else}
-                      Friends allocated: Rp {(sumFriendsCustomShares / 1000).toFixed(0)}K · Host share: Rp {(hostCustomShare / 1000).toFixed(0)}K
+                      Friends allocated: Rp {(totalFriendsAssignedShare / 1000).toFixed(0)}K · Host share: Rp {(hostCustomShare / 1000).toFixed(0)}K
                     {/if}
                   </p>
                 </div>
@@ -552,9 +555,10 @@ async function handlePay() {
                       <p class="body-sm text-[#F7F7F7]/40">{method.description}</p>
                     </div>
                   </div>
+                  <!-- Radio Button Circle Indicator with Pure White Inner Knob (Image #101) -->
                   <div class="flex h-5 w-5 items-center justify-center rounded-full border transition-colors {selectedMethod === method.id ? 'border-[#E6FA50] bg-[#E6FA50]' : 'border-white/20'}">
                     {#if selectedMethod === method.id}
-                      <div class="h-2 w-2 rounded-full bg-[#06121A]"></div>
+                      <div class="h-2 w-2 rounded-full bg-white shadow-sm"></div>
                     {/if}
                   </div>
                 </button>
@@ -587,10 +591,10 @@ async function handlePay() {
                   </div>
                 {/if}
 
-                {#if isSplitEnabled && paidByFriendsAmount > 0}
+                {#if isSplitEnabled && totalFriendsAssignedShare > 0}
                   <div class="flex justify-between items-center text-emerald-400">
-                    <span class="body-sm">Paid by friends</span>
-                    <span class="heading-3">-Rp {(paidByFriendsAmount / 1000).toFixed(0)}K</span>
+                    <span class="body-sm">Friends share (Pending)</span>
+                    <span class="heading-3">-Rp {(totalFriendsAssignedShare / 1000).toFixed(0)}K</span>
                   </div>
                 {/if}
 
