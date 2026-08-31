@@ -144,57 +144,72 @@ function handleTabChange(tab: TabKey) {
     </div>
   </section>
 
-  <!-- 5 Filter Tabs (1:1 Image #81) -->
+  <!-- 5 Filter Tabs (1:1 Image #82) -->
   <section class="container mt-8">
     <div class="flex items-center gap-3 overflow-x-auto no-scrollbar">
       <button
         type="button"
         onclick={() => handleTabChange("upcoming")}
-        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'upcoming'
-          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
-          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'upcoming'
+          ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        <span>Upcoming ({upcomingCount})</span>
+        <span>Upcoming</span>
+        <span class="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[2px] text-xs font-bold leading-none text-center transition-all {activeTab === 'upcoming' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
+          {upcomingCount}
+        </span>
       </button>
 
       <button
         type="button"
         onclick={() => handleTabChange("past")}
-        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'past'
-          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
-          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'past'
+          ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        <span>Past ({pastCount})</span>
+        <span>Past</span>
+        <span class="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[2px] text-xs font-bold leading-none text-center transition-all {activeTab === 'past' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
+          {pastCount}
+        </span>
       </button>
 
       <button
         type="button"
         onclick={() => handleTabChange("cancelled")}
-        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'cancelled'
-          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
-          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'cancelled'
+          ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        <span>Cancelled ({cancelledCount})</span>
+        <span>Cancelled</span>
+        <span class="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[2px] text-xs font-bold leading-none text-center transition-all {activeTab === 'cancelled' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
+          {cancelledCount}
+        </span>
       </button>
 
       <button
         type="button"
         onclick={() => handleTabChange("refunds")}
-        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'refunds'
-          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
-          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'refunds'
+          ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        <span>Refunds ({refundCount})</span>
+        <span>Refunds</span>
+        <span class="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[2px] text-xs font-bold leading-none text-center transition-all {activeTab === 'refunds' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
+          {refundCount}
+        </span>
       </button>
 
       <button
         type="button"
         onclick={() => handleTabChange("disputes")}
-        class="flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'disputes'
-          ? 'border border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
-          : 'border border-transparent text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+        class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'disputes'
+          ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
+          : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
       >
-        <span>Disputes ({disputeCount})</span>
+        <span>Disputes</span>
+        <span class="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 pt-[2px] text-xs font-bold leading-none text-center transition-all {activeTab === 'disputes' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.08] text-[#F7F7F7]/60'}">
+          {disputeCount}
+        </span>
       </button>
     </div>
   </section>
