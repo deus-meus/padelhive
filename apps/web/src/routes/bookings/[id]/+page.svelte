@@ -179,39 +179,39 @@ const isUpcoming = $derived(
         <div class="space-y-6">
           <!-- BOOKING INFORMATION Card -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 md:p-8">
-            <p class="caption font-semibold tracking-wider uppercase text-[#50C8C8] mb-5">BOOKING INFORMATION</p>
+            <p class="caption text-xs font-semibold tracking-wider uppercase text-[#50C8C8] mb-5">BOOKING INFORMATION</p>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
                 <Ticket class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base font-bold text-[#F7F7F7] font-mono">#{booking.id.slice(0, 8).toUpperCase()}</p>
-                <p class="caption text-xs text-[#F7F7F7]/40 mt-1">Booking ID</p>
+                <p class="text-lg font-bold text-[#F7F7F7]">#COMING</p>
+                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Booking ID</p>
               </div>
 
               <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
                 <MapPin class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base font-bold text-[#F7F7F7]">{booking.court?.name || "Court A"} · {booking.court?.type || "OUTDOOR"}</p>
-                <p class="caption text-xs text-[#F7F7F7]/40 mt-1">Court</p>
+                <p class="text-base md:text-lg font-bold text-[#F7F7F7]">{booking.court?.name || "Court A"} · {booking.court?.type || "OUTDOOR"}</p>
+                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Court</p>
               </div>
 
               <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
                 <Calendar class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base font-bold text-[#F7F7F7]">{formatBookingDate(booking.bookingDate)}</p>
-                <p class="caption text-xs text-[#F7F7F7]/40 mt-1">Date</p>
+                <p class="text-base md:text-lg font-bold text-[#F7F7F7]">{formatBookingDate(booking.bookingDate)}</p>
+                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Date</p>
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
               <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
                 <Clock class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base font-bold text-[#F7F7F7]">{formatTime(booking.startsAt)} – {formatTime(booking.endsAt)} WIB</p>
-                <p class="caption text-xs text-[#F7F7F7]/40 mt-1">Time</p>
+                <p class="text-base md:text-lg font-bold text-[#F7F7F7]">{formatTime(booking.startsAt)} – {formatTime(booking.endsAt)} WIB</p>
+                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Time</p>
               </div>
 
               <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-4">
                 <Clock class="h-4 w-4 text-[#50C8C8] mb-2" />
-                <p class="text-base font-bold text-[#F7F7F7]">{booking.durationMinutes || 60} min</p>
-                <p class="caption text-xs text-[#F7F7F7]/40 mt-1">Duration</p>
+                <p class="text-base md:text-lg font-bold text-[#F7F7F7]">{booking.durationMinutes || 60} min</p>
+                <p class="caption text-[11px] text-[#F7F7F7]/30 mt-1">Duration</p>
               </div>
             </div>
           </div>
