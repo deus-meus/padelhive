@@ -435,12 +435,12 @@ async function handlePay() {
                 </span>
               </div>
 
-              <!-- Players List -->
+              <!-- Players List (Clean & Neutral Styling) -->
               <div class="space-y-3 pt-1">
                 <!-- User (Main Organizer - Always First Row) -->
                 <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
                   <div class="flex items-center gap-3">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#E6FA50]/15 text-sm font-bold text-[#E6FA50]">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#50C8C8]/15 text-sm font-bold text-[#50C8C8]">
                       {(authStore.user?.name || authStore.user?.email || "U")[0].toUpperCase()}
                     </div>
                     <div>
@@ -464,7 +464,7 @@ async function handlePay() {
 
                 <!-- Invited Friends -->
                 {#each filteredInvites as invite}
-                  <div class="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
                     <div class="flex items-center gap-3 min-w-0">
                       <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#50C8C8]/15 text-sm font-bold text-[#50C8C8]">
                         {(invite.name || invite.email || "F")[0].toUpperCase()}
@@ -479,14 +479,14 @@ async function handlePay() {
                       </div>
                     </div>
 
-                    <div class="flex items-center gap-3 shrink-0">
+                    <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t border-white/[0.04] sm:border-t-0">
                       {#if splitMode === "equal"}
                         <span class="body-sm font-medium text-[#F7F7F7]/80">
                           Rp {(pricePerPlayer / 1000).toFixed(0)}K
                         </span>
                       {:else}
-                        <!-- Interactive Custom Share Input -->
-                        <div class="flex items-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-2 py-1">
+                        <!-- Clean Neutral Custom Share Input (No Lime Text) -->
+                        <div class="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 transition-colors focus-within:border-[#50C8C8]/50">
                           <span class="text-xs text-[#F7F7F7]/40">Rp</span>
                           <input
                             type="number"
@@ -497,18 +497,18 @@ async function handlePay() {
                               const val = Number((e.target as HTMLInputElement).value) || 0;
                               customShares[invite.id] = val;
                             }}
-                            class="w-24 bg-transparent text-xs font-bold text-[#E6FA50] focus:outline-none"
+                            class="w-24 bg-transparent text-sm font-medium text-[#F7F7F7] focus:outline-none"
                           />
                         </div>
                       {/if}
 
                       {#if invite.status === "ACCEPTED"}
-                        <div class="flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                        <div class="flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-400 shrink-0">
                           <CheckCircle2 class="h-3.5 w-3.5" />
                           <span>Paid</span>
                         </div>
                       {:else}
-                        <div class="flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1 text-xs font-medium text-[#F7F7F7]/60">
+                        <div class="flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1 text-xs font-medium text-[#F7F7F7]/60 shrink-0">
                           <Clock class="h-3.5 w-3.5 text-[#50C8C8]" />
                           <span>Pending</span>
                         </div>
