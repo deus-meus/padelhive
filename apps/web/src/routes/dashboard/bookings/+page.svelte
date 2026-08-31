@@ -1,50 +1,10 @@
 <script lang="ts">
 import { Calendar, CheckCircle2, Clock, Search, XCircle } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
-import FilterTabs, {
-  type FilterTab,
-} from "$lib/components/ui/filter-tabs.svelte";
 import { formatBookingDate } from "$lib/format";
 
 type TabKey = "upcoming" | "completed" | "cancelled";
-
-const TABS: FilterTab<TabKey>[] = [
-  { label: "Upcoming", value: "upcoming" },
-  { label: "Completed", value: "completed" },
-  { label: "Cancelled", value: "cancelled" },
-];
-
-const STATUS_CONFIG: Record<
-  string,
-  { label: string; icon: any; color: string; bg: string }
-> = {
-  confirmed: {
-    label: "Confirmed",
-    icon: CheckCircle2,
-    color: "text-green-400",
-    bg: "bg-green-400/10",
-  },
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    color: "text-yellow-400",
-    bg: "bg-yellow-400/10",
-  },
-  completed: {
-    label: "Completed",
-    icon: CheckCircle2,
-    color: "text-[#50C8C8]",
-    bg: "bg-[#50C8C8]/10",
-  },
-  cancelled: {
-    label: "Cancelled",
-    icon: XCircle,
-    color: "text-red-400",
-    bg: "bg-red-400/10",
-  },
-};
 
 let activeTab = $state<TabKey>("upcoming");
 let search = $state("");
@@ -52,6 +12,7 @@ let allBookings = $state<any[]>([]);
 let isLoading = $state(true);
 
 function formatIDR(amount: number): string {
+  if (!amount) return "Rp 0";
   return `Rp ${(amount / 1000).toFixed(0)}K`;
 }
 
@@ -74,6 +35,25 @@ async function loadOwnerBookings() {
     isLoading = false;
   }
 }
+
+const upcomingCount = $derived(
+  allBookings.filter((b) => {
+    const s = (b.status || "").toLowerCase();
+    return s === "confirmed" || s === "pending_payment" || s === "pending";
+  }).length,
+);
+
+const completedCount = $derived(
+  allBookings.filter((b) => (b.status || "").toLowerCase() === "completed")
+    .length,
+);
+
+const cancelledCount = $derived(
+  allBookings.filter((b) => {
+    const s = (b.status || "").toLowerCase();
+    return s === "cancelled" || s === "refunded" || s === "pending_refund";
+  }).length,
+);
 
 const filteredBookings = $derived(
   allBookings
@@ -119,17 +99,45 @@ $effect(() => {
       </p>
     </div>
 
-    <!-- Tabs -->
-    <FilterTabs
-      tabs={TABS}
-      activeValue={activeTab}
-      onChange={(val) => (activeTab = val as TabKey)}
-      className="mt-6"
-    />
+    <!-- Filter Tabs Container with Count Badges -->
+    <div class="mt-6 flex items-center gap-2 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-2 overflow-x-auto no-scrollbar">
+      <button
+        type="button"
+        onclick={() => (activeTab = "upcoming")}
+        class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all {activeTab === 'upcoming' ? 'bg-[#E6FA50]/10 text-[#E6FA50]' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+      >
+        <span>Upcoming</span>
+        <span class="rounded-full px-2 py-0.5 text-xs font-bold transition-all {activeTab === 'upcoming' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.06] text-[#F7F7F7]/40'}">
+          {upcomingCount}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        onclick={() => (activeTab = "completed")}
+        class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all {activeTab === 'completed' ? 'bg-[#E6FA50]/10 text-[#E6FA50]' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+      >
+        <span>Completed</span>
+        <span class="rounded-full px-2 py-0.5 text-xs font-bold transition-all {activeTab === 'completed' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.06] text-[#F7F7F7]/40'}">
+          {completedCount}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        onclick={() => (activeTab = "cancelled")}
+        class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all {activeTab === 'cancelled' ? 'bg-[#E6FA50]/10 text-[#E6FA50]' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]/60'}"
+      >
+        <span>Cancelled</span>
+        <span class="rounded-full px-2 py-0.5 text-xs font-bold transition-all {activeTab === 'cancelled' ? 'bg-[#E6FA50] text-[#06121A]' : 'bg-white/[0.06] text-[#F7F7F7]/40'}">
+          {cancelledCount}
+        </span>
+      </button>
+    </div>
 
     <!-- Search input -->
-    <div class="mt-5 flex items-center gap-3 rounded-xl bg-white/[0.03] px-4 py-3 border border-white/[0.06]">
-      <Search class="h-4 w-4 shrink-0 text-[#F7F7F7]/25" />
+    <div class="mt-5 flex items-center gap-3 rounded-2xl bg-[#0C1B26] px-5 py-3.5 border border-white/[0.06]">
+      <Search class="h-4 w-4 shrink-0 text-[#F7F7F7]/40" />
       <input
         type="text"
         bind:value={search}
@@ -139,14 +147,14 @@ $effect(() => {
     </div>
 
     <!-- Bookings list -->
-    <div class="mt-6 space-y-3">
+    <div class="mt-6 space-y-4">
       {#if isLoading || !authStore.isInitialized || authStore.isLoading}
         {#each Array.from({ length: 4 }) as _, i}
-          <div class="h-24 w-full animate-pulse rounded-xl border border-white/[0.06] bg-[#0C1B26]"></div>
+          <div class="h-28 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
         {/each}
       {:else if filteredBookings.length === 0}
-        <div class="rounded-xl border border-dashed border-white/[0.08] p-12 text-center">
-          <p class="body text-[#F7F7F7]/25">
+        <div class="rounded-2xl border border-dashed border-white/[0.08] p-12 text-center">
+          <p class="body text-[#F7F7F7]/40">
             No {activeTab} bookings found.
           </p>
         </div>
@@ -154,37 +162,53 @@ $effect(() => {
         {#each filteredBookings as booking (booking.id)}
           {@const player = booking.host?.name || booking.host?.email || "Unknown Player"}
           {@const statusKey = (booking.status || "PENDING").toLowerCase()}
-          {@const config = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending}
-          {@const StatusIcon = config.icon}
+          {@const isPaid = booking.payment?.status === "PAID" || statusKey === "completed" || statusKey === "confirmed"}
+          {@const isCompleted = statusKey === "completed"}
+          {@const isCancelled = statusKey === "cancelled" || statusKey === "refunded"}
 
-          <div class="rounded-xl border border-white/[0.06] bg-[#0C1B26] p-5 transition-all hover:border-white/[0.1]">
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all hover:border-white/[0.12]">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <p class="heading-3 text-[#F7F7F7] font-medium">{player}</p>
-                  <div class="flex items-center gap-1 rounded-full px-2.5 py-0.5 {config.bg}">
-                    <StatusIcon class="h-3 w-3 {config.color}" />
-                    <span class="caption {config.color}">
-                      {config.label}
+                <div class="flex flex-wrap items-center gap-3">
+                  <h3 class="text-lg font-bold text-[#F7F7F7]">{player}</h3>
+                  {#if isCompleted}
+                    <span class="caption inline-flex items-center gap-1 rounded-full bg-[#50C8C8]/10 px-3 py-1 text-xs font-semibold text-[#50C8C8]">
+                      <CheckCircle2 class="h-3 w-3" /> Completed
                     </span>
-                  </div>
+                  {:else if isCancelled}
+                    <span class="caption inline-flex items-center gap-1 rounded-full bg-red-400/10 px-3 py-1 text-xs font-semibold text-red-400">
+                      <XCircle class="h-3 w-3" /> Cancelled
+                    </span>
+                  {:else}
+                    <span class="caption inline-flex items-center gap-1 rounded-full bg-yellow-400/10 px-3 py-1 text-xs font-semibold text-yellow-400">
+                      <Clock class="h-3 w-3" /> Confirmed
+                    </span>
+                  {/if}
+
+                  {#if isPaid}
+                    <span class="caption rounded-full bg-green-400/10 px-3 py-1 text-xs font-semibold text-green-400">
+                      Paid
+                    </span>
+                  {/if}
                 </div>
-                <div class="caption mt-2 flex flex-wrap items-center gap-3 text-[#F7F7F7]/25">
+
+                <div class="mt-2.5 flex flex-wrap items-center gap-2 text-sm text-[#F7F7F7]/40">
                   <span>{booking.venue?.name || "Venue"}</span>
-                  <span class="text-[#F7F7F7]/10">·</span>
+                  <span>·</span>
                   <span>{booking.court?.name || "Court"}</span>
-                  <span class="text-[#F7F7F7]/10">·</span>
-                  <span class="flex items-center gap-1">
-                    <Calendar class="h-3 w-3" />
+                  <span>·</span>
+                  <span class="inline-flex items-center gap-1">
+                    <Calendar class="h-3.5 w-3.5 text-[#F7F7F7]/40" />
                     {formatBookingDate(booking.bookingDate)}
                   </span>
-                  <span class="text-[#F7F7F7]/10">·</span>
+                  <span>·</span>
                   <span>
                     {booking.startsAt?.substring(0, 5) || "09:00"} – {booking.endsAt?.substring(0, 5) || "10:00"}
                   </span>
                 </div>
               </div>
-              <p class="price shrink-0 text-[#F7F7F7]/60">
+
+              <p class="price shrink-0 text-lg font-bold text-[#F7F7F7]">
                 {formatIDR(booking.finalAmount || booking.totalPrice || 0)}
               </p>
             </div>
