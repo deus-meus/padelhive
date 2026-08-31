@@ -401,12 +401,17 @@ async function handleCreateBooking(e: SubmitEvent) {
             {:else}
               <div class="grid grid-cols-3 gap-2.5 sm:grid-cols-6 pt-1">
                 {#each activeCourtSlots as slot}
+                  {@const isBooked = !slot.available || slot.booked || slot.isBooked}
                   <button
                     type="button"
-                    disabled={!slot.available}
-                    onclick={() => (selectedSlot = slot)}
-                    class="flex flex-col items-center justify-center rounded-xl border p-3 transition-all {!slot.available
-                      ? 'border-transparent bg-white/[0.02] text-[#F7F7F7]/20 line-through cursor-not-allowed'
+                    disabled={isBooked}
+                    onclick={() => {
+                      if (!isBooked) {
+                        selectedSlot = slot;
+                      }
+                    }}
+                    class="flex flex-col items-center justify-center rounded-xl border p-3 transition-all {isBooked
+                      ? 'border-transparent bg-white/[0.02] text-[#F7F7F7]/20 line-through cursor-not-allowed opacity-40 pointer-events-none'
                       : selectedSlot?.startsAt === slot.startsAt
                         ? 'border-[#E6FA50] bg-[#E6FA50]/20 text-[#E6FA50] font-bold shadow-sm'
                         : slot.isPeak
