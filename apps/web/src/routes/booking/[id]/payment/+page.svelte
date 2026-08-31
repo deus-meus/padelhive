@@ -1,6 +1,7 @@
 <script lang="ts">
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   Building2,
   Check,
@@ -655,31 +656,50 @@ async function confirmCancelBooking() {
 
   <!-- Cancel Reservation Confirmation Modal -->
   {#if showCancelModal}
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
       <div class="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 space-y-5 shadow-2xl">
-        <div class="flex items-center justify-between">
-          <h3 class="heading-2 text-[#F7F7F7] flex items-center gap-2">
-            <AlertCircle class="h-5 w-5 text-red-400" />
-            Cancel Reservation
-          </h3>
+        <div class="flex items-start justify-between">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400">
+            <AlertTriangle class="h-6 w-6" />
+          </div>
           <button
             type="button"
             onclick={() => (showCancelModal = false)}
-            class="rounded-lg p-1 text-[#F7F7F7]/40 hover:text-[#F7F7F7]"
+            class="rounded-lg p-1.5 text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
           >
             <X class="h-4 w-4" />
           </button>
         </div>
 
-        <p class="body-sm text-[#F7F7F7]/70 leading-relaxed">
-          Are you sure you want to cancel this booking reservation? Your selected court slot will be released back to the venue.
-        </p>
+        <div>
+          <h3 class="heading-2 text-[#F7F7F7] font-bold">Cancel Reservation</h3>
+          <p class="body-sm text-[#F7F7F7]/60 mt-1.5 leading-relaxed">
+            Are you sure you want to cancel this booking reservation? Your selected court slot will be released back to the venue.
+          </p>
+        </div>
 
-        <div class="flex items-center gap-3 pt-2">
+        {#if booking}
+          <div class="rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5 space-y-2 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-[#F7F7F7]/40">Venue</span>
+              <span class="font-semibold text-[#F7F7F7]">{booking.venue?.name || "Padel Arena"}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[#F7F7F7]/40">Court</span>
+              <span class="font-semibold text-[#F7F7F7]">{booking.court?.name || "Court A"}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-[#F7F7F7]/40">Time</span>
+              <span class="font-semibold text-[#E6FA50]">{formatBookingTimeRange(booking.startsAt, booking.endsAt)}</span>
+            </div>
+          </div>
+        {/if}
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
           <button
             type="button"
             onclick={() => (showCancelModal = false)}
-            class="flex-1 rounded-full border border-white/[0.1] py-2.5 text-xs font-semibold text-[#F7F7F7]/70 hover:bg-white/[0.04]"
+            class="label h-11 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.05] hover:text-[#F7F7F7]"
           >
             Keep Reservation
           </button>
@@ -687,7 +707,7 @@ async function confirmCancelBooking() {
             type="button"
             disabled={isCancelling}
             onclick={confirmCancelBooking}
-            class="flex-1 rounded-full bg-red-500 py-2.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+            class="label h-11 rounded-xl border border-red-500/30 bg-red-500/15 text-red-400 font-bold transition-all hover:bg-red-500/25 disabled:opacity-50"
           >
             {isCancelling ? "Cancelling..." : "Confirm Cancel"}
           </button>
