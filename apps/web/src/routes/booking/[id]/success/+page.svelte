@@ -12,7 +12,7 @@ import { onMount } from "svelte";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
-import { formatBookingDate } from "$lib/format";
+import { formatBookingDate, formatBookingTimeRange } from "$lib/format";
 
 const bookingId = $derived((page.params.id as string) || "");
 
@@ -144,7 +144,7 @@ const isFailed = $derived(
                   Time
                 </div>
                 <p class="body mt-2 text-[#F7F7F7]/80">
-                  {booking.startsAt} – {booking.endsAt}
+                  {formatBookingTimeRange(booking.startsAt, booking.endsAt)}
                 </p>
               </div>
 
