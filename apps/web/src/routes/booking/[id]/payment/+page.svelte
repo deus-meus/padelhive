@@ -3,26 +3,37 @@ import {
   AlertCircle,
   ArrowLeft,
   Building2,
+  Check,
   CheckCircle2,
   Clock,
   CreditCard,
+  Info,
   Loader2,
-  Shield,
+  Lock,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+  UserPlus,
   Users,
   Wallet,
 } from "lucide-svelte";
-import { onMount } from "svelte";
+import { goto } from "$app/navigation";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
-import { formatBookingDate } from "$lib/format";
+import { formatBookingDate, formatBookingTimeRange } from "$lib/format";
 
 const bookingId = $derived((page.params.id as string) || "");
 
 let booking = $state<any | null>(null);
+let invites = $state<any[]>([]);
 let selectedMethod = $state("va");
 let paymentIntent = $state<any | null>(null);
+
+// Split payment states
+let isSplitEnabled = $state(true);
+let splitMode = $state<"equal" | "custom">("equal");
 
 let isLoading = $state(true);
 let isPaying = $state(false);
@@ -52,25 +63,35 @@ const PAYMENT_METHODS = [
 async function loadData() {
   if (!bookingId) return;
   isLoading = true;
+  error = null;
   try {
     const token = await authStore.firebaseUser?.getIdToken();
-    if (!token) return;
+    if (!token) {
+      isLoading = false;
+      return;
+    }
 
-    const [bRes, pRes] = await Promise.all([
+    const [bRes, iRes, pRes] = await Promise.all([
       api.bookings({ id: bookingId }).get({
         headers: { authorization: `Bearer ${token}` },
       }),
-      api.payments.intents.post(
-        {
-          bookingId,
-          provider: "internal",
-          method: selectedMethod as "va" | "ewallet" | "card",
-        },
-        { headers: { authorization: `Bearer ${token}` } },
-      ),
+      api.bookings({ id: bookingId }).invites.get({
+        headers: { authorization: `Bearer ${token}` },
+      }),
+      api.payments.intents
+        .post(
+          {
+            bookingId,
+            provider: "internal",
+            method: selectedMethod as "va" | "ewallet" | "card",
+          },
+          { headers: { authorization: `Bearer ${token}` } },
+        )
+        .catch(() => ({ data: null })),
     ]);
 
     if (bRes.data) booking = bRes.data;
+    if (iRes.data) invites = iRes.data;
     if (pRes.data) paymentIntent = pRes.data;
   } catch (e: any) {
     console.warn("Payment load error:", e);
@@ -80,8 +101,43 @@ async function loadData() {
   }
 }
 
+// Reactive auth tracking to support hard reload
+$effect(() => {
+  if (authStore.isInitialized) {
+    if (authStore.firebaseUser) {
+      loadData();
+    } else {
+      isLoading = false;
+    }
+  }
+});
+
+// Calculate Split numbers dynamically
+const totalAmount = $derived(booking?.finalAmount || 252000);
+const platformFee = $derived(Math.round(totalAmount * 0.05));
+const grandTotal = $derived(totalAmount + platformFee);
+
+// Total active players (User + accepted/pending invites)
+const totalPlayersCount = $derived(
+  Math.max(1, 1 + (invites ? invites.length : 0)),
+);
+
+const pricePerPlayer = $derived(
+  isSplitEnabled ? Math.round(grandTotal / totalPlayersCount) : grandTotal,
+);
+
+const paidByFriendsAmount = $derived.by(() => {
+  if (!isSplitEnabled) return 0;
+  const acceptedFriends = invites.filter((inv) => inv.status === "ACCEPTED");
+  return acceptedFriends.length * pricePerPlayer;
+});
+
+const userFinalPayAmount = $derived.by(() => {
+  if (!isSplitEnabled) return grandTotal;
+  return Math.max(0, grandTotal - paidByFriendsAmount);
+});
+
 async function handlePay() {
-  if (!paymentIntent) return;
   isPaying = true;
   error = null;
 
@@ -89,14 +145,32 @@ async function handlePay() {
     const token = await authStore.firebaseUser?.getIdToken();
     if (!token) return;
 
+    // Ensure payment intent exists
+    let intentId = paymentIntent?.id;
+    if (!intentId) {
+      const pRes = await api.payments.intents.post(
+        {
+          bookingId,
+          provider: "internal",
+          method: selectedMethod as "va" | "ewallet" | "card",
+        },
+        { headers: { authorization: `Bearer ${token}` } },
+      );
+      if (pRes.data) intentId = pRes.data.id;
+    }
+
+    if (!intentId) {
+      throw new Error("Could not initialize payment transaction.");
+    }
+
     const res = await api
-      .payments({ id: paymentIntent.id })
+      .payments({ id: intentId })
       ["mark-paid"].patch(undefined, {
         headers: { authorization: `Bearer ${token}` },
       });
 
     if (res.data) {
-      window.location.href = `/booking/${bookingId}/success`;
+      goto(`/booking/${bookingId}/success`);
     }
   } catch (err: any) {
     error = err.message || "Payment processing failed";
@@ -104,10 +178,6 @@ async function handlePay() {
     isPaying = false;
   }
 }
-
-onMount(() => {
-  loadData();
-});
 </script>
 
 <svelte:head>
@@ -115,101 +185,269 @@ onMount(() => {
 </svelte:head>
 
 <div class="min-h-screen pt-20 pb-24 bg-[#06121A]">
-  <div class="container max-w-3xl py-8">
-    <!-- Back -->
+  <div class="container max-w-5xl pt-6">
+    <!-- Back Navigation Link -->
     <a
-      href="/bookings/{bookingId}"
+      href={bookingId ? `/bookings/${bookingId}` : "/bookings"}
       class="group inline-flex items-center gap-3 text-xs font-medium text-[#F7F7F7]/60 transition-colors hover:text-[#F7F7F7]"
     >
-      <div class="flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#F7F7F7]/40 transition-all duration-200 group-hover:border-[#E6FA50]/40 group-hover:bg-[#E6FA50]/10 group-hover:text-[#E6FA50]">
+      <div
+        class="flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#F7F7F7]/40 transition-all duration-200 group-hover:border-[#E6FA50]/40 group-hover:bg-[#E6FA50]/10 group-hover:text-[#E6FA50]"
+      >
         <ArrowLeft class="h-3.5 w-3.5" />
       </div>
       <span>Back to booking summary</span>
     </a>
 
-    <!-- Header -->
-    <div class="mt-6 mb-8">
+    <!-- Page Header -->
+    <div class="mt-4 mb-8">
       <h1 class="heading-1 text-[#F7F7F7]">
         Payment <span class="text-[#E6FA50]">Checkout</span>
       </h1>
-      <p class="body-sm mt-2 text-[#F7F7F7]/40">
-        Complete your payment to confirm court reservation
+      <p class="body mt-1 text-[#F7F7F7]/40">
+        Review your reservation details, manage split payments, and complete checkout.
       </p>
     </div>
 
     {#if error}
-      <div class="mb-6 flex items-center gap-2.5 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
-        <AlertCircle class="h-4 w-4 shrink-0 text-red-400" />
-        <p class="body text-red-100/80">{error}</p>
+      <div
+        class="mb-6 flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-4"
+      >
+        <AlertCircle class="h-5 w-5 shrink-0 text-red-400" />
+        <p class="body text-red-100/90">{error}</p>
       </div>
     {/if}
 
-    {#if isLoading}
-      <div class="space-y-4">
-        <div class="h-48 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
-        <div class="h-64 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+    {#if isLoading || !authStore.isInitialized || authStore.isLoading}
+      <!-- Loading Skeleton -->
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
+        <div class="space-y-6">
+          <div class="h-44 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+          <div class="h-64 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+          <div class="h-48 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
+        </div>
+        <div class="h-96 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
       </div>
     {:else if !booking}
-      <EmptyState
-        icon={CreditCard}
-        title="Booking not found"
-        description="This booking reservation could not be found."
-        actionLabel="Back to bookings"
-        actionHref="/bookings"
-      />
+      <!-- Empty Not Found -->
+      <div class="mx-auto max-w-xl py-12 text-center">
+        <EmptyState
+          icon={CreditCard}
+          title="Booking not found"
+          description="This booking reservation could not be found or you don't have access to pay."
+          actionLabel="Back to bookings"
+          actionHref="/bookings"
+        />
+      </div>
     {:else}
-      <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
-        <!-- Left — Payment Steps -->
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
+        <!-- Left Column: Details, Split Payment & Payment Method -->
         <div class="space-y-8">
-          <!-- Reservation summary card -->
+          <!-- 1. BOOKING DETAILS CARD -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
-            <h2 class="heading-3 text-[#F7F7F7]">Reservation Overview</h2>
-            <div class="grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <span class="caption text-[#F7F7F7]/40 block mb-1">Venue</span>
-                <span class="label text-[#F7F7F7]">{booking.venue?.name}</span>
+            <h2 class="text-xs font-semibold tracking-wider text-[#F7F7F7]/60 uppercase">
+              BOOKING DETAILS
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm pt-1">
+              <div class="flex flex-col">
+                <span class="text-xs font-medium text-[#F7F7F7]/40 mb-0.5">Venue</span>
+                <span class="font-semibold text-[#F7F7F7]">{booking.venue?.name || "Padel Arena"}</span>
               </div>
-              <div>
-                <span class="caption text-[#F7F7F7]/40 block mb-1">Court</span>
-                <span class="label text-[#F7F7F7]">{booking.court?.name} ({booking.court?.type})</span>
+
+              <div class="flex flex-col">
+                <span class="text-xs font-medium text-[#F7F7F7]/40 mb-0.5">Court</span>
+                <span class="font-semibold text-[#F7F7F7]">
+                  {booking.court?.name || "Court A"}
+                  {#if booking.court?.type}
+                    <span class="ml-1.5 rounded bg-white/[0.06] px-2 py-0.5 text-[10px] font-normal text-[#F7F7F7]/60 uppercase">
+                      {booking.court.type}
+                    </span>
+                  {/if}
+                </span>
               </div>
-              <div>
-                <span class="caption text-[#F7F7F7]/40 block mb-1">Date</span>
-                <span class="label text-[#F7F7F7]">{booking.bookingDate}</span>
+
+              <div class="flex flex-col">
+                <span class="text-xs font-medium text-[#F7F7F7]/40 mb-0.5">Date</span>
+                <span class="font-semibold text-[#F7F7F7]">
+                  {booking.bookingDate ? formatBookingDate(new Date(booking.bookingDate)) : "Sat, Aug 15, 2026"}
+                </span>
               </div>
-              <div>
-                <span class="caption text-[#F7F7F7]/40 block mb-1">Time</span>
-                <span class="label text-[#E6FA50]">{booking.startsAt} – {booking.endsAt}</span>
+
+              <div class="flex flex-col">
+                <span class="text-xs font-medium text-[#F7F7F7]/40 mb-0.5">Time</span>
+                <span class="font-semibold text-[#E6FA50]">
+                  {formatBookingTimeRange(booking.startsAt, booking.endsAt)}
+                </span>
               </div>
             </div>
           </div>
 
-          <!-- Select Payment Method -->
-          <div class="space-y-4">
-            <h2 class="heading-2 text-[#F7F7F7]">Select Payment Method</h2>
+          <!-- 2. SPLIT PAYMENT SECTION -->
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-5">
+            <!-- Header with Toggle -->
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <Users class="h-4 w-4 text-[#50C8C8]" />
+                <div>
+                  <h2 class="text-xs font-semibold tracking-wider text-[#F7F7F7] uppercase">
+                    SPLIT PAYMENT
+                  </h2>
+                  <p class="text-xs text-[#F7F7F7]/40 mt-0.5">
+                    Split the cost equally among all players
+                  </p>
+                </div>
+              </div>
+
+              <!-- Toggle Switch -->
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isSplitEnabled}
+                aria-label="Toggle split payment"
+                onclick={() => (isSplitEnabled = !isSplitEnabled)}
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none {isSplitEnabled ? 'bg-[#E6FA50]' : 'bg-white/[0.15]'}"
+              >
+                <span
+                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out {isSplitEnabled ? 'translate-x-5' : 'translate-x-0'}"
+                ></span>
+              </button>
+            </div>
+
+            {#if isSplitEnabled}
+              <!-- Mode selector: Equal vs Custom -->
+              <div class="flex h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] p-1">
+                <button
+                  type="button"
+                  onclick={() => (splitMode = "equal")}
+                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'equal' ? 'bg-[#06121A] text-[#E6FA50] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
+                >
+                  Equal
+                </button>
+                <button
+                  type="button"
+                  onclick={() => (splitMode = "custom")}
+                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'custom' ? 'bg-[#06121A] text-[#E6FA50] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
+                >
+                  Custom
+                </button>
+              </div>
+
+              <!-- Info/Notice box -->
+              <div class="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 flex items-center gap-3">
+                <Info class="h-4 w-4 shrink-0 text-amber-400" />
+                <p class="text-xs text-amber-200/90 leading-relaxed">
+                  Split is active. Each player pays their share. Friends who haven't paid will be charged separately.
+                </p>
+              </div>
+
+              <!-- Price Per Player Summary Bar -->
+              <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                <div>
+                  <span class="text-xs font-medium text-[#F7F7F7]/60 block">Price per player</span>
+                  <span class="text-[11px] text-[#F7F7F7]/40">
+                    Total Rp {(grandTotal / 1000).toFixed(0)}K ÷ {totalPlayersCount} players
+                  </span>
+                </div>
+                <span class="text-lg font-bold text-[#E6FA50]">
+                  Rp {(pricePerPlayer / 1000).toFixed(0)}K
+                </span>
+              </div>
+
+              <!-- Players List -->
+              <div class="space-y-3 pt-1">
+                <!-- User (Main Organizer) -->
+                <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
+                  <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#E6FA50]/15 text-sm font-bold text-[#E6FA50]">
+                      {(authStore.user?.name || authStore.user?.email || "U")[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p class="text-xs font-semibold text-[#F7F7F7]">
+                        {authStore.user?.name || "You (Host)"}
+                      </p>
+                      <p class="text-[11px] text-[#F7F7F7]/40">
+                        Rp {(pricePerPlayer / 1000).toFixed(0)}K
+                      </p>
+                    </div>
+                  </div>
+
+                  <span class="rounded-full bg-[#E6FA50] px-4 py-1.5 text-xs font-bold text-[#06121A]">
+                    Pay Rp {(pricePerPlayer / 1000).toFixed(0)}K
+                  </span>
+                </div>
+
+                <!-- Invited Friends -->
+                {#each invites as invite}
+                  <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
+                    <div class="flex items-center gap-3">
+                      <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#50C8C8]/15 text-sm font-bold text-[#50C8C8]">
+                        {(invite.name || invite.email || "F")[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p class="text-xs font-semibold text-[#F7F7F7]">
+                          {invite.name || invite.email}
+                        </p>
+                        <p class="text-[11px] text-[#F7F7F7]/40">
+                          Rp {(pricePerPlayer / 1000).toFixed(0)}K
+                        </p>
+                      </div>
+                    </div>
+
+                    {#if invite.status === "ACCEPTED"}
+                      <div class="flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                        <CheckCircle2 class="h-3.5 w-3.5" />
+                        <span>Paid</span>
+                      </div>
+                    {:else}
+                      <div class="flex items-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-1 text-xs font-medium text-[#F7F7F7]/60">
+                        <Clock class="h-3.5 w-3.5 text-[#50C8C8]" />
+                        <span>Pending</span>
+                      </div>
+                    {/if}
+                  </div>
+                {/each}
+              </div>
+
+              <!-- Invite Friends Button Shortcut -->
+              <a
+                href="/booking/{bookingId}/invite"
+                class="flex items-center justify-center gap-2.5 rounded-xl border border-dashed border-white/[0.12] bg-white/[0.01] p-3.5 text-xs font-medium text-[#F7F7F7]/70 transition-all hover:border-[#E6FA50]/40 hover:bg-[#E6FA50]/5 hover:text-[#E6FA50]"
+              >
+                <UserPlus class="h-4 w-4" />
+                <span>Invite more friends to split cost</span>
+              </a>
+            {/if}
+          </div>
+
+          <!-- 3. PAYMENT METHOD SECTION -->
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
+            <h2 class="text-xs font-semibold tracking-wider text-[#F7F7F7]/60 uppercase">
+              PAYMENT METHOD
+            </h2>
             <div class="space-y-3">
               {#each PAYMENT_METHODS as method}
                 {@const MethodIcon = method.icon}
                 <button
                   type="button"
                   onclick={() => (selectedMethod = method.id)}
-                  class="flex w-full items-center justify-between rounded-2xl border p-5 text-left transition-all {selectedMethod ===
+                  class="flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all {selectedMethod ===
                   method.id
-                    ? 'border-[#E6FA50] bg-[#E6FA50]/10'
-                    : 'border-white/[0.06] bg-[#0C1B26] hover:border-white/[0.12]'}"
+                    ? 'border-[#E6FA50] bg-[#E6FA50]/10 shadow-sm'
+                    : 'border-white/[0.06] bg-white/[0.015] hover:border-white/[0.12]'}"
                 >
-                  <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-3.5">
                     <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
                       <MethodIcon class="h-5 w-5 text-[#50C8C8]" />
                     </div>
                     <div>
-                      <p class="label font-semibold text-[#F7F7F7]">{method.label}</p>
-                      <p class="caption text-[#F7F7F7]/40">{method.description}</p>
+                      <p class="text-sm font-semibold text-[#F7F7F7]">{method.label}</p>
+                      <p class="text-xs text-[#F7F7F7]/40">{method.description}</p>
                     </div>
                   </div>
-                  <div class="h-4 w-4 rounded-full border border-white/20 flex items-center justify-center {selectedMethod === method.id ? 'border-[#E6FA50] bg-[#E6FA50]' : ''}">
+                  <div class="flex h-5 w-5 items-center justify-center rounded-full border transition-colors {selectedMethod === method.id ? 'border-[#E6FA50] bg-[#E6FA50]' : 'border-white/20'}">
                     {#if selectedMethod === method.id}
-                      <div class="h-1.5 w-1.5 rounded-full bg-[#06121A]"></div>
+                      <div class="h-2 w-2 rounded-full bg-[#06121A]"></div>
                     {/if}
                   </div>
                 </button>
@@ -218,46 +456,64 @@ onMount(() => {
           </div>
         </div>
 
-        <!-- Right — Order Breakdown (Sticky) -->
+        <!-- Right Column: Order Summary (Sticky) -->
         <div class="lg:relative">
-          <div class="lg:sticky lg:top-28">
+          <div class="lg:sticky lg:top-24">
             <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-6 shadow-2xl">
-              <h3 class="heading-2 text-[#F7F7F7]">Payment Breakdown</h3>
+              <h3 class="text-xs font-semibold tracking-wider text-[#F7F7F7] uppercase">
+                ORDER SUMMARY
+              </h3>
 
               <div class="space-y-3 border-y border-white/[0.06] py-4 text-xs">
                 <div class="flex justify-between">
-                  <span class="text-[#F7F7F7]/40">Court Rental</span>
-                  <span class="text-[#F7F7F7]">Rp {((booking.finalAmount || 200000) / 1000).toFixed(0)}K</span>
+                  <span class="text-[#F7F7F7]/60">Court rental</span>
+                  <span class="font-medium text-[#F7F7F7]">Rp {(totalAmount / 1000).toFixed(0)}K</span>
                 </div>
-                <div class="flex justify-between text-emerald-400">
-                  <span>Voucher Discount</span>
-                  <span>-Rp 0K</span>
+
+                <div class="flex justify-between">
+                  <span class="text-[#F7F7F7]/60">Platform fee (5%)</span>
+                  <span class="font-medium text-[#F7F7F7]">Rp {(platformFee / 1000).toFixed(0)}K</span>
                 </div>
-                <div class="flex justify-between pt-3 border-t border-white/[0.04]">
-                  <span class="heading-3 text-[#F7F7F7]">Total Amount</span>
-                  <span class="price text-[#E6FA50]">
-                    Rp {((booking.finalAmount || 200000) / 1000).toFixed(0)}K
+
+                {#if isSplitEnabled && paidByFriendsAmount > 0}
+                  <div class="flex justify-between text-emerald-400">
+                    <span>Paid by friends</span>
+                    <span>-Rp {(paidByFriendsAmount / 1000).toFixed(0)}K</span>
+                  </div>
+                {/if}
+
+                <div class="flex justify-between items-baseline pt-3 border-t border-white/[0.06]">
+                  <span class="text-sm font-semibold text-[#F7F7F7]">You pay</span>
+                  <span class="text-2xl font-extrabold text-[#E6FA50]">
+                    Rp {(userFinalPayAmount / 1000).toFixed(0)}K
                   </span>
                 </div>
               </div>
 
+              <!-- Pay CTA Button -->
               <button
                 type="button"
                 disabled={isPaying}
                 onclick={handlePay}
-                class="label btn-lime w-full flex h-12 items-center justify-center gap-2 rounded-full disabled:opacity-50"
+                class="btn-lime label flex h-12 w-full items-center justify-center gap-2 rounded-full font-bold text-[#06121A] disabled:opacity-50"
               >
                 {#if isPaying}
                   <Loader2 class="h-4 w-4 animate-spin" />
-                  Processing Payment...
+                  <span>Processing Payment...</span>
                 {:else}
-                  Pay Now · Rp {((booking.finalAmount || 200000) / 1000).toFixed(0)}K
+                  <span>Pay Now · Rp {(userFinalPayAmount / 1000).toFixed(0)}K</span>
                 {/if}
               </button>
 
-              <div class="flex items-center justify-center gap-2 caption text-[#F7F7F7]/25 text-center">
-                <Shield class="h-3.5 w-3.5 text-[#50C8C8]" />
-                <span>256-bit encrypted secure checkout</span>
+              <!-- Security guarantee -->
+              <div class="flex items-center justify-center gap-2 text-[11px] text-[#F7F7F7]/40 text-center">
+                <ShieldCheck class="h-4 w-4 text-[#50C8C8]" />
+                <span>Secure payment provided by Midtrans</span>
+              </div>
+
+              <!-- Cancellation policy note box -->
+              <div class="rounded-xl border border-white/[0.04] bg-white/[0.015] p-3 text-[11px] text-[#F7F7F7]/40 leading-relaxed">
+                Free cancellation up to 24h before booking. After that, standard refund policy applies.
               </div>
             </div>
           </div>
