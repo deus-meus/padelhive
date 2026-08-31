@@ -95,6 +95,21 @@ const totalBookingsCount = $derived(
   upcomingBookings.length + pastBookings.length + cancelledBookings.length,
 );
 
+const totalMinutesPlayed = $derived(
+  [...upcomingBookings, ...pastBookings].reduce(
+    (sum, b) => sum + (b.durationMinutes || 60),
+    0,
+  ),
+);
+const hoursPlayed = $derived(`${Math.round(totalMinutesPlayed / 60)}h`);
+const matchesJoined = $derived(upcomingBookings.length + pastBookings.length);
+const friendsInvited = $derived(
+  [...upcomingBookings, ...pastBookings].reduce(
+    (sum, b) => sum + (b.invites?.length || (b.invitesCount ?? 0)),
+    0,
+  ),
+);
+
 const currentList = $derived.by(() => {
   if (activeTab === "upcoming") return upcomingBookings;
   if (activeTab === "past") return pastBookings;
@@ -146,19 +161,19 @@ function getStatusStyle(status: string) {
 
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
         <Clock class="h-4 w-4 text-[#50C8C8]" />
-        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">0h</p>
+        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">{hoursPlayed}</p>
         <p class="caption mt-1 text-[#F7F7F7]/40">Hours Played</p>
       </div>
 
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
         <Trophy class="h-4 w-4 text-[#50C8C8]" />
-        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">12</p>
+        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">{matchesJoined}</p>
         <p class="caption mt-1 text-[#F7F7F7]/40">Matches Joined</p>
       </div>
 
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
         <Users class="h-4 w-4 text-[#50C8C8]" />
-        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">8</p>
+        <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">{friendsInvited}</p>
         <p class="caption mt-1 text-[#F7F7F7]/40">Friends Invited</p>
       </div>
     </div>
