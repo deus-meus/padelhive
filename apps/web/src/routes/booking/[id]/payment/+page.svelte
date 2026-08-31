@@ -150,26 +150,17 @@ const pricePerPlayer = $derived(
 
 // Initialize default customShares when invites or pricePerPlayer changes
 $effect(() => {
-  const nextShares = { ...customShares };
-  let changed = false;
-  if (!("host" in nextShares)) {
-    nextShares.host = pricePerPlayer;
-    changed = true;
-  }
-  for (const inv of filteredInvites) {
-    if (!(inv.id in nextShares)) {
-      nextShares[inv.id] = pricePerPlayer;
-      changed = true;
+  if (filteredInvites.length > 0) {
+    const nextShares = { ...customShares };
+    let changed = false;
+    for (const inv of filteredInvites) {
+      if (!(inv.id in nextShares)) {
+        nextShares[inv.id] = pricePerPlayer;
+        changed = true;
+      }
     }
+    if (changed) customShares = nextShares;
   }
-  if (changed) customShares = nextShares;
-});
-
-// Host assigned share
-const hostAssignedShare = $derived.by(() => {
-  if (!isSplitEnabled) return grandTotal;
-  if (splitMode === "equal") return pricePerPlayer;
-  return customShares.host ?? pricePerPlayer;
 });
 
 // Total assigned share for friends (equal or custom)
@@ -185,35 +176,14 @@ const totalFriendsAssignedShare = $derived.by(() => {
   return sum;
 });
 
-// Sum of all assigned shares
-const totalAllocatedShares = $derived(
-  hostAssignedShare + totalFriendsAssignedShare,
-);
-const unallocatedBalance = $derived(grandTotal - totalAllocatedShares);
-
-// Amount paid by accepted friends
-const paidByFriendsAmount = $derived.by(() => {
-  if (!isSplitEnabled) return 0;
-  const acceptedFriends = filteredInvites.filter(
-    (inv) => inv.status === "ACCEPTED",
-  );
-  if (splitMode === "equal") {
-    return acceptedFriends.length * pricePerPlayer;
-  }
-  return acceptedFriends.reduce(
-    (acc, inv) => acc + (customShares[inv.id] ?? pricePerPlayer),
-    0,
-  );
-});
-
-// Final host amount due
-const userFinalPayAmount = $derived.by(() => {
+// Host share in custom mode (Remaining balance)
+const hostShareAmount = $derived.by(() => {
   if (!isSplitEnabled) return grandTotal;
-  if (splitMode === "equal") {
-    return Math.max(0, grandTotal - totalFriendsAssignedShare);
-  }
-  return hostAssignedShare;
+  return Math.max(0, grandTotal - totalFriendsAssignedShare);
 });
+
+// Final host amount due right now
+const userFinalPayAmount = $derived(hostShareAmount);
 
 async function handlePay() {
   isPaying = true;
@@ -419,12 +389,12 @@ async function handlePay() {
                 <div class="rounded-xl border border-[#50C8C8]/20 bg-[#50C8C8]/10 p-3.5 flex items-center gap-3">
                   <Info class="h-4 w-4 shrink-0 text-[#50C8C8]" />
                   <p class="body-sm text-[#50C8C8]/90 leading-relaxed">
-                    Custom split active: Enter specific custom amounts for You (Host) and each friend.
+                    Custom split active: Enter specific custom amounts for each friend. Remaining balance is assigned to You (Host).
                   </p>
                 </div>
               {/if}
 
-              <!-- Price Per Player Summary Bar -->
+              <!-- Price Per Player / Custom Summary Bar -->
               <div class="flex items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                 <div>
                   <p class="heading-3 text-[#F7F7F7]">
@@ -434,23 +404,19 @@ async function handlePay() {
                     {#if splitMode === "equal"}
                       Total Rp {(grandTotal / 1000).toFixed(0)}K ÷ {totalPlayersCount} players
                     {:else}
-                      Friends allocated: Rp {(totalFriendsAssignedShare / 1000).toFixed(0)}K · Host share: Rp {(hostAssignedShare / 1000).toFixed(0)}K
+                      Friends allocated: Rp {(totalFriendsAssignedShare / 1000).toFixed(0)}K · Host share: Rp {(hostShareAmount / 1000).toFixed(0)}K
                     {/if}
                   </p>
                 </div>
                 <span class="heading-2 text-[#E6FA50]">
-                  {#if splitMode === "equal"}
-                    Rp {(pricePerPlayer / 1000).toFixed(0)}K
-                  {:else}
-                    Rp {(hostAssignedShare / 1000).toFixed(0)}K
-                  {/if}
+                  Rp {(hostShareAmount / 1000).toFixed(0)}K
                 </span>
               </div>
 
-              <!-- Players List (Clean & Neutral Styling) -->
+              <!-- Players List -->
               <div class="space-y-3 pt-1">
-                <!-- User (Main Organizer - Host Row with Optional Custom Input) -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
+                <!-- Host Row (Clean & Spacious) -->
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5">
                   <div class="flex items-center gap-3 min-w-0">
                     <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#50C8C8]/15 text-sm font-bold text-[#50C8C8]">
                       {(authStore.user?.name || authStore.user?.email || "U")[0].toUpperCase()}
@@ -460,34 +426,14 @@ async function handlePay() {
                         {authStore.user?.name || "You (Host)"}
                       </p>
                       <p class="caption text-[#F7F7F7]/40">
-                        Host Share
+                        Host Share · Rp {(hostShareAmount / 1000).toFixed(0)}K
                       </p>
                     </div>
                   </div>
 
-                  <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t border-white/[0.04] sm:border-t-0">
-                    {#if splitMode === "custom"}
-                      <!-- Host Custom Share Input -->
-                      <div class="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 transition-colors focus-within:border-[#50C8C8]/50">
-                        <span class="text-xs text-[#F7F7F7]/40">Rp</span>
-                        <input
-                          type="number"
-                          step="5000"
-                          min="0"
-                          value={customShares['host'] ?? pricePerPlayer}
-                          oninput={(e) => {
-                            const val = Number((e.target as HTMLInputElement).value) || 0;
-                            customShares['host'] = val;
-                          }}
-                          class="w-24 bg-transparent text-sm font-medium text-[#F7F7F7] focus:outline-none"
-                        />
-                      </div>
-                    {/if}
-
-                    <span class="btn-lime label px-4 py-1.5 rounded-full font-bold text-xs shrink-0">
-                      Pay Rp {(userFinalPayAmount / 1000).toFixed(0)}K
-                    </span>
-                  </div>
+                  <span class="btn-lime label px-4 py-1.5 rounded-full font-bold text-xs shrink-0">
+                    Pay Rp {(hostShareAmount / 1000).toFixed(0)}K
+                  </span>
                 </div>
 
                 <!-- Invited Friends -->
