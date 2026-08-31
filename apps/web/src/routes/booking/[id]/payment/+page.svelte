@@ -291,7 +291,7 @@ async function handlePay() {
       <!-- Main Content Grid -->
       <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
         <!-- Left Column: Details, Split Payment & Payment Method -->
-        <div class="space-y-8">
+        <div class="space-y-8 min-w-0">
           <!-- 1. BOOKING DETAILS CARD -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
             <p class="section-label">BOOKING DETAILS</p>

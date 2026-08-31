@@ -37,6 +37,9 @@ let isLoadingVenue = $state(true);
 let isLoadingAvailability = $state(false);
 let isSubmitting = $state(false);
 
+// Date pagination state (7 days per page, no scrollbar)
+let datePage = $state(0);
+
 // Protection & Voucher states
 let isRefundProtection = $state(true);
 let voucherCode = $state("");
@@ -60,6 +63,20 @@ const dateOptions = $derived.by(() => {
   }
   return list;
 });
+
+// Currently visible 7 dates for the active page
+const visibleDateOptions = $derived.by(() => {
+  const start = datePage * 7;
+  return dateOptions.slice(start, start + 7);
+});
+
+function prevDatePage() {
+  if (datePage > 0) datePage--;
+}
+
+function nextDatePage() {
+  if ((datePage + 1) * 7 < dateOptions.length) datePage++;
+}
 
 async function loadData() {
   if (!venueId) return;
@@ -258,9 +275,9 @@ async function handleCreateBooking(e: SubmitEvent) {
         </div>
       {/if}
 
-      <form onsubmit={handleCreateBooking} class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
+      <form onsubmit={handleCreateBooking} class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
         <!-- Left Column: Selection Steps 1, 2, 3 -->
-        <div class="space-y-8">
+        <div class="space-y-8 min-w-0">
           <!-- Step 1: SELECT COURT -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4 shadow-xl">
             <div class="flex items-center gap-3">
@@ -299,7 +316,7 @@ async function handleCreateBooking(e: SubmitEvent) {
             </div>
           </div>
 
-          <!-- Step 2: SELECT DATE -->
+          <!-- Step 2: SELECT DATE (1:1 Pager Grid from Image #108 - No Scrollbar) -->
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4 shadow-xl">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
@@ -311,26 +328,46 @@ async function handleCreateBooking(e: SubmitEvent) {
                   SELECT DATE
                 </h2>
               </div>
+
+              <!-- Pager Navigation Buttons (< >) -->
+              <div class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onclick={prevDatePage}
+                  disabled={datePage === 0}
+                  aria-label="Previous dates"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7] disabled:opacity-20 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft class="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onclick={nextDatePage}
+                  disabled={(datePage + 1) * 7 >= dateOptions.length}
+                  aria-label="Next dates"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#F7F7F7]/60 transition-colors hover:border-white/[0.2] hover:text-[#F7F7F7] disabled:opacity-20 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight class="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
-            <div class="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none pt-1">
-              {#each dateOptions as item, i}
+            <!-- 7-Column Date Grid (No Scrollbar) -->
+            <div class="grid grid-cols-7 gap-2 pt-1">
+              {#each visibleDateOptions as item}
                 <button
                   type="button"
                   onclick={() => {
                     selectedDate = item.iso;
                     selectedSlot = null;
                   }}
-                  class="flex min-w-[76px] flex-col items-center justify-center rounded-xl border p-3.5 transition-all {selectedDate ===
+                  class="flex flex-col items-center justify-center rounded-xl border py-3 px-1 transition-all {selectedDate ===
                   item.iso
                     ? 'border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-sm'
                     : 'border-white/[0.06] bg-white/[0.015] text-[#F7F7F7]/60 hover:border-white/[0.12] hover:text-[#F7F7F7]'}"
                 >
-                  <span class="caption uppercase font-medium">{item.day}</span>
-                  <span class="metric mt-1 text-xl font-bold">{item.dateNum}</span>
-                  {#if i === 0}
-                    <span class="mt-1 text-[9px] font-bold text-[#E6FA50] uppercase">Today</span>
-                  {/if}
+                  <span class="metric text-lg sm:text-xl font-bold">{item.dateNum}</span>
+                  <span class="caption uppercase font-medium mt-1 text-[11px]">{item.day}</span>
                 </button>
               {/each}
             </div>
