@@ -1,6 +1,7 @@
 <script lang="ts">
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   CalendarDays,
   Clock,
@@ -14,9 +15,11 @@ import {
   Star,
   Ticket,
   Timer,
+  X,
   XCircle,
 } from "lucide-svelte";
 import { onMount } from "svelte";
+import { goto } from "$app/navigation";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
@@ -32,6 +35,10 @@ let reviewComment = $state("");
 let isSubmittingReview = $state(false);
 let reviewError = $state<string | null>(null);
 let reviewSubmitted = $state(false);
+
+// Cancel modal states
+let showCancelModal = $state(false);
+let isCancellingBooking = $state(false);
 let toast = $state<string | null>(null);
 
 function showToast(msg: string) {
@@ -88,6 +95,26 @@ async function submitReview() {
     reviewError = err.message || "Failed to submit review";
   } finally {
     isSubmittingReview = false;
+  }
+}
+
+async function confirmCancelBooking() {
+  isCancellingBooking = true;
+  try {
+    const token = await authStore.firebaseUser?.getIdToken();
+    if (!token) return;
+
+    await api.bookings({ id: bookingId }).cancel.patch(undefined, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    showCancelModal = false;
+    showToast("Booking cancelled successfully");
+    loadBooking();
+  } catch (err: any) {
+    showToast(err.message || "Failed to cancel booking");
+  } finally {
+    isCancellingBooking = false;
   }
 }
 
@@ -167,14 +194,14 @@ function getPaymentStyle(status: string) {
       <div class="h-64 animate-pulse rounded-2xl bg-white/[0.02]"></div>
     </div>
   {:else if !booking}
-    <div class="container my-8">
-      <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 md:p-16 text-center max-w-xl mx-auto">
-        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-[#E6FA50] mx-auto mb-4">
-          <Ticket class="h-6 w-6" />
+    <div class="container">
+      <div class="mx-auto max-w-xl rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 text-center md:p-16">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.03] text-[#F7F7F7]/25">
+          <CalendarDays class="h-8 w-8" />
         </div>
-        <h2 class="heading-2 text-xl font-bold text-[#F7F7F7]">Booking not found</h2>
-        <p class="body mt-2 text-[#F7F7F7]/40 leading-relaxed text-sm">
-          You don't have access to this reservation, or it does not exist.
+        <h2 class="heading-2 mt-6 text-[#F7F7F7]">Booking not found</h2>
+        <p class="body mt-2 text-[#F7F7F7]/40">
+          The booking you are looking for does not exist or you don't have access to view it.
         </p>
         <a
           href="/bookings"
@@ -189,6 +216,7 @@ function getPaymentStyle(status: string) {
     {@const venue = booking.venue}
     {@const court = booking.court}
     {@const currentBooking = booking}
+    {@const isCancellable = currentBooking.status !== "CANCELLED" && currentBooking.status !== "cancelled" && currentBooking.status !== "COMPLETED" && currentBooking.status !== "completed"}
 
     <!-- Header -->
     <section class="container pb-8">
@@ -355,9 +383,9 @@ function getPaymentStyle(status: string) {
             </div>
           </div>
 
-          <!-- Actions -->
-          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-            <p class="section-label mb-4">Actions</p>
+          <!-- Actions Card -->
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
+            <p class="section-label">Actions</p>
             <div class="space-y-2">
               <button
                 type="button"
@@ -368,6 +396,7 @@ function getPaymentStyle(status: string) {
                 Share invite link
                 <Copy class="ml-auto h-3.5 w-3.5 text-[#F7F7F7]/25" />
               </button>
+
               <a
                 href="/booking/{currentBooking.id}/payment"
                 class="heading-3 w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
@@ -375,11 +404,72 @@ function getPaymentStyle(status: string) {
                 <CreditCard class="h-4 w-4 text-[#50C8C8]" />
                 View payment receipt
               </a>
+
+              {#if isCancellable}
+                <button
+                  type="button"
+                  onclick={() => (showCancelModal = true)}
+                  class="heading-3 w-full flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-red-400 transition-colors hover:bg-red-500/15"
+                >
+                  <AlertTriangle class="h-4 w-4 text-red-400" />
+                  Cancel Booking & Refund
+                </button>
+              {/if}
             </div>
           </div>
         </div>
       </div>
     </section>
+
+    <!-- Cancel Booking Confirmation Modal -->
+    {#if showCancelModal}
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        <div class="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 space-y-5 shadow-2xl">
+          <div class="flex items-center justify-between">
+            <h3 class="heading-2 text-[#F7F7F7] flex items-center gap-2">
+              <AlertTriangle class="h-5 w-5 text-red-400" />
+              Cancel Booking
+            </h3>
+            <button
+              type="button"
+              onclick={() => (showCancelModal = false)}
+              class="rounded-lg p-1 text-[#F7F7F7]/40 hover:text-[#F7F7F7]"
+            >
+              <X class="h-4 w-4" />
+            </button>
+          </div>
+
+          <p class="body-sm text-[#F7F7F7]/70">
+            Are you sure you want to cancel this booking? This action cannot be undone.
+          </p>
+
+          <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-2 text-xs">
+            <p class="font-semibold text-[#F7F7F7]">Refund Policy:</p>
+            <p class="text-[#F7F7F7]/60">• 100% refund if cancelled 24+ hours before start time.</p>
+            <p class="text-[#F7F7F7]/60">• 50% refund if cancelled 12-24 hours before start time.</p>
+            <p class="text-[#F7F7F7]/60">• Non-refundable if cancelled less than 12 hours before start time.</p>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              onclick={() => (showCancelModal = false)}
+              class="flex-1 rounded-full border border-white/[0.1] py-2.5 text-xs font-semibold text-[#F7F7F7]/70 hover:bg-white/[0.04]"
+            >
+              Keep Booking
+            </button>
+            <button
+              type="button"
+              disabled={isCancellingBooking}
+              onclick={confirmCancelBooking}
+              class="flex-1 rounded-full bg-red-500 py-2.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+            >
+              {isCancellingBooking ? "Cancelling..." : "Confirm Cancel"}
+            </button>
+          </div>
+        </div>
+      </div>
+    {/if}
   {/if}
 
   <!-- Toast -->

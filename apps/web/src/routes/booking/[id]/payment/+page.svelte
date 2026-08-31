@@ -13,6 +13,7 @@ import {
   UserPlus,
   Users,
   Wallet,
+  XCircle,
 } from "lucide-svelte";
 import { goto } from "$app/navigation";
 import { page } from "$app/state";
@@ -35,6 +36,7 @@ let customShares = $state<Record<string, number>>({});
 
 let isLoading = $state(true);
 let isPaying = $state(false);
+let isCancelling = $state(false);
 let error = $state<string | null>(null);
 
 const PAYMENT_METHODS = [
@@ -150,17 +152,26 @@ const pricePerPlayer = $derived(
 
 // Initialize default customShares when invites or pricePerPlayer changes
 $effect(() => {
-  if (filteredInvites.length > 0) {
-    const nextShares = { ...customShares };
-    let changed = false;
-    for (const inv of filteredInvites) {
-      if (!(inv.id in nextShares)) {
-        nextShares[inv.id] = pricePerPlayer;
-        changed = true;
-      }
-    }
-    if (changed) customShares = nextShares;
+  const nextShares = { ...customShares };
+  let changed = false;
+  if (!("host" in nextShares)) {
+    nextShares.host = pricePerPlayer;
+    changed = true;
   }
+  for (const inv of filteredInvites) {
+    if (!(inv.id in nextShares)) {
+      nextShares[inv.id] = pricePerPlayer;
+      changed = true;
+    }
+  }
+  if (changed) customShares = nextShares;
+});
+
+// Host assigned share
+const hostAssignedShare = $derived.by(() => {
+  if (!isSplitEnabled) return grandTotal;
+  if (splitMode === "equal") return pricePerPlayer;
+  return customShares.host ?? pricePerPlayer;
 });
 
 // Total assigned share for friends (equal or custom)
@@ -224,6 +235,28 @@ async function handlePay() {
     error = err.message || "Payment processing failed";
   } finally {
     isPaying = false;
+  }
+}
+
+async function handleCancelBooking() {
+  if (!confirm("Are you sure you want to cancel this booking reservation?"))
+    return;
+  isCancelling = true;
+  error = null;
+
+  try {
+    const token = await authStore.firebaseUser?.getIdToken();
+    if (!token) return;
+
+    await api.bookings({ id: bookingId }).cancel.patch(undefined, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    goto("/bookings");
+  } catch (err: any) {
+    error = err.message || "Failed to cancel booking";
+  } finally {
+    isCancelling = false;
   }
 }
 </script>
@@ -432,7 +465,7 @@ async function handlePay() {
                   </div>
 
                   <span class="btn-lime label px-4 py-1.5 rounded-full font-bold text-xs shrink-0">
-                    Pay Rp {(hostShareAmount / 1000).toFixed(0)}K
+                    Pay Rp {(userFinalPayAmount / 1000).toFixed(0)}K
                   </span>
                 </div>
 
@@ -580,7 +613,7 @@ async function handlePay() {
               <!-- Pay CTA Button -->
               <button
                 type="button"
-                disabled={isPaying}
+                disabled={isPaying || isCancelling}
                 onclick={handlePay}
                 class="btn-lime label flex h-12 w-full items-center justify-center gap-2 rounded-full font-bold text-[#06121A] disabled:opacity-50"
               >
@@ -589,6 +622,22 @@ async function handlePay() {
                   <span>Processing Payment...</span>
                 {:else}
                   <span>Pay Now · Rp {(userFinalPayAmount / 1000).toFixed(0)}K</span>
+                {/if}
+              </button>
+
+              <!-- Cancel Reservation Button -->
+              <button
+                type="button"
+                disabled={isPaying || isCancelling}
+                onclick={handleCancelBooking}
+                class="w-full flex h-10 items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/5 text-xs font-semibold text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-colors disabled:opacity-50"
+              >
+                {#if isCancelling}
+                  <Loader2 class="h-3.5 w-3.5 animate-spin" />
+                  <span>Cancelling Reservation...</span>
+                {:else}
+                  <XCircle class="h-3.5 w-3.5" />
+                  <span>Cancel Reservation</span>
                 {/if}
               </button>
 
