@@ -124,8 +124,8 @@ const maxRevenue = $derived(
     {@const months = ["Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"]}
     {@const monthlySeries = (data.monthlySeries && data.monthlySeries.length > 0)
       ? data.monthlySeries
-      : months.map((m, idx) => ({ label: m, value: idx === 10 ? Math.round(totalRev * 0.25) : idx === 11 ? Math.round(totalRev * 0.75) : 0 }))}
-    {@const weeklySeries = (data.revenueSeries && data.revenueSeries.length > 0) ? data.revenueSeries : []}
+      : months.map((m) => ({ label: m, value: 0 }))}
+    {@const weeklySeries = data.revenueSeries || []}
     {@const chartData = period === "monthly" ? monthlySeries : weeklySeries}
     {@const maxVal = Math.max(...chartData.map((d: any) => d.value), 1)}
 

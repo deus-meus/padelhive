@@ -90,11 +90,11 @@ $effect(() => {
       {@const months = ["Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"]}
       {@const monthlySeries = (data.monthlySeries && data.monthlySeries.length > 0)
         ? data.monthlySeries
-        : months.map((m, idx) => ({ label: m, value: idx === 10 ? Math.round(totalRev * 0.25) : idx === 11 ? Math.round(totalRev * 0.75) : 0 }))}
-      {@const weeklySeries = (data.revenueSeries && data.revenueSeries.length > 0) ? data.revenueSeries : []}
+        : months.map((m) => ({ label: m, value: 0 }))}
+      {@const weeklySeries = data.revenueSeries || []}
       {@const seriesData = period === "monthly" ? monthlySeries : weeklySeries}
       {@const maxVal = Math.max(...seriesData.map((d: any) => d.value), 1)}
-      {@const topCourts = (data.courtUtilization && data.courtUtilization.length > 0) ? data.courtUtilization : []}
+      {@const topCourts = data.courtUtilization || []}
 
       <!-- Top 4 KPI Cards -->
       <div class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
