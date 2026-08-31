@@ -17,7 +17,7 @@ import {
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
-import { formatBookingDate } from "$lib/format";
+import { formatBookingDate, formatBookingTimeRange } from "$lib/format";
 import { padelImg } from "$lib/images";
 
 const IMG = {
@@ -419,7 +419,7 @@ function getStatusStyle(status: string) {
                     <span>·</span>
                     <span class="inline-flex items-center gap-1">
                       <Clock class="h-3 w-3 text-[#F7F7F7]/40" />
-                      {formatTimeString(b.startsAt, b.endsAt)}
+                      {formatBookingTimeRange(b.startsAt, b.endsAt)}
                     </span>
                   </div>
                 </div>
