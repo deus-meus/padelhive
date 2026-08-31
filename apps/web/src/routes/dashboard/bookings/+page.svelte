@@ -15,6 +15,23 @@ function handleTabClick(tab: TabKey) {
   activeTab = tab;
 }
 
+function formatTime(val: any): string {
+  if (!val) return "09:00";
+  if (typeof val === "string") {
+    if (val.includes("T")) {
+      const parts = val.split("T")[1];
+      return parts ? parts.substring(0, 5) : val.substring(0, 5);
+    }
+    return val.substring(0, 5);
+  }
+  if (val instanceof Date) {
+    try {
+      return val.toISOString().split("T")[1]?.substring(0, 5) || "09:00";
+    } catch (e) {}
+  }
+  return String(val).substring(0, 5) || "09:00";
+}
+
 function formatIDR(amount: number): string {
   if (!amount) return "Rp 0";
   return `Rp ${(amount / 1000).toFixed(0)}K`;
@@ -221,7 +238,7 @@ $effect(() => {
                   </span>
                   <span>·</span>
                   <span>
-                    {booking.startsAt?.substring(0, 5) || "09:00"} – {booking.endsAt?.substring(0, 5) || "10:00"}
+                    {formatTime(booking.startsAt)} – {formatTime(booking.endsAt)}
                   </span>
                 </div>
               </div>
