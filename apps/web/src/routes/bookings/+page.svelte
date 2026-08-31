@@ -27,7 +27,9 @@ const IMG = {
 type TabKey = "upcoming" | "past" | "cancelled" | "refunds" | "disputes";
 
 let activeTab = $state<TabKey>("upcoming");
-let bookings = $state<any[]>([]);
+let upcomingBookings = $state<any[]>([]);
+let pastBookings = $state<any[]>([]);
+let cancelledBookings = $state<any[]>([]);
 let refunds = $state<any[]>([]);
 let disputes = $state<any[]>([]);
 let isLoading = $state(true);
@@ -39,43 +41,66 @@ async function loadData() {
     const token = await authStore.firebaseUser?.getIdToken();
     if (!token) return;
 
-    if (activeTab === "refunds") {
-      const res = await api.refunds.me.get({
-        headers: { authorization: `Bearer ${token}` },
-      });
-      if (res.data) refunds = res.data;
-    } else if (activeTab === "disputes") {
-      const res = await api.disputes.me.get({
-        headers: { authorization: `Bearer ${token}` },
-      });
-      if (res.data) disputes = res.data;
-    } else {
-      const res = await api.bookings.me.get({
-        query: { filter: activeTab },
-        headers: { authorization: `Bearer ${token}` },
-      });
-      if (res.data) bookings = res.data;
-    }
+    const [resUpcoming, resPast, resCancelled, resRefunds, resDisputes] =
+      await Promise.all([
+        api.bookings.me.get({
+          query: { filter: "upcoming" },
+          headers: { authorization: `Bearer ${token}` },
+        }),
+        api.bookings.me.get({
+          query: { filter: "past" },
+          headers: { authorization: `Bearer ${token}` },
+        }),
+        api.bookings.me.get({
+          query: { filter: "cancelled" },
+          headers: { authorization: `Bearer ${token}` },
+        }),
+        api.refunds.me.get({
+          headers: { authorization: `Bearer ${token}` },
+        }),
+        api.disputes.me.get({
+          headers: { authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+    if (resUpcoming.data && Array.isArray(resUpcoming.data))
+      upcomingBookings = resUpcoming.data;
+    if (resPast.data && Array.isArray(resPast.data))
+      pastBookings = resPast.data;
+    if (resCancelled.data && Array.isArray(resCancelled.data))
+      cancelledBookings = resCancelled.data;
+    if (resRefunds.data && Array.isArray(resRefunds.data))
+      refunds = resRefunds.data;
+    if (resDisputes.data && Array.isArray(resDisputes.data))
+      disputes = resDisputes.data;
   } catch (e) {
-    console.warn("Bookings fetch error:", e);
+    console.warn("Player bookings fetch error:", e);
   } finally {
     isLoading = false;
   }
 }
 
 $effect(() => {
-  if (authStore.user) {
+  if (authStore.user && authStore.firebaseUser) {
     loadData();
   }
 });
 
-const upcomingCount = $derived(activeTab === "upcoming" ? bookings.length : 0);
-const pastCount = $derived(activeTab === "past" ? bookings.length : 0);
-const cancelledCount = $derived(
-  activeTab === "cancelled" ? bookings.length : 0,
-);
+const upcomingCount = $derived(upcomingBookings.length);
+const pastCount = $derived(pastBookings.length);
+const cancelledCount = $derived(cancelledBookings.length);
 const refundCount = $derived(refunds.length);
 const disputeCount = $derived(disputes.length);
+const totalBookingsCount = $derived(
+  upcomingBookings.length + pastBookings.length + cancelledBookings.length,
+);
+
+const currentList = $derived.by(() => {
+  if (activeTab === "upcoming") return upcomingBookings;
+  if (activeTab === "past") return pastBookings;
+  if (activeTab === "cancelled") return cancelledBookings;
+  return [];
+});
 
 function getStatusStyle(status: string) {
   switch (status) {
@@ -90,11 +115,6 @@ function getStatusStyle(status: string) {
     default:
       return "bg-white/5 text-white/50";
   }
-}
-
-function handleTabChange(tab: TabKey) {
-  activeTab = tab;
-  loadData();
 }
 </script>
 
@@ -119,7 +139,7 @@ function handleTabChange(tab: TabKey) {
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
         <Calendar class="h-4 w-4 text-[#50C8C8]" />
         <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">
-          {bookings.length}
+          {totalBookingsCount}
         </p>
         <p class="caption mt-1 text-[#F7F7F7]/40">Total Bookings</p>
       </div>
@@ -149,7 +169,7 @@ function handleTabChange(tab: TabKey) {
     <div class="flex items-center gap-3 overflow-x-auto no-scrollbar">
       <button
         type="button"
-        onclick={() => handleTabChange("upcoming")}
+        onclick={() => (activeTab = "upcoming")}
         class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'upcoming'
           ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
           : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
@@ -162,7 +182,7 @@ function handleTabChange(tab: TabKey) {
 
       <button
         type="button"
-        onclick={() => handleTabChange("past")}
+        onclick={() => (activeTab = "past")}
         class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'past'
           ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
           : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
@@ -175,7 +195,7 @@ function handleTabChange(tab: TabKey) {
 
       <button
         type="button"
-        onclick={() => handleTabChange("cancelled")}
+        onclick={() => (activeTab = "cancelled")}
         class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'cancelled'
           ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
           : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
@@ -188,7 +208,7 @@ function handleTabChange(tab: TabKey) {
 
       <button
         type="button"
-        onclick={() => handleTabChange("refunds")}
+        onclick={() => (activeTab = "refunds")}
         class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'refunds'
           ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
           : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
@@ -201,7 +221,7 @@ function handleTabChange(tab: TabKey) {
 
       <button
         type="button"
-        onclick={() => handleTabChange("disputes")}
+        onclick={() => (activeTab = "disputes")}
         class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-2 text-sm font-semibold transition-all select-none {activeTab === 'disputes'
           ? 'border-[#E6FA50]/30 bg-[#E6FA50]/10 text-[#E6FA50]'
           : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/40 hover:bg-white/[0.05] hover:text-[#F7F7F7]/60'}"
@@ -299,7 +319,7 @@ function handleTabChange(tab: TabKey) {
           {/each}
         </div>
       {/if}
-    {:else if bookings.length === 0}
+    {:else if currentList.length === 0}
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-12 md:p-16 text-center w-full my-4">
         <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-[#E6FA50] mx-auto mb-4">
           <CalendarDays class="h-6 w-6" />
@@ -317,7 +337,7 @@ function handleTabChange(tab: TabKey) {
       </div>
     {:else}
       <div class="space-y-4">
-        {#each bookings as b, i (b.id)}
+        {#each currentList as b, i (b.id)}
           {@const images = [IMG.venue1, IMG.venue2, IMG.venue3]}
           <div
             class="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 transition-all duration-200 hover:border-[#E6FA50]/15"
@@ -365,7 +385,7 @@ function handleTabChange(tab: TabKey) {
                     </span>
                     <span class="flex items-center gap-1">
                       <CalendarDays class="h-3 w-3 text-[#50C8C8]" />
-                      {b.bookingDate}
+                      {formatBookingDate(b.bookingDate)}
                     </span>
                     <span class="flex items-center gap-1">
                       <Clock class="h-3 w-3 text-[#50C8C8]" />
