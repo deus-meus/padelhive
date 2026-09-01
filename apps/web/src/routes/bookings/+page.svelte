@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Calendar,
   CalendarDays,
+  ChevronDown,
   Clock,
   Eye,
   MapPin,
@@ -660,17 +661,20 @@ function getStatusStyle(status: string) {
             <label for="issueType" class="body-sm text-xs font-medium text-[#F7F7F7]/60">
               Issue type
             </label>
-            <select
-              id="issueType"
-              bind:value={disputeIssueType}
-              class="w-full rounded-xl border border-white/[0.08] bg-[#06121A] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none"
-            >
-              <option value="Court Unavailable">Court Unavailable</option>
-              <option value="Facility Issue">Facility Issue</option>
-              <option value="Payment Dispute">Payment Dispute</option>
-              <option value="Booking Conflict">Booking Conflict</option>
-              <option value="Other">Other</option>
-            </select>
+            <div class="relative">
+              <select
+                id="issueType"
+                bind:value={disputeIssueType}
+                class="w-full appearance-none rounded-xl border border-white/[0.08] bg-[#06121A] pl-4 pr-10 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none cursor-pointer"
+              >
+                <option value="Court Unavailable" class="bg-[#0C1B26] text-[#F7F7F7]">Court Unavailable</option>
+                <option value="Facility Issue" class="bg-[#0C1B26] text-[#F7F7F7]">Facility Issue</option>
+                <option value="Payment Dispute" class="bg-[#0C1B26] text-[#F7F7F7]">Payment Dispute</option>
+                <option value="Booking Conflict" class="bg-[#0C1B26] text-[#F7F7F7]">Booking Conflict</option>
+                <option value="Other" class="bg-[#0C1B26] text-[#F7F7F7]">Other</option>
+              </select>
+              <ChevronDown class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/40" />
+            </div>
           </div>
 
           <!-- Priority dropdown -->
@@ -678,16 +682,19 @@ function getStatusStyle(status: string) {
             <label for="disputePriority" class="body-sm text-xs font-medium text-[#F7F7F7]/60">
               Priority
             </label>
-            <select
-              id="disputePriority"
-              bind:value={disputePriority}
-              class="w-full rounded-xl border border-white/[0.08] bg-[#06121A] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none"
-            >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-              <option value="Urgent">Urgent</option>
-            </select>
+            <div class="relative">
+              <select
+                id="disputePriority"
+                bind:value={disputePriority}
+                class="w-full appearance-none rounded-xl border border-white/[0.08] bg-[#06121A] pl-4 pr-10 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none cursor-pointer"
+              >
+                <option value="Low" class="bg-[#0C1B26] text-[#F7F7F7]">Low</option>
+                <option value="Medium" class="bg-[#0C1B26] text-[#F7F7F7]">Medium</option>
+                <option value="High" class="bg-[#0C1B26] text-[#F7F7F7]">High</option>
+                <option value="Urgent" class="bg-[#0C1B26] text-[#F7F7F7]">Urgent</option>
+              </select>
+              <ChevronDown class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/40" />
+            </div>
           </div>
 
           <!-- Description textarea -->
