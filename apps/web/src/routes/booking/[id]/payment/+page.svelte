@@ -564,7 +564,7 @@ async function confirmCancelBooking() {
                   <!-- Radio Button Circle Indicator with Dark Inner Knob -->
                   <div class="flex h-5 w-5 items-center justify-center rounded-full border transition-colors {selectedMethod === method.id ? 'border-[#50C8C8] bg-[#50C8C8]' : 'border-white/20'}">
                     {#if selectedMethod === method.id}
-                      <div class="h-2 w-2 rounded-full bg-[#06121A]"></div>
+                      <div class="h-2 w-2 rounded-full bg-[#06121A] -translate-x-[1px] -translate-y-[1px]"></div>
                     {/if}
                   </div>
                 </button>
