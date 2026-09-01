@@ -359,14 +359,14 @@ function handleLogout() {
           onclick={() => (mobileOpen = false)}
           class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
         >
-          <CalendarDays class="h-4 w-4 text-[#50C8C8]" /> My Bookings
+          <CalendarDays class="h-4 w-4 text-[#E6FA50]" /> My Bookings
         </a>
         <a
           href="/vouchers"
           onclick={() => (mobileOpen = false)}
           class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
         >
-          <Ticket class="h-4 w-4 text-[#50C8C8]" /> My Vouchers
+          <Ticket class="h-4 w-4 text-[#E6FA50]" /> My Vouchers
         </a>
         {#if showDashboard}
           <div class="my-1 border-t border-white/[0.04]"></div>
