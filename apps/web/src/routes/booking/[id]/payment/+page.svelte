@@ -672,7 +672,7 @@ async function confirmCancelBooking() {
         </div>
 
         <div>
-          <h3 class="heading-2 text-[#F7F7F7] font-bold">Cancel Reservation</h3>
+          <h3 class="heading-3 font-semibold text-[#F7F7F7]">Cancel Reservation</h3>
           <p class="body-sm text-[#F7F7F7]/60 mt-1.5 leading-relaxed">
             Are you sure you want to cancel this booking reservation? Your selected court slot will be released back to the venue.
           </p>
@@ -681,16 +681,16 @@ async function confirmCancelBooking() {
         {#if booking}
           <div class="rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5 space-y-2 text-xs">
             <div class="flex justify-between items-center">
-              <span class="text-[#F7F7F7]/40">Venue</span>
-              <span class="font-semibold text-[#F7F7F7]">{booking.venue?.name || "Padel Arena"}</span>
+              <span class="caption text-[#F7F7F7]/40">Venue</span>
+              <span class="body-sm font-semibold text-[#F7F7F7]">{booking.venue?.name || "Padel Arena"}</span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-[#F7F7F7]/40">Court</span>
-              <span class="font-semibold text-[#F7F7F7]">{booking.court?.name || "Court A"}</span>
+              <span class="caption text-[#F7F7F7]/40">Court</span>
+              <span class="body-sm font-semibold text-[#F7F7F7]">{booking.court?.name || "Court A"}</span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-[#F7F7F7]/40">Time</span>
-              <span class="font-semibold text-[#E6FA50]">{formatBookingTimeRange(booking.startsAt, booking.endsAt)}</span>
+              <span class="caption text-[#F7F7F7]/40">Time</span>
+              <span class="body-sm font-semibold text-[#E6FA50]">{formatBookingTimeRange(booking.startsAt, booking.endsAt)}</span>
             </div>
           </div>
         {/if}
@@ -699,7 +699,7 @@ async function confirmCancelBooking() {
           <button
             type="button"
             onclick={() => (showCancelModal = false)}
-            class="label h-11 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.05] hover:text-[#F7F7F7]"
+            class="label flex h-11 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/80 transition-colors hover:bg-white/[0.05] hover:text-[#F7F7F7]"
           >
             Keep Reservation
           </button>
@@ -707,7 +707,7 @@ async function confirmCancelBooking() {
             type="button"
             disabled={isCancelling}
             onclick={confirmCancelBooking}
-            class="label h-11 rounded-xl border border-red-500/30 bg-red-500/15 text-red-400 font-bold transition-all hover:bg-red-500/25 disabled:opacity-50"
+            class="label flex h-11 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/15 text-red-400 font-bold transition-all hover:bg-red-500/25 disabled:opacity-50"
           >
             {isCancelling ? "Cancelling..." : "Confirm Cancel"}
           </button>

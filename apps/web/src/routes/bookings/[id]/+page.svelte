@@ -423,38 +423,40 @@ function getPaymentStyle(status: string) {
 
     <!-- Cancel Booking Confirmation Modal -->
     {#if showCancelModal}
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
         <div class="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 space-y-5 shadow-2xl">
-          <div class="flex items-center justify-between">
-            <h3 class="heading-2 text-[#F7F7F7] flex items-center gap-2">
-              <AlertTriangle class="h-5 w-5 text-red-400" />
-              Cancel Booking
-            </h3>
+          <div class="flex items-start justify-between">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400">
+              <AlertTriangle class="h-6 w-6" />
+            </div>
             <button
               type="button"
               onclick={() => (showCancelModal = false)}
-              class="rounded-lg p-1 text-[#F7F7F7]/40 hover:text-[#F7F7F7]"
+              class="rounded-lg p-1.5 text-[#F7F7F7]/40 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
             >
               <X class="h-4 w-4" />
             </button>
           </div>
 
-          <p class="body-sm text-[#F7F7F7]/70">
-            Are you sure you want to cancel this booking? This action cannot be undone.
-          </p>
-
-          <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-2 text-xs">
-            <p class="font-semibold text-[#F7F7F7]">Refund Policy:</p>
-            <p class="text-[#F7F7F7]/60">• 100% refund if cancelled 24+ hours before start time.</p>
-            <p class="text-[#F7F7F7]/60">• 50% refund if cancelled 12-24 hours before start time.</p>
-            <p class="text-[#F7F7F7]/60">• Non-refundable if cancelled less than 12 hours before start time.</p>
+          <div>
+            <h3 class="heading-3 font-semibold text-[#F7F7F7]">Cancel Booking</h3>
+            <p class="body-sm text-[#F7F7F7]/60 mt-1.5 leading-relaxed">
+              Are you sure you want to cancel this booking? This action cannot be undone.
+            </p>
           </div>
 
-          <div class="flex items-center gap-3 pt-2">
+          <div class="rounded-xl border border-white/[0.06] bg-white/[0.015] p-3.5 space-y-2 text-xs">
+            <p class="caption font-semibold text-[#F7F7F7]">Refund Policy:</p>
+            <p class="caption text-[#F7F7F7]/60">• 100% refund if cancelled 24+ hours before start time.</p>
+            <p class="caption text-[#F7F7F7]/60">• 50% refund if cancelled 12-24 hours before start time.</p>
+            <p class="caption text-[#F7F7F7]/60">• Non-refundable if cancelled less than 12 hours before start time.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-1">
             <button
               type="button"
               onclick={() => (showCancelModal = false)}
-              class="flex-1 rounded-full border border-white/[0.1] py-2.5 text-xs font-semibold text-[#F7F7F7]/70 hover:bg-white/[0.04]"
+              class="label flex h-11 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#F7F7F7]/80 transition-colors hover:bg-white/[0.05] hover:text-[#F7F7F7]"
             >
               Keep Booking
             </button>
@@ -462,7 +464,7 @@ function getPaymentStyle(status: string) {
               type="button"
               disabled={isCancellingBooking}
               onclick={confirmCancelBooking}
-              class="flex-1 rounded-full bg-red-500 py-2.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+              class="label flex h-11 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/15 text-red-400 font-bold transition-all hover:bg-red-500/25 disabled:opacity-50"
             >
               {isCancellingBooking ? "Cancelling..." : "Confirm Cancel"}
             </button>
