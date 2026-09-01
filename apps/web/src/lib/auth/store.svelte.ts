@@ -32,6 +32,8 @@ class AuthState {
         const cached = localStorage.getItem(CACHE_KEY);
         if (cached) {
           this.user = JSON.parse(cached);
+          this.isInitialized = true;
+          this.isLoading = false;
         }
       } catch (e) {
         console.warn("[AuthStore] Cache read error:", e);

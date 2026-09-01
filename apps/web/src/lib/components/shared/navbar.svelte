@@ -108,8 +108,8 @@ function handleLogout() {
       </span>
     </a>
 
-    <!-- Nav links when unauthenticated -->
-    {#if !user && !isDashboardOrAdmin}
+    <!-- Main navigation links -->
+    {#if !isDashboardOrAdmin}
       <nav class="hidden items-center gap-8 md:flex">
         <a
           href="/venues"
