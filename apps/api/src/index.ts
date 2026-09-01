@@ -22,13 +22,58 @@ import { vouchersModule } from "./modules/vouchers";
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3001;
 
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+// Sweep rate limit map periodically
+if (process.env.NODE_ENV !== "test") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, record] of rateLimitMap.entries()) {
+      if (now > record.resetTime) {
+        rateLimitMap.delete(ip);
+      }
+    }
+  }, 60000);
+}
+
 export const app = new Elysia()
-  .onRequest(({ request, store }) => {
+  .onRequest(({ request, store, set }) => {
     const reqId =
       request.headers.get("x-request-id") ||
       `req_${Math.random().toString(36).slice(2, 10)}`;
     (store as any).reqId = reqId;
     (store as any).startTime = performance.now();
+
+    const url = new URL(request.url).pathname;
+    if (url === "/api/health" || url === "/api/swagger") return;
+
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      request.headers.get("x-real-ip") ||
+      "127.0.0.1";
+
+    const now = Date.now();
+    const windowMs = 60000;
+    const maxRequests = 120;
+    const record = rateLimitMap.get(ip);
+
+    if (!record || now > record.resetTime) {
+      rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+      return;
+    }
+
+    record.count++;
+    if (record.count > maxRequests) {
+      set.status = 429;
+      set.headers["retry-after"] = String(
+        Math.ceil((record.resetTime - now) / 1000),
+      );
+      return {
+        statusCode: 429,
+        message: "Too many requests. Please try again in a minute.",
+        error: "Too Many Requests",
+      };
+    }
   })
   .onAfterResponse(({ request, store, set }) => {
     const startTime = (store as any).startTime || performance.now();
