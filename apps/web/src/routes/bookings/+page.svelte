@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Calendar,
   CalendarDays,
+  Check,
   ChevronDown,
   Clock,
   Eye,
@@ -37,7 +38,7 @@ let refunds = $state<any[]>([]);
 let disputes = $state<any[]>([]);
 let isLoading = $state(true);
 
-// Dispute Modal states (Image #121)
+// Dispute Modal states (Image #121 & Image #125)
 let showDisputeModal = $state(false);
 let selectedBookingForDispute = $state<any | null>(null);
 let disputeIssueType = $state("Court Unavailable");
@@ -46,6 +47,20 @@ let disputeDescription = $state("");
 let isSubmittingDispute = $state(false);
 let disputeError = $state<string | null>(null);
 let toast = $state<string | null>(null);
+
+// Custom Dropdown Open States (1:1 Image #125)
+let isIssueTypeOpen = $state(false);
+let isPriorityOpen = $state(false);
+
+const ISSUE_TYPE_OPTIONS = [
+  "Court Unavailable",
+  "Facility Issue",
+  "Payment Dispute",
+  "Booking Conflict",
+  "Other",
+];
+
+const PRIORITY_OPTIONS = ["Low", "Medium", "High", "Urgent"];
 
 function showToast(msg: string) {
   toast = msg;
@@ -58,6 +73,8 @@ function openDisputeModal(bookingItem: any) {
   disputePriority = "Medium";
   disputeDescription = "";
   disputeError = null;
+  isIssueTypeOpen = false;
+  isPriorityOpen = false;
   showDisputeModal = true;
 }
 
@@ -656,45 +673,94 @@ function getStatusStyle(status: string) {
         {/if}
 
         <div class="space-y-4">
-          <!-- Issue type dropdown -->
-          <div class="space-y-1.5">
-            <label for="issueType" class="body-sm text-xs font-medium text-[#F7F7F7]/60">
+          <!-- Issue type dropdown (Custom Floating Popover 1:1 Image #125) -->
+          <div class="space-y-1.5 relative">
+            <span class="body-sm text-xs font-medium text-[#F7F7F7]/60 block">
               Issue type
-            </label>
-            <div class="relative">
-              <select
-                id="issueType"
-                bind:value={disputeIssueType}
-                class="w-full appearance-none rounded-xl border border-white/[0.08] bg-[#06121A] pl-4 pr-10 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none cursor-pointer"
+            </span>
+            <button
+              type="button"
+              onclick={() => {
+                isIssueTypeOpen = !isIssueTypeOpen;
+                isPriorityOpen = false;
+              }}
+              class="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-[#06121A] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none transition-colors"
+            >
+              <span>{disputeIssueType}</span>
+              <ChevronDown
+                class="h-4 w-4 text-[#F7F7F7]/40 transition-transform duration-200 {isIssueTypeOpen ? 'rotate-180 text-[#50C8C8]' : ''}"
+              />
+            </button>
+
+            {#if isIssueTypeOpen}
+              <div
+                class="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border border-white/10 bg-[#0C1B26] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in-50 zoom-in-95 space-y-0.5"
               >
-                <option value="Court Unavailable" class="bg-[#0C1B26] text-[#F7F7F7]">Court Unavailable</option>
-                <option value="Facility Issue" class="bg-[#0C1B26] text-[#F7F7F7]">Facility Issue</option>
-                <option value="Payment Dispute" class="bg-[#0C1B26] text-[#F7F7F7]">Payment Dispute</option>
-                <option value="Booking Conflict" class="bg-[#0C1B26] text-[#F7F7F7]">Booking Conflict</option>
-                <option value="Other" class="bg-[#0C1B26] text-[#F7F7F7]">Other</option>
-              </select>
-              <ChevronDown class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/40" />
-            </div>
+                {#each ISSUE_TYPE_OPTIONS as option}
+                  {@const selected = disputeIssueType === option}
+                  <button
+                    type="button"
+                    onclick={() => {
+                      disputeIssueType = option;
+                      isIssueTypeOpen = false;
+                    }}
+                    class="flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm transition-all {selected
+                      ? 'bg-[#E6FA50]/10 text-[#E6FA50] font-semibold'
+                      : 'text-[#F7F7F7]/70 hover:bg-white/[0.04] hover:text-[#F7F7F7]'}"
+                  >
+                    <span>{option}</span>
+                    {#if selected}
+                      <Check class="h-4 w-4 text-[#E6FA50]" />
+                    {/if}
+                  </button>
+                {/each}
+              </div>
+            {/if}
           </div>
 
-          <!-- Priority dropdown -->
-          <div class="space-y-1.5">
-            <label for="disputePriority" class="body-sm text-xs font-medium text-[#F7F7F7]/60">
+          <!-- Priority dropdown (Custom Floating Popover 1:1 Image #125) -->
+          <div class="space-y-1.5 relative">
+            <span class="body-sm text-xs font-medium text-[#F7F7F7]/60 block">
               Priority
-            </label>
-            <div class="relative">
-              <select
-                id="disputePriority"
-                bind:value={disputePriority}
-                class="w-full appearance-none rounded-xl border border-white/[0.08] bg-[#06121A] pl-4 pr-10 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none cursor-pointer"
+            </span>
+            <button
+              type="button"
+              onclick={() => {
+                isPriorityOpen = !isPriorityOpen;
+                isIssueTypeOpen = false;
+              }}
+              class="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-[#06121A] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none transition-colors"
+            >
+              <span>{disputePriority}</span>
+              <ChevronDown
+                class="h-4 w-4 text-[#F7F7F7]/40 transition-transform duration-200 {isPriorityOpen ? 'rotate-180 text-[#50C8C8]' : ''}"
+              />
+            </button>
+
+            {#if isPriorityOpen}
+              <div
+                class="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border border-white/10 bg-[#0C1B26] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in-50 zoom-in-95 space-y-0.5"
               >
-                <option value="Low" class="bg-[#0C1B26] text-[#F7F7F7]">Low</option>
-                <option value="Medium" class="bg-[#0C1B26] text-[#F7F7F7]">Medium</option>
-                <option value="High" class="bg-[#0C1B26] text-[#F7F7F7]">High</option>
-                <option value="Urgent" class="bg-[#0C1B26] text-[#F7F7F7]">Urgent</option>
-              </select>
-              <ChevronDown class="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/40" />
-            </div>
+                {#each PRIORITY_OPTIONS as option}
+                  {@const selected = disputePriority === option}
+                  <button
+                    type="button"
+                    onclick={() => {
+                      disputePriority = option;
+                      isPriorityOpen = false;
+                    }}
+                    class="flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm transition-all {selected
+                      ? 'bg-[#E6FA50]/10 text-[#E6FA50] font-semibold'
+                      : 'text-[#F7F7F7]/70 hover:bg-white/[0.04] hover:text-[#F7F7F7]'}"
+                  >
+                    <span>{option}</span>
+                    {#if selected}
+                      <Check class="h-4 w-4 text-[#E6FA50]" />
+                    {/if}
+                  </button>
+                {/each}
+              </div>
+            {/if}
           </div>
 
           <!-- Description textarea -->
