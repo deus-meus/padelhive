@@ -673,7 +673,7 @@ function getStatusStyle(status: string) {
         {/if}
 
         <div class="space-y-4">
-          <!-- Issue type dropdown (Custom Floating Popover 1:1 Image #125) -->
+          <!-- Issue type dropdown (Custom Floating Popover 1:1 Image #125 & Image #126) -->
           <div class="space-y-1.5 relative">
             <span class="body-sm text-xs font-medium text-[#F7F7F7]/60 block">
               Issue type
@@ -684,17 +684,19 @@ function getStatusStyle(status: string) {
                 isIssueTypeOpen = !isIssueTypeOpen;
                 isPriorityOpen = false;
               }}
-              class="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-[#06121A] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none transition-colors"
+              class="flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors {isIssueTypeOpen
+                ? 'border-[#E6FA50]/40 bg-[#06121A] text-[#F7F7F7]'
+                : 'border-white/[0.08] bg-[#06121A] text-[#F7F7F7] hover:border-white/[0.15]'}"
             >
               <span>{disputeIssueType}</span>
               <ChevronDown
-                class="h-4 w-4 text-[#F7F7F7]/40 transition-transform duration-200 {isIssueTypeOpen ? 'rotate-180 text-[#50C8C8]' : ''}"
+                class="h-4 w-4 transition-transform duration-200 {isIssueTypeOpen ? 'rotate-180 text-[#E6FA50]' : 'text-[#F7F7F7]/40'}"
               />
             </button>
 
             {#if isIssueTypeOpen}
               <div
-                class="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border border-white/10 bg-[#0C1B26] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in-50 zoom-in-95 space-y-0.5"
+                class="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border border-[#E6FA50]/40 bg-[#0C1B26] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in-50 zoom-in-95 space-y-0.5"
               >
                 {#each ISSUE_TYPE_OPTIONS as option}
                   {@const selected = disputeIssueType === option}
@@ -718,7 +720,7 @@ function getStatusStyle(status: string) {
             {/if}
           </div>
 
-          <!-- Priority dropdown (Custom Floating Popover 1:1 Image #125) -->
+          <!-- Priority dropdown (Custom Floating Popover 1:1 Image #125 & Image #126) -->
           <div class="space-y-1.5 relative">
             <span class="body-sm text-xs font-medium text-[#F7F7F7]/60 block">
               Priority
@@ -729,17 +731,19 @@ function getStatusStyle(status: string) {
                 isPriorityOpen = !isPriorityOpen;
                 isIssueTypeOpen = false;
               }}
-              class="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-[#06121A] px-4 py-3 text-sm text-[#F7F7F7] focus:border-[#50C8C8]/40 focus:outline-none transition-colors"
+              class="flex w-full items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors {isPriorityOpen
+                ? 'border-[#E6FA50]/40 bg-[#06121A] text-[#F7F7F7]'
+                : 'border-white/[0.08] bg-[#06121A] text-[#F7F7F7] hover:border-white/[0.15]'}"
             >
               <span>{disputePriority}</span>
               <ChevronDown
-                class="h-4 w-4 text-[#F7F7F7]/40 transition-transform duration-200 {isPriorityOpen ? 'rotate-180 text-[#50C8C8]' : ''}"
+                class="h-4 w-4 transition-transform duration-200 {isPriorityOpen ? 'rotate-180 text-[#E6FA50]' : 'text-[#F7F7F7]/40'}"
               />
             </button>
 
             {#if isPriorityOpen}
               <div
-                class="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border border-white/10 bg-[#0C1B26] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in-50 zoom-in-95 space-y-0.5"
+                class="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border border-[#E6FA50]/40 bg-[#0C1B26] p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in-50 zoom-in-95 space-y-0.5"
               >
                 {#each PRIORITY_OPTIONS as option}
                   {@const selected = disputePriority === option}
