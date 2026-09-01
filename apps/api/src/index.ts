@@ -22,6 +22,31 @@ import { vouchersModule } from "./modules/vouchers";
 const port = process.env.PORT ? Number(process.env.PORT) : 3001;
 
 export const app = new Elysia()
+  .onRequest(({ store }) => {
+    (store as any).startTime = performance.now();
+  })
+  .onAfterResponse(({ request, store, set }) => {
+    const startTime = (store as any).startTime || performance.now();
+    const duration = Math.round(performance.now() - startTime);
+    const method = request.method;
+    const url = new URL(request.url).pathname;
+    const status = typeof set.status === "number" ? set.status : 200;
+    const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+
+    if (status >= 500) {
+      console.error(
+        `[${timestamp}] [ERROR] ${method} ${url} ${status} - ${duration}ms`,
+      );
+    } else if (status >= 400) {
+      console.warn(
+        `[${timestamp}] [WARN] ${method} ${url} ${status} - ${duration}ms`,
+      );
+    } else {
+      console.log(
+        `[${timestamp}] [INFO] ${method} ${url} ${status} - ${duration}ms`,
+      );
+    }
+  })
   .use(
     cors({
       origin: true,
