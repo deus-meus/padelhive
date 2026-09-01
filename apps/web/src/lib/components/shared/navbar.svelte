@@ -249,7 +249,7 @@ function handleLogout() {
         </a>
       {/if}
 
-      {#if !user}
+      {#if authStore.isInitialized && !user}
         <button
           type="button"
           onclick={() => (mobileOpen = !mobileOpen)}
@@ -266,7 +266,7 @@ function handleLogout() {
     </div>
   </div>
 
-  {#if !user && mobileOpen}
+  {#if authStore.isInitialized && !user && mobileOpen}
     <div class="border-t border-white/[0.06] md:hidden">
       <nav class="container flex flex-col gap-1 py-4">
         <a
