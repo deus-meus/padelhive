@@ -10,12 +10,16 @@ export type CourtPricing = {
 export function wibToUtc(dateStr: string, timeStr: string): Date {
   const [year, month, day] = dateStr.split("-").map(Number);
   const [hour, minute] = timeStr.split(":").map(Number);
-  
-  return new Date(Date.UTC(year, month - 1, day, hour - WIB_OFFSET_HOURS, minute, 0, 0));
+
+  return new Date(
+    Date.UTC(year, month - 1, day, hour - WIB_OFFSET_HOURS, minute, 0, 0),
+  );
 }
 
 export function utcToWibDateStr(utcDate: Date): string {
-  const wibDate = new Date(utcDate.getTime() + WIB_OFFSET_HOURS * 60 * 60 * 1000);
+  const wibDate = new Date(
+    utcDate.getTime() + WIB_OFFSET_HOURS * 60 * 60 * 1000,
+  );
   const year = wibDate.getUTCFullYear();
   const month = String(wibDate.getUTCMonth() + 1).padStart(2, "0");
   const day = String(wibDate.getUTCDate()).padStart(2, "0");
@@ -39,7 +43,11 @@ export function isPeakHour(hour: number, isWeekend: boolean): boolean {
   return hour >= 17 && hour < 21;
 }
 
-export function getSlotPrice(court: CourtPricing, hour: number, isWeekend: boolean): number {
+export function getSlotPrice(
+  court: CourtPricing,
+  hour: number,
+  isWeekend: boolean,
+): number {
   const peak = isPeakHour(hour, isWeekend);
 
   if (isWeekend) {
@@ -70,7 +78,15 @@ export function addDaysToDateStr(dateStr: string, days: number): string {
   return `${newYear}-${newMonth}-${newDay}`;
 }
 
-export function resolveSlotUtc(dateStr: string, clockHour: number, openHour: number, overnight: boolean): Date {
-  const offset = (overnight && clockHour < openHour) ? 1 : 0;
-  return wibToUtc(addDaysToDateStr(dateStr, offset), String(clockHour).padStart(2, "0") + ":00");
+export function resolveSlotUtc(
+  dateStr: string,
+  clockHour: number,
+  openHour: number,
+  overnight: boolean,
+): Date {
+  const offset = overnight && clockHour < openHour ? 1 : 0;
+  return wibToUtc(
+    addDaysToDateStr(dateStr, offset),
+    `${String(clockHour).padStart(2, "0")}:00`,
+  );
 }

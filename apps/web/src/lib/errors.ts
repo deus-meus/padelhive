@@ -1,5 +1,3 @@
-import { ApiRequestError, getApiErrorMessage } from "./api";
-
 export function getFirebaseAuthErrorMessage(error: unknown): string {
   const code =
     typeof error === "object" && error !== null && "code" in error
@@ -40,11 +38,9 @@ export function getUserFacingErrorMessage(error: unknown): string {
     return getFirebaseAuthErrorMessage(error);
   }
 
-  if (error instanceof ApiRequestError) {
-    return getApiErrorMessage(error);
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return String((error as any).message);
   }
 
   return "Something went wrong. Please try again.";
 }
-
-export { getApiErrorMessage };

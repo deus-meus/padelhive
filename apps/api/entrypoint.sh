@@ -7,5 +7,5 @@ bunx prisma migrate deploy --schema prisma/schema.prisma
 echo "Running Prisma Seeder..."
 bun prisma/seed.ts
 
-echo "Starting API Server..."
-bun dist/src/main.js
+echo "Starting Elysia API Server..."
+bun dist/index.js

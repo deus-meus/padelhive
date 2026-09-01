@@ -1,23 +1,23 @@
 # PadelHive
 
-Padel court booking platform. Monorepo containing a NestJS API and a Next.js web app, backed by PostgreSQL (Prisma) with Firebase authentication.
+Padel court booking marketplace. Monorepo containing an ElysiaJS API and a SvelteKit web app, backed by PostgreSQL (Prisma) with Firebase authentication.
 
 ## Tech stack
-- **API (apps/api):** NestJS, Prisma, PostgreSQL 16, Firebase Admin
-- **Web (apps/web):** Next.js 14 (App Router), React Query, Zustand, Firebase client
-- **Tooling:** Bun workspaces, Jest, ESLint, Docker Compose
+- **API (`apps/api`):** ElysiaJS, Prisma, PostgreSQL 16, Firebase Admin, Bun
+- **Web (`apps/web`):** SvelteKit 2, Svelte 5 Runes, Tailwind CSS, Lucide Svelte, Eden Treaty, Firebase Client
+- **Tooling:** Bun workspaces, BiomeJS, Docker Compose
 
 ## Project structure
 ```text
 apps/
-  api/   # NestJS backend (bookings, venues, courts, payments, refunds, invites, vouchers, auth, admin)
-  web/   # Next.js frontend
+  api/   # ElysiaJS backend (bookings, venues, courts, payments, refunds, invites, vouchers, auth, admin, disputes, notifications, health)
+  web/   # SvelteKit frontend
 docker-compose.yml   # local PostgreSQL
 ```
 
 ## Prerequisites
 - Bun (>= 1.1)
-- Docker (for local PostgreSQL and API integration tests)
+- Docker (for local PostgreSQL)
 
 ## Setup
 1. Install dependencies: `bun install`
@@ -29,23 +29,26 @@ docker-compose.yml   # local PostgreSQL
 5. (Optional) Seed data: `bun run prisma:seed`
 
 ## Firebase auth (setup)
-1) create/select Firebase project (id padelhive)
+1) Create/select Firebase project (id `padelhive`)
 2) Authentication -> enable Email/Password + Google
-3) fill apps/web/.env (NEXT_PUBLIC_FIREBASE_*)
-4) fill apps/api/.env (PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY from service account JSON, never commit)
-5) bun run seed:test-auth to create the 4 test accounts
-6) login with admin@padelhive.com / Padel#Super1
+3) Fill `apps/web/.env` (`PUBLIC_FIREBASE_*`)
+4) Fill `apps/api/.env` (`PROJECT_ID`/`CLIENT_EMAIL`/`PRIVATE_KEY` from service account JSON, never commit)
+5) `bun run seed:test-auth` to create the test accounts
+6) Login with `admin@padelhive.com` / `Padel#Super1`
 
 ## Running
-- **API:** `bun run api:dev`
-- **Web:** `bun run dev`
+- **API:** `bun run api:dev` (runs on `http://localhost:3001/api`)
+- **Web:** `bun run dev` (runs on `http://localhost:3000`)
 
-**Local Redis test:** run `docker compose --profile redis up -d redis` (or `docker run -p 6379:6379 redis:7` as a fallback for non-compose users), set `REDIS_URL=redis://localhost:6379` in `apps/api/.env`, start two api instances on different ports, open an SSE stream against each, trigger a notification, and confirm BOTH receive it; then unset `REDIS_URL` and confirm the app still boots and SSE works single-instance.
+### Observability & Health Endpoints
+- **Health Check:** `http://localhost:3001/api/health`
+- **Swagger Documentation:** `http://localhost:3001/api/swagger`
+- **Request Tracing:** Automatic `X-Request-ID` header correlation across web & API logs.
+- **Logging:** Clean text-based logging in Development mode; structured JSON logging in Production mode.
 
-## Testing
-- **API unit tests:** `bun run test -w @padelhive/api` (or `bun --filter @padelhive/api test`)
-- **API lint:** `bun run api:lint`
-- **API integration tests (require Docker, uses Testcontainers):** `bun run test:int -w @padelhive/api`
+## Testing & Quality Assurance
+- **Type Checking:** `bun run check` (or `cd apps/web && bun svelte-check`)
+- **Linting & Code Formatting:** `bun run lint` (uses BiomeJS)
 
 ## Environment variables
 
@@ -57,15 +60,15 @@ docker-compose.yml   # local PostgreSQL
 - `FIREBASE_PRIVATE_KEY` (optional): For Firebase Admin Service Account
 - `MIDTRANS_IS_PRODUCTION`: Toggles sandbox vs production endpoints (default "false")
 - `MIDTRANS_SERVER_KEY`: Secret used for webhook signature verification and Basic auth
-- `REDIS_URL` (optional): Enables cross-pod SSE fan-out + shared rate limiting. Leave empty for single-instance/local dev (in-memory).
 
 **Web (`apps/web/.env`)**
-- `NEXT_PUBLIC_API_URL`: URL for the API backend
-- `NEXT_PUBLIC_FIREBASE_API_KEY`: Firebase client configuration
-- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`: Firebase client configuration
-- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`: Firebase client configuration
-- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`: Firebase client configuration
-- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`: Firebase client configuration
-- `NEXT_PUBLIC_FIREBASE_APP_ID`: Firebase client configuration
+- `PUBLIC_API_URL`: URL for the API backend (default `http://localhost:3001`)
+- `PUBLIC_FIREBASE_API_KEY`: Firebase client configuration
+- `PUBLIC_FIREBASE_AUTH_DOMAIN`: Firebase client configuration
+- `PUBLIC_FIREBASE_PROJECT_ID`: Firebase client configuration
+- `PUBLIC_FIREBASE_STORAGE_BUCKET`: Firebase client configuration
+- `PUBLIC_FIREBASE_MESSAGING_SENDER_ID`: Firebase client configuration
+- `PUBLIC_FIREBASE_APP_ID`: Firebase client configuration
+- `PUBLIC_MIDTRANS_CLIENT_KEY`: Midtrans client key
 
 *(Never commit real `.env` files with actual secrets to version control!)*

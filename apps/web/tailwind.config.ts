@@ -1,10 +1,9 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
   darkMode: "class",
-  content: [
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ["./src/**/*.{html,js,ts,svelte}"],
   theme: {
     container: {
       center: true,
@@ -50,12 +49,12 @@ const config: Config = {
         },
       },
       spacing: {
-        "section": "120px",
+        section: "120px",
         "section-sm": "80px",
-        "subsection": "64px",
-        "component": "32px",
-        "element": "16px",
-        "tight": "8px",
+        subsection: "64px",
+        component: "32px",
+        element: "16px",
+        tight: "8px",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -63,8 +62,13 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        heading: ["var(--font-heading)"],
+        sans: ["Inter", "var(--font-sans)", "system-ui", "sans-serif"],
+        heading: [
+          "Space Grotesk",
+          "var(--font-heading)",
+          "system-ui",
+          "sans-serif",
+        ],
       },
       keyframes: {
         "accordion-down": {
@@ -82,7 +86,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 };
 
 export default config;
