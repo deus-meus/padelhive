@@ -285,7 +285,7 @@ async function confirmCancelBooking() {
     <!-- Page Header (Unified Design System) -->
     <div class="mt-4 mb-8">
       <h1 class="heading-1 text-[#F7F7F7]">
-        Payment <span class="text-[#E6FA50]">Checkout</span>
+        Payment Checkout
       </h1>
       <p class="body mt-1 text-[#F7F7F7]/40">
         Review your reservation details, manage split payments, and complete checkout.
@@ -356,7 +356,7 @@ async function confirmCancelBooking() {
               </div>
 
               <div class="rounded-xl bg-white/[0.02] p-3 border border-white/[0.04]">
-                <p class="heading-3 text-[#E6FA50]">
+                <p class="heading-3 text-[#F7F7F7]">
                   {formatBookingTimeRange(booking.startsAt, booking.endsAt)}
                 </p>
                 <p class="caption mt-0.5 text-[#F7F7F7]/25">Time (WIB)</p>
@@ -385,7 +385,7 @@ async function confirmCancelBooking() {
                 aria-checked={isSplitEnabled}
                 aria-label="Toggle split payment"
                 onclick={() => (isSplitEnabled = !isSplitEnabled)}
-                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none {isSplitEnabled ? 'bg-[#E6FA50]' : 'bg-white/[0.15]'}"
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none {isSplitEnabled ? 'bg-[#50C8C8]' : 'bg-white/[0.15]'}"
               >
                 <span
                   class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out {isSplitEnabled ? 'translate-x-5' : 'translate-x-0'}"
@@ -399,14 +399,14 @@ async function confirmCancelBooking() {
                 <button
                   type="button"
                   onclick={() => (splitMode = "equal")}
-                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'equal' ? 'bg-[#E6FA50] text-[#06121A] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
+                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'equal' ? 'bg-white/10 text-[#F7F7F7] shadow-sm border border-white/10' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
                 >
                   Equal
                 </button>
                 <button
                   type="button"
                   onclick={() => (splitMode = "custom")}
-                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'custom' ? 'bg-[#E6FA50] text-[#06121A] shadow-sm' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
+                  class="flex-1 rounded-lg text-xs font-semibold transition-all {splitMode === 'custom' ? 'bg-white/10 text-[#F7F7F7] shadow-sm border border-white/10' : 'text-[#F7F7F7]/40 hover:text-[#F7F7F7]'}"
                 >
                   Custom
                 </button>
@@ -443,7 +443,7 @@ async function confirmCancelBooking() {
                     {/if}
                   </p>
                 </div>
-                <span class="heading-2 text-[#E6FA50]">
+                <span class="heading-2 text-[#F7F7F7]">
                   Rp {(hostShareAmount / 1000).toFixed(0)}K
                 </span>
               </div>
@@ -466,7 +466,7 @@ async function confirmCancelBooking() {
                     </div>
                   </div>
 
-                  <span class="btn-lime label px-4 py-1.5 rounded-full font-bold text-xs shrink-0">
+                  <span class="label px-3.5 py-1.5 rounded-full font-semibold text-xs shrink-0 bg-[#50C8C8]/10 border border-[#50C8C8]/20 text-[#50C8C8]">
                     Pay Rp {(userFinalPayAmount / 1000).toFixed(0)}K
                   </span>
                 </div>
@@ -549,7 +549,7 @@ async function confirmCancelBooking() {
                   onclick={() => (selectedMethod = method.id)}
                   class="flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all {selectedMethod ===
                   method.id
-                    ? 'border-[#E6FA50] bg-[#E6FA50]/10 shadow-sm'
+                    ? 'border-[#50C8C8]/50 bg-white/[0.03] shadow-sm'
                     : 'border-white/[0.06] bg-white/[0.015] hover:border-white/[0.12]'}"
                 >
                   <div class="flex items-center gap-3.5">
@@ -562,7 +562,7 @@ async function confirmCancelBooking() {
                     </div>
                   </div>
                   <!-- Radio Button Circle Indicator with Dark Inner Knob -->
-                  <div class="flex h-5 w-5 items-center justify-center rounded-full border transition-colors {selectedMethod === method.id ? 'border-[#E6FA50] bg-[#E6FA50]' : 'border-white/20'}">
+                  <div class="flex h-5 w-5 items-center justify-center rounded-full border transition-colors {selectedMethod === method.id ? 'border-[#50C8C8] bg-[#50C8C8]' : 'border-white/20'}">
                     {#if selectedMethod === method.id}
                       <div class="h-2 w-2 rounded-full bg-[#06121A]"></div>
                     {/if}
@@ -606,7 +606,7 @@ async function confirmCancelBooking() {
 
                 <div class="flex justify-between items-baseline pt-3 border-t border-white/[0.06]">
                   <span class="heading-2 text-[#F7F7F7]">You pay</span>
-                  <span class="metric text-[#E6FA50]">
+                  <span class="metric text-[#F7F7F7]">
                     Rp {(userFinalPayAmount / 1000).toFixed(0)}K
                   </span>
                 </div>
@@ -690,7 +690,7 @@ async function confirmCancelBooking() {
             </div>
             <div class="flex justify-between items-center">
               <span class="caption text-[#F7F7F7]/40">Time</span>
-              <span class="body-sm font-semibold text-[#E6FA50]">{formatBookingTimeRange(booking.startsAt, booking.endsAt)}</span>
+              <span class="body-sm font-semibold text-[#F7F7F7]">{formatBookingTimeRange(booking.startsAt, booking.endsAt)}</span>
             </div>
           </div>
         {/if}

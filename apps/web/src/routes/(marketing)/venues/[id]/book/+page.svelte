@@ -333,7 +333,7 @@ async function handleCreateBooking(e: SubmitEvent) {
       <!-- Page Title & Subhead -->
       <div class="mt-4 mb-8">
         <h1 class="heading-1 text-[#F7F7F7]">
-          Book a <span class="text-[#E6FA50]">Court</span>
+          Book a Court
         </h1>
         <p class="body mt-1 flex items-center gap-2 text-[#F7F7F7]/40">
           <MapPin class="h-3.5 w-3.5 text-[#50C8C8]" />
@@ -374,7 +374,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                   }}
                   class="flex flex-col items-start rounded-xl border p-4 transition-all text-left {selectedCourtId ===
                   c.id
-                    ? 'border-[#E6FA50] bg-[#E6FA50]/10 shadow-sm'
+                    ? 'border-[#50C8C8]/50 bg-white/[0.03] shadow-sm'
                     : 'border-white/[0.06] bg-white/[0.015] hover:border-white/[0.12]'}"
                 >
                   <div class="flex items-center justify-between w-full">
@@ -438,7 +438,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                   }}
                   class="flex flex-col items-center justify-center rounded-xl border py-3 px-1 transition-all {selectedDate ===
                   item.iso
-                    ? 'border-[#E6FA50] bg-[#E6FA50]/15 text-[#E6FA50] shadow-sm'
+                    ? 'border-[#50C8C8] bg-[#50C8C8]/15 text-[#F7F7F7] shadow-sm'
                     : 'border-white/[0.06] bg-white/[0.015] text-[#F7F7F7]/60 hover:border-white/[0.12] hover:text-[#F7F7F7]'}"
                 >
                   <span class="metric text-lg sm:text-xl font-bold">{item.dateNum}</span>
@@ -490,9 +490,9 @@ async function handleCreateBooking(e: SubmitEvent) {
                     class="flex flex-col items-center justify-center rounded-xl border p-3 transition-all {isBooked
                       ? 'border-transparent bg-white/[0.02] text-[#F7F7F7]/20 line-through cursor-not-allowed opacity-40 pointer-events-none'
                       : selected
-                        ? 'border-[#E6FA50] bg-[#E6FA50]/20 text-[#E6FA50] font-bold shadow-sm'
+                        ? 'border-[#50C8C8] bg-[#50C8C8]/20 text-[#50C8C8] font-bold shadow-sm'
                         : slot.isPeak
-                          ? 'border-[#E6FA50]/20 bg-[#E6FA50]/5 text-[#E6FA50]/80 hover:border-[#E6FA50]/40'
+                          ? 'border-[#50C8C8]/20 bg-[#50C8C8]/5 text-[#50C8C8]/80 hover:border-[#50C8C8]/40'
                           : 'border-white/[0.06] bg-white/[0.015] text-[#F7F7F7]/80 hover:border-[#50C8C8]/40 hover:text-[#50C8C8]'}"
                   >
                     <span class="label font-bold">{slot.startsAt}</span>
@@ -511,7 +511,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                     <span class="caption text-[#F7F7F7]/40">Available</span>
                   </div>
                   <div class="flex items-center gap-2">
-                    <div class="h-2.5 w-2.5 rounded-sm border border-[#E6FA50]/30 bg-[#E6FA50]/10"></div>
+                    <div class="h-2.5 w-2.5 rounded-sm border border-[#50C8C8]/30 bg-[#50C8C8]/10"></div>
                     <span class="caption text-[#F7F7F7]/40">Peak Hour</span>
                   </div>
                   <div class="flex items-center gap-2">
@@ -550,7 +550,7 @@ async function handleCreateBooking(e: SubmitEvent) {
 
                 <div class="flex justify-between items-center">
                   <span class="text-[#F7F7F7]/40">Time (WIB)</span>
-                  <span class="heading-3 {hasSelectedSlots ? 'text-[#E6FA50]' : 'text-[#F7F7F7]/40'}">
+                  <span class="heading-3 {hasSelectedSlots ? 'text-[#F7F7F7]' : 'text-[#F7F7F7]/40'}">
                     {hasSelectedSlots ? `${formattedStartsAt} – ${formattedEndsAt} WIB` : "Not selected"}
                   </span>
                 </div>
@@ -594,7 +594,7 @@ async function handleCreateBooking(e: SubmitEvent) {
 
                 <div class="flex justify-between items-baseline pt-3 border-t border-white/[0.06]">
                   <span class="heading-2 text-[#F7F7F7]">Total</span>
-                  <span class="metric text-[#E6FA50]">
+                  <span class="metric text-[#F7F7F7]">
                     {hasSelectedSlots ? `Rp ${(totalDue / 1000).toFixed(0)}K` : "—"}
                   </span>
                 </div>
@@ -605,7 +605,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                 <input
                   type="checkbox"
                   bind:checked={isRefundProtection}
-                  class="mt-0.5 h-4 w-4 rounded border-white/20 accent-[#E6FA50]"
+                  class="mt-0.5 h-4 w-4 rounded border-white/20 accent-[#50C8C8]"
                 />
                 <div>
                   <p class="body-sm font-semibold text-[#F7F7F7]">Add Refund Protection</p>
