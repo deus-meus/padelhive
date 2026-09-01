@@ -249,20 +249,18 @@ function handleLogout() {
         </a>
       {/if}
 
-      {#if !user}
-        <button
-          type="button"
-          onclick={() => (mobileOpen = !mobileOpen)}
-          class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7] md:hidden"
-          aria-label="Toggle menu"
-        >
-          {#if mobileOpen}
-            <X class="h-5 w-5" />
-          {:else}
-            <Menu class="h-5 w-5" />
-          {/if}
-        </button>
-      {/if}
+      <button
+        type="button"
+        onclick={() => (mobileOpen = !mobileOpen)}
+        class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-[#F7F7F7] md:hidden"
+        aria-label="Toggle menu"
+      >
+        {#if mobileOpen}
+          <X class="h-5 w-5" />
+        {:else}
+          <Menu class="h-5 w-5" />
+        {/if}
+      </button>
     </div>
   </div>
 

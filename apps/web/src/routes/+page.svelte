@@ -426,7 +426,7 @@ const featuredVenue = $derived(venues.length > 0 ? venues[0] : null);
     >
       <div class="group flex gap-8 py-8 md:gap-12 md:py-10">
         <span
-          class="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20"
+          class="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/25 transition-colors duration-300 group-hover:text-[#E6FA50]"
           >01</span
         >
         <div class="flex flex-col justify-center">
@@ -444,7 +444,7 @@ const featuredVenue = $derived(venues.length > 0 ? venues[0] : null);
 
       <div class="group flex gap-8 py-8 md:gap-12 md:py-10">
         <span
-          class="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20"
+          class="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/25 transition-colors duration-300 group-hover:text-[#E6FA50]"
           >02</span
         >
         <div class="flex flex-col justify-center">
@@ -462,7 +462,7 @@ const featuredVenue = $derived(venues.length > 0 ? venues[0] : null);
 
       <div class="group flex gap-8 py-8 md:gap-12 md:py-10">
         <span
-          class="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20"
+          class="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/25 transition-colors duration-300 group-hover:text-[#E6FA50]"
           >03</span
         >
         <div class="flex flex-col justify-center">
@@ -479,7 +479,7 @@ const featuredVenue = $derived(venues.length > 0 ? venues[0] : null);
 
       <div class="group flex gap-8 py-8 md:gap-12 md:py-10">
         <span
-          class="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/[0.04] transition-colors duration-300 group-hover:text-[#E6FA50]/20"
+          class="display-lg w-16 md:w-24 flex shrink-0 items-center justify-center text-white/25 transition-colors duration-300 group-hover:text-[#E6FA50]"
           >04</span
         >
         <div class="flex flex-col justify-center">
