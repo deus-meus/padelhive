@@ -70,9 +70,12 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /home/ubuntu/.docker/config.json:/config.json
+    env_file:
+      - .env
     environment:
       - DOCKER_API_VERSION=1.44
+      - REPO_USER=${GH_OWNER:-deus-meus}
+      - REPO_PASS=${GITHUB_TOKEN}
     command: --interval 60 padelhive_api padelhive_web
 
 volumes:
