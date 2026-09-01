@@ -660,7 +660,7 @@ async function confirmCancelBooking() {
       <div class="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 space-y-5 shadow-2xl">
         <div class="flex items-start justify-between">
           <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400">
-            <AlertTriangle class="h-6 w-6" />
+            <AlertTriangle class="h-6 w-6 translate-x-[1px] -translate-y-[1px]" />
           </div>
           <button
             type="button"
