@@ -25,36 +25,63 @@ const traceFetch: typeof fetch = async (input, init) => {
         : input.url;
   const method = init?.method || "GET";
 
+  const reqId = `client_${Math.random().toString(36).slice(2, 10)}`;
+  const headers = new Headers(init?.headers);
+  if (!headers.has("x-request-id")) {
+    headers.set("x-request-id", reqId);
+  }
+
+  const updatedInit = { ...init, headers };
+
   try {
-    const response = await fetch(input, init);
+    const response = await fetch(input, updatedInit);
     const duration = Math.round(performance.now() - startTime);
     const status = response.status;
-    const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+    const serverReqId = response.headers.get("x-request-id") || reqId;
+    const timestamp = new Date().toISOString();
 
-    // Only print trace logs in Terminal process (Server-side SSR / Bun / Node process)
+    // Log in terminal process (Node/Bun SSR process)
     if (typeof window === "undefined") {
-      if (status >= 500) {
-        console.error(
-          `[${timestamp}] [API ERROR] ${method} ${url} ${status} - ${duration}ms`,
-        );
-      } else if (status >= 400) {
-        console.warn(
-          `[${timestamp}] [API WARN] ${method} ${url} ${status} - ${duration}ms`,
-        );
+      const isProd = process.env.NODE_ENV === "production";
+      if (isProd) {
+        const level = status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO";
+        const logPayload = JSON.stringify({
+          timestamp,
+          level: `API_${level}`,
+          reqId: serverReqId,
+          method,
+          url,
+          status,
+          durationMs: duration,
+        });
+        if (status >= 500) console.error(logPayload);
+        else if (status >= 400) console.warn(logPayload);
+        else console.log(logPayload);
       } else {
-        console.log(
-          `[${timestamp}] [API INFO] ${method} ${url} ${status} - ${duration}ms`,
-        );
+        const formattedTime = timestamp.replace("T", " ").slice(0, 19);
+        if (status >= 500) {
+          console.error(
+            `[${formattedTime}] [API ERROR] [${serverReqId}] ${method} ${url} ${status} - ${duration}ms`,
+          );
+        } else if (status >= 400) {
+          console.warn(
+            `[${formattedTime}] [API WARN] [${serverReqId}] ${method} ${url} ${status} - ${duration}ms`,
+          );
+        } else {
+          console.log(
+            `[${formattedTime}] [API INFO] [${serverReqId}] ${method} ${url} ${status} - ${duration}ms`,
+          );
+        }
       }
     }
 
     return response;
   } catch (error) {
     const duration = Math.round(performance.now() - startTime);
-    const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+    const timestamp = new Date().toISOString();
     if (typeof window === "undefined") {
       console.error(
-        `[${timestamp}] [API ERROR] ${method} ${url} FAILED - ${duration}ms (${String(error)})`,
+        `[${timestamp.replace("T", " ").slice(0, 19)}] [API ERROR] [${reqId}] ${method} ${url} FAILED - ${duration}ms (${String(error)})`,
       );
     }
     throw error;

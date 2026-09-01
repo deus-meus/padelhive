@@ -2,6 +2,7 @@ import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import { Elysia } from "elysia";
 import { HttpException } from "./common/errors";
+import { prisma } from "./common/prisma";
 import { adminModule } from "./modules/admin";
 import { authModule } from "./modules/auth";
 import { bookingsModule } from "./modules/bookings";
@@ -22,36 +23,65 @@ import { vouchersModule } from "./modules/vouchers";
 const port = process.env.PORT ? Number(process.env.PORT) : 3001;
 
 export const app = new Elysia()
-  .onRequest(({ store }) => {
+  .onRequest(({ request, store }) => {
+    const reqId =
+      request.headers.get("x-request-id") ||
+      `req_${Math.random().toString(36).slice(2, 10)}`;
+    (store as any).reqId = reqId;
     (store as any).startTime = performance.now();
   })
   .onAfterResponse(({ request, store, set }) => {
     const startTime = (store as any).startTime || performance.now();
+    const reqId = (store as any).reqId || "unknown";
     const duration = Math.round(performance.now() - startTime);
     const method = request.method;
     const url = new URL(request.url).pathname;
     const status = typeof set.status === "number" ? set.status : 200;
-    const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+    const timestamp = new Date().toISOString();
 
-    if (status >= 500) {
-      console.error(
-        `[${timestamp}] [ERROR] ${method} ${url} ${status} - ${duration}ms`,
-      );
-    } else if (status >= 400) {
-      console.warn(
-        `[${timestamp}] [WARN] ${method} ${url} ${status} - ${duration}ms`,
-      );
+    set.headers["x-request-id"] = reqId;
+
+    if (process.env.NODE_ENV === "production") {
+      const level = status >= 500 ? "ERROR" : status >= 400 ? "WARN" : "INFO";
+      const logPayload = JSON.stringify({
+        timestamp,
+        level,
+        reqId,
+        method,
+        path: url,
+        status,
+        durationMs: duration,
+      });
+      if (status >= 500) console.error(logPayload);
+      else if (status >= 400) console.warn(logPayload);
+      else console.log(logPayload);
     } else {
-      console.log(
-        `[${timestamp}] [INFO] ${method} ${url} ${status} - ${duration}ms`,
-      );
+      const formattedTime = timestamp.replace("T", " ").slice(0, 19);
+      if (status >= 500) {
+        console.error(
+          `[${formattedTime}] [ERROR] [${reqId}] ${method} ${url} ${status} - ${duration}ms`,
+        );
+      } else if (status >= 400) {
+        console.warn(
+          `[${formattedTime}] [WARN] [${reqId}] ${method} ${url} ${status} - ${duration}ms`,
+        );
+      } else {
+        console.log(
+          `[${formattedTime}] [INFO] [${reqId}] ${method} ${url} ${status} - ${duration}ms`,
+        );
+      }
     }
   })
   .use(
     cors({
       origin: true,
       credentials: true,
-      allowedHeaders: ["Authorization", "Content-Type", "Accept"],
+      allowedHeaders: [
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "X-Request-ID",
+      ],
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
     }),
   )
@@ -108,44 +138,92 @@ export const app = new Elysia()
           },
           { name: "Uploads", description: "Cloudinary upload signatures" },
           { name: "Stats", description: "Live marketplace metrics" },
+          { name: "Health", description: "Service health & readiness checks" },
         ],
       },
     }),
   )
-  .onError(({ error, set, code }) => {
+  .get("/api/health", async ({ set }) => {
+    const startTime = performance.now();
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      const dbLatency = Math.round(performance.now() - startTime);
+      return {
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        services: {
+          database: {
+            status: "up",
+            latencyMs: dbLatency,
+          },
+        },
+      };
+    } catch (error) {
+      set.status = 503;
+      return {
+        status: "error",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        services: {
+          database: {
+            status: "down",
+            error: String(error),
+          },
+        },
+      };
+    }
+  })
+  .onError(({ request, store, set, error, code }) => {
+    const reqId = (store as any)?.reqId || "unknown";
+    set.headers["x-request-id"] = reqId;
+
+    let statusCode = 500;
+    let message = (error as any)?.message || "Internal Server Error";
+    let errorType = "Internal Server Error";
+
     if (error instanceof HttpException) {
-      set.status = error.statusCode;
-      return {
-        statusCode: error.statusCode,
-        message: error.message,
-        error: error.name,
-      };
+      statusCode = error.statusCode;
+      message = error.message;
+      errorType = error.name;
+    } else if (code === "VALIDATION") {
+      statusCode = 400;
+      message = (error as any)?.message || "Validation Error";
+      errorType = "Bad Request";
+    } else if (code === "NOT_FOUND") {
+      statusCode = 404;
+      message = "Route not found";
+      errorType = "Not Found";
     }
 
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        statusCode: 400,
-        message: (error as any)?.message || "Validation Error",
-        error: "Bad Request",
-      };
+    set.status = statusCode;
+
+    const timestamp = new Date().toISOString();
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        JSON.stringify({
+          timestamp,
+          level: "ERROR",
+          reqId,
+          method: request?.method || "UNKNOWN",
+          path: request?.url ? new URL(request.url).pathname : "UNKNOWN",
+          status: statusCode,
+          code,
+          error: errorType,
+          message,
+          stack: (error as any)?.stack,
+        }),
+      );
+    } else {
+      console.error(
+        `[${timestamp.replace("T", " ").slice(0, 19)}] [ERROR] [${reqId}] ${request?.method || "REQ"} ${request?.url ? new URL(request.url).pathname : ""} ${statusCode} (${code}: ${message})`,
+      );
     }
 
-    if (code === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        statusCode: 404,
-        message: "Route not found",
-        error: "Not Found",
-      };
-    }
-
-    console.error("[ServerError]", error);
-    set.status = 500;
     return {
-      statusCode: 500,
-      message: (error as any)?.message || "Internal Server Error",
-      error: "Internal Server Error",
+      statusCode,
+      message,
+      error: errorType,
     };
   })
   .group("/api", (app) =>
