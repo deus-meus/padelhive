@@ -266,7 +266,7 @@ function handleLogout() {
     </div>
   </div>
 
-  {#if mobileOpen}
+  {#if !user && mobileOpen}
     <div class="border-t border-white/[0.06] md:hidden">
       <nav class="container flex flex-col gap-1 py-4">
         <a
@@ -291,33 +291,104 @@ function handleLogout() {
           Community
         </a>
 
-        {#if user && isPlayer}
+        <a
+          href="/auth/login"
+          onclick={() => (mobileOpen = false)}
+          class="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full label"
+        >
+          <LogIn class="h-4 w-4" /> Sign In
+        </a>
+      </nav>
+    </div>
+  {/if}
+</header>
+
+{#if user && !isDashboardOrAdmin}
+  <!-- Floating Mobile Trigger -->
+  <div class="fixed bottom-6 right-6 z-40 md:hidden">
+    <button
+      type="button"
+      onclick={() => (mobileOpen = !mobileOpen)}
+      class="flex h-12 w-12 items-center justify-center rounded-full bg-[#E6FA50] text-[#06121A] shadow-lg shadow-[#E6FA50]/20"
+      aria-label="Toggle navigation menu"
+    >
+      {#if mobileOpen}
+        <X class="h-5 w-5" />
+      {:else}
+        <Menu class="h-5 w-5" />
+      {/if}
+    </button>
+  </div>
+
+  <!-- Floating Mobile Navigation Modal -->
+  {#if mobileOpen}
+    <div class="fixed inset-0 z-30 md:hidden">
+      <button
+        type="button"
+        class="absolute inset-0 bg-[#06121A]/80 backdrop-blur-sm w-full h-full border-0 cursor-default"
+        onclick={() => (mobileOpen = false)}
+        aria-label="Close menu backdrop"
+      ></button>
+      <nav
+        class="absolute bottom-20 right-6 flex flex-col gap-1 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-3 shadow-2xl z-10 min-w-[220px]"
+      >
+        <a
+          href="/venues"
+          onclick={() => (mobileOpen = false)}
+          class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+        >
+          Venues
+        </a>
+        <a
+          href="/#how-it-works"
+          onclick={() => (mobileOpen = false)}
+          class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+        >
+          How It Works
+        </a>
+        <a
+          href="/#community"
+          onclick={() => (mobileOpen = false)}
+          class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+        >
+          Community
+        </a>
+        <div class="my-1 border-t border-white/[0.04]"></div>
+        <a
+          href="/bookings"
+          onclick={() => (mobileOpen = false)}
+          class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+        >
+          <CalendarDays class="h-4 w-4 text-[#50C8C8]" /> My Bookings
+        </a>
+        <a
+          href="/vouchers"
+          onclick={() => (mobileOpen = false)}
+          class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+        >
+          <Ticket class="h-4 w-4 text-[#50C8C8]" /> My Vouchers
+        </a>
+        {#if showDashboard}
+          <div class="my-1 border-t border-white/[0.04]"></div>
           <a
-            href="/bookings"
+            href="/dashboard"
             onclick={() => (mobileOpen = false)}
-            class="flex h-12 items-center rounded-xl px-4 label text-[#F7F7F7]/60 transition-colors hover:bg-white/5 hover:text-[#F7F7F7]"
+            class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/10"
           >
-            My Bookings
-          </a>
-          <a
-            href="/vouchers"
-            onclick={() => (mobileOpen = false)}
-            class="flex h-12 items-center rounded-xl px-4 label text-[#F7F7F7]/60 transition-colors hover:bg-white/5 hover:text-[#F7F7F7]"
-          >
-            My Vouchers
+            <LayoutDashboard class="h-4 w-4 text-[#E6FA50]" /> Owner Dashboard
           </a>
         {/if}
-
-        {#if !user}
+        {#if showAdmin}
+          <div class="my-1 border-t border-white/[0.04]"></div>
           <a
-            href="/auth/login"
+            href="/admin"
             onclick={() => (mobileOpen = false)}
-            class="btn-lime mt-3 flex h-12 items-center justify-center gap-2 rounded-full label"
+            class="label flex items-center gap-3 rounded-xl px-4 py-2.5 text-[#E6FA50] transition-colors hover:bg-[#E6FA50]/10"
           >
-            <LogIn class="h-4 w-4" /> Sign In
+            <Shield class="h-4 w-4 text-[#E6FA50]" /> Admin Panel
           </a>
         {/if}
       </nav>
     </div>
   {/if}
-</header>
+{/if}
