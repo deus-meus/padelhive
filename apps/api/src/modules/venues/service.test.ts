@@ -1,11 +1,12 @@
+import { describe, expect, it, mock } from "bun:test";
 import { VenueStatus } from "@prisma/client";
 import { NotFoundException } from "../../common/errors";
 import { VenuesService } from "./service";
 
 describe("VenuesService", () => {
   it("queries approved venues only for venue list", async () => {
-    const prisma = { venue: { findMany: jest.fn().mockResolvedValue([]) } };
-    const notifications = { createNotification: jest.fn() };
+    const prisma = { venue: { findMany: mock().mockResolvedValue([]) } };
+    const notifications = { createNotification: mock() };
     const service = new VenuesService(prisma as never, notifications as never);
 
     await service.findApprovedVenues();
@@ -40,10 +41,10 @@ describe("VenuesService", () => {
 
     const prisma = {
       venue: {
-        findFirst: jest.fn().mockResolvedValue(venue),
+        findFirst: mock().mockResolvedValue(venue),
       },
     };
-    const notifications = { createNotification: jest.fn() };
+    const notifications = { createNotification: mock() };
     const service = new VenuesService(prisma as never, notifications as never);
 
     const result = await service.findApprovedVenueById("venue-1");
@@ -74,12 +75,12 @@ describe("VenuesService", () => {
   });
 
   it("returns 404 for missing or non-approved venue detail", async () => {
-    const prisma = { venue: { findFirst: jest.fn().mockResolvedValue(null) } };
-    const notifications = { createNotification: jest.fn() };
+    const prisma = { venue: { findFirst: mock().mockResolvedValue(null) } };
+    const notifications = { createNotification: mock() };
     const service = new VenuesService(prisma as never, notifications as never);
 
-    await expect(
-      service.findApprovedVenueById("venue-pending"),
-    ).rejects.toThrow(NotFoundException);
+    expect(service.findApprovedVenueById("venue-pending")).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });
