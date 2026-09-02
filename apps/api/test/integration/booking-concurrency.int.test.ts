@@ -1,3 +1,12 @@
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  mock,
+} from "bun:test";
 import { execSync } from "node:child_process";
 import { CourtType, VenueStatus } from "@prisma/client";
 import {
@@ -77,14 +86,14 @@ describe("Booking Concurrency (Integration)", () => {
     service = new BookingsService(
       prisma,
       {} as never,
-      { createNotification: jest.fn() } as never,
+      { createNotification: mock() } as never,
       {} as never,
     );
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
-    await container.stop();
+    if (prisma) await prisma.$disconnect();
+    if (container) await container.stop();
   });
 
   afterEach(async () => {
