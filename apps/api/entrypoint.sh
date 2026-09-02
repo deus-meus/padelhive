@@ -2,13 +2,13 @@
 set -e
 
 echo "Generating Prisma Client..."
-bun run prisma generate --schema prisma/schema.prisma || true
+bun run prisma:generate || true
 
 echo "Running Prisma Migrations..."
-bun run prisma migrate deploy --schema prisma/schema.prisma
+bun run prisma:migrate:deploy || true
 
 echo "Running Prisma Seeder..."
-bun prisma/seed.ts || true
+bun run prisma:seed || true
 
 echo "Starting Elysia API Server..."
 bun dist/index.js
