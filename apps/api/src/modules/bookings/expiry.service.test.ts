@@ -1,4 +1,13 @@
 import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
+import {
   BookingStatus,
   NotificationType,
   PaymentStatus,
@@ -10,39 +19,39 @@ import { BookingExpiryService } from "./expiry.service";
 describe("BookingExpiryService", () => {
   let service: BookingExpiryService;
   let prisma: {
-    booking: { findMany: jest.Mock };
-    bookingCharge: { findMany: jest.Mock };
-    user: { findMany: jest.Mock };
-    bookingSplitShare?: { findMany: jest.Mock };
-    $transaction: jest.Mock;
+    booking: { findMany: any };
+    bookingCharge: { findMany: any };
+    user: { findMany: any };
+    bookingSplitShare?: { findMany: any };
+    $transaction: any;
   };
-  let txBookingUpdateManyMock: jest.Mock;
-  let txPaymentUpdateManyMock: jest.Mock;
-  let txVoucherUpdateManyMock: jest.Mock;
-  let txBookingChargeUpdateManyMock: jest.Mock;
-  let txRefundFindFirstMock: jest.Mock;
-  let txRefundCreateMock: jest.Mock;
+  let txBookingUpdateManyMock: any;
+  let txPaymentUpdateManyMock: any;
+  let txVoucherUpdateManyMock: any;
+  let txBookingChargeUpdateManyMock: any;
+  let txRefundFindFirstMock: any;
+  let txRefundCreateMock: any;
   let notificationsMock: any;
-  let loggerLogSpy: jest.SpyInstance;
+  let loggerLogSpy: any;
 
   beforeEach(() => {
-    txBookingUpdateManyMock = jest.fn().mockResolvedValue({ count: 1 });
-    txPaymentUpdateManyMock = jest.fn().mockResolvedValue({ count: 1 });
-    txVoucherUpdateManyMock = jest.fn().mockResolvedValue({ count: 0 });
-    txBookingChargeUpdateManyMock = jest.fn().mockResolvedValue({ count: 1 });
-    txRefundFindFirstMock = jest.fn().mockResolvedValue(null);
-    txRefundCreateMock = jest.fn().mockResolvedValue({});
+    txBookingUpdateManyMock = mock().mockResolvedValue({ count: 1 });
+    txPaymentUpdateManyMock = mock().mockResolvedValue({ count: 1 });
+    txVoucherUpdateManyMock = mock().mockResolvedValue({ count: 0 });
+    txBookingChargeUpdateManyMock = mock().mockResolvedValue({ count: 1 });
+    txRefundFindFirstMock = mock().mockResolvedValue(null);
+    txRefundCreateMock = mock().mockResolvedValue({});
 
     prisma = {
       booking: {
-        findMany: jest.fn(),
+        findMany: mock(),
       },
-      bookingCharge: { findMany: jest.fn().mockResolvedValue([]) },
-      user: { findMany: jest.fn().mockResolvedValue([]) },
+      bookingCharge: { findMany: mock().mockResolvedValue([]) },
+      user: { findMany: mock().mockResolvedValue([]) },
       bookingSplitShare: {
-        findMany: jest.fn().mockResolvedValue([]),
+        findMany: mock().mockResolvedValue([]),
       },
-      $transaction: jest.fn(async (cb) => {
+      $transaction: mock(async (cb: (tx: any) => any) => {
         return cb({
           booking: { updateMany: txBookingUpdateManyMock },
           payment: { updateMany: txPaymentUpdateManyMock },
@@ -56,22 +65,23 @@ describe("BookingExpiryService", () => {
       }),
     };
 
-    notificationsMock = { createNotification: jest.fn() };
+    notificationsMock = { createNotification: mock() };
     const splitMock = {
-      refundPaidShares: jest
-        .fn()
-        .mockResolvedValue({ refundedCount: 0, failedCount: 0 }),
+      refundPaidShares: mock().mockResolvedValue({
+        refundedCount: 0,
+        failedCount: 0,
+      }),
     };
     service = new BookingExpiryService(
       prisma as never,
       splitMock as never,
       notificationsMock as never,
     );
-    loggerLogSpy = jest.spyOn(console, "log").mockImplementation();
+    loggerLogSpy = spyOn(console, "log").mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    loggerLogSpy?.mockRestore();
   });
 
   it("expires only due PENDING_PAYMENT bookings and fails their pending payments", async () => {

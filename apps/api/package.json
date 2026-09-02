@@ -14,7 +14,7 @@
     "prisma:migrate:dev": "prisma migrate dev --schema prisma/schema.prisma",
     "prisma:migrate:create": "prisma migrate dev --create-only --schema prisma/schema.prisma",
     "prisma:seed": "bun prisma/seed.ts",
-    "test": "bun test",
+    "test": "bun test src test/e2e",
     "test:int": "bun test test/integration"
   },
   "dependencies": {
@@ -29,6 +29,7 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
+    "@elysiajs/eden": "^1.4.9",
     "@testcontainers/postgresql": "^12.0.1",
     "@types/node": "^20.17.9",
     "@types/supertest": "^7.2.0",

@@ -1,9 +1,10 @@
+import { describe, expect, it, mock } from "bun:test";
 import { VoucherType } from "@prisma/client";
 import { VouchersService } from "./service";
 
 describe("Read-only vouchers API", () => {
   it("queries active currently valid vouchers only", async () => {
-    const prisma = { voucher: { findMany: jest.fn().mockResolvedValue([]) } };
+    const prisma = { voucher: { findMany: mock().mockResolvedValue([]) } };
     const service = new VouchersService(prisma as never);
     const now = new Date("2026-05-31T12:00:00.000Z");
 
@@ -54,13 +55,14 @@ describe("Read-only vouchers API", () => {
     };
     const prisma = {
       voucher: {
-        findMany: jest.fn().mockResolvedValue([validVoucher, exhaustedVoucher]),
+        findMany: mock().mockResolvedValue([validVoucher, exhaustedVoucher]),
       },
     };
     const service = new VouchersService(prisma as never);
 
-    await expect(
-      service.findActiveVouchers(new Date("2026-05-31T12:00:00.000Z")),
-    ).resolves.toEqual([validVoucher]);
+    const result = await service.findActiveVouchers(
+      new Date("2026-05-31T12:00:00.000Z"),
+    );
+    expect(result).toEqual([validVoucher]);
   });
 });

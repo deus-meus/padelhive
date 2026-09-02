@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { PaymentStatus } from "@prisma/client";
 import { BookingChargeService } from "./charge.service";
 
@@ -8,11 +9,11 @@ describe("BookingChargeService", () => {
 
   beforeEach(() => {
     prismaMock = {
-      booking: { findFirst: jest.fn() },
-      bookingCharge: { findFirst: jest.fn(), update: jest.fn() },
+      booking: { findFirst: mock() },
+      bookingCharge: { findFirst: mock(), update: mock() },
     };
     paymentGatewayMock = {
-      createTransaction: jest.fn(),
+      createTransaction: mock(),
     };
     service = new BookingChargeService(
       prismaMock as any,

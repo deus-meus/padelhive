@@ -41,6 +41,7 @@ FROM oven/bun:1-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
+ENV NODE_PATH /app/node_modules
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 sveltejs
@@ -54,11 +55,9 @@ COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-WORKDIR /app/apps/web
-
 USER sveltejs
 
 EXPOSE 3000
 
-# Start SvelteKit standalone Node server via Bun
-CMD ["bun", "build/index.js"]
+# Start SvelteKit standalone Node server via Bun from root /app
+CMD ["bun", "apps/web/build/index.js"]

@@ -1,3 +1,4 @@
+import { describe, expect, it, mock } from "bun:test";
 import { BookingStatus, CourtType } from "@prisma/client";
 import { NotFoundException } from "../../common/errors";
 import { BookingsService } from "./service";
@@ -6,7 +7,7 @@ describe("Read-only bookings API", () => {
   it("queries booking by id and current host user", async () => {
     const prisma = {
       booking: {
-        findFirst: jest.fn().mockResolvedValue({
+        findFirst: mock().mockResolvedValue({
           id: "booking-1",
           bookingDate: new Date("2026-06-01T00:00:00.000Z"),
           startsAt: new Date("2026-06-01T10:00:00.000Z"),
@@ -27,13 +28,13 @@ describe("Read-only bookings API", () => {
         }),
       },
       bookingCharge: {
-        findFirst: jest.fn().mockResolvedValue(null),
+        findFirst: mock().mockResolvedValue(null),
       },
     };
     const service = new BookingsService(
       prisma as never,
       {} as never,
-      { createNotification: jest.fn() } as never,
+      { createNotification: mock() } as never,
       {} as never,
     );
 
@@ -49,18 +50,18 @@ describe("Read-only bookings API", () => {
   it("throws NotFoundException when booking does not exist or user is not the host", async () => {
     const prisma = {
       booking: {
-        findFirst: jest.fn().mockResolvedValue(null),
+        findFirst: mock().mockResolvedValue(null),
       },
     };
     const service = new BookingsService(
       prisma as never,
       {} as never,
-      { createNotification: jest.fn() } as never,
+      { createNotification: mock() } as never,
       {} as never,
     );
 
-    await expect(
-      service.findBookingForUser("booking-2", "user-1"),
-    ).rejects.toThrow(NotFoundException);
+    expect(service.findBookingForUser("booking-2", "user-1")).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

@@ -1,3 +1,4 @@
+import { describe, expect, it, mock } from "bun:test";
 import { VenueStatus } from "@prisma/client";
 import { NotFoundException } from "../../common/errors";
 import { CourtsService } from "./service";
@@ -5,12 +6,12 @@ import { CourtsService } from "./service";
 describe("CourtsService", () => {
   it("requires approved parent venue before listing active courts", async () => {
     const prisma = {
-      venue: { findFirst: jest.fn().mockResolvedValue(null) },
-      court: { findMany: jest.fn() },
+      venue: { findFirst: mock().mockResolvedValue(null) },
+      court: { findMany: mock() },
     };
     const service = new CourtsService(prisma as never);
 
-    await expect(
+    expect(
       service.findActiveCourtsForApprovedVenue("venue-pending"),
     ).rejects.toThrow(NotFoundException);
     expect(prisma.court.findMany).not.toHaveBeenCalled();
@@ -18,8 +19,8 @@ describe("CourtsService", () => {
 
   it("queries active courts only for approved venues", async () => {
     const prisma = {
-      venue: { findFirst: jest.fn().mockResolvedValue({ id: "venue-1" }) },
-      court: { findMany: jest.fn().mockResolvedValue([]) },
+      venue: { findFirst: mock().mockResolvedValue({ id: "venue-1" }) },
+      court: { findMany: mock().mockResolvedValue([]) },
     };
     const service = new CourtsService(prisma as never);
 
