@@ -1,14 +1,17 @@
 #!/bin/sh
 set -e
 
+cd /app
+
 echo "Generating Prisma Client..."
-bunx prisma generate --schema prisma/schema.prisma || true
+bun --filter @padelhive/api prisma:generate || true
 
 echo "Running Prisma Migrations..."
-bunx prisma migrate deploy --schema prisma/schema.prisma || true
+bun --filter @padelhive/api prisma:migrate:deploy || true
 
 echo "Running Prisma Seeder..."
-bun run prisma:seed || true
+bun --filter @padelhive/api prisma:seed || true
 
 echo "Starting Elysia API Server..."
+cd /app/apps/api
 bun dist/index.js
