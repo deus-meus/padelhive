@@ -1,13 +1,11 @@
 #!/bin/sh
 set -e
 
-export PATH="/app/node_modules/.bin:$PATH"
-
 echo "Generating Prisma Client..."
-bun run prisma:generate || true
+bunx prisma generate --schema prisma/schema.prisma || true
 
 echo "Running Prisma Migrations..."
-bun run prisma:migrate:deploy || true
+bunx prisma migrate deploy --schema prisma/schema.prisma || true
 
 echo "Running Prisma Seeder..."
 bun run prisma:seed || true
