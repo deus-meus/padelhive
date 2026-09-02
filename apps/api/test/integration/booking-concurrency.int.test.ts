@@ -1,3 +1,12 @@
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  mock,
+} from "bun:test";
 import { execSync } from "node:child_process";
 import { CourtType, VenueStatus } from "@prisma/client";
 import {
@@ -19,10 +28,27 @@ describe("Booking Concurrency (Integration)", () => {
 
     process.env.DATABASE_URL = databaseUrl;
 
-    execSync("npx prisma migrate deploy", {
-      env: { ...process.env, DATABASE_URL: databaseUrl },
-      cwd: process.cwd(),
-    });
+    try {
+      execSync(
+        "bun --bun prisma migrate deploy --schema prisma/schema.prisma",
+        {
+          env: { ...process.env, DATABASE_URL: databaseUrl },
+          cwd: process.cwd(),
+        },
+      );
+    } catch {
+      // Fallback CLI resolve
+      const cli = execSync(
+        "find ../../node_modules /app/node_modules -type f -name 'index.js' 2>/dev/null | grep 'prisma/build/index.js' | head -n 1",
+        { encoding: "utf-8" },
+      ).trim();
+      if (cli) {
+        execSync(`bun "${cli}" migrate deploy --schema prisma/schema.prisma`, {
+          env: { ...process.env, DATABASE_URL: databaseUrl },
+          cwd: process.cwd(),
+        });
+      }
+    }
 
     prisma = new PrismaService();
     await prisma.$connect();
@@ -77,18 +103,18 @@ describe("Booking Concurrency (Integration)", () => {
     service = new BookingsService(
       prisma,
       {} as never,
-      { createNotification: jest.fn() } as never,
+      { createNotification: mock(() => {}) } as never,
       {} as never,
     );
-  });
+  }, 60000);
 
   afterAll(async () => {
-    await prisma.$disconnect();
-    await container.stop();
-  });
+    if (prisma) await prisma.$disconnect();
+    if (container) await container.stop();
+  }, 30000);
 
   afterEach(async () => {
-    await prisma.booking.deleteMany();
+    if (prisma) await prisma.booking.deleteMany();
   });
 
   it("allows exact same slot if the existing booking is CANCELLED or EXPIRED", async () => {

@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "types": ["node", "jest"]
+    "types": ["node", "bun"]
   },
   "include": ["src/**/*.ts", "prisma/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]

@@ -95,7 +95,7 @@ describe("MailService", () => {
         title: "T",
         body: "B",
       }),
-    ).resolves.not.toThrow();
+    ).resolves.toBeUndefined();
     warnSpy.mockRestore();
   });
 });
