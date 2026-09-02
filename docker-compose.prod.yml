@@ -61,8 +61,14 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      # In production, Next.js runs in standalone mode; env vars for browser (NEXT_PUBLIC_*)
-      # are embedded at build time, so only server-side env vars are strictly needed here.
+      - PUBLIC_API_URL=${PUBLIC_API_URL:-http://101.32.126.104:3001}
+      - PUBLIC_FIREBASE_API_KEY=${PUBLIC_FIREBASE_API_KEY}
+      - PUBLIC_FIREBASE_AUTH_DOMAIN=${PUBLIC_FIREBASE_AUTH_DOMAIN}
+      - PUBLIC_FIREBASE_PROJECT_ID=${PUBLIC_FIREBASE_PROJECT_ID}
+      - PUBLIC_FIREBASE_STORAGE_BUCKET=${PUBLIC_FIREBASE_STORAGE_BUCKET}
+      - PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+      - PUBLIC_FIREBASE_APP_ID=${PUBLIC_FIREBASE_APP_ID}
+      - PUBLIC_MIDTRANS_CLIENT_KEY=${PUBLIC_MIDTRANS_CLIENT_KEY}
 
   watchtower:
     image: containrrr/watchtower:latest
