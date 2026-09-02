@@ -1,17 +1,16 @@
 #!/bin/sh
 set -e
 
-cd /app
+PRISMA_CLI=$(bun -e 'console.log(require.resolve("prisma"))')
 
 echo "Generating Prisma Client..."
-bun --filter @padelhive/api prisma:generate || true
+bun "$PRISMA_CLI" generate --schema prisma/schema.prisma || true
 
 echo "Running Prisma Migrations..."
-bun --filter @padelhive/api prisma:migrate:deploy || true
+bun "$PRISMA_CLI" migrate deploy --schema prisma/schema.prisma || true
 
 echo "Running Prisma Seeder..."
-bun --filter @padelhive/api prisma:seed || true
+bun prisma/seed.ts || true
 
 echo "Starting Elysia API Server..."
-cd /app/apps/api
 bun dist/index.js
