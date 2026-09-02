@@ -46,11 +46,13 @@ ENV NODE_PATH /app/node_modules
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 sveltejs
 
-# Copy built adapter-node output and node_modules from builder
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/apps/web/build ./apps/web/build
-COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
+# Copy built adapter-node output and node_modules from builder with correct ownership
+COPY --from=builder --chown=sveltejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=sveltejs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=sveltejs:nodejs /app/apps/web/build ./apps/web/build
+COPY --from=builder --chown=sveltejs:nodejs /app/apps/web/package.json ./apps/web/package.json
+
+RUN mkdir -p /app/apps/web && ln -sf /app/node_modules /app/apps/web/node_modules && chown -h sveltejs:nodejs /app/apps/web/node_modules
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"

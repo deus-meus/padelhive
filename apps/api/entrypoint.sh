@@ -11,7 +11,8 @@ echo "Running Prisma Migrations..."
 bun "$PRISMA_CLI" migrate deploy --schema apps/api/prisma/schema.prisma || true
 
 echo "Running Prisma Seeder..."
-bun apps/api/prisma/seed.ts || true
+cd /app/apps/api && bun prisma/seed.ts || true
 
+cd /app
 echo "Starting Elysia API Server..."
 bun apps/api/dist/index.js
