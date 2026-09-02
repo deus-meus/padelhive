@@ -2,7 +2,6 @@
 set -e
 
 cd /app
-chmod -R +x /app/node_modules 2>/dev/null || true
 
 echo "Generating Prisma Client..."
 bun --filter @padelhive/api prisma:generate || true
