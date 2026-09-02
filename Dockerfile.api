@@ -34,7 +34,7 @@ COPY --from=builder /app/apps/api/tsconfig.json ./apps/api/tsconfig.json
 
 # Entrypoint script for migrations, seeding, and starting
 COPY apps/api/entrypoint.sh /app/apps/api/entrypoint.sh
-RUN chmod +x /app/apps/api/entrypoint.sh
+RUN chmod +x /app/apps/api/entrypoint.sh && chmod -R +x /app/node_modules
 
 WORKDIR /app/apps/api
 
