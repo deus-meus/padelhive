@@ -2,12 +2,10 @@ import {
   afterAll,
   afterEach,
   beforeAll,
-  beforeEach,
   describe,
   expect,
   it,
   mock,
-  spyOn,
 } from "bun:test";
 import { execSync } from "node:child_process";
 import { CourtType, VenueStatus } from "@prisma/client";
