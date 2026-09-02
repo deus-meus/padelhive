@@ -32,6 +32,8 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/apps/api/tsconfig.json ./apps/api/tsconfig.json
 
+RUN mkdir -p /app/apps/api && ln -sf /app/node_modules /app/apps/api/node_modules
+
 # Entrypoint script for migrations, seeding, and starting
 COPY apps/api/entrypoint.sh /app/apps/api/entrypoint.sh
 RUN chmod +x /app/apps/api/entrypoint.sh && chmod -R +x /app/node_modules
