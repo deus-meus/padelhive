@@ -1,3 +1,4 @@
+import { describe, expect, it, mock } from "bun:test";
 import { UserRole } from "@prisma/client";
 import { ensureAuth, ensureRoles } from "../../common/auth.util";
 import { ForbiddenException, UnauthorizedException } from "../../common/errors";
@@ -24,8 +25,8 @@ describe("UsersService", () => {
   it("creates PLAYER user on first Firebase login", async () => {
     const prisma = {
       user: {
-        findUnique: jest.fn().mockResolvedValue(null),
-        create: jest.fn().mockResolvedValue({
+        findUnique: mock().mockResolvedValue(null),
+        create: mock().mockResolvedValue({
           id: "user-new",
           firebaseUid: "firebase-new",
           email: "new@padelhive.com",
@@ -36,13 +37,13 @@ describe("UsersService", () => {
     };
     const service = new UsersService(prisma as never);
 
-    await expect(
-      service.findOrCreateFromFirebaseToken({
-        uid: "firebase-new",
-        email: "new@padelhive.com",
-        name: "New Player",
-      } as never),
-    ).resolves.toEqual({
+    const result = await service.findOrCreateFromFirebaseToken({
+      uid: "firebase-new",
+      email: "new@padelhive.com",
+      name: "New Player",
+    } as never);
+
+    expect(result).toEqual({
       id: "user-new",
       firebaseUid: "firebase-new",
       email: "new@padelhive.com",

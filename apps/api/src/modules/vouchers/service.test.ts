@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { VoucherType } from "@prisma/client";
 import type { PrismaService } from "../../common/prisma";
 import { VouchersService } from "./service";
@@ -9,7 +10,7 @@ describe("VouchersService - repriceVoucherById", () => {
   beforeEach(() => {
     prismaMock = {
       voucher: {
-        findUnique: jest.fn(),
+        findUnique: mock(),
       },
     };
     service = new VouchersService(prismaMock as unknown as PrismaService);

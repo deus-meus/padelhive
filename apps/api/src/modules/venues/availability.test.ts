@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { CourtType, VenueStatus } from "@prisma/client";
 import type { PrismaService } from "../../common/prisma";
 import { AvailabilityService } from "./service";
@@ -9,7 +10,7 @@ describe("Availability Pricing", () => {
   beforeEach(() => {
     prisma = {
       venue: {
-        findFirst: jest.fn().mockResolvedValue({
+        findFirst: mock().mockResolvedValue({
           id: "venue-1",
           openTime: "06:00",
           closeTime: "24:00",
@@ -17,7 +18,7 @@ describe("Availability Pricing", () => {
         }),
       },
       court: {
-        findMany: jest.fn().mockResolvedValue([
+        findMany: mock().mockResolvedValue([
           {
             id: "court-1",
             name: "Court A",
@@ -31,7 +32,7 @@ describe("Availability Pricing", () => {
         ]),
       },
       booking: {
-        findMany: jest.fn().mockResolvedValue([]),
+        findMany: mock().mockResolvedValue([]),
       },
     } as unknown as PrismaService;
 

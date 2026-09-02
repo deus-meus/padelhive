@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import {
   BookingStatus,
   CourtType,
@@ -16,50 +17,50 @@ describe("BookingsService - rescheduleBookingForUser", () => {
   beforeEach(() => {
     prismaMock = {
       venue: {
-        findFirst: jest.fn(),
-        findUnique: jest.fn().mockResolvedValue({
+        findFirst: mock(),
+        findUnique: mock().mockResolvedValue({
           id: "venue-1",
           name: "Venue 1",
           ownerId: "owner-1",
           admins: [],
         }),
       },
-      court: { findFirst: jest.fn() },
+      court: { findFirst: mock() },
       booking: {
-        findFirst: jest.fn(),
-        update: jest.fn(),
+        findFirst: mock(),
+        update: mock(),
       },
       bookingSplitShare: {
-        count: jest.fn().mockResolvedValue(0),
+        count: mock().mockResolvedValue(0),
       },
       payment: {
-        deleteMany: jest.fn(),
+        deleteMany: mock(),
       },
       refund: {
-        create: jest.fn(),
+        create: mock(),
       },
       bookingCharge: {
-        deleteMany: jest.fn(),
-        create: jest.fn(),
-        findFirst: jest.fn(),
+        deleteMany: mock(),
+        create: mock(),
+        findFirst: mock(),
       },
       user: {
-        findMany: jest.fn().mockResolvedValue([]),
+        findMany: mock().mockResolvedValue([]),
       },
-      $transaction: jest.fn(async (cb) => cb(prismaMock)),
+      $transaction: mock(async (cb: (tx: any) => any) => cb(prismaMock)),
     };
     vouchersMock = {
-      repriceVoucherById: jest.fn(),
+      repriceVoucherById: mock(),
     };
     service = new BookingsService(
       prismaMock as any,
       vouchersMock as any,
-      { createNotification: jest.fn() } as any,
-      { refundPaidShares: jest.fn() } as any,
+      { createNotification: mock() } as any,
+      { refundPaidShares: mock() } as any,
     );
-    safeNotifySpy = jest
-      .spyOn(service as any, "safeNotify")
-      .mockResolvedValue(undefined);
+    safeNotifySpy = spyOn(service as any, "safeNotify").mockResolvedValue(
+      undefined,
+    );
   });
 
   const reschedulableBooking = {
@@ -177,7 +178,7 @@ describe("BookingsService - rescheduleBookingForUser", () => {
     prismaMock.booking.update.mockResolvedValue(updatedMock);
 
     prismaMock.user.findMany.mockRejectedValueOnce(new Error("DB error"));
-    const warnSpy = jest.spyOn(console, "warn").mockImplementation();
+    const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
     const result = await service.rescheduleBookingForUser(
       "booking-1",
