@@ -17,6 +17,7 @@ import {
 import { onMount } from "svelte";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
+import DarkMap from "$lib/components/ui/dark-map.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
 import { formatBookingDate } from "$lib/format";
 import { padelImg } from "$lib/images";
@@ -390,17 +391,12 @@ const weekDays = [
               </a>
             </div>
 
-            <div class="mt-4 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] shadow-xl relative h-[260px] sm:h-[320px]">
-              <iframe
-                title={`Map location for ${venue.name}`}
-                width="100%"
-                height="100%"
-                style="border: 0;"
-                loading="lazy"
-                allowfullscreen
-                referrerpolicy="no-referrer-when-downgrade"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(`${venue.location}, ${venue.city}`)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-              ></iframe>
+            <div class="mt-4">
+              <DarkMap
+                location={venue.location}
+                city={venue.city}
+                venueName={venue.name}
+              />
             </div>
 
             <div class="mt-3 flex items-start gap-2 text-xs sm:text-sm text-[#F7F7F7]/70">
