@@ -377,29 +377,36 @@ const weekDays = [
 
           <!-- 5. LOCATION SECTION -->
           <div class="mt-10">
-            <h2 class="heading-2 text-[#F7F7F7]">Location</h2>
-            <div class="mt-4 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]">
-              <div class="flex h-[200px] flex-col items-center justify-center p-6 text-center">
-                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#50C8C8]/10 text-[#50C8C8] mb-3">
-                  <Navigation class="h-6 w-6" />
-                </div>
-                <p class="body-sm font-semibold text-[#F7F7F7]">
-                  {venue.location}
-                </p>
-                <p class="caption text-[#F7F7F7]/40 mt-0.5">
-                  {venue.city}, Indonesia
-                </p>
-              </div>
+            <div class="flex items-center justify-between">
+              <h2 class="heading-2 text-[#F7F7F7]">Location</h2>
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(`${venue.location}, ${venue.city}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="label inline-flex items-center gap-1.5 text-xs text-[#50C8C8] hover:underline"
+              >
+                <MapPin class="h-3.5 w-3.5" />
+                <span>Open in Google Maps</span>
+              </a>
             </div>
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(`${venue.location}, ${venue.city}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="label mt-3 inline-flex items-center gap-2 text-[#50C8C8] hover:underline"
-            >
-              <MapPin class="h-3.5 w-3.5" />
-              <span>Open in Google Maps</span>
-            </a>
+
+            <div class="mt-4 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26] shadow-xl relative h-[260px] sm:h-[320px]">
+              <iframe
+                title={`Map location for ${venue.name}`}
+                width="100%"
+                height="100%"
+                style="border: 0;"
+                loading="lazy"
+                allowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(`${venue.location}, ${venue.city}`)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              ></iframe>
+            </div>
+
+            <div class="mt-3 flex items-start gap-2 text-xs sm:text-sm text-[#F7F7F7]/70">
+              <MapPin class="h-4 w-4 text-[#50C8C8] shrink-0 mt-0.5" />
+              <span>{venue.location}, {venue.city}, Indonesia</span>
+            </div>
           </div>
 
           <!-- 6. REFUND POLICY SECTION -->
