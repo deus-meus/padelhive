@@ -396,6 +396,8 @@ const weekDays = [
                 location={venue.location}
                 city={venue.city}
                 venueName={venue.name}
+                lat={venue.latitude}
+                lng={venue.longitude}
               />
             </div>
 
