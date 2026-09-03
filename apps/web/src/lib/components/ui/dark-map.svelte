@@ -7,9 +7,18 @@ interface Props {
   city: string;
   venueName?: string;
   height?: string;
+  lat?: number | null;
+  lng?: number | null;
 }
 
-let { location, city, venueName = "", height = "320px" }: Props = $props();
+let {
+  location,
+  city,
+  venueName = "",
+  height = "320px",
+  lat: propLat = null,
+  lng: propLng = null,
+}: Props = $props();
 
 let mapContainer = $state<HTMLDivElement | null>(null);
 let isMapLoading = $state(true);
@@ -45,24 +54,34 @@ onMount(async () => {
 
     let [lat, lng] = getCityCoordinates(city);
 
-    // Geocode using OpenStreetMap Nominatim
-    try {
-      const query = encodeURIComponent(`${location}, ${city}, Indonesia`);
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
-        {
-          headers: {
-            "User-Agent": "Padelhive-App/1.0",
+    if (
+      typeof propLat === "number" &&
+      typeof propLng === "number" &&
+      !Number.isNaN(propLat) &&
+      !Number.isNaN(propLng)
+    ) {
+      lat = propLat;
+      lng = propLng;
+    } else {
+      // Geocode using OpenStreetMap Nominatim
+      try {
+        const query = encodeURIComponent(`${location}, ${city}, Indonesia`);
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
+          {
+            headers: {
+              "User-Agent": "Padelhive-App/1.0",
+            },
           },
-        },
-      );
-      const data = await response.json();
-      if (data && data.length > 0) {
-        lat = parseFloat(data[0].lat);
-        lng = parseFloat(data[0].lon);
+        );
+        const data = await response.json();
+        if (data && data.length > 0) {
+          lat = parseFloat(data[0].lat);
+          lng = parseFloat(data[0].lon);
+        }
+      } catch (geocodeErr) {
+        console.warn("Geocoding fallback used:", geocodeErr);
       }
-    } catch (geocodeErr) {
-      console.warn("Geocoding fallback used:", geocodeErr);
     }
 
     // Initialize Leaflet Map
