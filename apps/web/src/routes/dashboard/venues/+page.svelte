@@ -74,6 +74,8 @@ let isSubmitting = $state(false);
 let formName = $state("");
 let formLocation = $state("");
 let formCity = $state("");
+let formLatitude = $state("");
+let formLongitude = $state("");
 let formDescription = $state("");
 let formOpenTime = $state("06:00");
 let formCloseTime = $state("23:00");
@@ -120,6 +122,8 @@ function openAddModal() {
   formName = "";
   formLocation = "";
   formCity = "";
+  formLatitude = "";
+  formLongitude = "";
   formDescription = "";
   formOpenTime = "06:00";
   formCloseTime = "23:00";
@@ -137,6 +141,8 @@ function openEditModal(v: any) {
   formName = v.name || "";
   formLocation = v.location || "";
   formCity = v.city || "";
+  formLatitude = v.latitude != null ? String(v.latitude) : "";
+  formLongitude = v.longitude != null ? String(v.longitude) : "";
   formDescription = v.description || "";
   formOpenTime = v.operatingHours?.open || v.openTime || "06:00";
   formCloseTime = v.operatingHours?.close || v.closeTime || "23:00";
@@ -250,6 +256,8 @@ async function handleSubmit() {
       name: formName.trim(),
       location: formLocation.trim(),
       city: formCity.trim(),
+      latitude: formLatitude.trim() ? parseFloat(formLatitude) : null,
+      longitude: formLongitude.trim() ? parseFloat(formLongitude) : null,
       description: formDescription.trim(),
       openTime: formOpenTime,
       closeTime: formCloseTime,
@@ -505,6 +513,35 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
                       id="venue-location"
                       bind:value={formLocation}
                       placeholder="Jl. Sunset Road No. 88"
+                      class={inputClass}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class={labelClass} for="venue-lat">Latitude (GPS Optional)</label>
+                  <div class={inputWrapperClass}>
+                    <input
+                      id="venue-lat"
+                      type="number"
+                      step="any"
+                      bind:value={formLatitude}
+                      placeholder="-8.6905"
+                      class={inputClass}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label class={labelClass} for="venue-lng">Longitude (GPS Optional)</label>
+                  <div class={inputWrapperClass}>
+                    <input
+                      id="venue-lng"
+                      type="number"
+                      step="any"
+                      bind:value={formLongitude}
+                      placeholder="115.1686"
                       class={inputClass}
                     />
                   </div>
