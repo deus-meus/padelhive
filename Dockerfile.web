@@ -27,7 +27,7 @@ COPY package.json bun.lock* ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Copy source code
 COPY . .
@@ -52,7 +52,7 @@ COPY apps/web/package.json ./apps/web/
 COPY --from=builder /app/apps/web/build ./apps/web/build
 
 # Install dependencies in production runner stage
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Set correct ownership for sveltejs user
 RUN chown -R sveltejs:nodejs /app
