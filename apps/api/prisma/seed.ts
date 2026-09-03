@@ -138,6 +138,8 @@ async function main() {
       slug: "padel-bali-arena",
       location: "Jl. Sunset Road No. 88, Seminyak",
       city: "Bali",
+      latitude: -8.6905,
+      longitude: 115.1686,
       description:
         "Premium padel courts in the heart of Seminyak with ocean breeze and clubhouse facilities.",
       imageUrl:
@@ -162,6 +164,8 @@ async function main() {
       slug: "jakarta-padel-club",
       location: "Jl. Sudirman Kav. 52, SCBD",
       city: "Jakarta",
+      latitude: -6.2297,
+      longitude: 106.8074,
       description:
         "State-of-the-art indoor padel facility in Jakarta's business district.",
       imageUrl:
@@ -186,6 +190,8 @@ async function main() {
       slug: "surabaya-padel-center",
       location: "Jl. Basuki Rahmat No. 100",
       city: "Surabaya",
+      latitude: -7.2651,
+      longitude: 112.7424,
       description:
         "East Java's first dedicated padel center with 6 courts and professional coaching.",
       imageUrl:

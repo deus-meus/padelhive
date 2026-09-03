@@ -124,6 +124,8 @@ model Venue {
   slug           String       @unique
   location       String
   city           String
+  latitude       Float?
+  longitude      Float?
   description    String
   imageUrl       String?
   photos         String[]     @default([])
