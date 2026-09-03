@@ -40,22 +40,25 @@ FROM oven/bun:1-alpine AS runner
 
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NODE_PATH /app/node_modules
+ENV NODE_ENV=production
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 sveltejs
 
-# Copy built adapter-node output and node_modules from builder with correct ownership
-COPY --from=builder --chown=sveltejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=sveltejs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=sveltejs:nodejs /app/apps/web/build ./apps/web/build
-COPY --from=builder --chown=sveltejs:nodejs /app/apps/web/package.json ./apps/web/package.json
+# Copy monorepo package files and built artifacts
+COPY package.json bun.lock* ./
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+COPY --from=builder /app/apps/web/build ./apps/web/build
 
-RUN mkdir -p /app/apps/web && ln -sf /app/node_modules /app/apps/web/node_modules && chown -h sveltejs:nodejs /app/apps/web/node_modules
+# Install dependencies in production runner stage
+RUN bun install --frozen-lockfile
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+# Set correct ownership for sveltejs user
+RUN chown -R sveltejs:nodejs /app
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 USER sveltejs
 

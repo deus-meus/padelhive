@@ -23,27 +23,24 @@ FROM oven/bun:1-alpine
 WORKDIR /app
 RUN apk add --no-cache openssl
 
-# Copy built artifacts and node_modules from builder
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/bun.lock* ./
-COPY --from=builder /app/apps/api/package.json ./apps/api/
+# Copy monorepo package files and built artifacts
+COPY package.json bun.lock* ./
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/apps/api/tsconfig.json ./apps/api/tsconfig.json
 
-RUN mkdir -p /app/apps/api && ln -sf /app/node_modules /app/apps/api/node_modules
+# Install dependencies in production container and generate Prisma Client
+RUN bun install --frozen-lockfile
+RUN bun --filter @padelhive/api prisma:generate
 
 # Entrypoint script for migrations, seeding, and starting
 COPY apps/api/entrypoint.sh /app/apps/api/entrypoint.sh
-RUN chmod +x /app/apps/api/entrypoint.sh && chmod -R +x /app/node_modules
-
-WORKDIR /app
+RUN chmod +x /app/apps/api/entrypoint.sh
 
 ENV NODE_ENV=production
-ENV NODE_PATH=/app/node_modules
 ENV PRISMA_GENERATE_SKIP_AUTO_INSTALL=true
 
 EXPOSE 3001
-
 ENTRYPOINT ["/app/apps/api/entrypoint.sh"]
