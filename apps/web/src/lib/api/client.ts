@@ -7,15 +7,29 @@ const env = {
   ...((typeof import.meta !== "undefined" && import.meta.env) || {}),
 } as unknown as Record<string, string | undefined>;
 
-const rawApiUrl =
-  env.PUBLIC_API_URL ||
-  env.VITE_API_URL ||
-  env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3001";
+const getApiUrl = (): string => {
+  let url =
+    env.PUBLIC_API_URL ||
+    env.VITE_API_URL ||
+    env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:3001";
 
-export const API_URL = rawApiUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
+  // If running in browser and API URL defaults to localhost, adapt to current hostname
+  if (
+    typeof window !== "undefined" &&
+    url.includes("localhost") &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1"
+  ) {
+    url = url.replace("localhost", window.location.hostname);
+  }
 
-const traceFetch: typeof fetch = async (input, init) => {
+  return url.replace(/\/api\/?$/, "").replace(/\/$/, "");
+};
+
+export const API_URL = getApiUrl();
+
+const traceFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   const startTime = performance.now();
   const url =
     typeof input === "string"
@@ -88,5 +102,7 @@ const traceFetch: typeof fetch = async (input, init) => {
   }
 };
 
-export const client = treaty<App>(API_URL, { fetcher: traceFetch });
+export const client = treaty<App>(API_URL, {
+  fetcher: traceFetch as typeof fetch,
+});
 export const api = client.api;
