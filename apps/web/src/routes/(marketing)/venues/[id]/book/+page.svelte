@@ -50,16 +50,28 @@ let error = $state<string | null>(null);
 
 // 14 days ahead
 const dateOptions = $derived.by(() => {
-  const list: { iso: string; day: string; dateNum: number; full: string }[] =
-    [];
+  const list: {
+    iso: string;
+    day: string;
+    dateNum: number;
+    full: string;
+    isToday: boolean;
+  }[] = [];
   const today = new Date();
+  const todayIso = today.toISOString().split("T")[0];
   for (let i = 0; i < 14; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const iso = d.toISOString().split("T")[0];
     const day = d.toLocaleDateString("en-US", { weekday: "short" });
     const dateNum = d.getDate();
-    list.push({ iso, day, dateNum, full: formatBookingDate(d) });
+    list.push({
+      iso,
+      day,
+      dateNum,
+      full: formatBookingDate(d),
+      isToday: iso === todayIso,
+    });
   }
   return list;
 });
@@ -392,7 +404,7 @@ async function handleCreateBooking(e: SubmitEvent) {
           </div>
 
           <!-- Step 2: SELECT DATE (1:1 Pager Grid from Image #108 & Image #110 - No Scrollbar) -->
-          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4 shadow-xl">
+          <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-4 sm:p-6 space-y-4 shadow-xl">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="flex h-6 w-6 items-center justify-center rounded-full bg-[#50C8C8]/15 text-xs font-bold text-[#50C8C8]">
@@ -428,7 +440,7 @@ async function handleCreateBooking(e: SubmitEvent) {
             </div>
 
             <!-- 7-Column Date Grid (No Scrollbar) -->
-            <div class="grid grid-cols-7 gap-2 pt-1">
+            <div class="grid grid-cols-7 gap-1 sm:gap-2 pt-1">
               {#each visibleDateOptions as item}
                 <button
                   type="button"
@@ -436,16 +448,17 @@ async function handleCreateBooking(e: SubmitEvent) {
                     selectedDate = item.iso;
                     selectedSlots = [];
                   }}
-                  class="flex flex-col items-center justify-center rounded-xl border py-3 px-1 transition-all {selectedDate ===
+                  class="flex flex-col items-center justify-center rounded-xl border py-2.5 sm:py-3 px-0.5 sm:px-1 transition-all {selectedDate ===
                   item.iso
                     ? 'border-[#50C8C8] bg-[#50C8C8]/15 text-[#F7F7F7] shadow-sm'
                     : 'border-white/[0.06] bg-white/[0.015] text-[#F7F7F7]/60 hover:border-white/[0.12] hover:text-[#F7F7F7]'}"
                 >
-                  <span class="metric text-lg sm:text-xl font-bold">{item.dateNum}</span>
-                  <div class="flex items-center gap-1 caption uppercase font-medium mt-1 text-[11px]">
-                    <span>{item.day}</span>
-                    {#if item.iso === new Date().toISOString().split("T")[0]}
-                      <span class="text-[#50C8C8] font-bold">Today</span>
+                  <span class="metric text-base sm:text-xl font-bold">{item.dateNum}</span>
+                  <div class="flex flex-col items-center justify-center caption uppercase font-medium mt-1 text-[10px] sm:text-[11px] leading-tight min-w-0">
+                    {#if item.isToday}
+                      <span class="text-[#50C8C8] font-bold tracking-tighter">TODAY</span>
+                    {:else}
+                      <span class="truncate">{item.day}</span>
                     {/if}
                   </div>
                 </button>
