@@ -8,7 +8,7 @@ COPY package.json bun.lock* ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Copy source code
 COPY . .
@@ -32,7 +32,7 @@ COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/apps/api/tsconfig.json ./apps/api/tsconfig.json
 
 # Install dependencies in production container and generate Prisma Client
-RUN bun install --frozen-lockfile
+RUN bun install
 RUN bun --filter @padelhive/api prisma:generate
 
 # Entrypoint script for migrations, seeding, and starting
