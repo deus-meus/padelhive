@@ -19,6 +19,8 @@ export const CreateVenueSchema = t.Object({
   name: t.String(),
   location: t.String(),
   city: t.String(),
+  latitude: t.Optional(t.Nullable(t.Number())),
+  longitude: t.Optional(t.Nullable(t.Number())),
   description: t.String(),
   openTime: t.String(),
   closeTime: t.String(),

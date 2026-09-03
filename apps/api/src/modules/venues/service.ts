@@ -41,6 +41,8 @@ const venueSelect = {
   slug: true,
   location: true,
   city: true,
+  latitude: true,
+  longitude: true,
   description: true,
   imageUrl: true,
   photos: true,
@@ -66,6 +68,8 @@ type SelectedVenue = {
   slug: string;
   location: string;
   city: string;
+  latitude: number | null;
+  longitude: number | null;
   description: string;
   imageUrl: string | null;
   photos: string[];
@@ -394,6 +398,8 @@ export class VenuesService {
           slug,
           location: dto.location.trim(),
           city: dto.city.trim(),
+          latitude: dto.latitude ?? null,
+          longitude: dto.longitude ?? null,
           description: dto.description.trim(),
           imageUrl: dto.imageUrl?.trim() || null,
           photos: dto.photos ?? [],
@@ -438,6 +444,8 @@ export class VenuesService {
     if (dto.name !== undefined) data.name = dto.name.trim();
     if (dto.location !== undefined) data.location = dto.location.trim();
     if (dto.city !== undefined) data.city = dto.city.trim();
+    if (dto.latitude !== undefined) data.latitude = dto.latitude;
+    if (dto.longitude !== undefined) data.longitude = dto.longitude;
     if (dto.description !== undefined)
       data.description = dto.description.trim();
     if (dto.imageUrl !== undefined) data.imageUrl = dto.imageUrl.trim() || null;
