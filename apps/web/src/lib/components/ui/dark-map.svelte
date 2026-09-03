@@ -73,14 +73,13 @@ onMount(async () => {
       attributionControl: false,
     });
 
-    // CartoDB Dark Matter Tile Layer
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-      {
-        subdomains: "abcd",
-        maxZoom: 19,
-      },
-    ).addTo(leafletMap);
+    // OpenStreetMap Tile Layer with CSS Dark Filter (100% Free, No API Key required)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      subdomains: "abc",
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(leafletMap);
 
     // Custom Zoom Control placed at top right
     L.control.zoom({ position: "topright" }).addTo(leafletMap);
@@ -110,10 +109,14 @@ onMount(async () => {
     if (venueName) {
       marker.bindPopup(
         `
-          <div class="p-1 font-sans text-left">
-            <p class="font-bold text-sm text-[#F7F7F7]">${venueName}</p>
-            <p class="text-xs text-[#50C8C8] mt-0.5">${location}</p>
-            <p class="text-[11px] text-gray-400">${city}, Indonesia</p>
+          <div class="p-2 font-sans text-left min-w-[200px]">
+            <div class="flex items-center gap-1.5 text-[#50C8C8] font-bold text-[10px] uppercase tracking-wider mb-1">
+              <span class="h-1.5 w-1.5 rounded-full bg-[#50C8C8] animate-pulse"></span>
+              Venue Location
+            </div>
+            <p class="font-bold text-sm text-[#F7F7F7] leading-tight">${venueName}</p>
+            <p class="text-xs text-[#50C8C8] font-medium mt-1">${location}</p>
+            <p class="text-[11px] text-[#F7F7F7]/50 mt-0.5">${city}, Indonesia</p>
           </div>
           `,
         {
@@ -167,6 +170,9 @@ onMount(async () => {
     background-color: #071521 !important;
     font-family: inherit;
   }
+  :global(.leaflet-tile-pane) {
+    filter: invert(100%) hue-rotate(180deg) brightness(0.85) contrast(1.15);
+  }
   :global(.custom-dark-map-pin) {
     background: transparent !important;
     border: none !important;
@@ -193,13 +199,30 @@ onMount(async () => {
   }
   :global(.leaflet-popup-content-wrapper) {
     background: #0c1b26 !important;
-    border: 1px solid rgba(80, 200, 200, 0.3) !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
-    border-radius: 12px !important;
+    border: 1px solid rgba(80, 200, 200, 0.4) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7) !important;
+    border-radius: 16px !important;
     color: #f7f7f7 !important;
+    padding: 2px !important;
+  }
+  :global(.leaflet-popup-content) {
+    margin: 10px 14px !important;
+    line-height: 1.4 !important;
+  }
+  :global(.leaflet-container a.leaflet-popup-close-button) {
+    color: rgba(247, 247, 247, 0.5) !important;
+    padding: 8px 10px 0 0 !important;
+    font-size: 16px !important;
+    font-weight: bold;
+    transition: color 0.2s ease;
+  }
+  :global(.leaflet-container a.leaflet-popup-close-button:hover) {
+    color: #50c8c8 !important;
+    background: transparent !important;
   }
   :global(.leaflet-popup-tip) {
     background: #0c1b26 !important;
-    border: 1px solid rgba(80, 200, 200, 0.3) !important;
+    border: 1px solid rgba(80, 200, 200, 0.4) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
   }
 </style>
