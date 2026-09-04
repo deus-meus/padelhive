@@ -45,68 +45,72 @@ function getCityCoordinates(cityName: string): [number, number] {
   return [-6.2297, 106.8074];
 }
 
-onMount(async () => {
-  if (!mapContainer) return;
+onMount(() => {
+  let activeMap: any = null;
 
-  try {
-    // Dynamic import to support SvelteKit SSR
-    const L = (await import("leaflet")).default;
+  async function initMap() {
+    if (!mapContainer) return;
 
-    let [lat, lng] = getCityCoordinates(city);
+    try {
+      // Dynamic import to support SvelteKit SSR
+      const L = (await import("leaflet")).default;
 
-    if (
-      typeof propLat === "number" &&
-      typeof propLng === "number" &&
-      !Number.isNaN(propLat) &&
-      !Number.isNaN(propLng)
-    ) {
-      lat = propLat;
-      lng = propLng;
-    } else {
-      // Geocode using OpenStreetMap Nominatim
-      try {
-        const query = encodeURIComponent(`${location}, ${city}, Indonesia`);
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
-          {
-            headers: {
-              "User-Agent": "Padelhive-App/1.0",
+      let [lat, lng] = getCityCoordinates(city);
+
+      if (
+        typeof propLat === "number" &&
+        typeof propLng === "number" &&
+        !Number.isNaN(propLat) &&
+        !Number.isNaN(propLng)
+      ) {
+        lat = propLat;
+        lng = propLng;
+      } else {
+        // Geocode using OpenStreetMap Nominatim
+        try {
+          const query = encodeURIComponent(`${location}, ${city}, Indonesia`);
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
+            {
+              headers: {
+                "User-Agent": "Padelhive-App/1.0",
+              },
             },
-          },
-        );
-        const data = await response.json();
-        if (data && data.length > 0) {
-          lat = parseFloat(data[0].lat);
-          lng = parseFloat(data[0].lon);
+          );
+          const data = await response.json();
+          if (data && data.length > 0) {
+            lat = parseFloat(data[0].lat);
+            lng = parseFloat(data[0].lon);
+          }
+        } catch (geocodeErr) {
+          console.warn("Geocoding fallback used:", geocodeErr);
         }
-      } catch (geocodeErr) {
-        console.warn("Geocoding fallback used:", geocodeErr);
       }
-    }
 
-    // Initialize Leaflet Map
-    leafletMap = L.map(mapContainer, {
-      center: [lat, lng],
-      zoom: 15,
-      zoomControl: false,
-      attributionControl: false,
-    });
+      // Initialize Leaflet Map
+      leafletMap = L.map(mapContainer, {
+        center: [lat, lng],
+        zoom: 15,
+        zoomControl: false,
+        attributionControl: false,
+      });
+      activeMap = leafletMap;
 
-    // OpenStreetMap Tile Layer with CSS Dark Filter (100% Free, No API Key required)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      subdomains: "abc",
-      maxZoom: 19,
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(leafletMap);
+      // OpenStreetMap Tile Layer with CSS Dark Filter (100% Free, No API Key required)
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        subdomains: "abc",
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(leafletMap);
 
-    // Custom Zoom Control placed at top right
-    L.control.zoom({ position: "topright" }).addTo(leafletMap);
+      // Custom Zoom Control placed at top right
+      L.control.zoom({ position: "topright" }).addTo(leafletMap);
 
-    // Custom Glowing Cyan HTML Pin Icon
-    const customIcon = L.divIcon({
-      className: "custom-dark-map-pin",
-      html: `
+      // Custom Glowing Cyan HTML Pin Icon
+      const customIcon = L.divIcon({
+        className: "custom-dark-map-pin",
+        html: `
           <div class="relative flex items-center justify-center cursor-pointer">
             <span class="absolute inline-flex h-10 w-10 animate-ping rounded-full bg-[#50C8C8]/40 opacity-75"></span>
             <div class="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#50C8C8] bg-[#071521] text-[#50C8C8] shadow-[0_0_20px_rgba(80,200,200,0.6)]">
@@ -117,17 +121,19 @@ onMount(async () => {
             </div>
           </div>
         `,
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -42],
-    });
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -42],
+      });
 
-    // Add Marker with Dark Theme Popup
-    const marker = L.marker([lat, lng], { icon: customIcon }).addTo(leafletMap);
+      // Add Marker with Dark Theme Popup
+      const marker = L.marker([lat, lng], { icon: customIcon }).addTo(
+        leafletMap,
+      );
 
-    if (venueName) {
-      marker.bindPopup(
-        `
+      if (venueName) {
+        marker.bindPopup(
+          `
           <div class="p-2 font-sans text-left min-w-[200px]">
             <div class="flex items-center gap-1.5 text-[#50C8C8] font-bold text-[10px] uppercase tracking-wider mb-1">
               <span class="h-1.5 w-1.5 rounded-full bg-[#50C8C8] animate-pulse"></span>
@@ -138,21 +144,24 @@ onMount(async () => {
             <p class="text-[11px] text-[#F7F7F7]/50 mt-0.5">${city}, Indonesia</p>
           </div>
           `,
-        {
-          className: "custom-dark-popup",
-        },
-      );
-    }
+          {
+            className: "custom-dark-popup",
+          },
+        );
+      }
 
-    isMapLoading = false;
-  } catch (e) {
-    console.error("Leaflet map initialization error:", e);
-    isMapLoading = false;
+      isMapLoading = false;
+    } catch (e) {
+      console.error("Leaflet map initialization error:", e);
+      isMapLoading = false;
+    }
   }
 
+  initMap();
+
   return () => {
-    if (leafletMap) {
-      leafletMap.remove();
+    if (activeMap) {
+      activeMap.remove();
     }
   };
 });

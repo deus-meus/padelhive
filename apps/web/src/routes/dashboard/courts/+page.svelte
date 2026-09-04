@@ -6,7 +6,9 @@ import {
   Loader2,
   Plus,
   Power,
+  SlidersHorizontal,
   Sun,
+  Tag,
   Trash2,
   X,
   XCircle,
@@ -16,6 +18,7 @@ import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
 import FilterSelect from "$lib/components/ui/filter-select.svelte";
+import FormInput from "$lib/components/ui/form-input.svelte";
 import NumberInput from "$lib/components/ui/number-input.svelte";
 
 let venues = $state<any[]>([]);
@@ -475,38 +478,38 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
         ></button>
         <div class="relative w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto no-scrollbar">
           <div class="flex items-center justify-between border-b border-white/[0.06] pb-4">
-            <div>
-              <h2 class="heading-2 text-xl text-[#F7F7F7]">
-                {modalMode === "add" ? "Add New Court" : "Edit Court & Pricing"}
-              </h2>
-              <p class="caption text-[#F7F7F7]/40 mt-0.5">
-                Configure court details and dynamic pricing rates
-              </p>
+            <div class="flex items-center gap-3">
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#50C8C8]/10 text-[#50C8C8] border border-[#50C8C8]/20">
+                <SlidersHorizontal class="h-5 w-5" />
+              </div>
+              <div>
+                <h2 class="heading-2 text-base text-[#F7F7F7]">
+                  {modalMode === "add" ? "Add New Court" : "Edit Court & Pricing"}
+                </h2>
+                <p class="caption text-[#F7F7F7]/40 text-xs">
+                  Configure court details and dynamic pricing rates
+                </p>
+              </div>
             </div>
             <button
               type="button"
               onclick={() => (isModalOpen = false)}
-              class="rounded-lg p-1 text-[#F7F7F7]/40 hover:bg-white/[0.06] hover:text-[#F7F7F7]"
+              class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] text-[#F7F7F7]/40 hover:border-white/[0.15] hover:text-[#F7F7F7] transition-all"
             >
-              <X class="h-5 w-5" />
+              <X class="h-4 w-4" />
             </button>
           </div>
 
           <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="mt-5 space-y-4">
             <!-- Court Name -->
-            <div>
-              <label for="court-name-input" class={labelClass}>Court Name</label>
-              <div class={inputWrapperClass}>
-                <input
-                  id="court-name-input"
-                  type="text"
-                  bind:value={formName}
-                  placeholder="e.g. Court 1 (Center Court)"
-                  class={inputClass}
-                  required
-                />
-              </div>
-            </div>
+            <FormInput
+              id="court-name-input"
+              label="Court Name"
+              required
+              icon={Tag}
+              bind:value={formName}
+              placeholder="e.g. Court 1 (Center Court)"
+            />
 
             <!-- Court Type & Active Toggle -->
             <div class="grid grid-cols-2 gap-4">
