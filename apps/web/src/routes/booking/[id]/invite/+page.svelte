@@ -16,7 +16,6 @@ import { onMount } from "svelte";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
-import EmptyState from "$lib/components/ui/empty-state.svelte";
 import { formatBookingDate } from "$lib/format";
 
 const bookingId = $derived((page.params.id as string) || "");

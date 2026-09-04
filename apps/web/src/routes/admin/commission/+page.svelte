@@ -1,6 +1,5 @@
 <script lang="ts">
 import { Coins } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";

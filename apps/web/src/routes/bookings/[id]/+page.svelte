@@ -18,8 +18,6 @@ import {
   X,
   XCircle,
 } from "lucide-svelte";
-import { onMount } from "svelte";
-import { goto } from "$app/navigation";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";

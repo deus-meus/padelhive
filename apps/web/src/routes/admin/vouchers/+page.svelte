@@ -1,6 +1,5 @@
 <script lang="ts">
 import { Loader2, Pencil, Plus, Ticket, Trash2, X } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import DatePicker from "$lib/components/ui/date-picker.svelte";

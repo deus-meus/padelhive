@@ -6,7 +6,6 @@ import {
   SlidersHorizontal,
   Star,
 } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
 import FilterMultiSelect from "$lib/components/ui/filter-multi-select.svelte";

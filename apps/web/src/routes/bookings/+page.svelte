@@ -18,7 +18,6 @@ import {
 } from "lucide-svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
-import EmptyState from "$lib/components/ui/empty-state.svelte";
 import { formatBookingDate, formatBookingTimeRange } from "$lib/format";
 import { padelImg } from "$lib/images";
 
