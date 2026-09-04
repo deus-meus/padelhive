@@ -329,3 +329,27 @@
     max-width: 1240px;
   }
 }
+
+/* ─── CUSTOM SLIM DARK SCROLLBAR ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(6, 18, 26, 0.6);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(230, 250, 80, 0.25);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(230, 250, 80, 0.5);
+}
+
+/* Firefox scrollbar support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(230, 250, 80, 0.25) rgba(6, 18, 26, 0.6);
+}

@@ -1,8 +1,9 @@
 <script lang="ts">
-import { Loader2, Mail, User as UserIcon } from "lucide-svelte";
+import { Loader2, Lock, Mail, User as UserIcon } from "lucide-svelte";
 import { goto } from "$app/navigation";
 import { page } from "$app/state";
 import { authStore } from "$lib/auth/store.svelte";
+import FormInput from "$lib/components/ui/form-input.svelte";
 
 let name = $state("");
 let email = $state("");
