@@ -197,7 +197,7 @@ $effect(() => {
         <div class="flex items-center justify-between mb-6 border-b border-white/[0.06] pb-6">
           <div class="flex items-center gap-3">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
-              <Clock class="h-5 w-5 text-[#50C8C8]" />
+              <Clock class="h-5 w-5 text-[#E6FA50]" />
             </div>
             <div>
               <h3 class="heading-3 text-[#F7F7F7]">Venue Hours</h3>

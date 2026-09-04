@@ -99,25 +99,25 @@ $effect(() => {
       <!-- Top 4 KPI Cards -->
       <div class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-          <DollarSign class="h-4 w-4 text-[#50C8C8]" />
+          <DollarSign class="h-4 w-4 text-[#E6FA50]" />
           <p class="price mt-3 text-2xl font-bold text-[#F7F7F7]">{formatIDRM(totalRev)}</p>
           <p class="caption mt-1 text-[#F7F7F7]/40">Total Revenue</p>
         </div>
 
         <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-          <TrendingUp class="h-4 w-4 text-[#50C8C8]" />
+          <TrendingUp class="h-4 w-4 text-[#E6FA50]" />
           <p class="price mt-3 text-2xl font-bold text-[#F7F7F7]">{formatIDRM(avgPerPeriod)}</p>
           <p class="caption mt-1 text-[#F7F7F7]/40">Avg. per Period</p>
         </div>
 
         <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-          <CalendarDays class="h-4 w-4 text-[#50C8C8]" />
+          <CalendarDays class="h-4 w-4 text-[#E6FA50]" />
           <p class="price mt-3 text-2xl font-bold text-[#F7F7F7]">{totalBookings}</p>
           <p class="caption mt-1 text-[#F7F7F7]/40">Total Bookings</p>
         </div>
 
         <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-          <Users class="h-4 w-4 text-[#50C8C8]" />
+          <Users class="h-4 w-4 text-[#E6FA50]" />
           <p class="price mt-3 text-2xl font-bold text-[#F7F7F7]">{uniquePlayers}</p>
           <p class="caption mt-1 text-[#F7F7F7]/40">Unique Players</p>
         </div>
@@ -127,7 +127,7 @@ $effect(() => {
       <div class="mt-8 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 md:p-8">
         <div class="flex items-start justify-between">
           <div>
-            <p class="caption font-semibold tracking-wider uppercase text-[#50C8C8]">REVENUE OVERVIEW</p>
+            <p class="caption font-semibold tracking-wider uppercase text-[#E6FA50]">REVENUE OVERVIEW</p>
             <p class="price mt-2 text-3xl font-bold text-[#F7F7F7]">
               {formatIDRM(totalRev)}
             </p>

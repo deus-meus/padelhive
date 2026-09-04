@@ -208,7 +208,7 @@ const weekDays = [
           <!-- 1. OPERATING HOURS (Clean 1:1 Table Card with Row Dividers) -->
           <div class="mt-10">
             <h2 class="heading-2 flex items-center gap-2.5 text-[#F7F7F7]">
-              <Clock class="h-5 w-5 text-[#50C8C8]" />
+              <Clock class="h-5 w-5 text-[#E6FA50]" />
               Operating Hours
             </h2>
             <div class="mt-4 rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 shadow-xl">

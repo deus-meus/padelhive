@@ -81,7 +81,7 @@ function formatVoucherDate(dateVal: any): string {
 <div class="min-h-screen py-16 bg-[#06121A]">
   <!-- Header -->
   <section class="container pt-8 pb-4">
-    <span class="caption font-semibold tracking-wider uppercase text-[#50C8C8] block mb-3">REWARDS</span>
+    <span class="caption font-semibold tracking-wider uppercase text-[#E6FA50] block mb-3">REWARDS</span>
     <h1 class="heading-1 text-3xl md:text-4xl font-bold text-[#F7F7F7]">
       Promo & <span class="text-[#E6FA50]">Vouchers</span>
     </h1>

@@ -213,7 +213,7 @@ function handleLogout() {
                   onclick={() => (avatarOpen = false)}
                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 label text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
                 >
-                  <LayoutDashboard class="h-4 w-4 text-[#50C8C8]" /> Dashboard
+                  <LayoutDashboard class="h-4 w-4 text-[#E6FA50]" /> Dashboard
                 </a>
               {/if}
 
@@ -223,7 +223,7 @@ function handleLogout() {
                   onclick={() => (avatarOpen = false)}
                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 label text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.03] hover:text-[#F7F7F7]"
                 >
-                  <Shield class="h-4 w-4 text-[#50C8C8]" /> Admin Panel
+                  <Shield class="h-4 w-4 text-[#E6FA50]" /> Admin Panel
                 </a>
               {/if}
 
