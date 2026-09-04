@@ -3,7 +3,6 @@ import {
   Building2,
   CheckCircle2,
   Clock,
-  Edit3,
   Eye,
   FileText,
   Image as ImageIcon,
@@ -11,6 +10,7 @@ import {
   Loader2,
   MapPin,
   Navigation,
+  Pencil,
   Plus,
   Sparkles,
   Star,
@@ -25,6 +25,7 @@ import EmptyState from "$lib/components/ui/empty-state.svelte";
 import FormInput from "$lib/components/ui/form-input.svelte";
 import FormTextarea from "$lib/components/ui/form-textarea.svelte";
 import TimeSelect from "$lib/components/ui/time-select.svelte";
+import { padelImg } from "$lib/images";
 
 const STATUS_CONFIG: Record<
   string,
@@ -58,13 +59,13 @@ const STATUS_CONFIG: Record<
 
 const PRESET_FACILITIES = [
   "Parking",
-  "Showers",
-  "Locker Room",
+  "Shower",
+  "Locker",
   "Cafe",
   "Pro Shop",
   "WiFi",
+  "Coaching",
   "Equipment Rental",
-  "Seating Area",
 ];
 
 let venues = $state<any[]>([]);
@@ -300,13 +301,8 @@ $effect(() => {
   }
 });
 
-const inputWrapperClass =
-  "relative flex h-11 w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] transition-colors focus-within:border-[#50C8C8]/40";
-const inputClass =
-  "h-full w-full bg-transparent px-4 text-sm font-normal text-[#F7F7F7] placeholder:text-sm placeholder:font-normal placeholder:text-[#F7F7F7]/30 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 const integratedBtnClass =
   "label flex h-full shrink-0 items-center gap-2 border-l border-white/[0.08] bg-white/[0.04] px-4 text-xs font-medium text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.08] hover:text-[#E6FA50]";
-const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
 </script>
 
 <svelte:head>
@@ -441,7 +437,7 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
                   class="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-[#F7F7F7]/25 transition-colors hover:border-white/[0.12] hover:text-[#F7F7F7]/60"
                   title="Edit venue"
                 >
-                  <Edit3 class="h-3.5 w-3.5" />
+                  <Pencil class="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
@@ -610,9 +606,18 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
               </FormInput>
 
               {#if formImageUrl.trim()}
-                <div class="relative h-20 w-full overflow-hidden rounded-xl border border-white/[0.08] bg-black/40">
-                  <img src={formImageUrl} alt="Cover preview" class="h-full w-full object-cover" />
-                  <span class="absolute bottom-1.5 left-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/80 backdrop-blur-sm">Cover Preview</span>
+                <div class="relative h-24 w-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#071521]">
+                  <img
+                    src={formImageUrl}
+                    alt="Cover preview"
+                    class="h-full w-full object-cover"
+                    onerror={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = padelImg(600);
+                    }}
+                  />
+                  <span class="absolute bottom-1.5 left-2 rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white/90 backdrop-blur-sm border border-white/10">
+                    Cover Preview
+                  </span>
                 </div>
               {/if}
 
@@ -672,9 +677,9 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
               {#if formFacilities.length > 0}
                 <div class="flex flex-wrap gap-1.5 pt-1">
                   {#each formFacilities as f, idx}
-                    <span class="caption flex items-center gap-1.5 rounded-full border border-[#E6FA50]/30 bg-[#E6FA50]/10 px-3 py-1 text-xs font-semibold text-[#E6FA50]">
+                    <span class="caption flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-1 text-xs font-semibold text-[#F7F7F7]">
                       {f}
-                      <button type="button" onclick={() => removeFacility(idx)} class="hover:text-white">
+                      <button type="button" onclick={() => removeFacility(idx)} class="text-white/40 hover:text-red-400 transition-colors">
                         <X class="h-3 w-3" />
                       </button>
                     </span>
@@ -686,12 +691,13 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
                 <p class="text-[11px] font-semibold text-[#F7F7F7]/40 uppercase tracking-wider mb-1.5">Quick Add Amenities:</p>
                 <div class="flex flex-wrap gap-1.5">
                   {#each PRESET_FACILITIES as preset}
+                    {@const isAdded = formFacilities.some((f) => f.toLowerCase() === preset.toLowerCase())}
                     <button
                       type="button"
                       onclick={() => addFacility(preset)}
-                      disabled={formFacilities.includes(preset)}
-                      class="rounded-lg border px-2.5 py-1 text-xs font-medium transition-all {formFacilities.includes(preset)
-                        ? 'border-[#E6FA50]/40 bg-[#E6FA50]/15 text-[#E6FA50] opacity-60 cursor-default'
+                      disabled={isAdded}
+                      class="rounded-lg border px-2.5 py-1 text-xs font-medium transition-all {isAdded
+                        ? 'border-white/[0.04] bg-white/[0.02] text-[#F7F7F7]/30 opacity-40 cursor-default'
                         : 'border-white/[0.08] bg-white/[0.03] text-[#F7F7F7]/70 hover:border-[#E6FA50]/50 hover:bg-[#E6FA50]/10 hover:text-[#E6FA50]'}"
                     >
                       + {preset}

@@ -2,8 +2,8 @@
 import {
   Building2,
   CheckCircle2,
-  Edit3,
   Loader2,
+  Pencil,
   Plus,
   Power,
   SlidersHorizontal,
@@ -17,7 +17,6 @@ import {
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
-import FilterSelect from "$lib/components/ui/filter-select.svelte";
 import FormInput from "$lib/components/ui/form-input.svelte";
 import NumberInput from "$lib/components/ui/number-input.svelte";
 
@@ -242,10 +241,6 @@ $effect(() => {
   }
 });
 
-const inputWrapperClass =
-  "relative flex h-11 w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] transition-colors focus-within:border-[#50C8C8]/40";
-const inputClass =
-  "h-full w-full bg-transparent px-4 text-sm font-normal text-[#F7F7F7] placeholder:text-sm placeholder:font-normal placeholder:text-[#F7F7F7]/30 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
 </script>
 
@@ -378,7 +373,7 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
                   onclick={() => openEditModal(court)}
                   class="label flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3.5 text-xs font-medium text-[#F7F7F7]/80 transition-all hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-[#F7F7F7]"
                 >
-                  <Edit3 class="h-3.5 w-3.5 text-[#50C8C8]" />
+                  <Pencil class="h-3.5 w-3.5 text-[#E6FA50]" />
                   Edit Pricing
                 </button>
 
