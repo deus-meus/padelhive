@@ -5,9 +5,14 @@ import {
   Clock,
   Edit3,
   Eye,
+  FileText,
+  Image as ImageIcon,
+  Images as ImagesIcon,
   Loader2,
   MapPin,
+  Navigation,
   Plus,
+  Sparkles,
   Star,
   Upload,
   X,
@@ -17,6 +22,8 @@ import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
+import FormInput from "$lib/components/ui/form-input.svelte";
+import FormTextarea from "$lib/components/ui/form-textarea.svelte";
 import TimeSelect from "$lib/components/ui/time-select.svelte";
 
 const STATUS_CONFIG: Record<
@@ -463,16 +470,24 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
           aria-label="Close modal backdrop"
         ></button>
 
-        <div class="relative flex w-full max-w-3xl flex-col rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl z-10">
+        <div class="relative flex w-full max-w-3xl flex-col rounded-2xl border border-white/[0.08] bg-[#0C1B26] p-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto no-scrollbar">
           <!-- Modal Header -->
-          <div class="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-5">
-            <p class="section-label">
-              {modalMode === "add" ? "Add New Venue" : "Edit Venue"}
-            </p>
+          <div class="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-6">
+            <div class="flex items-center gap-3">
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#50C8C8]/10 text-[#50C8C8] border border-[#50C8C8]/20">
+                <Building2 class="h-5 w-5" />
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-[#F7F7F7]">
+                  {modalMode === "add" ? "Add New Venue" : "Edit Venue"}
+                </h3>
+                <p class="text-xs text-[#F7F7F7]/40">Fill in the venue details below for admin approval.</p>
+              </div>
+            </div>
             <button
               type="button"
               onclick={() => (isModalOpen = false)}
-              class="text-[#F7F7F7]/40 hover:text-[#F7F7F7]"
+              class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] text-[#F7F7F7]/40 hover:border-white/[0.15] hover:text-[#F7F7F7] transition-all"
             >
               <X class="h-4 w-4" />
             </button>
@@ -482,222 +497,206 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <!-- Left Column: Core Info -->
             <div class="space-y-4">
-              <div>
-                <label class={labelClass} for="venue-name">Venue Name *</label>
-                <div class={inputWrapperClass}>
-                  <input
-                    id="venue-name"
-                    bind:value={formName}
-                    placeholder="e.g. Padel Bali Arena"
-                    class={inputClass}
-                  />
-                </div>
+              <div class="flex items-center gap-2 pb-1 border-b border-white/[0.04]">
+                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#50C8C8]/15 text-[10px] font-bold text-[#50C8C8]">1</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#50C8C8]">Basic Venue Info</span>
+              </div>
+
+              <FormInput
+                id="venue-name"
+                label="Venue Name"
+                required
+                icon={Building2}
+                bind:value={formName}
+                placeholder="e.g. Padel Bali Arena"
+              />
+
+              <div class="grid grid-cols-2 gap-3">
+                <FormInput
+                  id="venue-city"
+                  label="City"
+                  required
+                  icon={MapPin}
+                  bind:value={formCity}
+                  placeholder="e.g. Bali"
+                />
+                <FormInput
+                  id="venue-location"
+                  label="Address"
+                  required
+                  icon={MapPin}
+                  bind:value={formLocation}
+                  placeholder="Jl. Sunset Road No. 88"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <FormInput
+                  id="venue-lat"
+                  type="number"
+                  step="any"
+                  label="Latitude (GPS)"
+                  icon={Navigation}
+                  bind:value={formLatitude}
+                  placeholder="-8.6905"
+                />
+                <FormInput
+                  id="venue-lng"
+                  type="number"
+                  step="any"
+                  label="Longitude (GPS)"
+                  icon={Navigation}
+                  bind:value={formLongitude}
+                  placeholder="115.1686"
+                />
               </div>
 
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class={labelClass} for="venue-city">City *</label>
-                  <div class={inputWrapperClass}>
-                    <input
-                      id="venue-city"
-                      bind:value={formCity}
-                      placeholder="e.g. Bali"
-                      class={inputClass}
-                    />
-                  </div>
+                  <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#F7F7F7]/60" for="venue-open">
+                    <Clock class="h-3.5 w-3.5 text-[#50C8C8]" />
+                    <span>Open Time</span>
+                  </label>
+                  <TimeSelect bind:value={formOpenTime} ariaLabel="Open time" />
                 </div>
                 <div>
-                  <label class={labelClass} for="venue-location">Address *</label>
-                  <div class={inputWrapperClass}>
-                    <input
-                      id="venue-location"
-                      bind:value={formLocation}
-                      placeholder="Jl. Sunset Road No. 88"
-                      class={inputClass}
-                    />
-                  </div>
+                  <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#F7F7F7]/60" for="venue-close">
+                    <Clock class="h-3.5 w-3.5 text-[#50C8C8]" />
+                    <span>Close Time</span>
+                  </label>
+                  <TimeSelect bind:value={formCloseTime} ariaLabel="Close time" />
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class={labelClass} for="venue-lat">Latitude (GPS Optional)</label>
-                  <div class={inputWrapperClass}>
-                    <input
-                      id="venue-lat"
-                      type="number"
-                      step="any"
-                      bind:value={formLatitude}
-                      placeholder="-8.6905"
-                      class={inputClass}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label class={labelClass} for="venue-lng">Longitude (GPS Optional)</label>
-                  <div class={inputWrapperClass}>
-                    <input
-                      id="venue-lng"
-                      type="number"
-                      step="any"
-                      bind:value={formLongitude}
-                      placeholder="115.1686"
-                      class={inputClass}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class={labelClass} for="venue-open">Open Time</label>
-                  <TimeSelect
-                    bind:value={formOpenTime}
-                    ariaLabel="Open time"
-                  />
-                </div>
-                <div>
-                  <label class={labelClass} for="venue-close">Close Time</label>
-                  <TimeSelect
-                    bind:value={formCloseTime}
-                    ariaLabel="Close time"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label class={labelClass} for="venue-desc">Description *</label>
-                <div class="relative flex w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] focus-within:border-[#50C8C8]/40">
-                  <textarea
-                    id="venue-desc"
-                    rows={3}
-                    bind:value={formDescription}
-                    placeholder="Describe your venue facilities..."
-                    class="w-full bg-transparent px-4 py-2.5 text-sm font-normal text-[#F7F7F7] placeholder:text-sm placeholder:font-normal placeholder:text-[#F7F7F7]/30 outline-none resize-none"
-                  ></textarea>
-                </div>
-              </div>
+              <FormTextarea
+                id="venue-desc"
+                label="Description"
+                required
+                icon={FileText}
+                bind:value={formDescription}
+                placeholder="Describe your venue facilities..."
+                rows={3}
+              />
             </div>
 
             <!-- Right Column: Media & Facilities -->
             <div class="space-y-4">
-              <!-- Integrated Cover Image Input with File Picker -->
-              <div>
-                <label class={labelClass} for="venue-cover">Cover Image URL (Optional)</label>
-                <div class={inputWrapperClass}>
-                  <input
-                    id="venue-cover"
-                    type="url"
-                    bind:value={formImageUrl}
-                    placeholder="https://images.unsplash.com/..."
-                    class={inputClass}
-                  />
-                  <button
-                    type="button"
-                    onclick={triggerCoverFilePicker}
-                    disabled={isUploadingCover}
-                    class={integratedBtnClass}
-                  >
-                    {#if isUploadingCover}
-                      <Loader2 class="h-3.5 w-3.5 animate-spin" />
-                    {:else}
-                      <Upload class="h-3.5 w-3.5" />
-                    {/if}
-                    Choose file
-                  </button>
-                </div>
+              <div class="flex items-center gap-2 pb-1 border-b border-white/[0.04]">
+                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#50C8C8]/15 text-[10px] font-bold text-[#50C8C8]">2</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#50C8C8]">Media & Amenities</span>
               </div>
 
-              <!-- Integrated Photo Gallery Input with File Picker -->
-              <div>
-                <label class={labelClass} for="venue-photo-draft">Photo Gallery (Optional)</label>
-                <div class={inputWrapperClass}>
-                  <input
-                    id="venue-photo-draft"
-                    type="url"
-                    bind:value={photoInput}
-                    onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), addPhoto())}
-                    placeholder="Photo URL..."
-                    class={inputClass}
-                  />
-                  <button
-                    type="button"
-                    onclick={triggerPhotoFilePicker}
-                    disabled={isUploadingPhoto}
-                    class={integratedBtnClass}
-                  >
-                    {#if isUploadingPhoto}
-                      <Loader2 class="h-3.5 w-3.5 animate-spin" />
-                    {:else}
-                      <Upload class="h-3.5 w-3.5" />
-                    {/if}
-                    Choose file
-                  </button>
+              <FormInput
+                id="venue-cover"
+                type="url"
+                label="Cover Image URL (Optional)"
+                icon={ImageIcon}
+                bind:value={formImageUrl}
+                placeholder="https://images.unsplash.com/..."
+              >
+                <button
+                  type="button"
+                  onclick={triggerCoverFilePicker}
+                  disabled={isUploadingCover}
+                  class={integratedBtnClass}
+                >
+                  {#if isUploadingCover}
+                    <Loader2 class="h-3.5 w-3.5 animate-spin" />
+                  {:else}
+                    <Upload class="h-3.5 w-3.5" />
+                  {/if}
+                  Choose file
+                </button>
+              </FormInput>
+
+              {#if formImageUrl.trim()}
+                <div class="relative h-20 w-full overflow-hidden rounded-xl border border-white/[0.08] bg-black/40">
+                  <img src={formImageUrl} alt="Cover preview" class="h-full w-full object-cover" />
+                  <span class="absolute bottom-1.5 left-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/80 backdrop-blur-sm">Cover Preview</span>
                 </div>
+              {/if}
 
-                {#if formPhotos.length > 0}
-                  <div class="mt-2 flex flex-wrap gap-1.5 max-h-20 overflow-y-auto no-scrollbar">
-                    {#each formPhotos as p, idx}
-                      <span class="caption flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-2.5 py-1 text-[#F7F7F7]/60">
-                        <span class="truncate max-w-[120px]">{p}</span>
-                        <button type="button" onclick={() => removePhoto(idx)} class="text-white/40 hover:text-red-400">
-                          <X class="h-3 w-3" />
-                        </button>
-                      </span>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
+              <FormInput
+                id="venue-photo-draft"
+                type="url"
+                label="Photo Gallery (Optional)"
+                icon={ImagesIcon}
+                bind:value={photoInput}
+                placeholder="Photo URL..."
+              >
+                <button
+                  type="button"
+                  onclick={triggerPhotoFilePicker}
+                  disabled={isUploadingPhoto}
+                  class={integratedBtnClass}
+                >
+                  {#if isUploadingPhoto}
+                    <Loader2 class="h-3.5 w-3.5 animate-spin" />
+                  {:else}
+                    <Upload class="h-3.5 w-3.5" />
+                  {/if}
+                  Choose file
+                </button>
+              </FormInput>
 
-              <!-- Integrated Facilities Input -->
-              <div>
-                <label class={labelClass} for="venue-facility-draft">Facilities (Optional)</label>
-                <div class={inputWrapperClass}>
-                  <input
-                    id="venue-facility-draft"
-                    type="text"
-                    bind:value={facilityInput}
-                    onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), addFacility(facilityInput))}
-                    placeholder="Custom facility..."
-                    class={inputClass}
-                  />
-                  <button
-                    type="button"
-                    onclick={() => addFacility(facilityInput)}
-                    class={integratedBtnClass}
-                  >
-                    <Plus class="h-3.5 w-3.5" />
-                    Add
-                  </button>
-                </div>
-
-                {#if formFacilities.length > 0}
-                  <div class="mt-2 flex flex-wrap gap-1.5">
-                    {#each formFacilities as f, idx}
-                      <span class="caption flex items-center gap-1 rounded-full bg-[#E6FA50]/10 px-2.5 py-0.5 text-[#E6FA50]">
-                        {f}
-                        <button type="button" onclick={() => removeFacility(idx)} class="hover:text-white">
-                          <X class="h-3 w-3" />
-                        </button>
-                      </span>
-                    {/each}
-                  </div>
-                {/if}
-
-                <div class="mt-2">
-                  <p class="caption text-[#F7F7F7]/30 mb-1">Quick Add:</p>
-                  <div class="flex flex-wrap gap-1">
-                    {#each PRESET_FACILITIES as preset}
-                      <button
-                        type="button"
-                        onclick={() => addFacility(preset)}
-                        disabled={formFacilities.includes(preset)}
-                        class="caption rounded-md border border-white/[0.06] px-2 py-0.5 text-[11px] text-[#F7F7F7]/40 hover:border-[#E6FA50]/40 hover:text-[#F7F7F7] disabled:opacity-20"
-                      >
-                        + {preset}
+              {#if formPhotos.length > 0}
+                <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto no-scrollbar pt-1">
+                  {#each formPhotos as p, idx}
+                    <span class="caption flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[#F7F7F7]/70">
+                      <span class="truncate max-w-[120px] text-xs">{p}</span>
+                      <button type="button" onclick={() => removePhoto(idx)} class="text-white/40 hover:text-red-400">
+                        <X class="h-3 w-3" />
                       </button>
-                    {/each}
-                  </div>
+                    </span>
+                  {/each}
+                </div>
+              {/if}
+
+              <FormInput
+                id="venue-facility-draft"
+                label="Facilities (Optional)"
+                icon={Sparkles}
+                bind:value={facilityInput}
+                placeholder="Custom facility..."
+              >
+                <button
+                  type="button"
+                  onclick={() => addFacility(facilityInput)}
+                  class={integratedBtnClass}
+                >
+                  <Plus class="h-3.5 w-3.5" />
+                  Add
+                </button>
+              </FormInput>
+
+              {#if formFacilities.length > 0}
+                <div class="flex flex-wrap gap-1.5 pt-1">
+                  {#each formFacilities as f, idx}
+                    <span class="caption flex items-center gap-1.5 rounded-full border border-[#50C8C8]/30 bg-[#50C8C8]/10 px-3 py-1 text-xs font-semibold text-[#50C8C8]">
+                      {f}
+                      <button type="button" onclick={() => removeFacility(idx)} class="hover:text-white">
+                        <X class="h-3 w-3" />
+                      </button>
+                    </span>
+                  {/each}
+                </div>
+              {/if}
+
+              <div class="pt-1">
+                <p class="text-[11px] font-semibold text-[#F7F7F7]/40 uppercase tracking-wider mb-1.5">Quick Add Amenities:</p>
+                <div class="flex flex-wrap gap-1.5">
+                  {#each PRESET_FACILITIES as preset}
+                    <button
+                      type="button"
+                      onclick={() => addFacility(preset)}
+                      disabled={formFacilities.includes(preset)}
+                      class="rounded-lg border px-2.5 py-1 text-xs font-medium transition-all {formFacilities.includes(preset)
+                        ? 'border-[#50C8C8]/40 bg-[#50C8C8]/15 text-[#50C8C8] opacity-60 cursor-default'
+                        : 'border-white/[0.08] bg-white/[0.03] text-[#F7F7F7]/70 hover:border-[#50C8C8]/50 hover:bg-[#50C8C8]/10 hover:text-[#50C8C8]'}"
+                    >
+                      + {preset}
+                    </button>
+                  {/each}
                 </div>
               </div>
             </div>
