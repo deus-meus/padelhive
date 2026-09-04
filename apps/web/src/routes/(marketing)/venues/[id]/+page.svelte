@@ -6,7 +6,6 @@ import {
   Dumbbell,
   Lock,
   MapPin,
-  Navigation,
   Shield,
   ShowerHead,
   Star,

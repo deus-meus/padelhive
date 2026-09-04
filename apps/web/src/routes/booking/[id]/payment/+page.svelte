@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   Building2,
-  Check,
   CheckCircle2,
   Clock,
   CreditCard,
@@ -15,7 +14,6 @@ import {
   Users,
   Wallet,
   X,
-  XCircle,
 } from "lucide-svelte";
 import { goto } from "$app/navigation";
 import { page } from "$app/state";

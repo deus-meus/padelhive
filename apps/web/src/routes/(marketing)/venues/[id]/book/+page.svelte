@@ -9,11 +9,7 @@ import {
   Info,
   Loader2,
   MapPin,
-  ShieldCheck,
-  Tag,
-  Ticket,
   Users,
-  X,
 } from "lucide-svelte";
 import { goto } from "$app/navigation";
 import { page } from "$app/state";

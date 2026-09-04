@@ -1,13 +1,10 @@
 <script lang="ts">
 import {
   AlertCircle,
-  CheckCircle2,
   Clock,
-  Loader2,
   RotateCcw,
   ShieldCheck,
   ShieldX,
-  XCircle,
 } from "lucide-svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";

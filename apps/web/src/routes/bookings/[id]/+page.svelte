@@ -1,13 +1,11 @@
 <script lang="ts">
 import {
-  AlertCircle,
   AlertTriangle,
   ArrowLeft,
   CalendarDays,
   Clock,
   Copy,
   CreditCard,
-  Loader2,
   MapPin,
   Share2,
   ShieldCheck,
@@ -16,7 +14,6 @@ import {
   Ticket,
   Timer,
   X,
-  XCircle,
 } from "lucide-svelte";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";

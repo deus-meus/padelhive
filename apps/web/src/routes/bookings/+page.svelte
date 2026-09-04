@@ -12,7 +12,6 @@ import {
   RotateCcw,
   Share2,
   Star,
-  Ticket,
   Trophy,
   Users,
 } from "lucide-svelte";
