@@ -242,8 +242,8 @@ $effect(() => {
 const inputWrapperClass =
   "relative flex h-11 w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] transition-colors focus-within:border-[#50C8C8]/40";
 const inputClass =
-  "body h-full w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none";
-const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
+  "h-full w-full bg-transparent px-4 text-sm font-normal text-[#F7F7F7] placeholder:text-sm placeholder:font-normal placeholder:text-[#F7F7F7]/30 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
 </script>
 
 <svelte:head>

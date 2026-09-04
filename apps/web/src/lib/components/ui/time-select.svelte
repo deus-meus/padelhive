@@ -118,15 +118,15 @@ let minuteOpen = $state(false);
     aria-label={ariaLabel}
     {disabled}
     onclick={() => (isOpen = !isOpen)}
-    class="flex h-10 w-full whitespace-nowrap items-center justify-between gap-2.5 rounded-xl border px-3 py-2 text-sm transition-colors focus:outline-none {disabled
+    class="flex h-11 w-full whitespace-nowrap items-center justify-between gap-2.5 rounded-xl border px-4 py-2.5 text-sm transition-colors focus:outline-none {disabled
       ? 'opacity-30 cursor-not-allowed border-white/[0.08] bg-white/[0.02]'
       : isOpen
-        ? 'border-[#E6FA50] bg-white/[0.04] text-[#F7F7F7]'
-        : 'border-white/[0.08] bg-white/[0.04] text-[#F7F7F7] hover:border-white/[0.15]'}"
+        ? 'border-[#50C8C8]/40 bg-white/[0.02] text-[#F7F7F7]'
+        : 'border-white/[0.08] bg-white/[0.02] text-[#F7F7F7] hover:border-white/[0.15]'}"
   >
     <div class="flex items-center gap-2 whitespace-nowrap">
       <Clock class="h-4 w-4 shrink-0 text-[#F7F7F7]/40" />
-      <span class="text-sm font-semibold tracking-tight text-[#F7F7F7] whitespace-nowrap">{formatTo12Hour(value)}</span>
+      <span class="text-sm font-normal tracking-tight text-[#F7F7F7] whitespace-nowrap">{formatTo12Hour(value)}</span>
     </div>
     <ChevronDown
       class="h-4 w-4 shrink-0 text-[#F7F7F7]/40 transition-transform duration-200 {isOpen

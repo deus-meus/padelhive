@@ -296,10 +296,10 @@ $effect(() => {
 const inputWrapperClass =
   "relative flex h-11 w-full items-center overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02] transition-colors focus-within:border-[#50C8C8]/40";
 const inputClass =
-  "body h-full w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none";
+  "h-full w-full bg-transparent px-4 text-sm font-normal text-[#F7F7F7] placeholder:text-sm placeholder:font-normal placeholder:text-[#F7F7F7]/30 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 const integratedBtnClass =
   "label flex h-full shrink-0 items-center gap-2 border-l border-white/[0.08] bg-white/[0.04] px-4 text-xs font-medium text-[#F7F7F7]/70 transition-colors hover:bg-white/[0.08] hover:text-[#E6FA50]";
-const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
+const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
 </script>
 
 <svelte:head>
@@ -573,7 +573,7 @@ const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40 font-medium";
                     rows={3}
                     bind:value={formDescription}
                     placeholder="Describe your venue facilities..."
-                    class="body w-full bg-transparent px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 outline-none resize-none"
+                    class="w-full bg-transparent px-4 py-2.5 text-sm font-normal text-[#F7F7F7] placeholder:text-sm placeholder:font-normal placeholder:text-[#F7F7F7]/30 outline-none resize-none"
                   ></textarea>
                 </div>
               </div>

@@ -205,8 +205,8 @@ $effect(() => {
 });
 
 const inputClass =
-  "body w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#50C8C8]/40 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
-const labelClass = "mb-1.5 block caption text-[#F7F7F7]/40";
+  "h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 text-sm font-normal text-[#F7F7F7] placeholder:text-sm placeholder:font-normal placeholder:text-[#F7F7F7]/30 focus:border-[#50C8C8]/40 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
 </script>
 
 <svelte:head>
