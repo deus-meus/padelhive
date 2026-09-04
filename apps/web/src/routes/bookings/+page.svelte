@@ -270,7 +270,7 @@ function getStatusStyle(status: string) {
   <section class="container mt-6">
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-        <Calendar class="h-4 w-4 text-[#50C8C8]" />
+        <Calendar class="h-4 w-4 text-[#E6FA50]" />
         <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">
           {totalBookingsCount}
         </p>
@@ -278,19 +278,19 @@ function getStatusStyle(status: string) {
       </div>
 
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-        <Clock class="h-4 w-4 text-[#50C8C8]" />
+        <Clock class="h-4 w-4 text-[#E6FA50]" />
         <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">{hoursPlayed}</p>
         <p class="caption mt-1 text-[#F7F7F7]/40">Hours Played</p>
       </div>
 
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-        <Trophy class="h-4 w-4 text-[#50C8C8]" />
+        <Trophy class="h-4 w-4 text-[#E6FA50]" />
         <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">{matchesJoined}</p>
         <p class="caption mt-1 text-[#F7F7F7]/40">Matches Joined</p>
       </div>
 
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
-        <Users class="h-4 w-4 text-[#50C8C8]" />
+        <Users class="h-4 w-4 text-[#E6FA50]" />
         <p class="price mt-3 text-2xl font-bold text-[#E6FA50]">{friendsInvited}</p>
         <p class="caption mt-1 text-[#F7F7F7]/40">Friends Invited</p>
       </div>

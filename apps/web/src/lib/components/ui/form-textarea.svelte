@@ -33,17 +33,17 @@ let {
       class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#F7F7F7]/60"
     >
       {#if IconComp}
-        <IconComp class="h-3.5 w-3.5 text-[#50C8C8]" />
+        <IconComp class="h-3.5 w-3.5 text-[#E6FA50]" />
       {/if}
       <span>{label}</span>
       {#if required}
-        <span class="text-[#50C8C8]">*</span>
+        <span class="text-[#E6FA50]">*</span>
       {/if}
     </label>
   {/if}
 
   <div
-    class="relative flex w-full overflow-hidden rounded-xl border bg-white/[0.03] transition-all duration-200 focus-within:border-[#50C8C8]/60 focus-within:ring-2 focus-within:ring-[#50C8C8]/15 {error
+    class="relative flex w-full overflow-hidden rounded-xl border bg-white/[0.03] transition-all duration-200 focus-within:border-[#E6FA50]/60 focus-within:ring-2 focus-within:ring-[#E6FA50]/15 {error
       ? 'border-red-500/50 bg-red-500/[0.02]'
       : 'border-white/[0.08] hover:border-white/[0.15]'}"
   >

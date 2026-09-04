@@ -346,15 +346,15 @@ function handleClearFilters() {
                     {venue.name}
                   </h3>
                   <p
-                    class="mt-1 flex items-center gap-1.5 caption text-[#F7F7F7]/25"
+                    class="mt-1 flex items-center gap-1.5 caption text-[#F7F7F7]/40"
                   >
-                    <MapPin class="h-3 w-3" />
+                    <MapPin class="h-3.5 w-3.5 text-[#50C8C8]" />
                     {venue.city}
                   </p>
                   <div
                     class="mt-4 flex items-center justify-between border-t border-white/[0.04] pt-3"
                   >
-                    <span class="price text-[#50C8C8]">
+                    <span class="price text-[#E6FA50]">
                       {price > 0
                         ? `Rp ${(price / 1000).toFixed(0)}K/hr`
                         : "Pricing soon"}

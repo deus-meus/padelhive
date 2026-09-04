@@ -136,7 +136,7 @@ const maxRevenue = $derived(
           class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6"
         >
           <div class="flex items-center justify-between">
-            <DollarSign class="h-4 w-4 text-[#50C8C8]" />
+            <DollarSign class="h-4 w-4 text-[#E6FA50]" />
           </div>
           <p class="metric mt-3 text-[#F7F7F7]">
             Rp {((data.kpis?.weeklyRevenue || 0) / 1000).toFixed(0)}K
@@ -148,7 +148,7 @@ const maxRevenue = $derived(
           class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6"
         >
           <div class="flex items-center justify-between">
-            <CalendarDays class="h-4 w-4 text-[#50C8C8]" />
+            <CalendarDays class="h-4 w-4 text-[#E6FA50]" />
           </div>
           <p class="metric mt-3 text-[#F7F7F7]">{data.kpis?.weeklyBookings || 0}</p>
           <p class="caption mt-1 text-[#F7F7F7]/25">Bookings</p>
@@ -158,7 +158,7 @@ const maxRevenue = $derived(
           class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6"
         >
           <div class="flex items-center justify-between">
-            <TrendingUp class="h-4 w-4 text-[#50C8C8]" />
+            <TrendingUp class="h-4 w-4 text-[#E6FA50]" />
           </div>
           <p class="metric mt-3 text-[#F7F7F7]">{data.kpis?.occupancyRate || 0}%</p>
           <p class="caption mt-1 text-[#F7F7F7]/25">Occupancy</p>
@@ -168,14 +168,14 @@ const maxRevenue = $derived(
           class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6"
         >
           <div class="flex items-center justify-between">
-            <Building2 class="h-4 w-4 text-[#50C8C8]" />
+            <Building2 class="h-4 w-4 text-[#E6FA50]" />
           </div>
           <p class="metric mt-3 text-[#F7F7F7]">{data.kpis?.activeCourts || 0}</p>
           <p class="caption mt-1 text-[#F7F7F7]/25">Active Courts</p>
         </div>
 
         <div
-          class="rounded-2xl border border-[#50C8C8]/20 bg-[#50C8C8]/5 p-6"
+          class="rounded-2xl border border-[#E6FA50]/20 bg-[#E6FA50]/5 p-6"
         >
           <div class="flex items-center justify-between">
             <Clock class="h-4 w-4 text-[#50C8C8]" />

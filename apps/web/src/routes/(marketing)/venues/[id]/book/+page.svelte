@@ -386,7 +386,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                   }}
                   class="flex flex-col items-start rounded-xl border p-4 transition-all text-left {selectedCourtId ===
                   c.id
-                    ? 'border-[#50C8C8]/50 bg-white/[0.03] shadow-sm'
+                    ? 'border-[#E6FA50]/50 bg-white/[0.03] shadow-sm'
                     : 'border-white/[0.06] bg-white/[0.015] hover:border-white/[0.12]'}"
                 >
                   <div class="flex items-center justify-between w-full">
@@ -395,7 +395,7 @@ async function handleCreateBooking(e: SubmitEvent) {
                       {c.type}
                     </span>
                   </div>
-                  <span class="caption mt-2 text-[#50C8C8] font-semibold">
+                  <span class="caption mt-2 text-[#E6FA50] font-semibold">
                     From Rp {((c.weekdayOffPeak ?? 200000) / 1000).toFixed(0)}K/hr
                   </span>
                 </button>
@@ -450,13 +450,13 @@ async function handleCreateBooking(e: SubmitEvent) {
                   }}
                   class="flex flex-col items-center justify-center rounded-xl border py-2.5 sm:py-3 px-0.5 sm:px-1 transition-all {selectedDate ===
                   item.iso
-                    ? 'border-[#50C8C8] bg-[#50C8C8]/15 text-[#F7F7F7] shadow-sm'
+                    ? 'border-[#E6FA50] bg-[#E6FA50]/15 text-[#F7F7F7] shadow-sm'
                     : 'border-white/[0.06] bg-white/[0.015] text-[#F7F7F7]/60 hover:border-white/[0.12] hover:text-[#F7F7F7]'}"
                 >
                   <span class="metric text-base sm:text-xl font-bold">{item.dateNum}</span>
                   <div class="flex flex-col items-center justify-center caption uppercase font-medium mt-1 text-[10px] sm:text-[11px] leading-tight min-w-0">
                     {#if item.isToday}
-                      <span class="text-[#50C8C8] font-bold tracking-tighter">TODAY</span>
+                      <span class="text-[#E6FA50] font-bold tracking-tighter">TODAY</span>
                     {:else}
                       <span class="truncate">{item.day}</span>
                     {/if}
@@ -503,10 +503,10 @@ async function handleCreateBooking(e: SubmitEvent) {
                     class="flex flex-col items-center justify-center rounded-xl border p-3 transition-all {isBooked
                       ? 'border-transparent bg-white/[0.02] text-[#F7F7F7]/20 line-through cursor-not-allowed opacity-40 pointer-events-none'
                       : selected
-                        ? 'border-[#50C8C8] bg-[#50C8C8]/20 text-[#50C8C8] font-bold shadow-sm'
+                        ? 'border-[#E6FA50] bg-[#E6FA50]/20 text-[#E6FA50] font-bold shadow-sm'
                         : slot.isPeak
-                          ? 'border-[#50C8C8]/20 bg-[#50C8C8]/5 text-[#50C8C8]/80 hover:border-[#50C8C8]/40'
-                          : 'border-white/[0.06] bg-white/[0.015] text-[#F7F7F7]/80 hover:border-[#50C8C8]/40 hover:text-[#50C8C8]'}"
+                          ? 'border-[#E6FA50]/20 bg-[#E6FA50]/5 text-[#E6FA50]/80 hover:border-[#E6FA50]/40'
+                          : 'border-white/[0.06] bg-white/[0.015] text-[#F7F7F7]/80 hover:border-[#E6FA50]/40 hover:text-[#E6FA50]'}"
                   >
                     <span class="label font-bold">{slot.startsAt}</span>
                     <span class="caption mt-0.5 text-[#F7F7F7]/40">

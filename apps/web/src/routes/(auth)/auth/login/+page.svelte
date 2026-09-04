@@ -3,6 +3,7 @@ import { Loader2, Lock, Mail } from "lucide-svelte";
 import { goto } from "$app/navigation";
 import { page } from "$app/state";
 import { authStore } from "$lib/auth/store.svelte";
+import FormInput from "$lib/components/ui/form-input.svelte";
 
 let email = $state("");
 let password = $state("");
@@ -123,32 +124,22 @@ async function handleEmailLogin(e: SubmitEvent) {
 
       <!-- Form -->
       <form onsubmit={handleEmailLogin} class="space-y-4 mb-4">
-        <div class="relative">
-          <Mail
-            class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25"
-          />
-          <input
-            type="email"
-            placeholder="you@example.com"
-            bind:value={email}
-            disabled={authStore.isLoading}
-            required
-            class="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          />
-        </div>
-        <div class="relative">
-          <Lock
-            class="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#F7F7F7]/25"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            bind:value={password}
-            disabled={authStore.isLoading}
-            required
-            class="body w-full rounded-xl border border-white/[0.06] bg-white/[0.02] py-3 pl-11 pr-4 text-[#F7F7F7] placeholder:text-[#F7F7F7]/25 focus:border-[#E6FA50]/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          />
-        </div>
+        <FormInput
+          type="email"
+          icon={Mail}
+          bind:value={email}
+          placeholder="you@example.com"
+          disabled={authStore.isLoading}
+          required
+        />
+        <FormInput
+          type="password"
+          icon={Lock}
+          bind:value={password}
+          placeholder="Password"
+          disabled={authStore.isLoading}
+          required
+        />
         <button
           type="submit"
           disabled={authStore.isLoading}

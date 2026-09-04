@@ -474,7 +474,7 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
           <!-- Modal Header -->
           <div class="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-6">
             <div class="flex items-center gap-3">
-              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#50C8C8]/10 text-[#50C8C8] border border-[#50C8C8]/20">
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E6FA50]/10 text-[#E6FA50] border border-[#E6FA50]/20">
                 <Building2 class="h-5 w-5" />
               </div>
               <div>
@@ -498,8 +498,8 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
             <!-- Left Column: Core Info -->
             <div class="space-y-4">
               <div class="flex items-center gap-2 pb-1 border-b border-white/[0.04]">
-                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#50C8C8]/15 text-[10px] font-bold text-[#50C8C8]">1</span>
-                <span class="text-xs font-bold uppercase tracking-wider text-[#50C8C8]">Basic Venue Info</span>
+                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#E6FA50]/15 text-[10px] font-bold text-[#E6FA50]">1</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#E6FA50]">Basic Venue Info</span>
               </div>
 
               <FormInput
@@ -554,14 +554,14 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#F7F7F7]/60" for="venue-open">
-                    <Clock class="h-3.5 w-3.5 text-[#50C8C8]" />
+                    <Clock class="h-3.5 w-3.5 text-[#E6FA50]" />
                     <span>Open Time</span>
                   </label>
                   <TimeSelect bind:value={formOpenTime} ariaLabel="Open time" />
                 </div>
                 <div>
                   <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#F7F7F7]/60" for="venue-close">
-                    <Clock class="h-3.5 w-3.5 text-[#50C8C8]" />
+                    <Clock class="h-3.5 w-3.5 text-[#E6FA50]" />
                     <span>Close Time</span>
                   </label>
                   <TimeSelect bind:value={formCloseTime} ariaLabel="Close time" />
@@ -582,8 +582,8 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
             <!-- Right Column: Media & Facilities -->
             <div class="space-y-4">
               <div class="flex items-center gap-2 pb-1 border-b border-white/[0.04]">
-                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#50C8C8]/15 text-[10px] font-bold text-[#50C8C8]">2</span>
-                <span class="text-xs font-bold uppercase tracking-wider text-[#50C8C8]">Media & Amenities</span>
+                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#E6FA50]/15 text-[10px] font-bold text-[#E6FA50]">2</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#E6FA50]">Media & Amenities</span>
               </div>
 
               <FormInput
@@ -672,7 +672,7 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
               {#if formFacilities.length > 0}
                 <div class="flex flex-wrap gap-1.5 pt-1">
                   {#each formFacilities as f, idx}
-                    <span class="caption flex items-center gap-1.5 rounded-full border border-[#50C8C8]/30 bg-[#50C8C8]/10 px-3 py-1 text-xs font-semibold text-[#50C8C8]">
+                    <span class="caption flex items-center gap-1.5 rounded-full border border-[#E6FA50]/30 bg-[#E6FA50]/10 px-3 py-1 text-xs font-semibold text-[#E6FA50]">
                       {f}
                       <button type="button" onclick={() => removeFacility(idx)} class="hover:text-white">
                         <X class="h-3 w-3" />
@@ -691,8 +691,8 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
                       onclick={() => addFacility(preset)}
                       disabled={formFacilities.includes(preset)}
                       class="rounded-lg border px-2.5 py-1 text-xs font-medium transition-all {formFacilities.includes(preset)
-                        ? 'border-[#50C8C8]/40 bg-[#50C8C8]/15 text-[#50C8C8] opacity-60 cursor-default'
-                        : 'border-white/[0.08] bg-white/[0.03] text-[#F7F7F7]/70 hover:border-[#50C8C8]/50 hover:bg-[#50C8C8]/10 hover:text-[#50C8C8]'}"
+                        ? 'border-[#E6FA50]/40 bg-[#E6FA50]/15 text-[#E6FA50] opacity-60 cursor-default'
+                        : 'border-white/[0.08] bg-white/[0.03] text-[#F7F7F7]/70 hover:border-[#E6FA50]/50 hover:bg-[#E6FA50]/10 hover:text-[#E6FA50]'}"
                     >
                       + {preset}
                     </button>

@@ -96,7 +96,7 @@ function formatCurrency(amount: number): string {
         class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
       >
         <div class="flex items-center justify-between">
-          <TrendingUp class="h-4 w-4 text-[#50C8C8]" />
+          <TrendingUp class="h-4 w-4 text-[#E6FA50]" />
         </div>
         <p class="metric mt-3 text-[#F7F7F7]">{formatCurrency(data.gmv)}</p>
         <p class="caption mt-1 text-[#F7F7F7]/25">GMV This Month</p>
@@ -106,7 +106,7 @@ function formatCurrency(amount: number): string {
         class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
       >
         <div class="flex items-center justify-between">
-          <DollarSign class="h-4 w-4 text-[#50C8C8]" />
+          <DollarSign class="h-4 w-4 text-[#E6FA50]" />
         </div>
         <p class="metric mt-3 text-[#F7F7F7]">
           {formatCurrency(data.commissionRevenue)}
@@ -118,7 +118,7 @@ function formatCurrency(amount: number): string {
         class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
       >
         <div class="flex items-center justify-between">
-          <CalendarCheck class="h-4 w-4 text-[#50C8C8]" />
+          <CalendarCheck class="h-4 w-4 text-[#E6FA50]" />
         </div>
         <p class="metric mt-3 text-[#F7F7F7]">
           {data.totalBookings.toLocaleString()}
@@ -130,7 +130,7 @@ function formatCurrency(amount: number): string {
         class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-5"
       >
         <div class="flex items-center justify-between">
-          <Building2 class="h-4 w-4 text-[#50C8C8]" />
+          <Building2 class="h-4 w-4 text-[#E6FA50]" />
         </div>
         <p class="metric mt-3 text-[#F7F7F7]">{data.activeVenues}</p>
         <p class="caption mt-1 text-[#F7F7F7]/25">Active Venues</p>
