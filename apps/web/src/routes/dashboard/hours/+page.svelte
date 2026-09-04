@@ -143,7 +143,7 @@ $effect(() => {
     {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <!-- 1:1 Precision Skeleton for Operating Hours -->
       <div class="mt-6 flex gap-2">
-        {#each Array.from({ length: 3 }) as _, i}
+        {#each Array.from({ length: 3 }) as _}
           <div class="h-9 w-28 animate-pulse rounded-full bg-white/[0.04]"></div>
         {/each}
       </div>
@@ -161,7 +161,7 @@ $effect(() => {
         </div>
 
         <div class="space-y-4">
-          {#each Array.from({ length: 7 }) as _, i}
+          {#each Array.from({ length: 7 }) as _}
             <div class="h-14 w-full animate-pulse rounded-xl border border-white/[0.04] bg-white/[0.01]"></div>
           {/each}
         </div>

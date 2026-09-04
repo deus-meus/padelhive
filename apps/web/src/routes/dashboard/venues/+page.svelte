@@ -348,7 +348,7 @@ const integratedBtnClass =
     <!-- Venue List -->
     <div class="mt-8 space-y-4">
       {#if isLoading || !authStore.isInitialized || authStore.isLoading}
-        {#each Array.from({ length: 2 }) as _, i}
+        {#each Array.from({ length: 2 }) as _}
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div class="flex-1 min-w-0">
@@ -364,13 +364,13 @@ const integratedBtnClass =
               </div>
               <div class="flex items-center gap-2">
                 <div class="h-8 w-24 animate-pulse rounded-full bg-white/[0.04]"></div>
-                {#each Array.from({ length: 3 }) as _, j}
+                {#each Array.from({ length: 3 }) as _}
                   <div class="h-9 w-9 animate-pulse rounded-lg bg-white/[0.04]"></div>
                 {/each}
               </div>
             </div>
             <div class="mt-4 flex flex-wrap gap-2 border-t border-white/[0.04] pt-4">
-              {#each Array.from({ length: 4 }) as _, j}
+              {#each Array.from({ length: 4 }) as _}
                 <div class="h-6 w-16 animate-pulse rounded-full bg-white/[0.04]"></div>
               {/each}
             </div>

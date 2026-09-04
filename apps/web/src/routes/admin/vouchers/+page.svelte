@@ -233,7 +233,7 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
   <div class="flex flex-1 flex-col space-y-4">
     {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="space-y-4">
-        {#each Array.from({ length: 3 }) as _, i}
+        {#each Array.from({ length: 3 }) as _}
           <div
             class="h-28 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           ></div>

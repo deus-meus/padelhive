@@ -269,7 +269,7 @@ function handleClearFilters() {
   <div class="container">
     {#if isLoading}
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {#each Array.from({ length: 6 }) as _, i}
+        {#each Array.from({ length: 6 }) as _}
           <div
             class="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           >

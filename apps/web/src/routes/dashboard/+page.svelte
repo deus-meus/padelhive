@@ -82,7 +82,7 @@ const maxRevenue = $derived(
     <!-- KPIs Skeleton -->
     <section class="container pb-component">
       <div class="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        {#each Array.from({ length: 5 }) as _, i}
+        {#each Array.from({ length: 5 }) as _}
           <div
             class="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           ></div>
@@ -112,7 +112,7 @@ const maxRevenue = $derived(
     <section class="container pb-component">
       <div class="mb-5 h-5 w-24 animate-pulse rounded-md bg-white/[0.04]"></div>
       <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {#each Array.from({ length: 4 }) as _, i}
+        {#each Array.from({ length: 4 }) as _}
           <div
             class="h-[104px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           ></div>

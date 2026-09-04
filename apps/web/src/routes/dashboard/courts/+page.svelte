@@ -272,13 +272,13 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
     {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <!-- 1:1 Precision Skeleton for Courts & Pricing -->
       <div class="mt-6 flex gap-2">
-        {#each Array.from({ length: 3 }) as _, i}
+        {#each Array.from({ length: 3 }) as _}
           <div class="h-9 w-28 animate-pulse rounded-full bg-white/[0.04]"></div>
         {/each}
       </div>
 
       <div class="mt-8 space-y-4">
-        {#each Array.from({ length: 2 }) as _, i}
+        {#each Array.from({ length: 2 }) as _}
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6">
             <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div class="flex flex-wrap items-center gap-3">
@@ -293,7 +293,7 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
             </div>
 
             <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {#each Array.from({ length: 4 }) as _, j}
+              {#each Array.from({ length: 4 }) as _}
                 <div class="h-[96px] animate-pulse rounded-xl border border-white/[0.04] bg-white/[0.02] p-4">
                   <div class="h-3 w-24 animate-pulse rounded bg-white/[0.04]"></div>
                   <div class="mt-3 h-6 w-20 animate-pulse rounded bg-white/[0.04]"></div>

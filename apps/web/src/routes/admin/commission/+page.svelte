@@ -171,7 +171,7 @@ $effect(() => {
   {#if isLoading || !authStore.isInitialized || authStore.isLoading}
     <div class="space-y-6">
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {#each Array.from({ length: 4 }) as _, i}
+        {#each Array.from({ length: 4 }) as _}
           <div
             class="h-24 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           ></div>

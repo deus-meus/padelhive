@@ -144,7 +144,7 @@ const BADGE_STYLES: Record<string, string> = {
     <div class="flex flex-1 flex-col space-y-3">
       {#if isLoading || !authStore.isInitialized || authStore.isLoading}
         <div class="space-y-4">
-          {#each Array.from({ length: 3 }) as _, i}
+          {#each Array.from({ length: 3 }) as _}
             <div
               class="h-32 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
             ></div>

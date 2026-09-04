@@ -66,7 +66,7 @@ $effect(() => {
 
     {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {#each Array.from({ length: 4 }) as _, i}
+        {#each Array.from({ length: 4 }) as _}
           <div class="h-[120px] animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
         {/each}
       </div>
