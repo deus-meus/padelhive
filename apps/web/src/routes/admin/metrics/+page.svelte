@@ -1,5 +1,5 @@
 <script lang="ts">
-import { BarChart3 } from "lucide-svelte";
+import { ChartNoAxesColumn } from "lucide-svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
@@ -71,7 +71,7 @@ $effect(() => {
     </div>
   {:else if data && data.totalBookings === 0}
     <EmptyState
-      icon={BarChart3}
+      icon={ChartNoAxesColumn}
       title="No metrics data"
       description="No bookings have been made yet."
       actionLabel="Refresh"

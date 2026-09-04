@@ -168,13 +168,6 @@ $effect(() => {
   if (changed) customShares = nextShares;
 });
 
-// Host assigned share
-const hostAssignedShare = $derived.by(() => {
-  if (!isSplitEnabled) return grandTotal;
-  if (splitMode === "equal") return pricePerPlayer;
-  return customShares.host ?? pricePerPlayer;
-});
-
 // Total assigned share for friends (equal or custom)
 const totalFriendsAssignedShare = $derived.by(() => {
   if (!isSplitEnabled) return 0;

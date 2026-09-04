@@ -41,11 +41,6 @@ function showToast(msg: string) {
   setTimeout(() => (toast = null), 2500);
 }
 
-function formatIDR(amount: number): string {
-  if (!amount) return "Rp 0";
-  return `Rp ${(amount / 1000).toFixed(0)}K`;
-}
-
 async function loadBooking() {
   if (!authStore.firebaseUser) return;
   isLoading = true;

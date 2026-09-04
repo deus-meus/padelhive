@@ -1,8 +1,8 @@
 <script lang="ts">
 import {
   AlertTriangle,
-  BarChart3,
   Building2,
+  ChartNoAxesColumn,
   LayoutDashboard,
   Menu,
   Percent,
@@ -39,7 +39,7 @@ const NAV_ITEMS = [
   { href: "/admin/commission", label: "Commission", icon: Percent },
   { href: "/admin/refunds", label: "Refunds", icon: RotateCcw },
   { href: "/admin/disputes", label: "Disputes", icon: AlertTriangle },
-  { href: "/admin/metrics", label: "Metrics", icon: BarChart3 },
+  { href: "/admin/metrics", label: "Metrics", icon: ChartNoAxesColumn },
 ];
 </script>
 

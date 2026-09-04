@@ -218,14 +218,6 @@ function handlePhotoFileSelect(e: Event) {
   reader.readAsDataURL(file);
 }
 
-function addPhoto() {
-  const url = photoInput.trim();
-  if (url && !formPhotos.includes(url)) {
-    formPhotos = [...formPhotos, url];
-    photoInput = "";
-  }
-}
-
 function removePhoto(idx: number) {
   formPhotos = formPhotos.filter((_, i) => i !== idx);
 }

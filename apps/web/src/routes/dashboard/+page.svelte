@@ -47,12 +47,6 @@ $effect(() => {
     loadDashboard();
   }
 });
-
-const maxRevenue = $derived(
-  data?.revenueSeries
-    ? Math.max(...data.revenueSeries.map((d: any) => d.value), 1)
-    : 1,
-);
 </script>
 
 <svelte:head>

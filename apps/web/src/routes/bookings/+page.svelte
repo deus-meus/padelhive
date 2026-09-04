@@ -369,7 +369,7 @@ function getStatusStyle(status: string) {
   <section class="container mt-8">
     {#if isLoading}
       <div class="space-y-4">
-        {#each Array.from({ length: 3 }) as _, i}
+        {#each Array.from({ length: 3 }) as _}
           <div
             class="h-28 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           ></div>

@@ -36,7 +36,6 @@ function formatIDR(n: number): string {
 let filter = $state<FilterValue>("PENDING");
 let refunds = $state<any[]>([]);
 let isLoading = $state(true);
-let actingId = $state<string | null>(null);
 let toast = $state<string | null>(null);
 
 function showToast(msg: string) {
