@@ -184,7 +184,7 @@ $effect(() => {
     <!-- Bookings list -->
     <div class="mt-6 space-y-4">
       {#if isLoading || !authStore.isInitialized || authStore.isLoading}
-        {#each Array.from({ length: 4 }) as _, i}
+        {#each Array.from({ length: 4 }) as _}
           <div class="h-28 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"></div>
         {/each}
       {:else if filteredBookings.length === 0}

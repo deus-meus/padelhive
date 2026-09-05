@@ -6,7 +6,6 @@ import {
   Dumbbell,
   Lock,
   MapPin,
-  Navigation,
   Shield,
   ShowerHead,
   Star,
@@ -444,7 +443,7 @@ const weekDays = [
                   <div class="flex items-center justify-between">
                     <p class="heading-3 text-[#F7F7F7]">Budi Rahmat</p>
                     <div class="flex items-center gap-1">
-                      {#each [1, 2, 3, 4, 5] as n}
+                      {#each [1, 2, 3, 4, 5] as _}
                         <Star class="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
                       {/each}
                     </div>
@@ -457,7 +456,7 @@ const weekDays = [
                   <div class="flex items-center justify-between">
                     <p class="heading-3 text-[#F7F7F7]">Sari Dewi</p>
                     <div class="flex items-center gap-1">
-                      {#each [1, 2, 3, 4] as n}
+                      {#each [1, 2, 3, 4] as _}
                         <Star class="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
                       {/each}
                       <Star class="h-3.5 w-3.5 text-[#F7F7F7]/20" />
@@ -471,7 +470,7 @@ const weekDays = [
                   <div class="flex items-center justify-between">
                     <p class="heading-3 text-[#F7F7F7]">Andi Pratama</p>
                     <div class="flex items-center gap-1">
-                      {#each [1, 2, 3, 4, 5] as n}
+                      {#each [1, 2, 3, 4, 5] as _}
                         <Star class="h-3.5 w-3.5 fill-[#E6FA50] text-[#E6FA50]" />
                       {/each}
                     </div>

@@ -16,7 +16,6 @@ import { onMount } from "svelte";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
-import EmptyState from "$lib/components/ui/empty-state.svelte";
 import { formatBookingDate } from "$lib/format";
 
 const bookingId = $derived((page.params.id as string) || "");
@@ -243,7 +242,7 @@ const firstInviteLink = $derived(
       <div class="mt-4 space-y-3">
         {#if isLoading}
           <div class="space-y-3">
-            {#each Array.from({ length: 2 }) as _, i}
+            {#each Array.from({ length: 2 }) as _}
               <div
                 class="flex flex-col gap-4 rounded-xl border border-white/[0.06] bg-[#0C1B26] p-4 sm:flex-row sm:items-center sm:justify-between"
               >

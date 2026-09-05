@@ -1,15 +1,11 @@
 <script lang="ts">
 import {
   AlertCircle,
-  CheckCircle2,
   Clock,
-  Loader2,
   RotateCcw,
   ShieldCheck,
   ShieldX,
-  XCircle,
 } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
@@ -40,7 +36,6 @@ function formatIDR(n: number): string {
 let filter = $state<FilterValue>("PENDING");
 let refunds = $state<any[]>([]);
 let isLoading = $state(true);
-let actingId = $state<string | null>(null);
 let toast = $state<string | null>(null);
 
 function showToast(msg: string) {
@@ -144,7 +139,7 @@ const BADGE_STYLES: Record<string, string> = {
     <div class="flex flex-1 flex-col space-y-3">
       {#if isLoading || !authStore.isInitialized || authStore.isLoading}
         <div class="space-y-4">
-          {#each Array.from({ length: 3 }) as _, i}
+          {#each Array.from({ length: 3 }) as _}
             <div
               class="h-32 w-full animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
             ></div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { MapPin, Navigation } from "lucide-svelte";
+import { Navigation } from "lucide-svelte";
 import { onMount } from "svelte";
 
 interface Props {

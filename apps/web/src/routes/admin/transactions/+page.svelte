@@ -1,6 +1,5 @@
 <script lang="ts">
 import { ChevronLeft, ChevronRight, Receipt } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
@@ -161,7 +160,7 @@ $effect(() => {
   <div class="flex flex-1 flex-col space-y-4">
     {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
-        {#each Array.from({ length: 6 }) as _, i}
+        {#each Array.from({ length: 6 }) as _}
           <div
             class="h-12 w-full animate-pulse rounded-lg bg-white/[0.04]"
           ></div>

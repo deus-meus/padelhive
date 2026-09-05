@@ -1,13 +1,11 @@
 <script lang="ts">
 import {
-  AlertCircle,
   AlertTriangle,
   ArrowLeft,
   CalendarDays,
   Clock,
   Copy,
   CreditCard,
-  Loader2,
   MapPin,
   Share2,
   ShieldCheck,
@@ -16,10 +14,7 @@ import {
   Ticket,
   Timer,
   X,
-  XCircle,
 } from "lucide-svelte";
-import { onMount } from "svelte";
-import { goto } from "$app/navigation";
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
@@ -44,11 +39,6 @@ let toast = $state<string | null>(null);
 function showToast(msg: string) {
   toast = msg;
   setTimeout(() => (toast = null), 2500);
-}
-
-function formatIDR(amount: number): string {
-  if (!amount) return "Rp 0";
-  return `Rp ${(amount / 1000).toFixed(0)}K`;
 }
 
 async function loadBooking() {

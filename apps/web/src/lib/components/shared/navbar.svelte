@@ -182,6 +182,9 @@ function handleLogout() {
                 src={user.avatarUrl}
                 alt={user.name}
                 class="h-full w-full rounded-full object-cover"
+                onerror={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "User")}&background=0C1B26&color=E6FA50`;
+                }}
               />
             {:else}
               <span

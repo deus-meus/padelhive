@@ -129,7 +129,7 @@ function formatVoucherDate(dateVal: any): string {
   <section class="container">
     {#if isLoading}
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {#each Array.from({ length: 6 }) as _, i}
+        {#each Array.from({ length: 6 }) as _}
           <div
             class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4"
           >

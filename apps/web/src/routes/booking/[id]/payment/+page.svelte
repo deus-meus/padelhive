@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   Building2,
-  Check,
   CheckCircle2,
   Clock,
   CreditCard,
@@ -15,7 +14,6 @@ import {
   Users,
   Wallet,
   X,
-  XCircle,
 } from "lucide-svelte";
 import { goto } from "$app/navigation";
 import { page } from "$app/state";
@@ -168,13 +166,6 @@ $effect(() => {
     }
   }
   if (changed) customShares = nextShares;
-});
-
-// Host assigned share
-const hostAssignedShare = $derived.by(() => {
-  if (!isSplitEnabled) return grandTotal;
-  if (splitMode === "equal") return pricePerPlayer;
-  return customShares.host ?? pricePerPlayer;
 });
 
 // Total assigned share for friends (equal or custom)

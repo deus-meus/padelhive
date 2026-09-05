@@ -6,7 +6,6 @@ import {
   SlidersHorizontal,
   Star,
 } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import EmptyState from "$lib/components/ui/empty-state.svelte";
 import FilterMultiSelect from "$lib/components/ui/filter-multi-select.svelte";
@@ -269,7 +268,7 @@ function handleClearFilters() {
   <div class="container">
     {#if isLoading}
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {#each Array.from({ length: 6 }) as _, i}
+        {#each Array.from({ length: 6 }) as _}
           <div
             class="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           >

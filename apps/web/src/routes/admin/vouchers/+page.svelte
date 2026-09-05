@@ -1,6 +1,5 @@
 <script lang="ts">
 import { Loader2, Pencil, Plus, Ticket, Trash2, X } from "lucide-svelte";
-import { onMount } from "svelte";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
 import DatePicker from "$lib/components/ui/date-picker.svelte";
@@ -233,7 +232,7 @@ const labelClass = "mb-1.5 block text-xs text-[#F7F7F7]/50 font-medium";
   <div class="flex flex-1 flex-col space-y-4">
     {#if isLoading || !authStore.isInitialized || authStore.isLoading}
       <div class="space-y-4">
-        {#each Array.from({ length: 3 }) as _, i}
+        {#each Array.from({ length: 3 }) as _}
           <div
             class="h-28 animate-pulse rounded-2xl border border-white/[0.06] bg-[#0C1B26]"
           ></div>
