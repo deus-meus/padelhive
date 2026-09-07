@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { ensureAuth } from "../../common/auth.util";
 import { authPlugin } from "../../plugins/auth";
+import { NotificationResponseSchema } from "./model";
 import { notificationsService } from "./service";
 
 export const notificationsModule = new Elysia({
@@ -74,7 +75,7 @@ export const notificationsModule = new Elysia({
       return notificationsService.findMyNotifications(authed.id);
     },
     {
-      response: t.Any(),
+      response: t.Array(NotificationResponseSchema),
       detail: {
         summary: "Get current user notifications",
         tags: ["Notifications"],
@@ -88,7 +89,7 @@ export const notificationsModule = new Elysia({
       return notificationsService.getUnreadCount(authed.id);
     },
     {
-      response: t.Any(),
+      response: t.Object({ count: t.Number() }),
       detail: {
         summary: "Get unread notifications count",
         tags: ["Notifications"],

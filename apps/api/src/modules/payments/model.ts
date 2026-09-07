@@ -18,5 +18,21 @@ export const MidtransWebhookSchema = t.Object({
   fraud_status: t.Optional(t.String()),
 });
 
+export const PaymentResponseSchema = t.Object(
+  {
+    id: t.Optional(t.String()),
+    bookingId: t.Optional(t.String()),
+    userId: t.Optional(t.String()),
+    amount: t.Optional(t.Number()),
+    method: t.Optional(t.String()),
+    status: t.Optional(PaymentStatusEnum),
+    snapToken: t.Optional(t.Nullable(t.String())),
+    snapRedirectUrl: t.Optional(t.Nullable(t.String())),
+    createdAt: t.Optional(t.Any()),
+    updatedAt: t.Optional(t.Any()),
+  },
+  { additionalProperties: true },
+);
+
 export type CreatePaymentIntentInput = Static<typeof CreatePaymentIntentSchema>;
 export type MidtransWebhookInput = Static<typeof MidtransWebhookSchema>;

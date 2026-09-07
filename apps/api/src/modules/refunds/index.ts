@@ -6,6 +6,7 @@ import {
   AdminNotesSchema,
   CreateRefundSchema,
   RefundQuerySchema,
+  RefundResponseSchema,
   RejectRefundSchema,
 } from "./model";
 import { refundsService } from "./service";
@@ -23,7 +24,7 @@ export const refundsModule = new Elysia({
     },
     {
       body: CreateRefundSchema,
-      response: t.Any(),
+      response: RefundResponseSchema,
       detail: { summary: "Create a refund request", tags: ["Refunds"] },
     },
   )
@@ -34,7 +35,7 @@ export const refundsModule = new Elysia({
       return refundsService.findMyRefunds(authed.id);
     },
     {
-      response: t.Any(),
+      response: t.Array(RefundResponseSchema),
       detail: { summary: "List current user's refunds", tags: ["Refunds"] },
     },
   )
@@ -56,7 +57,7 @@ export const refundsModule = new Elysia({
     },
     {
       query: RefundQuerySchema,
-      response: t.Any(),
+      response: t.Array(RefundResponseSchema),
       detail: { summary: "List refunds for admin/owner", tags: ["Refunds"] },
     },
   )
@@ -68,7 +69,7 @@ export const refundsModule = new Elysia({
       return refundsService.findRefundById(params.id, authed.id, isSuperAdmin);
     },
     {
-      response: t.Any(),
+      response: t.Nullable(RefundResponseSchema),
       detail: { summary: "Get refund details by ID", tags: ["Refunds"] },
     },
   )

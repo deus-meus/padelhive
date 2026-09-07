@@ -47,41 +47,52 @@ export const AvailabilityQuerySchema = t.Object({
   courtId: t.Optional(t.String()),
 });
 
-export const VenueResponseSchema = t.Object({
+export const VenueResponseSchema = t.Object(
+  {
+    id: t.Optional(t.String()),
+    ownerId: t.Optional(t.String()),
+    name: t.Optional(t.String()),
+    location: t.Optional(t.String()),
+    city: t.Optional(t.String()),
+    latitude: t.Optional(t.Nullable(t.Number())),
+    longitude: t.Optional(t.Nullable(t.Number())),
+    description: t.Optional(t.String()),
+    openTime: t.Optional(t.String()),
+    closeTime: t.Optional(t.String()),
+    imageUrl: t.Optional(t.Nullable(t.String())),
+    photos: t.Optional(t.Array(t.String())),
+    facilities: t.Optional(t.Array(t.String())),
+    weeklyHours: t.Optional(t.Any()),
+    status: t.Optional(t.String()),
+    priceFrom: t.Optional(t.Nullable(t.Number())),
+    rating: t.Optional(t.Nullable(t.Number())),
+    reviewCount: t.Optional(t.Number()),
+    courtCount: t.Optional(t.Number()),
+    createdAt: t.Optional(t.Any()),
+    updatedAt: t.Optional(t.Any()),
+  },
+  { additionalProperties: true },
+);
+
+export const SlotSchema = t.Object({
+  startsAt: t.String(),
+  endsAt: t.String(),
+  available: t.Boolean(),
+  price: t.Number(),
+  isPeak: t.Boolean(),
+});
+
+export const CourtAvailabilitySchema = t.Object({
   id: t.String(),
-  ownerId: t.String(),
   name: t.String(),
-  location: t.String(),
-  city: t.String(),
-  latitude: t.Nullable(t.Number()),
-  longitude: t.Nullable(t.Number()),
-  description: t.String(),
-  openTime: t.String(),
-  closeTime: t.String(),
-  imageUrl: t.Nullable(t.String()),
-  photos: t.Array(t.String()),
-  facilities: t.Array(t.String()),
-  weeklyHours: t.Nullable(t.Any()),
-  status: VenueStatusEnum,
-  priceFrom: t.Optional(t.Nullable(t.Number())),
-  rating: t.Optional(t.Nullable(t.Number())),
-  reviewCount: t.Optional(t.Number()),
-  courtCount: t.Optional(t.Number()),
-  createdAt: t.Any(),
-  updatedAt: t.Any(),
+  type: CourtTypeEnum,
+  slots: t.Array(SlotSchema),
 });
 
 export const AvailabilityResponseSchema = t.Object({
-  venueId: t.String(),
   date: t.String(),
-  timeSlots: t.Array(
-    t.Object({
-      time: t.String(),
-      available: t.Boolean(),
-      peak: t.Boolean(),
-    }),
-  ),
-  courts: t.Array(t.Any()),
+  timezone: t.String(),
+  courts: t.Array(CourtAvailabilitySchema),
 });
 
 export type CreateVenueInput = Static<typeof CreateVenueSchema>;
