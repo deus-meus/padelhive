@@ -2,7 +2,11 @@ import { UserRole } from "@prisma/client";
 import { Elysia, t } from "elysia";
 import { ensureRoles } from "../../common/auth.util";
 import { authPlugin } from "../../plugins/auth";
-import { CreateCourtSchema, UpdateCourtSchema, CourtResponseSchema } from "./model";
+import {
+  CourtResponseSchema,
+  CreateCourtSchema,
+  UpdateCourtSchema,
+} from "./model";
 import { courtsService } from "./service";
 
 export const courtsModule = new Elysia({
