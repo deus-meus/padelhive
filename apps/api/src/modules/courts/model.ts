@@ -15,5 +15,22 @@ export const CreateCourtSchema = t.Object({
 
 export const UpdateCourtSchema = t.Partial(CreateCourtSchema);
 
+export const CourtResponseSchema = t.Object(
+  {
+    id: t.Optional(t.String()),
+    venueId: t.Optional(t.String()),
+    name: t.Optional(t.String()),
+    type: t.Optional(CourtTypeEnum),
+    weekdayPeak: t.Optional(t.Number()),
+    weekdayOffPeak: t.Optional(t.Number()),
+    weekendPeak: t.Optional(t.Number()),
+    weekendOffPeak: t.Optional(t.Number()),
+    isActive: t.Optional(t.Boolean()),
+    createdAt: t.Optional(t.Any()),
+    updatedAt: t.Optional(t.Any()),
+  },
+  { additionalProperties: true },
+);
+
 export type CreateCourtInput = Static<typeof CreateCourtSchema>;
 export type UpdateCourtInput = Static<typeof UpdateCourtSchema>;

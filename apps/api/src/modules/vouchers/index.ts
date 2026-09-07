@@ -1,5 +1,9 @@
-import { Elysia } from "elysia";
-import { ValidateVoucherSchema } from "./model";
+import { Elysia, t } from "elysia";
+import {
+  ValidateVoucherResponseSchema,
+  ValidateVoucherSchema,
+  VoucherResponseSchema,
+} from "./model";
 import { vouchersService } from "./service";
 
 export const vouchersModule = new Elysia({
@@ -12,6 +16,7 @@ export const vouchersModule = new Elysia({
       return vouchersService.findActiveVouchers();
     },
     {
+      response: t.Array(VoucherResponseSchema),
       detail: { summary: "List active available vouchers", tags: ["Vouchers"] },
     },
   )
@@ -28,6 +33,7 @@ export const vouchersModule = new Elysia({
     },
     {
       body: ValidateVoucherSchema,
+      response: ValidateVoucherResponseSchema,
       detail: {
         summary: "Validate voucher and calculate discount",
         tags: ["Vouchers"],

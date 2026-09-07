@@ -4,10 +4,13 @@ import { ensureAuth, ensureRoles } from "../../common/auth.util";
 import { authPlugin } from "../../plugins/auth";
 import { bookingChargeService } from "./charge.service";
 import {
+  BookingResponseSchema,
   CreateBookingSchema,
   CreateChargePaymentSchema,
   CreateSharePaymentSchema,
+  OwnerDashboardSchema,
   RescheduleBookingSchema,
+  RevenueAnalyticsSchema,
   SetBookingSplitSchema,
   UpdateSplitShareStatusSchema,
 } from "./model";
@@ -27,6 +30,7 @@ export const bookingsModule = new Elysia({
     },
     {
       body: CreateBookingSchema,
+      response: BookingResponseSchema,
       detail: { summary: "Create pending booking", tags: ["Bookings"] },
     },
   )
@@ -45,6 +49,7 @@ export const bookingsModule = new Elysia({
       );
     },
     {
+      response: OwnerDashboardSchema,
       detail: {
         summary: "Get venue owner dashboard summary",
         tags: ["Bookings"],
@@ -66,6 +71,7 @@ export const bookingsModule = new Elysia({
       );
     },
     {
+      response: RevenueAnalyticsSchema,
       detail: { summary: "Get venue revenue analytics", tags: ["Bookings"] },
     },
   )
@@ -79,6 +85,7 @@ export const bookingsModule = new Elysia({
     },
     {
       query: t.Optional(t.Object({ filter: t.Optional(t.String()) })),
+      response: t.Array(BookingResponseSchema),
       detail: { summary: "List current user's bookings", tags: ["Bookings"] },
     },
   )
@@ -89,6 +96,7 @@ export const bookingsModule = new Elysia({
       return bookingsService.findBookingForUser(params.id, authed.id);
     },
     {
+      response: t.Nullable(BookingResponseSchema),
       detail: { summary: "Get booking details by ID", tags: ["Bookings"] },
     },
   )
@@ -99,6 +107,7 @@ export const bookingsModule = new Elysia({
       return bookingsService.cancelBookingForUser(params.id, authed.id);
     },
     {
+      response: t.Any(),
       detail: {
         summary: "Cancel booking and determine refund",
         tags: ["Bookings"],
@@ -117,6 +126,7 @@ export const bookingsModule = new Elysia({
     },
     {
       body: RescheduleBookingSchema,
+      response: t.Any(),
       detail: {
         summary: "Reschedule booking time on same court",
         tags: ["Bookings"],
@@ -130,6 +140,7 @@ export const bookingsModule = new Elysia({
       return bookingSplitService.getSplit(params.id, authed.id);
     },
     {
+      response: t.Any(),
       detail: { summary: "Get split payment ledger", tags: ["Bookings"] },
     },
   )
@@ -141,6 +152,7 @@ export const bookingsModule = new Elysia({
     },
     {
       body: SetBookingSplitSchema,
+      response: t.Any(),
       detail: {
         summary: "Set split payment participants and amounts",
         tags: ["Bookings"],
@@ -172,6 +184,7 @@ export const bookingsModule = new Elysia({
     },
     {
       body: UpdateSplitShareStatusSchema,
+      response: t.Any(),
       detail: { summary: "Update split share status", tags: ["Bookings"] },
     },
   )
@@ -188,6 +201,7 @@ export const bookingsModule = new Elysia({
     },
     {
       body: CreateSharePaymentSchema,
+      response: t.Any(),
       detail: {
         summary: "Create payment intent for a split share",
         tags: ["Bookings"],
@@ -206,6 +220,7 @@ export const bookingsModule = new Elysia({
     },
     {
       body: CreateChargePaymentSchema,
+      response: t.Any(),
       detail: {
         summary: "Create payment intent for reschedule difference",
         tags: ["Bookings"],
@@ -219,6 +234,7 @@ export const bookingsModule = new Elysia({
       return bookingChargeService.markChargePaidForUser(params.id, authed.id);
     },
     {
+      response: t.Any(),
       detail: {
         summary: "Mark reschedule charge as paid (demo)",
         tags: ["Bookings"],

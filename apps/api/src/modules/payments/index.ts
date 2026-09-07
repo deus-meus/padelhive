@@ -1,7 +1,11 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { ensureAuth } from "../../common/auth.util";
 import { authPlugin } from "../../plugins/auth";
-import { CreatePaymentIntentSchema, MidtransWebhookSchema } from "./model";
+import {
+  CreatePaymentIntentSchema,
+  MidtransWebhookSchema,
+  PaymentResponseSchema,
+} from "./model";
 import { paymentsService } from "./service";
 
 export const paymentsModule = new Elysia({
@@ -17,6 +21,7 @@ export const paymentsModule = new Elysia({
     },
     {
       body: CreatePaymentIntentSchema,
+      response: PaymentResponseSchema,
       detail: { summary: "Create payment intent", tags: ["Payments"] },
     },
   )
@@ -27,6 +32,7 @@ export const paymentsModule = new Elysia({
       return paymentsService.findPaymentForUser(params.id, authed.id);
     },
     {
+      response: t.Nullable(PaymentResponseSchema),
       detail: { summary: "Get payment status by ID", tags: ["Payments"] },
     },
   )
@@ -37,6 +43,7 @@ export const paymentsModule = new Elysia({
       return paymentsService.markPaidForUser(params.id, authed.id);
     },
     {
+      response: PaymentResponseSchema,
       detail: { summary: "Mark demo payment as paid", tags: ["Payments"] },
     },
   )
@@ -49,6 +56,7 @@ export const paymentsModule = new Elysia({
     },
     {
       body: MidtransWebhookSchema,
+      response: t.Any(),
       detail: { summary: "Midtrans webhook handler", tags: ["Payments"] },
     },
   );

@@ -252,7 +252,7 @@ async function handleApplyVoucher() {
       amount,
     });
     if (res.data) {
-      voucherDiscount = res.data.discount;
+      voucherDiscount = res.data.discount ?? 0;
     }
   } catch (err: any) {
     voucherError = err.message || "Invalid voucher code";
