@@ -177,7 +177,7 @@ onMount(() => {
 </svelte:head>
 
 <div
-  class="relative w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#071521] shadow-xl"
+  class="relative z-0 isolate w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#071521] shadow-xl"
   style="height: {height};"
 >
   {#if isMapLoading}
@@ -197,6 +197,7 @@ onMount(() => {
   :global(.leaflet-container) {
     background-color: #071521 !important;
     font-family: inherit;
+    isolation: isolate;
   }
   :global(.leaflet-tile-pane) {
     filter: invert(100%) hue-rotate(180deg) brightness(0.85) contrast(1.15);
@@ -219,11 +220,20 @@ onMount(() => {
     background: transparent !important;
     color: #f7f7f7 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    outline: none !important;
   }
   :global(.leaflet-control-zoom-in:hover),
-  :global(.leaflet-control-zoom-out:hover) {
+  :global(.leaflet-control-zoom-out:hover),
+  :global(.leaflet-control-zoom-in:active),
+  :global(.leaflet-control-zoom-out:active),
+  :global(.leaflet-control-zoom-in:focus),
+  :global(.leaflet-control-zoom-out:focus) {
     background: rgba(80, 200, 200, 0.15) !important;
     color: #50c8c8 !important;
+    outline: none !important;
   }
   :global(.leaflet-popup-content-wrapper) {
     background: #0c1b26 !important;
@@ -236,6 +246,8 @@ onMount(() => {
   :global(.leaflet-popup-content) {
     margin: 10px 14px !important;
     line-height: 1.4 !important;
+    user-select: none;
+    -webkit-user-select: none;
   }
   :global(.leaflet-container a.leaflet-popup-close-button) {
     color: rgba(247, 247, 247, 0.5) !important;
@@ -243,10 +255,22 @@ onMount(() => {
     font-size: 16px !important;
     font-weight: bold;
     transition: color 0.2s ease;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
-  :global(.leaflet-container a.leaflet-popup-close-button:hover) {
+  :global(.leaflet-container a.leaflet-popup-close-button:hover),
+  :global(.leaflet-container a.leaflet-popup-close-button:active),
+  :global(.leaflet-container a.leaflet-popup-close-button:focus),
+  :global(.leaflet-container a.leaflet-popup-close-button:focus-visible) {
     color: #50c8c8 !important;
     background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
   }
   :global(.leaflet-popup-tip) {
     background: #0c1b26 !important;

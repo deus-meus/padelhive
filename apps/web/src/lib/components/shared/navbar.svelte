@@ -95,7 +95,7 @@ function handleLogout() {
 
 <header
   class="fixed top-0 z-50 w-full transition-all duration-300 ease-out {mobileOpen
-    ? 'glass-nav'
+    ? 'glass-nav shadow-[0_8px_30px_rgba(0,0,0,0.5)]'
     : scrolled
       ? 'bg-[#06121A]/90 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)]'
       : 'bg-transparent backdrop-blur-none border-b border-transparent shadow-none'}"
