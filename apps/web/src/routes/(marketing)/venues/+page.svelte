@@ -73,7 +73,7 @@ $effect(() => {
   const query = search;
   const timer = setTimeout(() => {
     debouncedSearch = query;
-  }, 300);
+  }, 500);
 
   return () => clearTimeout(timer);
 });
