@@ -31,9 +31,56 @@ let isLoadingVenue = $state(true);
 let isLoadingCourts = $state(true);
 let isLoadingReviews = $state(true);
 
-const IMG = {
-  gallery: [padelImg(1200, 85), padelImg(600), padelImg(600), padelImg(600)],
-};
+const DEFAULT_GALLERY = [
+  padelImg(1200, 85),
+  padelImg(600),
+  padelImg(600),
+  padelImg(600),
+];
+
+const galleryImages = $derived.by(() => {
+  if (!venue) return DEFAULT_GALLERY;
+
+  const photos: string[] = [];
+
+  if (
+    venue.imageUrl &&
+    typeof venue.imageUrl === "string" &&
+    venue.imageUrl.trim() !== ""
+  ) {
+    photos.push(venue.imageUrl.trim());
+  }
+
+  if (Array.isArray(venue.photos)) {
+    for (const photo of venue.photos) {
+      if (
+        typeof photo === "string" &&
+        photo.trim() !== "" &&
+        !photos.includes(photo.trim())
+      ) {
+        photos.push(photo.trim());
+      }
+    }
+  }
+
+  return photos.length > 0 ? photos : DEFAULT_GALLERY;
+});
+
+function handleMainImageError(e: Event) {
+  const target = e.currentTarget as HTMLImageElement;
+  const fallback = padelImg(1200, 85);
+  if (target && target.src !== fallback) {
+    target.src = fallback;
+  }
+}
+
+function handleSideImageError(e: Event) {
+  const target = e.currentTarget as HTMLImageElement;
+  const fallback = padelImg(600);
+  if (target && target.src !== fallback) {
+    target.src = fallback;
+  }
+}
 
 const TIME_SLOTS = [
   { time: "06:00", available: true, peak: false },
@@ -141,24 +188,26 @@ const weekDays = [
         <div class="relative col-span-2 md:row-span-2">
           <div class="h-[240px] overflow-hidden rounded-2xl md:h-full border border-white/[0.06]">
             <img
-              src={IMG.gallery[0]}
+              src={galleryImages[0]}
               alt={venue.name}
               class="h-full w-full object-cover"
+              onerror={handleMainImageError}
             />
           </div>
           <div
             class="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm border border-white/10"
           >
-            <span class="caption text-white/90 font-medium"> 1 / 4 </span>
+            <span class="caption text-white/90 font-medium"> 1 / {galleryImages.length} </span>
           </div>
         </div>
-        {#each IMG.gallery.slice(1) as src, i}
+        {#each galleryImages.slice(1, 4) as src, i}
           <div class={i === 0 ? "block" : "hidden md:block"}>
             <div class="h-[116px] overflow-hidden rounded-2xl md:h-[200px] border border-white/[0.06]">
               <img
                 src={src}
                 alt={`${venue.name} ${i + 2}`}
                 class="h-full w-full object-cover"
+                onerror={handleSideImageError}
               />
             </div>
           </div>
