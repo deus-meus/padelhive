@@ -57,6 +57,7 @@ const IMG = {
 };
 
 let search = $state("");
+let debouncedSearch = $state("");
 let city = $state("All");
 let courtType = $state("all");
 let ratingMin = $state("all");
@@ -67,6 +68,15 @@ let showMobileFilters = $state(false);
 
 let apiVenues = $state<any[]>([]);
 let isLoading = $state(true);
+
+$effect(() => {
+  const query = search;
+  const timer = setTimeout(() => {
+    debouncedSearch = query;
+  }, 300);
+
+  return () => clearTimeout(timer);
+});
 
 async function loadVenues() {
   isLoading = true;
@@ -81,7 +91,7 @@ async function loadVenues() {
 
     const res = await api.venues.get({
       query: {
-        q: search || undefined,
+        q: debouncedSearch || undefined,
         city: city !== "All" ? city : undefined,
         type: courtType !== "all" ? courtType : undefined,
         rating: ratingMin !== "all" ? ratingMin : undefined,
@@ -128,6 +138,7 @@ function toggleFacility(f: string) {
 
 function handleClearFilters() {
   search = "";
+  debouncedSearch = "";
   city = "All";
   courtType = "all";
   ratingMin = "all";
