@@ -3,10 +3,14 @@ import {
   AlertTriangle,
   ArrowLeft,
   CalendarDays,
+  CalendarPlus,
   Clock,
   Copy,
   CreditCard,
+  Download,
+  ExternalLink,
   MapPin,
+  MessageCircle,
   Share2,
   ShieldCheck,
   ShieldX,
@@ -18,6 +22,11 @@ import {
 import { page } from "$app/state";
 import { api } from "$lib/api/client";
 import { authStore } from "$lib/auth/store.svelte";
+import {
+  downloadIcsFile,
+  getGoogleCalendarUrl,
+  getWhatsAppShareUrl,
+} from "$lib/calendar";
 import { formatBookingDate, formatBookingTimeRange } from "$lib/format";
 import { padelImg } from "$lib/images";
 
@@ -30,6 +39,7 @@ let reviewComment = $state("");
 let isSubmittingReview = $state(false);
 let reviewError = $state<string | null>(null);
 let reviewSubmitted = $state(false);
+let showCalendarMenu = $state(false);
 
 // Cancel modal states
 let showCancelModal = $state(false);
@@ -377,6 +387,54 @@ function getPaymentStyle(status: string) {
           <div class="rounded-2xl border border-white/[0.06] bg-[#0C1B26] p-6 space-y-4">
             <p class="section-label">Actions</p>
             <div class="space-y-2">
+              <div class="relative">
+                <button
+                  type="button"
+                  onclick={() => (showCalendarMenu = !showCalendarMenu)}
+                  class="heading-3 w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-[#F7F7F7]/60 transition-colors hover:bg-white/[0.04] hover:text-[#F7F7F7]"
+                >
+                  <CalendarPlus class="h-4 w-4 text-[#E6FA50]" />
+                  Add to Calendar
+                </button>
+                {#if showCalendarMenu}
+                  <div
+                    class="absolute left-0 right-0 mt-2 z-20 rounded-xl border border-white/[0.1] bg-[#06121A] p-1.5 shadow-2xl space-y-1"
+                  >
+                    <a
+                      href={getGoogleCalendarUrl(currentBooking)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onclick={() => (showCalendarMenu = false)}
+                      class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-[#F7F7F7]/80 hover:bg-white/[0.06] hover:text-[#F7F7F7] transition-colors"
+                    >
+                      <ExternalLink class="h-3.5 w-3.5 text-[#50C8C8]" />
+                      Google Calendar
+                    </a>
+                    <button
+                      type="button"
+                      onclick={() => {
+                        downloadIcsFile(currentBooking);
+                        showCalendarMenu = false;
+                      }}
+                      class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-[#F7F7F7]/80 hover:bg-white/[0.06] hover:text-[#F7F7F7] transition-colors"
+                    >
+                      <Download class="h-3.5 w-3.5 text-[#E6FA50]" />
+                      Download iCal (.ics)
+                    </button>
+                  </div>
+                {/if}
+              </div>
+
+              <a
+                href={getWhatsAppShareUrl(currentBooking)}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="heading-3 w-full flex items-center gap-3 rounded-xl bg-white/[0.02] px-4 py-3 text-[#25D366] transition-colors hover:bg-[#25D366]/10"
+              >
+                <MessageCircle class="h-4 w-4 text-[#25D366]" />
+                Share match to WhatsApp
+              </a>
+
               <button
                 type="button"
                 onclick={handleShareInvite}
